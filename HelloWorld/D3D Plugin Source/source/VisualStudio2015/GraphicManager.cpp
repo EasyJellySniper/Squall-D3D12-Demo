@@ -130,11 +130,6 @@ void GraphicManager::Render()
 	// wake up render thread
 	SetEvent(beginRenderThread);
 
-	// Signal and increment the fence value.
-	graphicFences[currFrameIndex] = mainFenceValue;
-	mainGraphicQueue->Signal(mainGraphicFence.Get(), mainFenceValue);
-	mainFenceValue++;
-
 #if defined(GRAPHICTIME)
 	TIMER_STOP
 	gameTime.renderTime = elapsedTime;
@@ -296,6 +291,11 @@ void GraphicManager::RenderThread()
 				gameTime.gpuTime += ForwardRenderingPath::Instance().RenderLoop(cams[i]);
 			}
 		}
+
+		// Signal and increment the fence value.
+		graphicFences[currFrameIndex] = mainFenceValue;
+		mainGraphicQueue->Signal(mainGraphicFence.Get(), mainFenceValue);
+		mainFenceValue++;
 
 #if defined(GRAPHICTIME)
 		TIMER_STOP
