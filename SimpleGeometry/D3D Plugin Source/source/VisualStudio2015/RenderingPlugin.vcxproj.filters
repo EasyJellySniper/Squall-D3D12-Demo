@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\..\source\PlatformBase.h" />
+    <ClInclude Include="..\..\source\RenderAPI.h" />
+    <ClInclude Include="..\..\source\GLEW\glew.h">
+      <Filter>GLEW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\GLEW\glxew.h">
+      <Filter>GLEW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\GLEW\wglew.h">
+      <Filter>GLEW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\Unity\IUnityGraphics.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\Unity\IUnityGraphicsD3D9.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\Unity\IUnityGraphicsD3D11.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\Unity\IUnityGraphicsD3D12.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\Unity\IUnityGraphicsMetal.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\Unity\IUnityInterface.h">
+      <Filter>Unity</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicManager.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraManager.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="RenderingPath.h" />
+    <ClInclude Include="ForwardRenderingPath.h" />
+    <ClInclude Include="FrameResource.h" />
+    <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="GameTime.h" />
+    <ClInclude Include="MeshManager.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MaterialManager.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShaderManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\source\RenderAPI.cpp" />
+    <ClCompile Include="..\..\source\RenderingPlugin.cpp" />
+    <ClCompile Include="..\..\source\GLEW\glew.c">
+      <Filter>GLEW</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\RenderAPI_D3D12.cpp" />
+    <ClCompile Include="GraphicManager.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraManager.cpp" />
+    <ClCompile Include="ForwardRenderingPath.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshManager.cpp" />
+    <ClCompile Include="MaterialManager.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="GLEW">
+      <UniqueIdentifier>{b44f992b-edcc-4980-b164-3dabfa390292}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Unity">
+      <UniqueIdentifier>{c01468d4-90d4-4d19-9a9b-ee2f1b5e9083}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\RenderingPlugin.def" />
+  </ItemGroup>
+</Project>
