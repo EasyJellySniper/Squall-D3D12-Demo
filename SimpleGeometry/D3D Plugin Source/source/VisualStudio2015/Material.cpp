@@ -16,3 +16,8 @@ void Material::Release()
 {
 	pso.Reset();
 }
+
+ID3D12PipelineState * Material::GetPSO()
+{
+	return pso.Get();
+}

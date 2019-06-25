@@ -34,5 +34,7 @@ private:
 
 	const wstring shaderPath = L"Assets//Shaders//";
 	vector<unique_ptr<Shader>> shaders;
+
+	// default rs and descriptors
 	ComPtr<ID3D12RootSignature> defaultRootSignature = nullptr;
 };

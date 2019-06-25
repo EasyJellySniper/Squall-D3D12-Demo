@@ -14,6 +14,7 @@ class Material
 public:
 	bool Initialize(MaterialData _materialData);
 	void Release();
+	ID3D12PipelineState* GetPSO();
 
 private:
 	MaterialData matData;

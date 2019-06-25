@@ -1,5 +1,9 @@
 #pragma once
 #include "Camera.h"
+#include <DirectXMath.h>
+#include "UploadBuffer.h"
+#include "FrameResource.h"
+using namespace Microsoft;
 
 enum RenderingPathType
 {
@@ -10,7 +14,7 @@ enum RenderingPathType
 class RenderingPath
 {
 public:
-	virtual float RenderLoop(Camera _camera) = 0;
+	virtual float RenderLoop(Camera _camera, int _frameIdx) = 0;
 
 private:
 	RenderingPathType renderingPath;

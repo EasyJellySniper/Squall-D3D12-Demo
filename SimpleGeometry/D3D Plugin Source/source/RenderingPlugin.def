@@ -15,5 +15,8 @@ EXPORTS
    AddCamera
    RemoveCamera
    SetViewProjMatrix
+   SetViewPortScissorRect
    SetWorldMatrix
    GetGameTime
+   AddMesh
+   AddRenderer

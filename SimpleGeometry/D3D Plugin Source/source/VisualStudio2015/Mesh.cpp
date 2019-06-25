@@ -79,3 +79,28 @@ void Mesh::SetWorld(XMFLOAT4X4 _world)
 	// remember to transpose once before setting to constant buffer
 	world = _world;
 }
+
+XMFLOAT4X4 Mesh::GetWorld()
+{
+	return world;
+}
+
+D3D12_VERTEX_BUFFER_VIEW Mesh::GetVertexBufferView()
+{
+	if (vbv.size() == 0)
+	{
+		return D3D12_VERTEX_BUFFER_VIEW();
+	}
+
+	return vbv[0];
+}
+
+D3D12_INDEX_BUFFER_VIEW Mesh::GetIndexBufferView()
+{
+	return ibv;
+}
+
+vector<SubMesh> Mesh::GetSubmeshes()
+{
+	return submeshes;
+}

@@ -11,8 +11,8 @@ using namespace std;
 using namespace Microsoft::WRL;
 
 // frame resource
-const static int FrameCount = 3;
 #include "FrameResource.h"
+#include "UploadBuffer.h"
 
 // game time
 #include "GameTime.h"
@@ -57,6 +57,7 @@ private:
 	HRESULT CreateGraphicCommand();
 	HRESULT CreateGraphicFences();
 	bool CreateGraphicThreads();
+	void DrawCamera();
 
 	ID3D12Device *mainDevice;
 	ComPtr<ID3D12CommandQueue> mainGraphicQueue;

@@ -17,6 +17,10 @@ public class SqCamera : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _viewProj);
 
+
+    [DllImport("SquallGraphics")]
+    static extern void SetViewPortScissorRect(int _instanceID, ViewPort _viewPort, RawRect _rawRect);
+
     /// <summary>
     /// msaa factor
     /// </summary>
@@ -69,6 +73,30 @@ public class SqCamera : MonoBehaviour
         public IntPtr depthTarget;
     }
 
+    struct ViewPort
+    {
+        /// <summary>
+        /// view port data
+        /// </summary>
+        public float TopLeftX;
+        public float TopLeftY;
+        public float Width;
+        public float Height;
+        public float MinDepth;
+        public float MaxDepth;
+    }
+
+    struct RawRect
+    {
+        /// <summary>
+        /// raw rect data
+        /// </summary>
+        public long left;
+        public long top;
+        public long right;
+        public long bottom;
+    }
+
     /// <summary>
     /// msaa sample
     /// </summary>
@@ -106,10 +134,12 @@ public class SqCamera : MonoBehaviour
 
     void Update()
     {
+        int instanceID = attachedCam.GetInstanceID();
+
         // check aa change
         if (lastMsaaSample != msaaSample)
         {
-            RemoveCamera(attachedCam.GetInstanceID());
+            RemoveCamera(instanceID);
             OnDestroy();
             Start();
         }
@@ -118,8 +148,25 @@ public class SqCamera : MonoBehaviour
         if (transform.hasChanged)
         {
             Matrix4x4 viewProj = attachedCam.worldToCameraMatrix * GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true);
-            SetViewProjMatrix(attachedCam.GetInstanceID(), viewProj);
+            SetViewProjMatrix(instanceID, viewProj);
             transform.hasChanged = false;
+
+            Rect viewRect = attachedCam.pixelRect;
+            ViewPort vp;
+            vp.TopLeftX = viewRect.xMin;
+            vp.TopLeftY = viewRect.yMin;
+            vp.Width = viewRect.width;
+            vp.Height = viewRect.height;
+            vp.MinDepth = 0f;
+            vp.MaxDepth = 1f;
+
+            RawRect rr;
+            rr.left = 0;
+            rr.top = 0;
+            rr.right = (long)viewRect.width;
+            rr.bottom = (long)viewRect.height;
+
+            SetViewPortScissorRect(instanceID, vp, rr);
         }
 
         lastMsaaSample = msaaSample;

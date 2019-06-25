@@ -196,6 +196,32 @@ void Camera::SetViewProj(XMFLOAT4X4 _viewProj)
 	viewProj = _viewProj;
 }
 
+void Camera::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
+{
+	viewPort = _viewPort;
+	scissorRect = _scissorRect;
+}
+
+D3D12_VIEWPORT Camera::GetViewPort()
+{
+	return viewPort;
+}
+
+D3D12_RECT Camera::GetScissorRect()
+{
+	return scissorRect;
+}
+
+XMFLOAT4X4 Camera::GetViewProj()
+{
+	return viewProj;
+}
+
+Material Camera::GetDebugMaterial()
+{
+	return debugWireFrame;
+}
+
 HRESULT Camera::CreateRtvDescriptorHeaps()
 {
 	HRESULT hr = S_OK;
@@ -368,7 +394,6 @@ bool Camera::CreateDebugMaterial()
 	desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;	// change depth func to greater since we use reversed-z depth
 
 	auto layout = MeshManager::Instance().GetDefaultInputLayout();
 	desc.InputLayout.pInputElementDescs = layout.data();

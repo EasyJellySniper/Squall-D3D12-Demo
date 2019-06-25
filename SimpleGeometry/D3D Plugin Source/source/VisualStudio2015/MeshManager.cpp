@@ -52,6 +52,16 @@ void MeshManager::SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world)
 	}
 }
 
+Mesh * MeshManager::GetMesh(int _instanceID)
+{
+	if (meshes.find(_instanceID) != meshes.end())
+	{
+		return &meshes[_instanceID];
+	}
+
+	return nullptr;
+}
+
 vector<D3D12_INPUT_ELEMENT_DESC> MeshManager::GetDefaultInputLayout()
 {
 	return defaultInputLayout;

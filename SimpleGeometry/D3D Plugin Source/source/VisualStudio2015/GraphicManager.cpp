@@ -46,32 +46,14 @@ void GraphicManager::Release()
 
 	for (int i = 0; i < FrameCount; i++)
 	{
-		if (mainGraphicAllocator[i])
-		{
-			mainGraphicAllocator[i].Reset();
-		}
-
-		if (mainGraphicList[i])
-		{
-			mainGraphicList[i].Reset();
-		}
+		mainGraphicAllocator[i].Reset();
+		mainGraphicList[i].Reset();
 	}
 
 
-	if (mainGraphicQueue)
-	{
-		mainGraphicQueue.Reset();
-	}
-
-	if (gpuTimeQuery)
-	{
-		gpuTimeQuery.Reset();
-	}
-
-	if (gpuTimeResult)
-	{
-		gpuTimeResult.Reset();
-	}
+	mainGraphicQueue.Reset();
+	gpuTimeQuery.Reset();
+	gpuTimeResult.Reset();
 
 	mainDevice = nullptr;
 }
@@ -253,6 +235,19 @@ bool GraphicManager::CreateGraphicThreads()
 	return result;
 }
 
+void GraphicManager::DrawCamera()
+{
+	vector<Camera> cams = CameraManager::Instance().GetCameras();
+	for (size_t i = 0; i < cams.size(); i++)
+	{
+		// render path
+		if (cams[i].GetCameraData().renderingPath == RenderingPathType::Forward)
+		{
+			gameTime.gpuTime += ForwardRenderingPath::Instance().RenderLoop(cams[i], currFrameIndex);
+		}
+	}
+}
+
 void GraphicManager::WaitForGPU()
 {
 	if (mainGraphicFence)
@@ -286,16 +281,8 @@ void GraphicManager::RenderThread()
 		TIMER_START
 		gameTime.renderThreadTime = 0.0f;
 #endif
-		// lock camera data
-		vector<Camera> cams = CameraManager::Instance().GetCameras();
-		for (size_t i = 0; i < cams.size(); i++)
-		{
-			// forward render path
-			if (cams[i].GetCameraData().renderingPath == RenderingPathType::Forward)
-			{
-				gameTime.gpuTime += ForwardRenderingPath::Instance().RenderLoop(cams[i]);
-			}
-		}
+
+		DrawCamera();
 
 		// Signal and increment the fence value.
 		graphicFences[currFrameIndex] = mainFenceValue;

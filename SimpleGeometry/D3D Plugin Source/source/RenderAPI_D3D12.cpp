@@ -11,6 +11,7 @@
 #include "VisualStudio2015/MeshManager.h"
 #include "VisualStudio2015/MaterialManager.h"
 #include "VisualStudio2015/ShaderManager.h"
+#include "VisualStudio2015/RendererManager.h"
 #include "Unity/IUnityGraphicsD3D12.h"
 
 class RenderAPI_D3D12 : public RenderAPI
@@ -83,6 +84,7 @@ void RenderAPI_D3D12::ReleaseResources()
 	MeshManager::Instance().Release();
 	MaterialManager::Instance().Release();
 	ShaderManager::Instance().Release();
+	RendererManager::Instance().Release();
 }
 
 int RenderAPI_D3D12::GetRenderThreadCount()

@@ -84,6 +84,11 @@ public class SqMeshFilter : MonoBehaviour
     MeshData meshData;
     Mesh mesh;
 
+    /// <summary>
+    /// main mesh
+    /// </summary>
+    public Mesh MainMesh { get { return mesh; } }
+
 	void Start ()
     {
         mesh = GetComponent<MeshFilter>().sharedMesh;

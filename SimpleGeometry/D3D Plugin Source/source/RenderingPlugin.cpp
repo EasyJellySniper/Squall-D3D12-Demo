@@ -6,6 +6,7 @@
 #include "VisualStudio2015/GraphicManager.h"
 #include "VisualStudio2015/GameTime.h"
 #include "VisualStudio2015/MeshManager.h"
+#include "VisualStudio2015/RendererManager.h"
 
 #include <assert.h>
 
@@ -52,6 +53,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewProjMatrix(int
 	CameraManager::Instance().SetViewProjMatrix(_instanceID, _viewProj);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
+{
+	CameraManager::Instance().SetViewPortScissorRect(_instanceID, _viewPort, _scissorRect);
+}
+
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world)
 {
 	MeshManager::Instance().SetWorldMatrix(_instanceID, _world);
@@ -65,6 +71,11 @@ extern "C" GameTime UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetGameTime()
 extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddMesh(int _instanceID, MeshData _MeshData)
 {
 	return MeshManager::Instance().AddMesh(_instanceID, _MeshData);
+}
+
+extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddRenderer(int _instanceID, int _meshInstanceID)
+{
+	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID);
 }
 
 // --------------------------------------------------------------------------
