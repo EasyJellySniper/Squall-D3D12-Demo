@@ -8,8 +8,9 @@
 bool Camera::Initialize(CameraData _cameraData)
 {
 	cameraData = _cameraData;
-
 	numOfRenderTarget = 0;
+	msaaQuality = 0;
+
 	for (int i = 0; i < MaxRenderTargets; i++)
 	{
 		renderTarget.push_back((ID3D12Resource*)cameraData.renderTarget[i]);
@@ -31,15 +32,17 @@ bool Camera::Initialize(CameraData _cameraData)
 
 		numOfRenderTarget++;
 
+		// get target desc here
+		D3D12_RESOURCE_DESC srcDesc = renderTarget[i]->GetDesc();
+		renderTarrgetDesc[i] = srcDesc;
+		renderTarrgetDesc[i].Format = GetColorFormat(srcDesc.Format);
+
 		// create msaa target if necessary
 		if (cameraData.allowMSAA > 1)
 		{
 			HRESULT hr = S_OK;
 
 			ComPtr<ID3D12Resource> aaTarget;
-			D3D12_RESOURCE_DESC srcDesc = renderTarget[i]->GetDesc();
-			renderTarrgetDesc[i] = srcDesc;
-			renderTarrgetDesc[i].Format = GetColorFormat(renderTarrgetDesc[i].Format);
 			srcDesc.SampleDesc.Count = cameraData.allowMSAA;
 
 			// check aa quality
@@ -141,6 +144,7 @@ void Camera::Release()
 	rtvHandle.Reset();
 	msaaRtvHandle.Reset();
 	dsvHandle.Reset();
+	msaaDsvHandle.Reset();
 
 	for (size_t i = 0; i < msaaTarget.size(); i++)
 	{
@@ -174,6 +178,11 @@ ID3D12Resource * Camera::GetMsaaRtvSrc(int _index)
 	return msaaTarget[_index].Get();
 }
 
+ID3D12Resource * Camera::GetMsaaDsvSrc()
+{
+	return msaaDepthTarget.Get();
+}
+
 ID3D12DescriptorHeap * Camera::GetRtv()
 {
 	return rtvHandle.Get();
@@ -189,11 +198,16 @@ ID3D12DescriptorHeap * Camera::GetDsv()
 	return dsvHandle.Get();
 }
 
-void Camera::SetViewProj(XMFLOAT4X4 _viewProj)
+ID3D12DescriptorHeap * Camera::GetMsaaDsv()
+{
+	return msaaDsvHandle.Get();
+}
+
+void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj)
 {
 	// data from unity is column major, while d3d matrix use row major
-	// remember to transpose once before setting to constant buffer
-	viewProj = _viewProj;
+	viewMatrix = _view;
+	projMatrix = _proj;
 }
 
 void Camera::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
@@ -212,9 +226,14 @@ D3D12_RECT Camera::GetScissorRect()
 	return scissorRect;
 }
 
-XMFLOAT4X4 Camera::GetViewProj()
+XMFLOAT4X4 Camera::GetViewMatrix()
 {
-	return viewProj;
+	return viewMatrix;
+}
+
+XMFLOAT4X4 Camera::GetProjMatrix()
+{
+	return projMatrix;
 }
 
 Material Camera::GetDebugMaterial()
@@ -254,7 +273,14 @@ HRESULT Camera::CreateDsvDescriptorHeaps()
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	dsvHeapDesc.NodeMask = 0;
 
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHandle.GetAddressOf())), hr);
+	if (cameraData.allowMSAA == 1)
+	{
+		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHandle.GetAddressOf())), hr);
+	}
+	else
+	{
+		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(msaaDsvHandle.GetAddressOf())), hr);
+	}
 
 	return hr;
 }
@@ -288,8 +314,6 @@ void Camera::CreateRtv()
 				D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 				rtvDesc.Format = renderTarrgetDesc[i].Format;
 				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
-				rtvDesc.Texture2D.MipSlice = 0;
-				rtvDesc.Texture2D.PlaneSlice = 0;
 
 				GraphicManager::Instance().GetDevice()->CreateRenderTargetView(msaaTarget[i].Get(), &rtvDesc, aaHandle);
 			}
@@ -302,14 +326,21 @@ void Camera::CreateDsv()
 {
 	D3D12_RESOURCE_DESC dsvRrcDesc = depthTarget->GetDesc();
 	depthTargetDesc = dsvRrcDesc;
-	depthTargetDesc.Format = GetDepthFormat(depthTargetDesc.Format);
-	DXGI_FORMAT depthStencilFormat = GetDepthFormat(dsvRrcDesc.Format);
+	depthTargetDesc.Format = GetDepthFormat(dsvRrcDesc.Format);
+	DXGI_FORMAT depthStencilFormat = depthTargetDesc.Format;
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
 	depthStencilViewDesc.Format = depthStencilFormat;
 	depthStencilViewDesc.ViewDimension = (cameraData.allowMSAA > 1) ? D3D12_DSV_DIMENSION_TEXTURE2DMS : D3D12_DSV_DIMENSION_TEXTURE2D;
 
-	GraphicManager::Instance().GetDevice()->CreateDepthStencilView(depthTarget, &depthStencilViewDesc, dsvHandle->GetCPUDescriptorHandleForHeapStart());
+	if (cameraData.allowMSAA == 1)
+	{
+		GraphicManager::Instance().GetDevice()->CreateDepthStencilView(depthTarget, &depthStencilViewDesc, dsvHandle->GetCPUDescriptorHandleForHeapStart());
+	}
+	else
+	{
+		GraphicManager::Instance().GetDevice()->CreateDepthStencilView(msaaDepthTarget.Get(), &depthStencilViewDesc, msaaDsvHandle->GetCPUDescriptorHandleForHeapStart());
+	}
 }
 
 DXGI_FORMAT Camera::GetColorFormat(DXGI_FORMAT _typelessFormat)
@@ -391,9 +422,9 @@ bool Camera::CreateDebugMaterial()
 	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	desc.SampleMask = UINT_MAX;
 	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-	desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	desc.RasterizerState.FrontCounterClockwise = true;
 	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
 
 	auto layout = MeshManager::Instance().GetDefaultInputLayout();
 	desc.InputLayout.pInputElementDescs = layout.data();
@@ -403,7 +434,7 @@ bool Camera::CreateDebugMaterial()
 
 	for (int i = 0; i < numOfRenderTarget; i++)
 	{
-		desc.RTVFormats[0] = renderTarrgetDesc[i].Format;
+		desc.RTVFormats[i] = renderTarrgetDesc[i].Format;
 	}
 
 	desc.DSVFormat = depthTargetDesc.Format;

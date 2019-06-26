@@ -10,7 +10,6 @@ float ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 {
 	// get frame resource
 	FrameResource fr = GraphicManager::Instance().GetFrameResource();
-	CameraData camData = _camera.GetCameraData();
 
 	// reset graphic allocator & command list
 	LogIfFailedWithoutHR(fr.mainGraphicAllocator->Reset());
@@ -60,18 +59,26 @@ void ForwardRenderingPath::BeginFrame(Camera _camera, ID3D12GraphicsCommandList 
 
 	// transition resource state to render target
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
-		, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDsvSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+		, D3D12_RESOURCE_STATE_COMMON
+		, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+	// transition to depth write
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetDsvSrc()
+		, D3D12_RESOURCE_STATE_COMMON
+		, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	// clear render target view and depth view (reversed-z)
 	_cmdList->ClearRenderTargetView((camData.allowMSAA > 1) ? _camera.GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : _camera.GetRtv()->GetCPUDescriptorHandleForHeapStart()
 		, camData.clearColor, 0, nullptr);
-	_cmdList->ClearDepthStencilView(_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+	_cmdList->ClearDepthStencilView((camData.allowMSAA > 1) ? _camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : _camera.GetDsv()->GetCPUDescriptorHandleForHeapStart()
+		, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL
+		, 0.0f, 0, 0, nullptr);
 
 	_cmdList->OMSetRenderTargets(1,
 		(camData.allowMSAA > 1) ? &_camera.GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetRtv()->GetCPUDescriptorHandleForHeapStart(),
 		true,
-		&_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		(camData.allowMSAA > 1) ? &_camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
 
 	// set root signature
 	_cmdList->SetGraphicsRootSignature(ShaderManager::Instance().GetDefaultRS());
@@ -91,10 +98,11 @@ void ForwardRenderingPath::DrawScene(Camera _camera, ID3D12GraphicsCommandList *
 		}
 
 		XMFLOAT4X4 world = m->GetWorld();
-		XMFLOAT4X4 viewProj = _camera.GetViewProj();
+		XMFLOAT4X4 view = _camera.GetViewMatrix();
+		XMFLOAT4X4 proj = _camera.GetProjMatrix();
 
 		SystemConstant sc;
-		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world)*XMLoadFloat4x4(&viewProj));
+		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world) * XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
 		r.second->UpdateSystemConstant(sc, _frameIdx);
 	}
 
@@ -102,7 +110,7 @@ void ForwardRenderingPath::DrawScene(Camera _camera, ID3D12GraphicsCommandList *
 	_cmdList->SetPipelineState(_camera.GetDebugMaterial().GetPSO());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// render mesh
+	//// render mesh
 	for (auto &r : renderers)
 	{
 		Mesh *m = r.second->GetMesh();
@@ -132,9 +140,13 @@ void ForwardRenderingPath::EndFrame(Camera _camera, ID3D12GraphicsCommandList * 
 	CameraData camData = _camera.GetCameraData();
 
 	// transition resource back to common
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0), D3D12_RESOURCE_STATE_RENDER_TARGET
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
+		, D3D12_RESOURCE_STATE_RENDER_TARGET
 		, (camData.allowMSAA > 1) ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_COMMON));
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
+
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetDsvSrc()
+		, D3D12_RESOURCE_STATE_DEPTH_WRITE
+		, D3D12_RESOURCE_STATE_COMMON));
 
 	// resolve to non-AA target if MSAA enabled
 	if (camData.allowMSAA > 1)

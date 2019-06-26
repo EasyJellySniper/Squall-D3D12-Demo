@@ -35,14 +35,17 @@ public:
 	ID3D12Resource *GetRtvSrc(int _index);
 	ID3D12Resource *GetDsvSrc();
 	ID3D12Resource *GetMsaaRtvSrc(int _index);
+	ID3D12Resource *GetMsaaDsvSrc();
 	ID3D12DescriptorHeap *GetRtv();
 	ID3D12DescriptorHeap *GetMsaaRtv();
 	ID3D12DescriptorHeap *GetDsv();
-	void SetViewProj(XMFLOAT4X4 _viewProj);
+	ID3D12DescriptorHeap *GetMsaaDsv();
+	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
-	XMFLOAT4X4 GetViewProj();
+	XMFLOAT4X4 GetViewMatrix();
+	XMFLOAT4X4 GetProjMatrix();
 	Material GetDebugMaterial();
 
 private:
@@ -74,12 +77,14 @@ private:
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;
 	ComPtr<ID3D12DescriptorHeap> msaaRtvHandle;
 	ComPtr<ID3D12DescriptorHeap> dsvHandle;
+	ComPtr<ID3D12DescriptorHeap> msaaDsvHandle;
 
 	// debug material
 	Material debugWireFrame;
 
 	// matrix and view port
-	XMFLOAT4X4 viewProj;
+	XMFLOAT4X4 viewMatrix;
+	XMFLOAT4X4 projMatrix;
 	D3D12_VIEWPORT viewPort;
 	D3D12_RECT scissorRect;
 };

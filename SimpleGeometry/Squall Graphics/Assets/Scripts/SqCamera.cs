@@ -15,7 +15,7 @@ public class SqCamera : MonoBehaviour
     static extern void RemoveCamera(int _instanceID);
 
     [DllImport("SquallGraphics")]
-    static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _viewProj);
+    static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _view, Matrix4x4 _proj);
 
 
     [DllImport("SquallGraphics")]
@@ -91,10 +91,10 @@ public class SqCamera : MonoBehaviour
         /// <summary>
         /// raw rect data
         /// </summary>
-        public long left;
-        public long top;
-        public long right;
-        public long bottom;
+        public int left;
+        public int top;
+        public int right;
+        public int bottom;
     }
 
     /// <summary>
@@ -142,14 +142,13 @@ public class SqCamera : MonoBehaviour
             RemoveCamera(instanceID);
             OnDestroy();
             Start();
+            transform.hasChanged = true;
         }
 
         // update VP matrix
         if (transform.hasChanged)
         {
-            Matrix4x4 viewProj = attachedCam.worldToCameraMatrix * GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true);
-            SetViewProjMatrix(instanceID, viewProj);
-            transform.hasChanged = false;
+            SetViewProjMatrix(instanceID, attachedCam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true));
 
             Rect viewRect = attachedCam.pixelRect;
             ViewPort vp;
@@ -163,10 +162,12 @@ public class SqCamera : MonoBehaviour
             RawRect rr;
             rr.left = 0;
             rr.top = 0;
-            rr.right = (long)viewRect.width;
-            rr.bottom = (long)viewRect.height;
+            rr.right = (int)viewRect.width;
+            rr.bottom = (int)viewRect.height;
 
             SetViewPortScissorRect(instanceID, vp, rr);
+
+            transform.hasChanged = false;
         }
 
         lastMsaaSample = msaaSample;

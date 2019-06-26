@@ -23,12 +23,14 @@ public:
 
 	bool AddCamera(CameraData _camData);
 	void RemoveCamera(int _instanceID);
-	void SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _viewProj);
+	void SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj);
 	void SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void Release();
 	vector<Camera> &GetCameras();
 
 private:
+	Camera *GetCamera(int _instanceID);
+
 	vector<Camera> cameras;
-	unordered_map<int, Camera> cameraLookup;
+	unordered_map<int, Camera*> cameraLookup;
 };

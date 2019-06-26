@@ -19,7 +19,7 @@ bool CameraManager::AddCamera(CameraData _camData)
 	{
 		cameras.push_back(cam);
 		sort(cameras.begin(), cameras.end(), SortFunction);
-		cameraLookup[cam.GetCameraData().instanceID] = cam;
+		cameraLookup[cam.GetCameraData().instanceID] = GetCamera(_camData.instanceID);
 	}
 
 	return camInit;
@@ -46,12 +46,12 @@ void CameraManager::RemoveCamera(int _instanceID)
 	cameraLookup.erase(_instanceID);
 }
 
-void CameraManager::SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _viewProj)
+void CameraManager::SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj)
 {
 	// find camera and set
 	if (cameraLookup.find(_instanceID) != cameraLookup.end())
 	{
-		cameraLookup[_instanceID].SetViewProj(_viewProj);
+		cameraLookup[_instanceID]->SetViewProj(_view, _proj);
 	}
 }
 
@@ -59,7 +59,7 @@ void CameraManager::SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _view
 {
 	if (cameraLookup.find(_instanceID) != cameraLookup.end())
 	{
-		cameraLookup[_instanceID].SetViewPortScissorRect(_viewPort, _scissorRect);
+		cameraLookup[_instanceID]->SetViewPortScissorRect(_viewPort, _scissorRect);
 	}
 }
 
@@ -77,6 +77,19 @@ void CameraManager::Release()
 vector<Camera> &CameraManager::GetCameras()
 {
 	return cameras;
+}
+
+Camera *CameraManager::GetCamera(int _instanceID)
+{
+	for (size_t i = 0; i < cameras.size(); i++)
+	{
+		if (cameras[i].GetCameraData().instanceID == _instanceID)
+		{
+			return &cameras[i];
+		}
+	}
+
+	return nullptr;
 }
 
 

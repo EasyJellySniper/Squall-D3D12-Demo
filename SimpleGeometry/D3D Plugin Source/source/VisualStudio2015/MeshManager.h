@@ -28,7 +28,7 @@ public:
 	void SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world);
 	Mesh *GetMesh(int _instanceID);
 
-	vector<D3D12_INPUT_ELEMENT_DESC> GetDefaultInputLayout();
+	vector<D3D12_INPUT_ELEMENT_DESC> &GetDefaultInputLayout();
 
 private:
 	unordered_map<int, Mesh> meshes;

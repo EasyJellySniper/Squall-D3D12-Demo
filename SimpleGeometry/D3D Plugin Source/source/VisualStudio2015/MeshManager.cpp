@@ -62,7 +62,7 @@ Mesh * MeshManager::GetMesh(int _instanceID)
 	return nullptr;
 }
 
-vector<D3D12_INPUT_ELEMENT_DESC> MeshManager::GetDefaultInputLayout()
+vector<D3D12_INPUT_ELEMENT_DESC> &MeshManager::GetDefaultInputLayout()
 {
 	return defaultInputLayout;
 }
