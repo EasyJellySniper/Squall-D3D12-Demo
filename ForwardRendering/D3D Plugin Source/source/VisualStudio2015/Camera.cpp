@@ -423,6 +423,7 @@ bool Camera::CreateDebugMaterial()
 	desc.SampleMask = UINT_MAX;
 	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	desc.RasterizerState.FrontCounterClockwise = true;
+	desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
 

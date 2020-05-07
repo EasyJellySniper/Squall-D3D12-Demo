@@ -32,7 +32,7 @@ private:
 	ID3DBlob *CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *macro, string _entry, string _target);
 	bool ValidShader(Shader *_shader);
 
-	const wstring shaderPath = L"Assets//Shaders//";
+	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
 
 	// default rs and descriptors

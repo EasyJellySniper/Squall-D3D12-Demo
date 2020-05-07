@@ -4,6 +4,7 @@
 [Bb]uild/
 [Bb]uilds/
 Assets/AssetStoreTools*
+ForwardRendering/Squall Graphics/Assets/ThirdParty
 
 # Visual Studio cache directory
 .vs/
