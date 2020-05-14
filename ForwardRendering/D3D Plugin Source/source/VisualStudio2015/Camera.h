@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d12.h>
 #include <DirectXMath.h>
+#include <DirectXCollision.h>
 #include <vector>
 #include <wrl.h>
 using namespace Microsoft::WRL;
@@ -40,13 +41,14 @@ public:
 	ID3D12DescriptorHeap *GetMsaaRtv();
 	ID3D12DescriptorHeap *GetDsv();
 	ID3D12DescriptorHeap *GetMsaaDsv();
-	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj);
+	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetProjMatrix();
 	Material GetDebugMaterial();
+	bool FrustumTest(BoundingBox _bound, XMFLOAT4X4 _world);
 
 private:
 	HRESULT CreateRtvDescriptorHeaps();
@@ -85,6 +87,8 @@ private:
 	// matrix and view port
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projMatrix;
+	BoundingFrustum camFrustum;
+
 	D3D12_VIEWPORT viewPort;
 	D3D12_RECT scissorRect;
 };

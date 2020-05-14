@@ -46,12 +46,12 @@ void CameraManager::RemoveCamera(int _instanceID)
 	cameraLookup.erase(_instanceID);
 }
 
-void CameraManager::SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj)
+void CameraManager::SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling)
 {
 	// find camera and set
 	if (cameraLookup.find(_instanceID) != cameraLookup.end())
 	{
-		cameraLookup[_instanceID]->SetViewProj(_view, _proj);
+		cameraLookup[_instanceID]->SetViewProj(_view, _proj, _projCulling);
 	}
 }
 

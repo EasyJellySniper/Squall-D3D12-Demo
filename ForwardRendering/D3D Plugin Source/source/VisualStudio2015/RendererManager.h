@@ -21,6 +21,7 @@ public:
 	~RendererManager() {}
 
 	bool AddRenderer(int _instanceID, int _meshInstanceID);
+	void UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 	void Release();
 	unordered_map<int, shared_ptr<Renderer>> &GetRenderers();
 

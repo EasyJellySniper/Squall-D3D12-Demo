@@ -26,4 +26,5 @@ struct GameTime
 	double renderTime;
 	double renderThreadTime;
 	double gpuTime;
+    int batchCount;
 };

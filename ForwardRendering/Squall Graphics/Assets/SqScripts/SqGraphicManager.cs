@@ -27,6 +27,11 @@ public class SqGraphicManager : MonoBehaviour
         /// gpu time
         /// </summary>
         public double gpuTime;
+
+        /// <summary>
+        /// batch count
+        /// </summary>
+        public int batchCount;
     };
 
     [DllImport("SquallGraphics")]
@@ -108,6 +113,7 @@ public class SqGraphicManager : MonoBehaviour
             GUI.Label(new Rect(10, 10 + 20 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Render() Call Time: " + gameTime.renderTime.ToString("0.#####") + " ms", guiStyle);
             GUI.Label(new Rect(10, 10 + 40 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "RenderThread Time: " + gameTime.renderThreadTime.ToString("0.#####") + " ms", guiStyle);
             GUI.Label(new Rect(10, 10 + 60 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "GPU Time: " + gameTime.gpuTime.ToString("0.#####") + " ms", guiStyle);
+            GUI.Label(new Rect(10, 10 + 80 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Batch Count: " + gameTime.batchCount.ToString(), guiStyle);
         }
     }
 #endif

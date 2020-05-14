@@ -46,11 +46,11 @@ extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddCamera(CameraData 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RemoveCamera(int _instanceID)
 {
 	CameraManager::Instance().RemoveCamera(_instanceID);
-}
+} 
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling)
 {
-	CameraManager::Instance().SetViewProjMatrix(_instanceID, _view, _proj);
+	CameraManager::Instance().SetViewProjMatrix(_instanceID, _view, _proj, _projCulling);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
@@ -76,6 +76,11 @@ extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddMesh(int _instance
 extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddRenderer(int _instanceID, int _meshInstanceID)
 {
 	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID);
+}
+
+extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez)
+{
+	RendererManager::Instance().UpdateRendererBound(_instanceID, _x, _y, _z, _ex, _ey, _ez);
 }
 
 // --------------------------------------------------------------------------

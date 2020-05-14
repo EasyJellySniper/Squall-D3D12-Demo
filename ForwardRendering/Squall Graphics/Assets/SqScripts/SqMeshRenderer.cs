@@ -14,5 +14,5 @@ public class SqMeshRenderer : MonoBehaviour
     void Start ()
     {
         AddRenderer(GetInstanceID(), GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
-	}
+    }
 }

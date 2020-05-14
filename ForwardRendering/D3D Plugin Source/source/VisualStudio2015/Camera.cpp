@@ -203,11 +203,20 @@ ID3D12DescriptorHeap * Camera::GetMsaaDsv()
 	return msaaDsvHandle.Get();
 }
 
-void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj)
+void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling)
 {
 	// data from unity is column major, while d3d matrix use row major
 	viewMatrix = _view;
 	projMatrix = _proj;
+
+	// update inverse view for culling
+	XMMATRIX view = XMLoadFloat4x4(&viewMatrix);
+	XMMATRIX invViewMatrix = XMMatrixInverse(&XMMatrixDeterminant(view), view);
+
+	// update bounding frustum and convert to world space
+	BoundingFrustum frustum;
+	BoundingFrustum::CreateFromMatrix(frustum, XMLoadFloat4x4(&_projCulling));
+	frustum.Transform(camFrustum, invViewMatrix);
 }
 
 void Camera::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
@@ -239,6 +248,18 @@ XMFLOAT4X4 Camera::GetProjMatrix()
 Material Camera::GetDebugMaterial()
 {
 	return debugWireFrame;
+}
+
+bool Camera::FrustumTest(BoundingBox _bound, XMFLOAT4X4 _world)
+{
+	XMMATRIX world = XMLoadFloat4x4(&_world);
+	XMMATRIX invWorld = XMMatrixInverse(&XMMatrixDeterminant(world), world);
+
+	// convert to local frustum
+	BoundingFrustum localSpaceFrustum;
+	camFrustum.Transform(localSpaceFrustum, invWorld);
+
+	return (localSpaceFrustum.Contains(_bound) != DirectX::DISJOINT);
 }
 
 HRESULT Camera::CreateRtvDescriptorHeaps()

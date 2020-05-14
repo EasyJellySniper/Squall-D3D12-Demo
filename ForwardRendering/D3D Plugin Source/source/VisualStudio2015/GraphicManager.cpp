@@ -3,6 +3,7 @@
 #include "CameraManager.h"
 #include "ForwardRenderingPath.h"
 #include "d3dx12.h"
+#include "RendererManager.h"
 
 bool GraphicManager::Initialize(ID3D12Device* _device, int _numOfThreads)
 {
@@ -94,6 +95,7 @@ void GraphicManager::Render()
 	TIMER_INIT
 	TIMER_START
 	gameTime.gpuTime = 0.0f;
+	gameTime.batchCount = 0;
 #endif
 
 	// wake up render thread
@@ -240,6 +242,15 @@ void GraphicManager::DrawCamera()
 	vector<Camera> cams = CameraManager::Instance().GetCameras();
 	for (size_t i = 0; i < cams.size(); i++)
 	{
+		// frustum culling
+		auto renderers = RendererManager::Instance().GetRenderers();
+		for (auto &r : renderers)
+		{
+			bool isVisible = cams[i].FrustumTest(r.second->GetBound(), r.second->GetMesh()->GetWorld());
+			r.second->SetVisible(isVisible);
+			gameTime.batchCount += (isVisible) ? 1 : 0;
+		}
+
 		// render path
 		if (cams[i].GetCameraData().renderingPath == RenderingPathType::Forward)
 		{

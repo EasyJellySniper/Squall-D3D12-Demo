@@ -15,7 +15,7 @@ public class SqCamera : MonoBehaviour
     static extern void RemoveCamera(int _instanceID);
 
     [DllImport("SquallGraphics")]
-    static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _view, Matrix4x4 _proj);
+    static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _view, Matrix4x4 _proj, Matrix4x4 _projCulling);
 
 
     [DllImport("SquallGraphics")]
@@ -148,7 +148,7 @@ public class SqCamera : MonoBehaviour
         // update VP matrix
         if (transform.hasChanged)
         {
-            SetViewProjMatrix(instanceID, attachedCam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true));
+            SetViewProjMatrix(instanceID, attachedCam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true), GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, false));
 
             Rect viewRect = attachedCam.pixelRect;
             ViewPort vp;
