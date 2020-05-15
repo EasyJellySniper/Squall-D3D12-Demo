@@ -25,7 +25,6 @@ public:
 	void Init();
 	bool AddMesh(int _instanceID, MeshData _mesh);
 	void Release();
-	void SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world);
 	Mesh *GetMesh(int _instanceID);
 
 	vector<D3D12_INPUT_ELEMENT_DESC> &GetDefaultInputLayout();

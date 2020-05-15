@@ -40,6 +40,16 @@ void Renderer::SetVisible(bool _visible)
 	isVisible = _visible;
 }
 
+void Renderer::SetWorld(XMFLOAT4X4 _world)
+{
+	world = _world;
+}
+
+XMFLOAT4X4 Renderer::GetWorld()
+{
+	return world;
+}
+
 Mesh * Renderer::GetMesh()
 {
 	return mesh;

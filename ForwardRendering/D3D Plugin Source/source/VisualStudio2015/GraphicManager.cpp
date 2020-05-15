@@ -246,7 +246,7 @@ void GraphicManager::DrawCamera()
 		auto renderers = RendererManager::Instance().GetRenderers();
 		for (auto &r : renderers)
 		{
-			bool isVisible = cams[i].FrustumTest(r.second->GetBound(), r.second->GetMesh()->GetWorld());
+			bool isVisible = cams[i].FrustumTest(r.second->GetBound());
 			r.second->SetVisible(isVisible);
 			gameTime.batchCount += (isVisible) ? 1 : 0;
 		}

@@ -142,34 +142,27 @@ public class SqCamera : MonoBehaviour
             RemoveCamera(instanceID);
             OnDestroy();
             Start();
-            transform.hasChanged = true;
         }
 
         // update VP matrix
-        if (transform.hasChanged)
-        {
-            SetViewProjMatrix(instanceID, attachedCam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true), GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, false));
+        SetViewProjMatrix(instanceID, attachedCam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true), GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, false));
 
-            Rect viewRect = attachedCam.pixelRect;
-            ViewPort vp;
-            vp.TopLeftX = viewRect.xMin;
-            vp.TopLeftY = viewRect.yMin;
-            vp.Width = viewRect.width;
-            vp.Height = viewRect.height;
-            vp.MinDepth = 0f;
-            vp.MaxDepth = 1f;
+        Rect viewRect = attachedCam.pixelRect;
+        ViewPort vp;
+        vp.TopLeftX = viewRect.xMin;
+        vp.TopLeftY = viewRect.yMin;
+        vp.Width = viewRect.width;
+        vp.Height = viewRect.height;
+        vp.MinDepth = 0f;
+        vp.MaxDepth = 1f;
 
-            RawRect rr;
-            rr.left = 0;
-            rr.top = 0;
-            rr.right = (int)viewRect.width;
-            rr.bottom = (int)viewRect.height;
+        RawRect rr;
+        rr.left = 0;
+        rr.top = 0;
+        rr.right = (int)viewRect.width;
+        rr.bottom = (int)viewRect.height;
 
-            SetViewPortScissorRect(instanceID, vp, rr);
-
-            transform.hasChanged = false;
-        }
-
+        SetViewPortScissorRect(instanceID, vp, rr);
         lastMsaaSample = msaaSample;
     }
 

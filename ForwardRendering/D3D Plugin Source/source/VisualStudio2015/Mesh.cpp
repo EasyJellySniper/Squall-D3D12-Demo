@@ -73,18 +73,6 @@ void Mesh::Release()
 	vbv.clear();
 }
 
-void Mesh::SetWorld(XMFLOAT4X4 _world)
-{
-	// unity's matrix is column major, d3d matrix is row major
-	// remember to transpose once before setting to constant buffer
-	world = _world;
-}
-
-XMFLOAT4X4 Mesh::GetWorld()
-{
-	return world;
-}
-
 D3D12_VERTEX_BUFFER_VIEW Mesh::GetVertexBufferView()
 {
 	if (vbv.size() == 0)

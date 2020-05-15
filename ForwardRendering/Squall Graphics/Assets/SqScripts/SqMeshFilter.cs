@@ -78,12 +78,6 @@ public class SqMeshFilter : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern bool AddMesh(int _instanceID, MeshData _meshData);
 
-    [DllImport("SquallGraphics")]
-    static extern void SetWorldMatrix(int _instanceID, Matrix4x4 _world);
-
-    [DllImport("SquallGraphics")]
-    static extern bool UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
-
     MeshData meshData;
     Mesh mesh;
 
@@ -138,25 +132,7 @@ public class SqMeshFilter : MonoBehaviour
             Debug.LogError("[Error] SqMeshFilter: AddMesh() Failed.");
             enabled = false;
         }
-
-        // update bound
-        Bounds b = mesh.bounds;
-        UpdateRendererBound(GetInstanceID(), b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
     }
-
-	void Update ()
-    {
-        if (transform.hasChanged)
-        {
-            Matrix4x4 world = transform.localToWorldMatrix;
-            SetWorldMatrix(mesh.GetInstanceID(), world);
-
-            Bounds b = mesh.bounds;
-            UpdateRendererBound(GetInstanceID(), b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
-
-            transform.hasChanged = false;
-        }
-	}
 
     void CalcVertexData(Mesh _mesh, ref uint _size, ref uint _stride)
     {

@@ -48,7 +48,7 @@ public:
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetProjMatrix();
 	Material GetDebugMaterial();
-	bool FrustumTest(BoundingBox _bound, XMFLOAT4X4 _world);
+	bool FrustumTest(BoundingBox _bound);
 
 private:
 	HRESULT CreateRtvDescriptorHeaps();

@@ -250,16 +250,9 @@ Material Camera::GetDebugMaterial()
 	return debugWireFrame;
 }
 
-bool Camera::FrustumTest(BoundingBox _bound, XMFLOAT4X4 _world)
+bool Camera::FrustumTest(BoundingBox _bound)
 {
-	XMMATRIX world = XMLoadFloat4x4(&_world);
-	XMMATRIX invWorld = XMMatrixInverse(&XMMatrixDeterminant(world), world);
-
-	// convert to local frustum
-	BoundingFrustum localSpaceFrustum;
-	camFrustum.Transform(localSpaceFrustum, invWorld);
-
-	return (localSpaceFrustum.Contains(_bound) != DirectX::DISJOINT);
+	return (camFrustum.Contains(_bound) != DirectX::DISJOINT);
 }
 
 HRESULT Camera::CreateRtvDescriptorHeaps()

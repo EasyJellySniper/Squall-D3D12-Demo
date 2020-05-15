@@ -60,7 +60,7 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewPortScissorRec
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world)
 {
-	MeshManager::Instance().SetWorldMatrix(_instanceID, _world);
+	RendererManager::Instance().SetWorldMatrix(_instanceID, _world);
 }
 
 extern "C" GameTime UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetGameTime()

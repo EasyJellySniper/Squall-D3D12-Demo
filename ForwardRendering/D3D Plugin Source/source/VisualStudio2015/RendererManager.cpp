@@ -21,6 +21,16 @@ void RendererManager::UpdateRendererBound(int _instanceID, float _x, float _y, f
 	renderers[_instanceID]->UpdateBound(_x, _y, _z, _ex, _ey, _ez);
 }
 
+void RendererManager::SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world)
+{
+	if (renderers.find(_instanceID) == renderers.end())
+	{
+		return;
+	}
+
+	renderers[_instanceID]->SetWorld(_world);
+}
+
 void RendererManager::Release()
 {
 	for (auto&r : renderers)

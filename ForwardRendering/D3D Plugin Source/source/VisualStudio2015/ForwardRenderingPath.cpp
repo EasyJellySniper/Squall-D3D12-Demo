@@ -97,7 +97,7 @@ void ForwardRenderingPath::DrawScene(Camera _camera, ID3D12GraphicsCommandList *
 			continue;
 		}
 
-		XMFLOAT4X4 world = m->GetWorld();
+		XMFLOAT4X4 world = r.second->GetWorld();
 		XMFLOAT4X4 view = _camera.GetViewMatrix();
 		XMFLOAT4X4 proj = _camera.GetProjMatrix();
 

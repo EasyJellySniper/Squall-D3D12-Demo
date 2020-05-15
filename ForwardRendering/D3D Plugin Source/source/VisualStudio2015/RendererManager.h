@@ -22,6 +22,7 @@ public:
 
 	bool AddRenderer(int _instanceID, int _meshInstanceID);
 	void UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
+	void SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world);
 	void Release();
 	unordered_map<int, shared_ptr<Renderer>> &GetRenderers();
 

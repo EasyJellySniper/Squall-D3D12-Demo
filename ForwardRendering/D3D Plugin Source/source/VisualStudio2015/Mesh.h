@@ -30,8 +30,6 @@ class Mesh
 public:
 	bool Initialize(MeshData _mesh);
 	void Release();
-	void SetWorld(XMFLOAT4X4 _world);
-	XMFLOAT4X4 GetWorld();
 	D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
 	vector<SubMesh> GetSubmeshes();
@@ -46,7 +44,4 @@ private:
 
 	vector<D3D12_VERTEX_BUFFER_VIEW> vbv;
 	D3D12_INDEX_BUFFER_VIEW ibv;
-
-	// transform matrix
-	XMFLOAT4X4 world;
 };

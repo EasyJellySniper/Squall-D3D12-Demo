@@ -42,14 +42,6 @@ void MeshManager::Release()
 	defaultInputLayout.clear();
 }
 
-void MeshManager::SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world)
-{
-	if (meshes.find(_instanceID) != meshes.end())
-	{
-		meshes[_instanceID].SetWorld(_world);
-	}
-}
-
 Mesh * MeshManager::GetMesh(int _instanceID)
 {
 	if (meshes.find(_instanceID) != meshes.end())
