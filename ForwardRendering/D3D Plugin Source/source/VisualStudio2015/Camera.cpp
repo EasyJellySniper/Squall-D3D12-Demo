@@ -209,8 +209,14 @@ void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCul
 	viewMatrix = _view;
 	projMatrix = _proj;
 
+	// fix view matrix for culling
+	XMFLOAT4X4 _viewFix = _view;
+	_viewFix._11 *= -1;
+	_viewFix._31 *= -1;
+	_viewFix._41 *= -1;
+
 	// update inverse view for culling
-	XMMATRIX view = XMLoadFloat4x4(&viewMatrix);
+	XMMATRIX view = XMLoadFloat4x4(&_viewFix);
 	XMMATRIX invViewMatrix = XMMatrixInverse(&XMMatrixDeterminant(view), view);
 
 	// update bounding frustum and convert to world space
