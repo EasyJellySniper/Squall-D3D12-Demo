@@ -14,7 +14,7 @@ enum RenderingPathType
 class RenderingPath
 {
 public:
-	virtual float RenderLoop(Camera _camera, int _frameIdx) = 0;
+	virtual void RenderLoop(Camera _camera, int _frameIdx) = 0;
 
 private:
 	RenderingPathType renderingPath;

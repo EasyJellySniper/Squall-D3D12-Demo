@@ -45,6 +45,11 @@ void Renderer::SetWorld(XMFLOAT4X4 _world)
 	world = _world;
 }
 
+void Renderer::SetInstanceID(int _id)
+{
+	instanceID = _id;
+}
+
 XMFLOAT4X4 Renderer::GetWorld()
 {
 	return world;
@@ -58,6 +63,16 @@ Mesh * Renderer::GetMesh()
 BoundingBox Renderer::GetBound()
 {
 	return bound;
+}
+
+bool Renderer::GetVisible()
+{
+	return isVisible;
+}
+
+int Renderer::GetInstanceID()
+{
+	return instanceID;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS Renderer::GetSystemConstantGPU(int _frameIdx)

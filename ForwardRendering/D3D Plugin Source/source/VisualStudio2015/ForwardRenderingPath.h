@@ -18,7 +18,7 @@ public:
 	ForwardRenderingPath() {}
 	~ForwardRenderingPath() {}
 
-	virtual float RenderLoop(Camera _camera, int _frameIdx);
+	virtual void RenderLoop(Camera _camera, int _frameIdx);
 private:
 	void BeginFrame(Camera _camera, ID3D12GraphicsCommandList *_cmdList);
 	void DrawScene(Camera _camera, ID3D12GraphicsCommandList *_cmdList, int _frameIdx);

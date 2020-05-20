@@ -14,9 +14,12 @@ public:
 	void UpdateBound(float _cx,float _cy, float _cz, float _ex, float _ey, float _ez);
 	void SetVisible(bool _visible);
 	void SetWorld(XMFLOAT4X4 _world);
+	void SetInstanceID(int _id);
 	XMFLOAT4X4 GetWorld();
 	Mesh *GetMesh();
 	BoundingBox GetBound();
+	bool GetVisible();
+	int GetInstanceID();
 	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU(int _frameIdx);
 
 private:
@@ -25,6 +28,7 @@ private:
 	Mesh *mesh;
 	BoundingBox bound;
 	bool isVisible;
+	int instanceID = -1;
 
 	XMFLOAT4X4 world;
 };

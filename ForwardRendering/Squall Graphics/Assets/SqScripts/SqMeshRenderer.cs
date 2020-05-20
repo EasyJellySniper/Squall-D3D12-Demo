@@ -9,7 +9,7 @@ using UnityEngine;
 public class SqMeshRenderer : MonoBehaviour
 {
     [DllImport("SquallGraphics")]
-    static extern bool AddRenderer(int _instanceID, int _meshInstanceID);
+    static extern int AddRenderer(int _instanceID, int _meshInstanceID);
 
 
     [DllImport("SquallGraphics")]
@@ -19,14 +19,15 @@ public class SqMeshRenderer : MonoBehaviour
     static extern void SetWorldMatrix(int _instanceID, Matrix4x4 _world);
 
     MeshRenderer rendererCache;
+    int rendererNativeID = -1;
 
     void Start ()
     {
-        AddRenderer(GetInstanceID(), GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
+        rendererNativeID = AddRenderer(GetInstanceID(), GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
 
         rendererCache = GetComponent<MeshRenderer>();
         Bounds b = rendererCache.bounds;
-        UpdateRendererBound(GetInstanceID(), b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
+        UpdateRendererBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
     }
 
     void Update()
@@ -34,8 +35,8 @@ public class SqMeshRenderer : MonoBehaviour
         if (transform.hasChanged)
         {
             Bounds b = rendererCache.bounds;
-            UpdateRendererBound(GetInstanceID(), b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
-            SetWorldMatrix(GetInstanceID(), rendererCache.localToWorldMatrix);
+            UpdateRendererBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
+            SetWorldMatrix(rendererNativeID, rendererCache.localToWorldMatrix);
             transform.hasChanged = false;
         }
     }

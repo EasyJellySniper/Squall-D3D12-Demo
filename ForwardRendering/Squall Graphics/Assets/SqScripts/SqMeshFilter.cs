@@ -86,7 +86,7 @@ public class SqMeshFilter : MonoBehaviour
     /// </summary>
     public Mesh MainMesh { get { return mesh; } }
 
-	void Start ()
+	void Awake ()
     {
         mesh = GetComponent<MeshFilter>().sharedMesh;
 

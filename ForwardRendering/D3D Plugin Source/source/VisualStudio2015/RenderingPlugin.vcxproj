@@ -36,6 +36,7 @@
     <ClInclude Include="ForwardRenderingPath.h" />
     <ClInclude Include="FrameResource.h" />
     <ClInclude Include="GameTime.h" />
+    <ClInclude Include="GameTimerManager.h" />
     <ClInclude Include="GraphicManager.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialManager.h" />

@@ -1,6 +1,5 @@
 #pragma once
 #include "Renderer.h"
-#include <unordered_map>
 using namespace std;
 
 class RendererManager
@@ -20,12 +19,12 @@ public:
 	RendererManager() {}
 	~RendererManager() {}
 
-	bool AddRenderer(int _instanceID, int _meshInstanceID);
-	void UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
-	void SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world);
+	int AddRenderer(int _instanceID, int _meshInstanceID);
+	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);
+	void SetWorldMatrix(int _id, XMFLOAT4X4 _world);
 	void Release();
-	unordered_map<int, shared_ptr<Renderer>> &GetRenderers();
+	vector<shared_ptr<Renderer>> &GetRenderers();
 
 private:
-	unordered_map<int, shared_ptr<Renderer>> renderers;
+	vector<shared_ptr<Renderer>> renderers;
 };

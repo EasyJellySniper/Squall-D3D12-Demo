@@ -1,47 +1,56 @@
 #include "RendererManager.h"
 
-bool RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
+int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
 {
-	if (renderers.find(_instanceID) == renderers.end())
+	int id = -1;
+	for (int i = 0; i < (int)renderers.size(); i++)
 	{
-		renderers[_instanceID] = std::move(make_shared<Renderer>());
-		renderers[_instanceID]->Init(_meshInstanceID);
+		if (renderers[i]->GetInstanceID() == _instanceID)
+		{
+			id = i;
+			return id;
+		}
 	}
 
-	return true;
+	renderers.push_back(std::move(make_shared<Renderer>()));
+	id = (int)renderers.size() - 1;
+	renderers[id]->Init(_meshInstanceID);
+	renderers[id]->SetInstanceID(_instanceID);
+
+	return id;
 }
 
-void RendererManager::UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez)
+void RendererManager::UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez)
 {
-	if (renderers.find(_instanceID) == renderers.end())
+	if (_id < 0 || _id >= (int)renderers.size())
 	{
 		return;
 	}
 
-	renderers[_instanceID]->UpdateBound(_x, _y, _z, _ex, _ey, _ez);
+	renderers[_id]->UpdateBound(_x, _y, _z, _ex, _ey, _ez);
 }
 
-void RendererManager::SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world)
+void RendererManager::SetWorldMatrix(int _id, XMFLOAT4X4 _world)
 {
-	if (renderers.find(_instanceID) == renderers.end())
+	if (_id < 0 || _id >= (int)renderers.size())
 	{
 		return;
 	}
 
-	renderers[_instanceID]->SetWorld(_world);
+	renderers[_id]->SetWorld(_world);
 }
 
 void RendererManager::Release()
 {
 	for (auto&r : renderers)
 	{
-		r.second->Release();
-		r.second.reset();
+		r->Release();
+		r.reset();
 	}
 	renderers.clear();
 }
 
-unordered_map<int, shared_ptr<Renderer>>& RendererManager::GetRenderers()
+vector<shared_ptr<Renderer>>& RendererManager::GetRenderers()
 {
 	return renderers;
 }

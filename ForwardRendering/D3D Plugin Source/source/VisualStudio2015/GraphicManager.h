@@ -15,7 +15,7 @@ using namespace Microsoft::WRL;
 #include "UploadBuffer.h"
 
 // game time
-#include "GameTime.h"
+#include "GameTimerManager.h"
 
 class GraphicManager
 {
@@ -84,7 +84,6 @@ private:
 
 										// if init succeed
 	bool initSucceed;
-	GameTime gameTime;
 
 	// descriptor size
 	UINT rtvDescriptorSize;

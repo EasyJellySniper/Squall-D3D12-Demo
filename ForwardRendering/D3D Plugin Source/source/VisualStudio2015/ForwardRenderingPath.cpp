@@ -6,7 +6,7 @@
 #include "stdafx.h"
 #include "d3dx12.h"
 
-float ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
+void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 {
 	// get frame resource
 	FrameResource fr = GraphicManager::Instance().GetFrameResource();
@@ -43,10 +43,8 @@ float ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	uint64_t t2 = pRes[1];
 	GraphicManager::Instance().GetGpuTimeResult()->Unmap(0, nullptr);
 
-	return static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
+	GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
 #endif
-
-	return 0.0f;
 }
 
 void ForwardRenderingPath::BeginFrame(Camera _camera, ID3D12GraphicsCommandList * _cmdList)
@@ -89,21 +87,27 @@ void ForwardRenderingPath::DrawScene(Camera _camera, ID3D12GraphicsCommandList *
 	// update camera constant
 	auto renderers = RendererManager::Instance().GetRenderers();
 
+	// update renderer constant
 	for (auto &r : renderers)
 	{
-		Mesh *m = r.second->GetMesh();
+		if (!r->GetVisible())
+		{
+			continue;
+		}
+
+		Mesh *m = r->GetMesh();
 		if (m == nullptr)
 		{
 			continue;
 		}
 
-		XMFLOAT4X4 world = r.second->GetWorld();
+		XMFLOAT4X4 world = r->GetWorld();
 		XMFLOAT4X4 view = _camera.GetViewMatrix();
 		XMFLOAT4X4 proj = _camera.GetProjMatrix();
 
 		SystemConstant sc;
 		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world) * XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
-		r.second->UpdateSystemConstant(sc, _frameIdx);
+		r->UpdateSystemConstant(sc, _frameIdx);
 	}
 
 	// set pso and topo
@@ -113,7 +117,12 @@ void ForwardRenderingPath::DrawScene(Camera _camera, ID3D12GraphicsCommandList *
 	//// render mesh
 	for (auto &r : renderers)
 	{
-		Mesh *m = r.second->GetMesh();
+		if (!r->GetVisible())
+		{
+			continue;
+		}
+
+		Mesh *m = r->GetMesh();
 		if (m == nullptr)
 		{
 			continue;
@@ -126,11 +135,15 @@ void ForwardRenderingPath::DrawScene(Camera _camera, ID3D12GraphicsCommandList *
 		for (size_t i = 0; i < submeshes.size(); i++)
 		{
 			// set constant
-			_cmdList->SetGraphicsRootConstantBufferView(0, r.second->GetSystemConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(0, r->GetSystemConstantGPU(_frameIdx));
 
 			// draw mesh
 			SubMesh sm = submeshes[i];
 			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+
+#if defined(GRAPHICTIME)
+			GameTimerManager::Instance().gameTime.batchCount += 1;
+#endif
 		}
 	}
 }

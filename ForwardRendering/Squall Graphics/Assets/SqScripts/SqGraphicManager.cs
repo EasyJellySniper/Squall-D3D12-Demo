@@ -29,6 +29,11 @@ public class SqGraphicManager : MonoBehaviour
         public double gpuTime;
 
         /// <summary>
+        /// culling time
+        /// </summary>
+        public double cullingTime;
+
+        /// <summary>
         /// batch count
         /// </summary>
         public int batchCount;
@@ -113,7 +118,8 @@ public class SqGraphicManager : MonoBehaviour
             GUI.Label(new Rect(10, 10 + 20 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Render() Call Time: " + gameTime.renderTime.ToString("0.#####") + " ms", guiStyle);
             GUI.Label(new Rect(10, 10 + 40 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "RenderThread Time: " + gameTime.renderThreadTime.ToString("0.#####") + " ms", guiStyle);
             GUI.Label(new Rect(10, 10 + 60 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "GPU Time: " + gameTime.gpuTime.ToString("0.#####") + " ms", guiStyle);
-            GUI.Label(new Rect(10, 10 + 80 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Batch Count: " + gameTime.batchCount.ToString(), guiStyle);
+            GUI.Label(new Rect(10, 10 + 80 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Culling Time: " + gameTime.cullingTime.ToString("0.#####") + " ms", guiStyle);
+            GUI.Label(new Rect(10, 10 + 100 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Batch Count: " + gameTime.batchCount.ToString(), guiStyle);
         }
     }
 #endif

@@ -48,6 +48,7 @@
     <ClInclude Include="UploadBuffer.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererManager.h" />
+    <ClInclude Include="GameTimerManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\RenderAPI.cpp" />

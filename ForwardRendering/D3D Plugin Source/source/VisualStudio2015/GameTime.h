@@ -19,12 +19,3 @@
     elapsedTime=(float)(t2.QuadPart-t1.QuadPart)/frequency.QuadPart; \
 	elapsedTime *= 1000.0f;
 #endif
-
-struct GameTime
-{
-	double updateTime;
-	double renderTime;
-	double renderThreadTime;
-	double gpuTime;
-    int batchCount;
-};

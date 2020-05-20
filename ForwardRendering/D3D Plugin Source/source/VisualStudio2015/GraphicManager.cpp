@@ -85,7 +85,7 @@ void GraphicManager::Update()
 
 #if defined(GRAPHICTIME)
 	TIMER_STOP
-	gameTime.updateTime = elapsedTime;
+	GameTimerManager::Instance().gameTime.updateTime = elapsedTime;
 #endif
 }
 
@@ -94,17 +94,18 @@ void GraphicManager::Render()
 #if defined(GRAPHICTIME)
 	TIMER_INIT
 	TIMER_START
-	gameTime.gpuTime = 0.0f;
-	gameTime.batchCount = 0;
+	GameTimerManager::Instance().gameTime.gpuTime = 0.0f;
+	GameTimerManager::Instance().gameTime.batchCount = 0;
 #endif
 
 	// wake up render thread
 	ResetEvent(renderThreadFinish);
 	SetEvent(beginRenderThread);
+	WaitForRenderThread();
 
 #if defined(GRAPHICTIME)
 	TIMER_STOP
-	gameTime.renderTime = elapsedTime;
+	GameTimerManager::Instance().gameTime.renderTime = elapsedTime;
 #endif
 }
 
@@ -239,22 +240,34 @@ bool GraphicManager::CreateGraphicThreads()
 
 void GraphicManager::DrawCamera()
 {
+	GameTimerManager::Instance().gameTime.cullingTime = 0.0;
+
 	vector<Camera> cams = CameraManager::Instance().GetCameras();
 	for (size_t i = 0; i < cams.size(); i++)
 	{
+
+#if defined(GRAPHICTIME)
+		TIMER_INIT
+		TIMER_START
+#endif
+
 		// frustum culling
 		auto renderers = RendererManager::Instance().GetRenderers();
 		for (auto &r : renderers)
 		{
-			bool isVisible = cams[i].FrustumTest(r.second->GetBound());
-			r.second->SetVisible(isVisible);
-			gameTime.batchCount += (isVisible) ? 1 : 0;
+			//bool isVisible = cams[i].FrustumTest(r.second->GetBound());
+			r->SetVisible(true);
 		}
+
+#if defined(GRAPHICTIME)
+		TIMER_STOP
+		GameTimerManager::Instance().gameTime.cullingTime += elapsedTime;
+#endif
 
 		// render path
 		if (cams[i].GetCameraData().renderingPath == RenderingPathType::Forward)
 		{
-			gameTime.gpuTime += ForwardRenderingPath::Instance().RenderLoop(cams[i], currFrameIndex);
+			ForwardRenderingPath::Instance().RenderLoop(cams[i], currFrameIndex);
 		}
 	}
 }
@@ -290,7 +303,7 @@ void GraphicManager::RenderThread()
 #if defined(GRAPHICTIME)
 		TIMER_INIT
 		TIMER_START
-		gameTime.renderThreadTime = 0.0f;
+		GameTimerManager::Instance().gameTime.renderThreadTime = 0.0f;
 #endif
 
 		DrawCamera();
@@ -304,7 +317,7 @@ void GraphicManager::RenderThread()
 
 #if defined(GRAPHICTIME)
 		TIMER_STOP
-		gameTime.renderThreadTime = elapsedTime;
+			GameTimerManager::Instance().gameTime.renderThreadTime = elapsedTime;
 #endif
 	}
 }
@@ -360,7 +373,7 @@ FrameResource GraphicManager::GetFrameResource()
 
 GameTime GraphicManager::GetGameTime()
 {
-	return gameTime;
+	return GameTimerManager::Instance().gameTime;
 }
 
 UINT64 GraphicManager::GetGpuFreq()
