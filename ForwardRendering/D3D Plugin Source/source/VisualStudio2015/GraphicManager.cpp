@@ -255,8 +255,8 @@ void GraphicManager::DrawCamera()
 		auto renderers = RendererManager::Instance().GetRenderers();
 		for (auto &r : renderers)
 		{
-			//bool isVisible = cams[i].FrustumTest(r.second->GetBound());
-			r->SetVisible(true);
+			bool isVisible = cams[i].FrustumTest(r->GetBound());
+			r->SetVisible(isVisible);
 		}
 
 #if defined(GRAPHICTIME)
