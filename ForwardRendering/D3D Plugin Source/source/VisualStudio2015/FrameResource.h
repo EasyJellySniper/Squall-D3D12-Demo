@@ -5,16 +5,14 @@
 using namespace Microsoft::WRL;
 using namespace DirectX;
 
-const static int FrameCount = 3;
+const static int MAX_FRAME_COUNT = 3;
+const static int MAX_WORKER_THREAD_COUNT = 32;
 
 struct FrameResource
 {
 	ID3D12CommandQueue* mainGraphicQueue;
 	ID3D12CommandAllocator* mainGraphicAllocator;
 	ID3D12GraphicsCommandList* mainGraphicList;
-	int numOfLogicalCores;
-	HANDLE beginRenderThread;
-	HANDLE renderThreadHandles;
 };
 
 struct SystemConstant

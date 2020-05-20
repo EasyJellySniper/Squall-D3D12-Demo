@@ -6,6 +6,25 @@
 #include "stdafx.h"
 #include "d3dx12.h"
 
+void ForwardRenderingPath::CullingWork(Camera _camera)
+{
+#if defined(GRAPHICTIME)
+	TIMER_INIT
+	TIMER_START
+#endif
+
+	targetCam = _camera;
+	workerType = WorkerType::Culling;
+	GraphicManager::Instance().ResetWorkerThreadFinish();
+	GraphicManager::Instance().SetBeginWorkerThreadEvent();
+	GraphicManager::Instance().WaitForWorkerThread();
+
+#if defined(GRAPHICTIME)
+	TIMER_STOP
+	GameTimerManager::Instance().gameTime.cullingTime += elapsedTime;
+#endif
+}
+
 void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 {
 	// get frame resource
@@ -45,6 +64,39 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 
 	GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
 #endif
+}
+
+void ForwardRenderingPath::WorkerThread(int _threadIndex)
+{
+	while (true)
+	{
+		// wait anything notify to work
+		GraphicManager::Instance().WaitBeginWorkerThread(_threadIndex);
+
+		auto renderers = RendererManager::Instance().GetRenderers();
+		int threads = GraphicManager::Instance().GetThreadCount() - 1;
+
+		// culling work
+		if (workerType == WorkerType::Culling)
+		{
+			int count = (int)renderers.size() / threads + 1;
+			int start = _threadIndex * count;
+
+			for (int i = start; i <= start + count; i++)
+			{
+				if (i >= (int)renderers.size())
+				{
+					continue;
+				}
+
+				bool isVisible = targetCam.FrustumTest(renderers[i]->GetBound());
+				renderers[i]->SetVisible(isVisible);
+			}
+		}
+
+		// set worker finish
+		GraphicManager::Instance().SetWorkerThreadFinishEvent(_threadIndex);
+	}
 }
 
 void ForwardRenderingPath::BeginFrame(Camera _camera, ID3D12GraphicsCommandList * _cmdList)

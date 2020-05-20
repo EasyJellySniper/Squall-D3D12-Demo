@@ -60,7 +60,7 @@ public class SqGraphicManager : MonoBehaviour
     /// <summary>
     /// number of render threads
     /// </summary>
-    [Range(1, 32)]
+    [Range(2, 32)]
     public int numOfRenderThreads = 4;
 
     /// <summary>
@@ -74,6 +74,11 @@ public class SqGraphicManager : MonoBehaviour
 
     void Awake()
     {
+        if (numOfRenderThreads < 2)
+        {
+            numOfRenderThreads = 2;
+        }
+
         if (InitializeSqGraphic(numOfRenderThreads))
         {
             Debug.Log("[SqGraphicManager] Squall Graphics initialized.");

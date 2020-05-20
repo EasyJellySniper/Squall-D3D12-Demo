@@ -3,7 +3,7 @@
 
 void Renderer::Init(int _meshID)
 {
-	for (int i = 0; i < FrameCount; i++)
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		rendererConstant[i] = make_unique<UploadBuffer<SystemConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
 	}
@@ -14,7 +14,7 @@ void Renderer::Init(int _meshID)
 
 void Renderer::Release()
 {
-	for (int i = 0; i < FrameCount; i++)
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		rendererConstant[i].reset();
 	}

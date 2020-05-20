@@ -1,6 +1,5 @@
 #include "GraphicManager.h"
 #include "stdafx.h"
-#include "CameraManager.h"
 #include "ForwardRenderingPath.h"
 #include "d3dx12.h"
 #include "RendererManager.h"
@@ -42,10 +41,17 @@ void GraphicManager::Release()
 	mainGraphicFence.Reset();
 	CloseHandle(mainFenceEvent);
 	CloseHandle(beginRenderThread);
-	CloseHandle(renderThreadHandles);
+	CloseHandle(renderThreadHandle);
 	CloseHandle(renderThreadFinish);
 
-	for (int i = 0; i < FrameCount; i++)
+	for (int i = 0; i < MAX_WORKER_THREAD_COUNT; i++)
+	{
+		CloseHandle(beginWorkerThread);
+		CloseHandle(workerThreadHandle[i]);
+		CloseHandle(workerThreadFinish[i]);
+	}
+
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		mainGraphicAllocator[i].Reset();
 		mainGraphicList[i].Reset();
@@ -72,7 +78,7 @@ void GraphicManager::Update()
 #endif
 	
 	const UINT64 lastCompletedFence = mainGraphicFence->GetCompletedValue();
-	currFrameIndex = (currFrameIndex + 1) % FrameCount;
+	currFrameIndex = (currFrameIndex + 1) % MAX_FRAME_COUNT;
 
 	// Make sure GPU isn't busy.
 	// If it is, wait for it to complete.
@@ -146,7 +152,7 @@ HRESULT GraphicManager::CreateGraphicCommand()
 	LogIfFailed(mainGraphicQueue->GetTimestampFrequency(&gpuFreq), hr);
 #endif
 
-	for (int i = 0; i < FrameCount; i++)
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		LogIfFailed(mainDevice->CreateCommandAllocator(
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -171,7 +177,7 @@ HRESULT GraphicManager::CreateGraphicFences()
 	HRESULT hr = S_OK;
 
 	mainFenceValue = 0;
-	for (int i = 0; i < FrameCount; i++)
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		graphicFences[i] = 0;
 	}
@@ -201,34 +207,53 @@ bool GraphicManager::CreateGraphicThreads()
 {
 	bool result = true;
 
-	// setup thread parameter
-	struct ThreadParameter
-	{
-		int threadIndex;
-	};
-
 	struct threadwrapper
 	{
-		static unsigned int WINAPI thunk(LPVOID lpParameter)
+		static unsigned int WINAPI render(LPVOID lpParameter)
 		{
 			ThreadParameter* parameter = reinterpret_cast<ThreadParameter*>(lpParameter);
 			GraphicManager::Instance().RenderThread();
 			return 0;
 		}
+
+		static unsigned int WINAPI worker(LPVOID lpParameter)
+		{
+			ThreadParameter* parameter = reinterpret_cast<ThreadParameter*>(lpParameter);
+			ForwardRenderingPath::Instance().WorkerThread(parameter->threadIndex);
+			return 0;
+		}
 	};
 
+	// render thread 
 	beginRenderThread = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	renderThreadFinish = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
-	renderThreadHandles = reinterpret_cast<HANDLE>(_beginthreadex(
+	renderThreadHandle = reinterpret_cast<HANDLE>(_beginthreadex(
 		nullptr,
 		0,
-		threadwrapper::thunk,
+		threadwrapper::render,
 		nullptr,
 		0,
 		nullptr));
 
-	result = (beginRenderThread != nullptr) && (renderThreadFinish != nullptr) && (renderThreadHandles != nullptr);
+	result = (beginRenderThread != nullptr) && (renderThreadFinish != nullptr) && (renderThreadHandle != nullptr);
+
+	// worker thread (number of cores - 1)
+	for (int i = 0; i < numOfLogicalCores - 1; i++)
+	{
+		threadParams[i].threadIndex = i;
+		beginWorkerThread[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		workerThreadFinish[i] = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+		workerThreadHandle[i] = reinterpret_cast<HANDLE>(_beginthreadex(
+			nullptr,
+			0,
+			threadwrapper::worker,
+			reinterpret_cast<LPVOID>(&threadParams[i]),
+			0,
+			nullptr));
+
+		result &= (workerThreadHandle[i] != nullptr) && (workerThreadFinish[i] != nullptr) && (beginWorkerThread[i] != nullptr);
+	}
 
 	if (!result)
 	{
@@ -245,28 +270,10 @@ void GraphicManager::DrawCamera()
 	vector<Camera> cams = CameraManager::Instance().GetCameras();
 	for (size_t i = 0; i < cams.size(); i++)
 	{
-
-#if defined(GRAPHICTIME)
-		TIMER_INIT
-		TIMER_START
-#endif
-
-		// frustum culling
-		auto renderers = RendererManager::Instance().GetRenderers();
-		for (auto &r : renderers)
-		{
-			bool isVisible = cams[i].FrustumTest(r->GetBound());
-			r->SetVisible(isVisible);
-		}
-
-#if defined(GRAPHICTIME)
-		TIMER_STOP
-		GameTimerManager::Instance().gameTime.cullingTime += elapsedTime;
-#endif
-
 		// render path
 		if (cams[i].GetCameraData().renderingPath == RenderingPathType::Forward)
 		{
+			ForwardRenderingPath::Instance().CullingWork(cams[i]);
 			ForwardRenderingPath::Instance().RenderLoop(cams[i], currFrameIndex);
 		}
 	}
@@ -317,7 +324,7 @@ void GraphicManager::RenderThread()
 
 #if defined(GRAPHICTIME)
 		TIMER_STOP
-			GameTimerManager::Instance().gameTime.renderThreadTime = elapsedTime;
+		GameTimerManager::Instance().gameTime.renderThreadTime = elapsedTime;
 #endif
 	}
 }
@@ -361,11 +368,8 @@ FrameResource GraphicManager::GetFrameResource()
 {
 	FrameResource fr;
 
-	fr.beginRenderThread = beginRenderThread;
-	fr.renderThreadHandles = renderThreadHandles;
 	fr.mainGraphicList = mainGraphicList[currFrameIndex].Get();
 	fr.mainGraphicAllocator = mainGraphicAllocator[currFrameIndex].Get();
-	fr.numOfLogicalCores = numOfLogicalCores;
 	fr.mainGraphicQueue = mainGraphicQueue.Get();
 
 	return fr;
@@ -379,4 +383,35 @@ GameTime GraphicManager::GetGameTime()
 UINT64 GraphicManager::GetGpuFreq()
 {
 	return gpuFreq;
+}
+
+void GraphicManager::WaitBeginWorkerThread(int _index)
+{
+	WaitForSingleObject(beginWorkerThread[_index], INFINITE);
+}
+
+void GraphicManager::SetBeginWorkerThreadEvent()
+{
+	for (int i = 0; i < numOfLogicalCores - 1; i++)
+	{
+		SetEvent(beginWorkerThread[i]);
+	}
+}
+
+void GraphicManager::ResetWorkerThreadFinish()
+{
+	for (int i = 0; i < numOfLogicalCores - 1; i++)
+	{
+		ResetEvent(workerThreadFinish[i]);
+	}
+}
+
+void GraphicManager::WaitForWorkerThread()
+{
+	WaitForMultipleObjects(numOfLogicalCores - 1, workerThreadFinish, TRUE, INFINITE);
+}
+
+void GraphicManager::SetWorkerThreadFinishEvent(int _index)
+{
+	SetEvent(workerThreadFinish[_index]);
 }

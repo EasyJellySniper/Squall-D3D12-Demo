@@ -16,6 +16,13 @@ using namespace Microsoft::WRL;
 
 // game time
 #include "GameTimerManager.h"
+#include "CameraManager.h"
+
+// setup thread parameter
+struct ThreadParameter
+{
+	int threadIndex;
+};
 
 class GraphicManager
 {
@@ -51,6 +58,11 @@ public:
 	FrameResource GetFrameResource();
 	GameTime GetGameTime();
 	UINT64 GetGpuFreq();
+	void WaitBeginWorkerThread(int _index);
+	void SetBeginWorkerThreadEvent();
+	void ResetWorkerThreadFinish();
+	void WaitForWorkerThread();
+	void SetWorkerThreadFinishEvent(int _index);
 
 private:
 	HRESULT CreateGpuTimeQuery();
@@ -61,8 +73,8 @@ private:
 
 	ID3D12Device *mainDevice;
 	ComPtr<ID3D12CommandQueue> mainGraphicQueue;
-	ComPtr<ID3D12CommandAllocator> mainGraphicAllocator[FrameCount];
-	ComPtr<ID3D12GraphicsCommandList> mainGraphicList[FrameCount];
+	ComPtr<ID3D12CommandAllocator> mainGraphicAllocator[MAX_FRAME_COUNT];
+	ComPtr<ID3D12GraphicsCommandList> mainGraphicList[MAX_FRAME_COUNT];
 
 	// for gpu time measure
 	ComPtr<ID3D12QueryHeap> gpuTimeQuery;
@@ -72,14 +84,18 @@ private:
 	// render thread
 	int numOfLogicalCores;
 	HANDLE beginRenderThread;
-	HANDLE renderThreadHandles;
+	HANDLE renderThreadHandle;
 	HANDLE renderThreadFinish;
+	HANDLE beginWorkerThread[MAX_WORKER_THREAD_COUNT];
+	HANDLE workerThreadHandle[MAX_WORKER_THREAD_COUNT];
+	HANDLE workerThreadFinish[MAX_WORKER_THREAD_COUNT];
+	ThreadParameter threadParams[MAX_WORKER_THREAD_COUNT];
 
 	// frame index and fences
 	int currFrameIndex;
 	ComPtr<ID3D12Fence> mainGraphicFence;
 	HANDLE mainFenceEvent;				// fence event handle for sync
-	UINT64 graphicFences[FrameCount];	// use for frame list
+	UINT64 graphicFences[MAX_FRAME_COUNT];	// use for frame list
 	UINT64 mainFenceValue;				// use for init/destroy
 
 										// if init succeed
@@ -89,4 +105,7 @@ private:
 	UINT rtvDescriptorSize;
 	UINT dsvDescriptorSize;
 	UINT cbvSrvUavDescriptorSize;
+
+	// camera cache
+	Camera activeCam;
 };

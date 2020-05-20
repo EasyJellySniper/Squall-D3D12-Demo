@@ -1,7 +1,18 @@
 #pragma once
 #include "RenderingPath.h"
+#include "Camera.h"
+#include <DirectXMath.h>
+#include "UploadBuffer.h"
+#include "FrameResource.h"
+using namespace Microsoft;
 
-class ForwardRenderingPath : RenderingPath
+enum WorkerType
+{
+	Culling = 0,
+	Rendering
+};
+
+class ForwardRenderingPath
 {
 public:
 	ForwardRenderingPath(const ForwardRenderingPath&) = delete;
@@ -18,9 +29,14 @@ public:
 	ForwardRenderingPath() {}
 	~ForwardRenderingPath() {}
 
-	virtual void RenderLoop(Camera _camera, int _frameIdx);
+	void CullingWork(Camera _camera);
+	void RenderLoop(Camera _camera, int _frameIdx);
+	void WorkerThread(int _threadIndex);
 private:
 	void BeginFrame(Camera _camera, ID3D12GraphicsCommandList *_cmdList);
 	void DrawScene(Camera _camera, ID3D12GraphicsCommandList *_cmdList, int _frameIdx);
 	void EndFrame(Camera _camera, ID3D12GraphicsCommandList *_cmdList);
+
+	Camera targetCam;
+	WorkerType workerType;
 };

@@ -24,7 +24,7 @@ public:
 
 private:
 	SystemConstant currentSysConst;
-	unique_ptr<UploadBuffer<SystemConstant>> rendererConstant[FrameCount];
+	unique_ptr<UploadBuffer<SystemConstant>> rendererConstant[MAX_FRAME_COUNT];
 	Mesh *mesh;
 	BoundingBox bound;
 	bool isVisible;
