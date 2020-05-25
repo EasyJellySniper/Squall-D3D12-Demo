@@ -27,30 +27,9 @@ void ForwardRenderingPath::CullingWork(Camera _camera)
 
 void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 {
-#if defined(GRAPHICTIME)
-	// timer begin
-	//fr.mainGraphicList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
-#endif
-
 	BeginFrame(_camera);
 	DrawScene(_camera, _frameIdx);
 	EndFrame(_camera);
-
-#if defined(GRAPHICTIME)
-	// timer end
-	//fr.mainGraphicList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 1);
-	//fr.mainGraphicList->ResolveQueryData(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, GraphicManager::Instance().GetGpuTimeResult(), 0);
-#endif
-
-#if defined(GRAPHICTIME)
-	//uint64_t *pRes;
-	//LogIfFailedWithoutHR(GraphicManager::Instance().GetGpuTimeResult()->Map(0, nullptr, reinterpret_cast<void**>(&pRes)));
-	//uint64_t t1 = pRes[0];
-	//uint64_t t2 = pRes[1];
-	//GraphicManager::Instance().GetGpuTimeResult()->Unmap(0, nullptr);
-
-	//GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
-#endif
 }
 
 void ForwardRenderingPath::WorkerThread(int _threadIndex)
@@ -95,6 +74,11 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 
 	CameraData camData = _camera.GetCameraData();
 	auto _cmdList = fr.preGfxList;
+
+#if defined(GRAPHICTIME)
+	// timer begin
+	_cmdList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
+#endif
 
 	// transition resource state to render target
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
@@ -236,8 +220,24 @@ void ForwardRenderingPath::EndFrame(Camera _camera)
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON));
 	}
 
+#if defined(GRAPHICTIME)
+	// timer end
+	_cmdList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 1);
+	_cmdList->ResolveQueryData(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, GraphicManager::Instance().GetGpuTimeResult(), 0);
+#endif
+
 	// close command list and execute
 	LogIfFailedWithoutHR(_cmdList->Close());
 	ID3D12CommandList* cmdsLists[] = { _cmdList };
 	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+
+#if defined(GRAPHICTIME)
+	uint64_t* pRes;
+	LogIfFailedWithoutHR(GraphicManager::Instance().GetGpuTimeResult()->Map(0, nullptr, reinterpret_cast<void**>(&pRes)));
+	uint64_t t1 = pRes[0];
+	uint64_t t2 = pRes[1];
+	GraphicManager::Instance().GetGpuTimeResult()->Unmap(0, nullptr);
+
+	GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
+#endif
 }
