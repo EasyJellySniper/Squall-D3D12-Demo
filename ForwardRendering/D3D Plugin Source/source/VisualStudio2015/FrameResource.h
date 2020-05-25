@@ -10,9 +10,10 @@ const static int MAX_WORKER_THREAD_COUNT = 32;
 
 struct FrameResource
 {
-	ID3D12CommandQueue* mainGraphicQueue;
 	ID3D12CommandAllocator* mainGraphicAllocator;
 	ID3D12GraphicsCommandList* mainGraphicList;
+	ID3D12CommandAllocator *workerGfxAlloc[MAX_WORKER_THREAD_COUNT];
+	ID3D12GraphicsCommandList *workerGfxList[MAX_WORKER_THREAD_COUNT];
 };
 
 struct SystemConstant

@@ -49,6 +49,7 @@ public:
 	void RenderThread();
 	void WaitForRenderThread();
 	void WaitForGPU();
+	void ExecuteCommandList(int _listCount, ID3D12CommandList **_cmdList);
 	ID3D12Device *GetDevice();
 	ID3D12QueryHeap *GetGpuTimeQuery();
 	ID3D12Resource *GetGpuTimeResult();
@@ -75,6 +76,8 @@ private:
 	ComPtr<ID3D12CommandQueue> mainGraphicQueue;
 	ComPtr<ID3D12CommandAllocator> mainGraphicAllocator[MAX_FRAME_COUNT];
 	ComPtr<ID3D12GraphicsCommandList> mainGraphicList[MAX_FRAME_COUNT];
+	ComPtr<ID3D12CommandAllocator> workerGfxAllocator[MAX_WORKER_THREAD_COUNT][MAX_FRAME_COUNT];	// allow multiple-thread gfx
+	ComPtr<ID3D12GraphicsCommandList> workerGfxList[MAX_WORKER_THREAD_COUNT][MAX_FRAME_COUNT];
 
 	// for gpu time measure
 	ComPtr<ID3D12QueryHeap> gpuTimeQuery;

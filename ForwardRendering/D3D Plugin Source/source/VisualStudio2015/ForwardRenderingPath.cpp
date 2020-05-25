@@ -53,7 +53,7 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	LogIfFailedWithoutHR(fr.mainGraphicList->Close());
 
 	ID3D12CommandList* cmdsLists[] = { fr.mainGraphicList };
-	fr.mainGraphicQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
 
 #if defined(GRAPHICTIME)
 	uint64_t *pRes;
