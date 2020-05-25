@@ -27,42 +27,29 @@ void ForwardRenderingPath::CullingWork(Camera _camera)
 
 void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 {
-	// get frame resource
-	FrameResource fr = GraphicManager::Instance().GetFrameResource();
-
-	// reset graphic allocator & command list
-	LogIfFailedWithoutHR(fr.mainGraphicAllocator->Reset());
-	LogIfFailedWithoutHR(fr.mainGraphicList->Reset(fr.mainGraphicAllocator, nullptr));
-
 #if defined(GRAPHICTIME)
 	// timer begin
-	fr.mainGraphicList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
+	//fr.mainGraphicList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
 #endif
 
-	BeginFrame(_camera, fr.mainGraphicList);
-	DrawScene(_camera, fr.mainGraphicList, _frameIdx);
-	EndFrame(_camera, fr.mainGraphicList);
+	BeginFrame(_camera);
+	DrawScene(_camera, _frameIdx);
+	EndFrame(_camera);
 
 #if defined(GRAPHICTIME)
 	// timer end
-	fr.mainGraphicList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 1);
-	fr.mainGraphicList->ResolveQueryData(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, GraphicManager::Instance().GetGpuTimeResult(), 0);
+	//fr.mainGraphicList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 1);
+	//fr.mainGraphicList->ResolveQueryData(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, GraphicManager::Instance().GetGpuTimeResult(), 0);
 #endif
 
-	// close command list and execute
-	LogIfFailedWithoutHR(fr.mainGraphicList->Close());
-
-	ID3D12CommandList* cmdsLists[] = { fr.mainGraphicList };
-	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
-
 #if defined(GRAPHICTIME)
-	uint64_t *pRes;
-	LogIfFailedWithoutHR(GraphicManager::Instance().GetGpuTimeResult()->Map(0, nullptr, reinterpret_cast<void**>(&pRes)));
-	uint64_t t1 = pRes[0];
-	uint64_t t2 = pRes[1];
-	GraphicManager::Instance().GetGpuTimeResult()->Unmap(0, nullptr);
+	//uint64_t *pRes;
+	//LogIfFailedWithoutHR(GraphicManager::Instance().GetGpuTimeResult()->Map(0, nullptr, reinterpret_cast<void**>(&pRes)));
+	//uint64_t t1 = pRes[0];
+	//uint64_t t2 = pRes[1];
+	//GraphicManager::Instance().GetGpuTimeResult()->Unmap(0, nullptr);
 
-	GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
+	//GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
 #endif
 }
 
@@ -99,13 +86,15 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 	}
 }
 
-void ForwardRenderingPath::BeginFrame(Camera _camera, ID3D12GraphicsCommandList * _cmdList)
+void ForwardRenderingPath::BeginFrame(Camera _camera)
 {
-	CameraData camData = _camera.GetCameraData();
+	// get frame resource
+	FrameResource fr = GraphicManager::Instance().GetFrameResource();
+	LogIfFailedWithoutHR(fr.preGfxAllocator->Reset());
+	LogIfFailedWithoutHR(fr.preGfxList->Reset(fr.preGfxAllocator, nullptr));
 
-	// set view port
-	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
-	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
+	CameraData camData = _camera.GetCameraData();
+	auto _cmdList = fr.preGfxList;
 
 	// transition resource state to render target
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
@@ -125,19 +114,33 @@ void ForwardRenderingPath::BeginFrame(Camera _camera, ID3D12GraphicsCommandList 
 		, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL
 		, 0.0f, 0, 0, nullptr);
 
+	// close command list and execute
+	LogIfFailedWithoutHR(_cmdList->Close());
+	ID3D12CommandList* cmdsLists[] = { _cmdList };
+	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+}
+
+void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx)
+{
+	// get frame resource
+	FrameResource fr = GraphicManager::Instance().GetFrameResource();
+	LogIfFailedWithoutHR(fr.midGfxAllocator->Reset());
+	LogIfFailedWithoutHR(fr.midGfxList->Reset(fr.midGfxAllocator, nullptr));
+
+	// update camera constant
+	CameraData camData = _camera.GetCameraData();
+	auto renderers = RendererManager::Instance().GetRenderers();
+	auto _cmdList = fr.midGfxList;
+
+	// bind
 	_cmdList->OMSetRenderTargets(1,
 		(camData.allowMSAA > 1) ? &_camera.GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetRtv()->GetCPUDescriptorHandleForHeapStart(),
 		true,
 		(camData.allowMSAA > 1) ? &_camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
 
-	// set root signature
 	_cmdList->SetGraphicsRootSignature(ShaderManager::Instance().GetDefaultRS());
-}
-
-void ForwardRenderingPath::DrawScene(Camera _camera, ID3D12GraphicsCommandList * _cmdList, int _frameIdx)
-{
-	// update camera constant
-	auto renderers = RendererManager::Instance().GetRenderers();
+	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
+	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
 
 	// update renderer constant
 	for (auto &r : renderers)
@@ -198,11 +201,22 @@ void ForwardRenderingPath::DrawScene(Camera _camera, ID3D12GraphicsCommandList *
 #endif
 		}
 	}
+
+	// close command list and execute
+	LogIfFailedWithoutHR(_cmdList->Close());
+	ID3D12CommandList* cmdsLists[] = { _cmdList };
+	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
 }
 
-void ForwardRenderingPath::EndFrame(Camera _camera, ID3D12GraphicsCommandList * _cmdList)
+void ForwardRenderingPath::EndFrame(Camera _camera)
 {
+	// get frame resource
+	FrameResource fr = GraphicManager::Instance().GetFrameResource();
+	LogIfFailedWithoutHR(fr.postGfxAllocator->Reset());
+	LogIfFailedWithoutHR(fr.postGfxList->Reset(fr.postGfxAllocator, nullptr));
+
 	CameraData camData = _camera.GetCameraData();
+	auto _cmdList = fr.postGfxList;
 
 	// transition resource back to common
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
@@ -221,4 +235,9 @@ void ForwardRenderingPath::EndFrame(Camera _camera, ID3D12GraphicsCommandList * 
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON));
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON));
 	}
+
+	// close command list and execute
+	LogIfFailedWithoutHR(_cmdList->Close());
+	ID3D12CommandList* cmdsLists[] = { _cmdList };
+	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
 }

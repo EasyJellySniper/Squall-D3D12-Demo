@@ -33,9 +33,9 @@ public:
 	void RenderLoop(Camera _camera, int _frameIdx);
 	void WorkerThread(int _threadIndex);
 private:
-	void BeginFrame(Camera _camera, ID3D12GraphicsCommandList *_cmdList);
-	void DrawScene(Camera _camera, ID3D12GraphicsCommandList *_cmdList, int _frameIdx);
-	void EndFrame(Camera _camera, ID3D12GraphicsCommandList *_cmdList);
+	void BeginFrame(Camera _camera);
+	void DrawScene(Camera _camera, int _frameIdx);
+	void EndFrame(Camera _camera);
 
 	Camera targetCam;
 	WorkerType workerType;

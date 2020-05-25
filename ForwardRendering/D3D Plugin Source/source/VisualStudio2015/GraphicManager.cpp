@@ -53,8 +53,12 @@ void GraphicManager::Release()
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
-		mainGraphicAllocator[i].Reset();
-		mainGraphicList[i].Reset();
+		preGfxAllocator[i].Reset();
+		preGfxList[i].Reset();
+		midGfxAllocator[i].Reset();
+		midGfxList[i].Reset();
+		postGfxAllocator[i].Reset();
+		postGfxList[i].Reset();
 
 		for (int j = 0; j < numOfLogicalCores - 1; j++)
 		{
@@ -160,39 +164,38 @@ HRESULT GraphicManager::CreateGraphicCommand()
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
-		// create main GFX list
-		LogIfFailed(mainDevice->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(mainGraphicAllocator[i].GetAddressOf())), hr);
-
-		LogIfFailed(mainDevice->CreateCommandList(
-			0,
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			mainGraphicAllocator[i].Get(),
-			nullptr,
-			IID_PPV_ARGS(mainGraphicList[i].GetAddressOf())), hr);
-
-		// close first because we will call reset at the beginning of render work
-		LogIfFailed(mainGraphicList[i]->Close(), hr);
+		CreateGfxAllocAndList(preGfxAllocator[i], preGfxList[i]);
+		CreateGfxAllocAndList(midGfxAllocator[i], midGfxList[i]);
+		CreateGfxAllocAndList(postGfxAllocator[i], postGfxList[i]);
 
 		// create worker GFX list
 		for (int j = 0; j < numOfLogicalCores - 1; j++)
 		{
-			LogIfFailed(mainDevice->CreateCommandAllocator(
-				D3D12_COMMAND_LIST_TYPE_DIRECT,
-				IID_PPV_ARGS(workerGfxAllocator[j][i].GetAddressOf())), hr);
-
-			LogIfFailed(mainDevice->CreateCommandList(
-				0,
-				D3D12_COMMAND_LIST_TYPE_DIRECT,
-				workerGfxAllocator[j][i].Get(),
-				nullptr,
-				IID_PPV_ARGS(workerGfxList[j][i].GetAddressOf())), hr);
-
-			// close at first
-			LogIfFailed(workerGfxList[j][i]->Close(), hr);
+			CreateGfxAllocAndList(workerGfxAllocator[j][i], workerGfxList[j][i]);
 		}
 	}
+
+	return hr;
+}
+
+HRESULT GraphicManager::CreateGfxAllocAndList(ComPtr<ID3D12CommandAllocator>& _allocator, ComPtr<ID3D12GraphicsCommandList>& _list)
+{
+	HRESULT hr = S_OK;
+
+	// create allocator
+	LogIfFailed(mainDevice->CreateCommandAllocator(
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		IID_PPV_ARGS(_allocator.GetAddressOf())), hr);
+
+	LogIfFailed(mainDevice->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		_allocator.Get(),
+		nullptr,
+		IID_PPV_ARGS(_list.GetAddressOf())), hr);
+
+	// close first because we will call reset at the beginning of render work
+	LogIfFailed(_list->Close(), hr);
 
 	return hr;
 }
@@ -398,8 +401,12 @@ FrameResource GraphicManager::GetFrameResource()
 {
 	FrameResource fr;
 
-	fr.mainGraphicList = mainGraphicList[currFrameIndex].Get();
-	fr.mainGraphicAllocator = mainGraphicAllocator[currFrameIndex].Get();
+	fr.preGfxAllocator = preGfxAllocator[currFrameIndex].Get();
+	fr.preGfxList = preGfxList[currFrameIndex].Get();
+	fr.midGfxAllocator = midGfxAllocator[currFrameIndex].Get();
+	fr.midGfxList = midGfxList[currFrameIndex].Get();
+	fr.postGfxAllocator = postGfxAllocator[currFrameIndex].Get();
+	fr.postGfxList = postGfxList[currFrameIndex].Get();
 
 	for (int i = 0; i < numOfLogicalCores - 1; i++)
 	{
