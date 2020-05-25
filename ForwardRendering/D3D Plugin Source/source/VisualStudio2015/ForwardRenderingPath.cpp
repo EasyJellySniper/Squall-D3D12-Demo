@@ -28,7 +28,12 @@ void ForwardRenderingPath::CullingWork(Camera _camera)
 void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 {
 	BeginFrame(_camera);
-	DrawScene(_camera, _frameIdx);
+	targetCam = _camera;
+	workerType = WorkerType::Rendering;
+	frameIndex = _frameIdx;
+	GraphicManager::Instance().ResetWorkerThreadFinish();
+	GraphicManager::Instance().SetBeginWorkerThreadEvent();
+	GraphicManager::Instance().WaitForWorkerThread();
 	EndFrame(_camera);
 }
 
@@ -39,29 +44,38 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		// wait anything notify to work
 		GraphicManager::Instance().WaitBeginWorkerThread(_threadIndex);
 
-		auto renderers = RendererManager::Instance().GetRenderers();
-		int threads = GraphicManager::Instance().GetThreadCount() - 1;
-
 		// culling work
 		if (workerType == WorkerType::Culling)
 		{
-			int count = (int)renderers.size() / threads + 1;
-			int start = _threadIndex * count;
-
-			for (int i = start; i <= start + count; i++)
-			{
-				if (i >= (int)renderers.size())
-				{
-					continue;
-				}
-
-				bool isVisible = targetCam.FrustumTest(renderers[i]->GetBound());
-				renderers[i]->SetVisible(isVisible);
-			}
+			FrustumCulling(_threadIndex);
+		}
+		else if(workerType == WorkerType::Rendering)
+		{
+			DrawScene(targetCam, frameIndex, _threadIndex);
 		}
 
 		// set worker finish
 		GraphicManager::Instance().SetWorkerThreadFinishEvent(_threadIndex);
+	}
+}
+
+void ForwardRenderingPath::FrustumCulling(int _threadIndex)
+{
+	auto renderers = RendererManager::Instance().GetRenderers();
+	int threads = GraphicManager::Instance().GetThreadCount() - 1;
+
+	int count = (int)renderers.size() / threads + 1;
+	int start = _threadIndex * count;
+
+	for (int i = start; i <= start + count; i++)
+	{
+		if (i >= (int)renderers.size())
+		{
+			continue;
+		}
+
+		bool isVisible = targetCam.FrustumTest(renderers[i]->GetBound());
+		renderers[i]->SetVisible(isVisible);
 	}
 }
 
@@ -104,17 +118,17 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
 }
 
-void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx)
+void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	// get frame resource
 	FrameResource fr = GraphicManager::Instance().GetFrameResource();
-	LogIfFailedWithoutHR(fr.midGfxAllocator->Reset());
-	LogIfFailedWithoutHR(fr.midGfxList->Reset(fr.midGfxAllocator, nullptr));
+	LogIfFailedWithoutHR(fr.workerGfxAlloc[_threadIndex]->Reset());
+	LogIfFailedWithoutHR(fr.workerGfxList[_threadIndex]->Reset(fr.workerGfxAlloc[_threadIndex], nullptr));
 
 	// update camera constant
 	CameraData camData = _camera.GetCameraData();
 	auto renderers = RendererManager::Instance().GetRenderers();
-	auto _cmdList = fr.midGfxList;
+	auto _cmdList = fr.workerGfxList[_threadIndex];
 
 	// bind
 	_cmdList->OMSetRenderTargets(1,
@@ -126,15 +140,26 @@ void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx)
 	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
 
+	// split thread group
+	int threads = GraphicManager::Instance().GetThreadCount() - 1;
+	int count = (int)renderers.size() / threads + 1;
+	int start = _threadIndex * count;
+
 	// update renderer constant
-	for (auto &r : renderers)
+	for (int i = start; i <= start + count; i++)
 	{
+		if (i >= (int)renderers.size())
+		{
+			continue;
+		}
+
+		auto r = renderers[i];
 		if (!r->GetVisible())
 		{
 			continue;
 		}
 
-		Mesh *m = r->GetMesh();
+		Mesh* m = r->GetMesh();
 		if (m == nullptr)
 		{
 			continue;
@@ -154,8 +179,14 @@ void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx)
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//// render mesh
-	for (auto &r : renderers)
+	for (int a = start; a <= start + count; a++)
 	{
+		if (a >= (int)renderers.size())
+		{
+			continue;
+		}
+
+		auto r = renderers[a];
 		if (!r->GetVisible())
 		{
 			continue;
