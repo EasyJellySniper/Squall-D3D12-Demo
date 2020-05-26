@@ -66,6 +66,8 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 			TIMER_INIT
 			TIMER_START
 #endif
+
+			UploadConstant(targetCam, frameIndex, _threadIndex);
 			DrawScene(targetCam, frameIndex, _threadIndex);
 
 #if defined(GRAPHICTIME)
@@ -138,26 +140,9 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
 }
 
-void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::UploadConstant(Camera _camera, int _frameIdx, int _threadIndex)
 {
-	// get frame resource
-	FrameResource fr = GraphicManager::Instance().GetFrameResource();
-	LogIfFailedWithoutHR(fr.workerGfxAlloc[_threadIndex]->Reset());
-	LogIfFailedWithoutHR(fr.workerGfxList[_threadIndex]->Reset(fr.workerGfxAlloc[_threadIndex], nullptr));
-
-	// update camera constant
-	CameraData camData = _camera.GetCameraData();
 	auto renderers = RendererManager::Instance().GetRenderers();
-	auto _cmdList = fr.workerGfxList[_threadIndex];
-
-	// bind
-	_cmdList->OMSetRenderTargets(1,
-		(camData.allowMSAA > 1) ? &_camera.GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetRtv()->GetCPUDescriptorHandleForHeapStart(),
-		true,
-		(camData.allowMSAA > 1) ? &_camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
-
-	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
-	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
 
 	// split thread group
 	int threads = GraphicManager::Instance().GetThreadCount() - 1;
@@ -192,13 +177,40 @@ void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadI
 		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world) * XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
 		r->UpdateSystemConstant(sc, _frameIdx);
 	}
+}
+
+void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadIndex)
+{
+	// get frame resource
+	FrameResource fr = GraphicManager::Instance().GetFrameResource();
+	LogIfFailedWithoutHR(fr.workerGfxAlloc[_threadIndex]->Reset());
+	LogIfFailedWithoutHR(fr.workerGfxList[_threadIndex]->Reset(fr.workerGfxAlloc[_threadIndex], nullptr));
+
+	// update camera constant
+	CameraData camData = _camera.GetCameraData();
+	auto _cmdList = fr.workerGfxList[_threadIndex];
+
+	// bind
+	_cmdList->OMSetRenderTargets(1,
+		(camData.allowMSAA > 1) ? &_camera.GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetRtv()->GetCPUDescriptorHandleForHeapStart(),
+		true,
+		(camData.allowMSAA > 1) ? &_camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
+
+	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
+	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
 
 	// set pso and topo
 	_cmdList->SetPipelineState(_camera.GetDebugMaterial().GetPSO());
 	_cmdList->SetGraphicsRootSignature(_camera.GetDebugMaterial().GetRootSignature());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	//// render mesh
+	// split thread group
+	auto renderers = RendererManager::Instance().GetRenderers();
+	int threads = GraphicManager::Instance().GetThreadCount() - 1;
+	int count = (int)renderers.size() / threads + 1;
+	int start = _threadIndex * count;
+
+	// render mesh
 	for (int a = start; a <= start + count; a++)
 	{
 		if (a >= (int)renderers.size())

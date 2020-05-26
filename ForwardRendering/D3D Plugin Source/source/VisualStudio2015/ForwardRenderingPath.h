@@ -35,6 +35,7 @@ public:
 private:
 	void FrustumCulling(int _threadIndex);
 	void BeginFrame(Camera _camera);
+	void UploadConstant(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawScene(Camera _camera, int _frameIdx, int _threadIndex);
 	void EndFrame(Camera _camera);
 
