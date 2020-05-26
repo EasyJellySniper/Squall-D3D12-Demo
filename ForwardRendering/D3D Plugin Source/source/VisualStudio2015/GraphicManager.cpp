@@ -107,22 +107,10 @@ void GraphicManager::Update()
 
 void GraphicManager::Render()
 {
-#if defined(GRAPHICTIME)
-	TIMER_INIT
-	TIMER_START
-	GameTimerManager::Instance().gameTime.gpuTime = 0.0f;
-	GameTimerManager::Instance().gameTime.batchCount = 0;
-#endif
-
 	// wake up render thread
 	ResetEvent(renderThreadFinish);
 	SetEvent(beginRenderThread);
 	WaitForRenderThread();
-
-#if defined(GRAPHICTIME)
-	TIMER_STOP
-	GameTimerManager::Instance().gameTime.renderTime = elapsedTime;
-#endif
 }
 
 HRESULT GraphicManager::CreateGpuTimeQuery()
@@ -293,7 +281,16 @@ bool GraphicManager::CreateGraphicThreads()
 
 void GraphicManager::DrawCamera()
 {
+#if defined(GRAPHICTIME)
 	GameTimerManager::Instance().gameTime.cullingTime = 0.0;
+	GameTimerManager::Instance().gameTime.renderTime = 0.0;
+	GameTimerManager::Instance().gameTime.gpuTime = 0.0f;
+	GameTimerManager::Instance().gameTime.batchCount = 0;
+	for (int i = 0; i < numOfLogicalCores - 1; i++)
+	{
+		GameTimerManager::Instance().gameTime.renderThreadTime[i] = 0.0;
+	}
+#endif
 
 	vector<Camera> cams = CameraManager::Instance().GetCameras();
 	for (size_t i = 0; i < cams.size(); i++)
@@ -339,13 +336,6 @@ void GraphicManager::RenderThread()
 		// wait for main thread notify to draw
 		WaitForSingleObject(beginRenderThread, INFINITE);
 
-		// process render thread
-#if defined(GRAPHICTIME)
-		TIMER_INIT
-		TIMER_START
-		GameTimerManager::Instance().gameTime.renderThreadTime = 0.0f;
-#endif
-
 		DrawCamera();
 
 		// Signal and increment the fence value.
@@ -354,11 +344,6 @@ void GraphicManager::RenderThread()
 		mainFenceValue++;
 
 		SetEvent(renderThreadFinish);
-
-#if defined(GRAPHICTIME)
-		TIMER_STOP
-		GameTimerManager::Instance().gameTime.renderThreadTime = elapsedTime;
-#endif
 	}
 }
 

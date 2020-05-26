@@ -1,14 +1,15 @@
 #pragma once
 #include "GameTime.h"
+#include "FrameResource.h"
 
 struct GameTime
 {
 	double updateTime;
 	double renderTime;
-	double renderThreadTime;
 	double gpuTime;
 	double cullingTime;
 	int batchCount;
+	double renderThreadTime[MAX_WORKER_THREAD_COUNT];
 };
 
 class GameTimerManager
@@ -29,5 +30,7 @@ public:
 		return instance;
 	}
 
+#if defined(GRAPHICTIME)
 	GameTime gameTime;
+#endif
 };

@@ -27,6 +27,11 @@ void ForwardRenderingPath::CullingWork(Camera _camera)
 
 void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 {
+#if defined(GRAPHICTIME)
+	TIMER_INIT
+	TIMER_START
+#endif
+
 	BeginFrame(_camera);
 	targetCam = _camera;
 	workerType = WorkerType::Rendering;
@@ -35,6 +40,11 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	GraphicManager::Instance().SetBeginWorkerThreadEvent();
 	GraphicManager::Instance().WaitForWorkerThread();
 	EndFrame(_camera);
+
+#if defined(GRAPHICTIME)
+	TIMER_STOP
+	GameTimerManager::Instance().gameTime.renderTime += elapsedTime;
+#endif
 }
 
 void ForwardRenderingPath::WorkerThread(int _threadIndex)
@@ -51,7 +61,17 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		}
 		else if(workerType == WorkerType::Rendering)
 		{
+			// process render thread
+#if defined(GRAPHICTIME)
+			TIMER_INIT
+			TIMER_START
+#endif
 			DrawScene(targetCam, frameIndex, _threadIndex);
+
+#if defined(GRAPHICTIME)
+			TIMER_STOP
+			GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex] = elapsedTime;
+#endif
 		}
 
 		// set worker finish

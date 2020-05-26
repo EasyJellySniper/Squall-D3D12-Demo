@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public class SqGraphicManager : MonoBehaviour
 {
+    [StructLayout(LayoutKind.Sequential)]
     struct GameTime
     {
         /// <summary>
@@ -17,11 +18,6 @@ public class SqGraphicManager : MonoBehaviour
         /// render time
         /// </summary>
         public double renderTime;
-
-        /// <summary>
-        /// render thread time
-        /// </summary>
-        public double renderThreadTime;
 
         /// <summary>
         /// gpu time
@@ -37,6 +33,12 @@ public class SqGraphicManager : MonoBehaviour
         /// batch count
         /// </summary>
         public int batchCount;
+
+        /// <summary>
+        /// render thread time
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
+        public double[] renderThreadTime;
     };
 
     [DllImport("SquallGraphics")]
@@ -121,10 +123,20 @@ public class SqGraphicManager : MonoBehaviour
 
             GUI.Label(new Rect(10, 10, 500, 20 * Screen.width / 1920), "Update() Call Time: " + gameTime.updateTime.ToString("0.#####") + " ms", guiStyle);
             GUI.Label(new Rect(10, 10 + 20 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Render() Call Time: " + gameTime.renderTime.ToString("0.#####") + " ms", guiStyle);
-            GUI.Label(new Rect(10, 10 + 40 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "RenderThread Time: " + gameTime.renderThreadTime.ToString("0.#####") + " ms", guiStyle);
-            GUI.Label(new Rect(10, 10 + 60 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "GPU Time: " + gameTime.gpuTime.ToString("0.#####") + " ms", guiStyle);
-            GUI.Label(new Rect(10, 10 + 80 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Culling Time: " + gameTime.cullingTime.ToString("0.#####") + " ms", guiStyle);
-            GUI.Label(new Rect(10, 10 + 100 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Batch Count: " + gameTime.batchCount.ToString(), guiStyle);
+            GUI.Label(new Rect(10, 10 + 40 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "GPU Time: " + gameTime.gpuTime.ToString("0.#####") + " ms", guiStyle);
+            GUI.Label(new Rect(10, 10 + 60 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Culling Time: " + gameTime.cullingTime.ToString("0.#####") + " ms", guiStyle);
+            GUI.Label(new Rect(10, 10 + 80 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Batch Count: " + gameTime.batchCount.ToString(), guiStyle);
+
+            if (gameTime.renderThreadTime != null)
+            {
+                for (int i = 0; i < numOfRenderThreads - 1; i++)
+                {
+                    if (i < gameTime.renderThreadTime.Length)
+                    {
+                        GUI.Label(new Rect(10, 10 + (100 + 20 * i) * Screen.width / 1920, 500, 20 * Screen.width / 1920), "RenderThread " + i + " Time: " + gameTime.renderThreadTime[i].ToString("0.#####") + " ms", guiStyle);
+                    }
+                }
+            }
         }
     }
 #endif
