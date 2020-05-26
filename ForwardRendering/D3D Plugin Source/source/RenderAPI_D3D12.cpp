@@ -73,9 +73,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 
 	initSucceed = GraphicManager::Instance().Initialize(mainDevice, _numOfThreads);
 	MeshManager::Instance().Init();
-	ShaderManager::Instance().Init();
 }
-
 
 void RenderAPI_D3D12::ReleaseResources()
 {

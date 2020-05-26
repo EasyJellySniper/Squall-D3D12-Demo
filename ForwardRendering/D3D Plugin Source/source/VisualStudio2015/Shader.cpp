@@ -45,6 +45,11 @@ void Shader::SetGS(ComPtr<ID3DBlob> _input)
 	geometryShader = _input;
 }
 
+ComPtr<ID3D12RootSignature>& Shader::GetRootSignatureRef()
+{
+	return rootSignature;
+}
+
 ComPtr<ID3DBlob> Shader::GetVS()
 {
 	return vertexShader;

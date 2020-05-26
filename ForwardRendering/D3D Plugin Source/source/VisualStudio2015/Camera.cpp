@@ -434,7 +434,7 @@ bool Camera::CreateDebugMaterial()
 		return false;
 	}
 
-	desc.pRootSignature = ShaderManager::Instance().GetDefaultRS();
+	desc.pRootSignature = wireFrameShader->GetRootSignatureRef().Get();
 	desc.VS.BytecodeLength = wireFrameShader->GetVS()->GetBufferSize();
 	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(wireFrameShader->GetVS()->GetBufferPointer());
 	desc.PS.BytecodeLength = wireFrameShader->GetPS()->GetBufferSize();

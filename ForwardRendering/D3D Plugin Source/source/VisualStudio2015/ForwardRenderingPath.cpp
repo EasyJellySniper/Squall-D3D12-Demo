@@ -156,7 +156,6 @@ void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadI
 		true,
 		(camData.allowMSAA > 1) ? &_camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
 
-	_cmdList->SetGraphicsRootSignature(ShaderManager::Instance().GetDefaultRS());
 	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
 
@@ -196,6 +195,7 @@ void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadI
 
 	// set pso and topo
 	_cmdList->SetPipelineState(_camera.GetDebugMaterial().GetPSO());
+	_cmdList->SetGraphicsRootSignature(_camera.GetDebugMaterial().GetRootSignature());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//// render mesh

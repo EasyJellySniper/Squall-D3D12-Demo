@@ -15,6 +15,7 @@ public:
 	bool Initialize(MaterialData _materialData);
 	void Release();
 	ID3D12PipelineState* GetPSO();
+	ID3D12RootSignature* GetRootSignature();
 
 private:
 	MaterialData matData;

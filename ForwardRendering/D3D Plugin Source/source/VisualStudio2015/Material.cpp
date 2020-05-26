@@ -21,3 +21,8 @@ ID3D12PipelineState * Material::GetPSO()
 {
 	return pso.Get();
 }
+
+ID3D12RootSignature* Material::GetRootSignature()
+{
+	return matData.graphicPipeline.pRootSignature;
+}
