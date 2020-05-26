@@ -19,6 +19,7 @@ void Renderer::Release()
 		rendererConstant[i].reset();
 	}
 
+	subRenderQueue.clear();
 	mesh = nullptr;
 }
 
@@ -48,6 +49,15 @@ void Renderer::SetWorld(XMFLOAT4X4 _world)
 void Renderer::SetInstanceID(int _id)
 {
 	instanceID = _id;
+}
+
+void Renderer::SetRenderQueue(int _numOfMaterial, int* _renderQueue)
+{
+	subRenderQueue.clear();
+	for (int i = 0; i < _numOfMaterial; i++)
+	{
+		subRenderQueue.push_back(_renderQueue[i]);
+	}
 }
 
 XMFLOAT4X4 Renderer::GetWorld()

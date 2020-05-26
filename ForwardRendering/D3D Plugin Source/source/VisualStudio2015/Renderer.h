@@ -15,6 +15,7 @@ public:
 	void SetVisible(bool _visible);
 	void SetWorld(XMFLOAT4X4 _world);
 	void SetInstanceID(int _id);
+	void SetRenderQueue(int _numOfMaterial, int* _renderQueue);
 	XMFLOAT4X4 GetWorld();
 	Mesh *GetMesh();
 	BoundingBox GetBound();
@@ -29,6 +30,7 @@ private:
 	BoundingBox bound;
 	bool isVisible;
 	int instanceID = -1;
+	vector<int> subRenderQueue;
 
 	XMFLOAT4X4 world;
 };

@@ -73,9 +73,9 @@ extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddMesh(int _instance
 	return MeshManager::Instance().AddMesh(_instanceID, _MeshData);
 }
 
-extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddRenderer(int _instanceID, int _meshInstanceID)
+extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddRenderer(int _instanceID, int _meshInstanceID, int _numOfMaterial, int* _renderQueue)
 {
-	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID);
+	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID, _numOfMaterial, _renderQueue);
 }
 
 extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez)

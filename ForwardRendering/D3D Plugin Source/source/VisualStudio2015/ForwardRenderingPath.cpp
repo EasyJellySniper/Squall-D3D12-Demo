@@ -68,6 +68,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 #endif
 
 			UploadConstant(targetCam, frameIndex, _threadIndex);
+			BindState(targetCam, frameIndex, _threadIndex);
 			DrawScene(targetCam, frameIndex, _threadIndex);
 
 #if defined(GRAPHICTIME)
@@ -179,7 +180,7 @@ void ForwardRenderingPath::UploadConstant(Camera _camera, int _frameIdx, int _th
 	}
 }
 
-void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	// get frame resource
 	FrameResource fr = GraphicManager::Instance().GetFrameResource();
@@ -203,44 +204,50 @@ void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadI
 	_cmdList->SetPipelineState(_camera.GetDebugMaterial().GetPSO());
 	_cmdList->SetGraphicsRootSignature(_camera.GetDebugMaterial().GetRootSignature());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
 
-	// split thread group
-	auto renderers = RendererManager::Instance().GetRenderers();
+void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadIndex)
+{
+	FrameResource fr = GraphicManager::Instance().GetFrameResource();
+	auto _cmdList = fr.workerGfxList[_threadIndex];
 	int threads = GraphicManager::Instance().GetThreadCount() - 1;
-	int count = (int)renderers.size() / threads + 1;
-	int start = _threadIndex * count;
 
-	// render mesh
-	for (int a = start; a <= start + count; a++)
+	// loop render-queue
+	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
+	for (auto const& qr : queueRenderers)
 	{
-		if (a >= (int)renderers.size())
-		{
-			continue;
-		}
+		auto renderers = qr.second;
+		int count = (int)renderers.size() / threads + 1;
+		int start = _threadIndex * count;
 
-		auto r = renderers[a];
-		if (!r->GetVisible())
+		for (int i = start; i <= start + count; i++)
 		{
-			continue;
-		}
+			if (i >= (int)renderers.size())
+			{
+				continue;
+			}
 
-		Mesh *m = r->GetMesh();
-		if (m == nullptr)
-		{
-			continue;
-		}
+			auto const r = renderers[i];
+			if (!r.cache->GetVisible())
+			{
+				continue;
+			}
 
-		_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
-		_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
+			Mesh* m = r.cache->GetMesh();
+			if (m == nullptr)
+			{
+				continue;
+			}
 
-		auto submeshes = m->GetSubmeshes();
-		for (size_t i = 0; i < submeshes.size(); i++)
-		{
-			// set constant
-			_cmdList->SetGraphicsRootConstantBufferView(0, r->GetSystemConstantGPU(_frameIdx));
+			// bind mesh
+			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
+			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
+
+			// set system constant of renderer
+			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
 
 			// draw mesh
-			SubMesh sm = submeshes[i];
+			SubMesh sm = m->GetSubMesh(r.submeshIndex);
 			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
 
 #if defined(GRAPHICTIME)

@@ -9,6 +9,15 @@ struct MaterialData
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicPipeline;
 };
 
+enum RenderQueue
+{
+	Opaque = 2000,
+	Cutoff = 2450,
+	OpaqueLast = 2500,
+	Transparent = 3000,
+	TransparentLast = 3500,
+};
+
 class Material
 {
 public:

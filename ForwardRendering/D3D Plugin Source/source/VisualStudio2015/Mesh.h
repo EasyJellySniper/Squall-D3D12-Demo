@@ -33,6 +33,7 @@ public:
 	D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
 	vector<SubMesh> GetSubmeshes();
+	SubMesh GetSubMesh(int _index);
 
 private:
 	MeshData meshData;

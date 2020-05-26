@@ -1,6 +1,6 @@
 #include "RendererManager.h"
 
-int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
+int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID, int _numOfMaterial, int* _renderQueue)
 {
 	int id = -1;
 	for (int i = 0; i < (int)renderers.size(); i++)
@@ -16,6 +16,16 @@ int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
 	id = (int)renderers.size() - 1;
 	renderers[id]->Init(_meshInstanceID);
 	renderers[id]->SetInstanceID(_instanceID);
+	renderers[id]->SetRenderQueue(_numOfMaterial, _renderQueue);
+	
+	// add renderer cache to queue
+	for (int i = 0; i < _numOfMaterial; i++)
+	{
+		QueueRenderer qr;
+		qr.cache = renderers[id].get();
+		qr.submeshIndex = i;
+		queuedRenderers[_renderQueue[i]].push_back(qr);
+	}
 
 	return id;
 }
@@ -47,10 +57,22 @@ void RendererManager::Release()
 		r->Release();
 		r.reset();
 	}
+
+	for (auto& r : queuedRenderers)
+	{
+		r.second.clear();
+	}
+
 	renderers.clear();
+	queuedRenderers.clear();
 }
 
 vector<shared_ptr<Renderer>>& RendererManager::GetRenderers()
 {
 	return renderers;
+}
+
+map<int, vector<QueueRenderer>>& RendererManager::GetQueueRenderers()
+{
+	return queuedRenderers;
 }

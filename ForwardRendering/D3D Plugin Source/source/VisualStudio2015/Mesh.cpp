@@ -92,3 +92,13 @@ vector<SubMesh> Mesh::GetSubmeshes()
 {
 	return submeshes;
 }
+
+SubMesh Mesh::GetSubMesh(int _index)
+{
+	if (_index < 0 || (int)_index >= submeshes.size())
+	{
+		return SubMesh();
+	}
+
+	return submeshes[_index];
+}
