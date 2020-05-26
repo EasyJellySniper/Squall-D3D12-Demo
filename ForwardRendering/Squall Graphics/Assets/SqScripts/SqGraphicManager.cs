@@ -73,6 +73,7 @@ public class SqGraphicManager : MonoBehaviour
     GameTime gameTime;
     float gameTimeUpdate = 0f;
     GUIStyle guiStyle;
+    Texture2D guiBg;
 
     void Awake()
     {
@@ -96,11 +97,21 @@ public class SqGraphicManager : MonoBehaviour
         guiStyle = new GUIStyle();
         guiStyle.fontSize = 24 * Screen.width / 1920;
         guiStyle.normal.textColor = Color.white;
+
+#if DEBUG
+        guiBg = new Texture2D(1, 1);
+        guiBg.SetPixel(0, 0, new Color(0, 0, 0, 0.5f));
+        guiBg.Apply();
+#endif
     }
 
     void OnDestroy()
     {
         ReleaseSqGraphic();
+
+#if DEBUG
+        DestroyImmediate(guiBg);
+#endif
     }
 
     void LateUpdate()
@@ -120,6 +131,8 @@ public class SqGraphicManager : MonoBehaviour
                 gameTime = GetGameTime();
                 gameTimeUpdate = 0f;
             }
+
+            GUI.DrawTexture(new Rect(0, 0, 500, 120 + (numOfRenderThreads - 1) * 20), guiBg, ScaleMode.StretchToFill, true);
 
             GUI.Label(new Rect(10, 10, 500, 20 * Screen.width / 1920), "Update() Call Time: " + gameTime.updateTime.ToString("0.#####") + " ms", guiStyle);
             GUI.Label(new Rect(10, 10 + 20 * Screen.width / 1920, 500, 20 * Screen.width / 1920), "Render() Call Time: " + gameTime.renderTime.ToString("0.#####") + " ms", guiStyle);
