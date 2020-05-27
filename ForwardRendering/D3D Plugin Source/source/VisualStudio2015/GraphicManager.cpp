@@ -283,12 +283,13 @@ void GraphicManager::DrawCamera()
 {
 #if defined(GRAPHICTIME)
 	GameTimerManager::Instance().gameTime.cullingTime = 0.0;
+	GameTimerManager::Instance().gameTime.sortingTime = 0.0;
 	GameTimerManager::Instance().gameTime.renderTime = 0.0;
 	GameTimerManager::Instance().gameTime.gpuTime = 0.0f;
-	GameTimerManager::Instance().gameTime.batchCount = 0;
 	for (int i = 0; i < numOfLogicalCores - 1; i++)
 	{
 		GameTimerManager::Instance().gameTime.renderThreadTime[i] = 0.0;
+		GameTimerManager::Instance().gameTime.batchCount[i] = 0;
 	}
 #endif
 
@@ -299,6 +300,7 @@ void GraphicManager::DrawCamera()
 		if (cams[i].GetCameraData().renderingPath == RenderingPathType::Forward)
 		{
 			ForwardRenderingPath::Instance().CullingWork(cams[i]);
+			ForwardRenderingPath::Instance().SortingWork(cams[i]);
 			ForwardRenderingPath::Instance().RenderLoop(cams[i], currFrameIndex);
 		}
 	}

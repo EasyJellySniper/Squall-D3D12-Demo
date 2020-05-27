@@ -2,9 +2,9 @@
 #include "FrameResource.h"
 #include "GraphicManager.h"
 #include "ShaderManager.h"
-#include "RendererManager.h"
 #include "stdafx.h"
 #include "d3dx12.h"
+#include <algorithm>
 
 void ForwardRenderingPath::CullingWork(Camera _camera)
 {
@@ -22,6 +22,46 @@ void ForwardRenderingPath::CullingWork(Camera _camera)
 #if defined(GRAPHICTIME)
 	TIMER_STOP
 	GameTimerManager::Instance().gameTime.cullingTime += elapsedTime;
+#endif
+}
+
+void ForwardRenderingPath::SortingWork(Camera _camera)
+{
+#if defined(GRAPHICTIME)
+	TIMER_INIT
+	TIMER_START
+#endif
+
+	// group to queue renderer
+	RendererManager::Instance().ClearQueueRenderer();
+	auto renderers = RendererManager::Instance().GetRenderers();
+	for (int i = 0; i < (int)renderers.size(); i++)
+	{
+		if (renderers[i]->GetVisible())
+		{
+			RendererManager::Instance().AddToQueueRenderer(renderers[i].get(), _camera);
+		}
+	}
+
+	// sort each queue renderers
+	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
+	for (auto& qr : queueRenderers)
+	{
+		if (qr.first <= RenderQueue::OpaqueLast)
+		{
+			// sort front-to-back
+			sort(qr.second.begin(), qr.second.end(), FrontToBackRender);
+		}
+		else
+		{
+			// sort back-to-front
+			sort(qr.second.begin(), qr.second.end(), BackToFrontRender);
+		}
+	}
+
+#if defined(GRAPHICTIME)
+	TIMER_STOP
+	GameTimerManager::Instance().gameTime.sortingTime += elapsedTime;
 #endif
 }
 
@@ -251,7 +291,7 @@ void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadI
 			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
 
 #if defined(GRAPHICTIME)
-			GameTimerManager::Instance().gameTime.batchCount += 1;
+			GameTimerManager::Instance().gameTime.batchCount[_threadIndex] += 1;
 #endif
 		}
 	}

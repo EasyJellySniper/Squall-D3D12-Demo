@@ -21,6 +21,8 @@ public:
 	BoundingBox GetBound();
 	bool GetVisible();
 	int GetInstanceID();
+	int GetNumSubRender();
+	vector<int> GetSubRenderQueue();
 	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU(int _frameIdx);
 
 private:
@@ -31,6 +33,7 @@ private:
 	bool isVisible;
 	int instanceID = -1;
 	vector<int> subRenderQueue;
+	int numSubRender = 0;
 
 	XMFLOAT4X4 world;
 };

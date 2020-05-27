@@ -58,6 +58,7 @@ void Renderer::SetRenderQueue(int _numOfMaterial, int* _renderQueue)
 	{
 		subRenderQueue.push_back(_renderQueue[i]);
 	}
+	numSubRender = _numOfMaterial;
 }
 
 XMFLOAT4X4 Renderer::GetWorld()
@@ -83,6 +84,16 @@ bool Renderer::GetVisible()
 int Renderer::GetInstanceID()
 {
 	return instanceID;
+}
+
+int Renderer::GetNumSubRender()
+{
+	return numSubRender;
+}
+
+vector<int> Renderer::GetSubRenderQueue()
+{
+	return subRenderQueue;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS Renderer::GetSystemConstantGPU(int _frameIdx)

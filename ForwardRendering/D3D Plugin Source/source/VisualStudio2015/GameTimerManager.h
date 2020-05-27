@@ -8,7 +8,8 @@ struct GameTime
 	double renderTime;
 	double gpuTime;
 	double cullingTime;
-	int batchCount;
+	double sortingTime;
+	int batchCount[MAX_WORKER_THREAD_COUNT];
 	double renderThreadTime[MAX_WORKER_THREAD_COUNT];
 };
 

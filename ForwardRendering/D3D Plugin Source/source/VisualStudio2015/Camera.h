@@ -41,12 +41,13 @@ public:
 	ID3D12DescriptorHeap *GetMsaaRtv();
 	ID3D12DescriptorHeap *GetDsv();
 	ID3D12DescriptorHeap *GetMsaaDsv();
-	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling);
+	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetProjMatrix();
+	XMFLOAT3 GetPosition();
 	Material GetDebugMaterial();
 	bool FrustumTest(BoundingBox _bound);
 
@@ -87,6 +88,7 @@ private:
 	// matrix and view port
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projMatrix;
+	XMFLOAT3 position;
 	BoundingFrustum camFrustum;
 
 	D3D12_VIEWPORT viewPort;

@@ -203,11 +203,12 @@ ID3D12DescriptorHeap * Camera::GetMsaaDsv()
 	return msaaDsvHandle.Get();
 }
 
-void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling)
+void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position)
 {
 	// data from unity is column major, while d3d matrix use row major
 	viewMatrix = _view;
 	projMatrix = _proj;
+	position = _position;
 
 	// fix view matrix for culling
 	XMFLOAT4X4 _viewFix = _view;
@@ -249,6 +250,11 @@ XMFLOAT4X4 Camera::GetViewMatrix()
 XMFLOAT4X4 Camera::GetProjMatrix()
 {
 	return projMatrix;
+}
+
+XMFLOAT3 Camera::GetPosition()
+{
+	return position;
 }
 
 Material Camera::GetDebugMaterial()

@@ -4,6 +4,7 @@
 #include <DirectXMath.h>
 #include "UploadBuffer.h"
 #include "FrameResource.h"
+#include "RendererManager.h"
 using namespace Microsoft;
 
 enum WorkerType
@@ -11,6 +12,18 @@ enum WorkerType
 	Culling = 0,
 	Rendering
 };
+
+inline bool FrontToBackRender(QueueRenderer const &i, QueueRenderer const &j)
+{
+	// sort from low distance to high distance (front to back)
+	return (i.zDistanceToCam < j.zDistanceToCam);
+}
+
+inline bool BackToFrontRender(QueueRenderer const &i, QueueRenderer const &j)
+{
+	// sort from high distance to low distance (back to front)
+	return (i.zDistanceToCam > j.zDistanceToCam);
+}
 
 class ForwardRenderingPath
 {
@@ -30,6 +43,7 @@ public:
 	~ForwardRenderingPath() {}
 
 	void CullingWork(Camera _camera);
+	void SortingWork(Camera _camera);
 	void RenderLoop(Camera _camera, int _frameIdx);
 	void WorkerThread(int _threadIndex);
 private:
