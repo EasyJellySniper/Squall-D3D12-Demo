@@ -4,6 +4,7 @@
 #include "d3dx12.h"
 #include "MeshManager.h"
 #include "ShaderManager.h"
+#include "MaterialManager.h"
 
 bool Camera::Initialize(CameraData _cameraData)
 {
@@ -130,7 +131,7 @@ bool Camera::Initialize(CameraData _cameraData)
 	CreateRtv();
 	CreateDsv();
 
-	if (!CreateDebugMaterial())
+	if (!CreatePipelineMaterial())
 	{
 		LogMessage(L"[SqGraphic Error] SqCamera: Create Debug Material failed.");
 		return false;
@@ -155,7 +156,10 @@ void Camera::Release()
 	renderTarget.clear();
 	msaaTarget.clear();
 
-	debugWireFrame.Release();
+	for (auto& m : pipelineMaterials)
+	{
+		m.second.Release();
+	}
 }
 
 CameraData Camera::GetCameraData()
@@ -257,9 +261,34 @@ XMFLOAT3 Camera::GetPosition()
 	return position;
 }
 
-Material Camera::GetDebugMaterial()
+Material Camera::GetPipelineMaterial(MaterialType _type)
 {
-	return debugWireFrame;
+	return pipelineMaterials[_type];
+}
+
+int Camera::GetNumOfRT()
+{
+	return numOfRenderTarget;
+}
+
+D3D12_RESOURCE_DESC* Camera::GetColorRTDesc()
+{
+	return renderTarrgetDesc;
+}
+
+D3D12_RESOURCE_DESC Camera::GetDepthDesc()
+{
+	return depthTargetDesc;
+}
+
+int Camera::GetMsaaCount()
+{
+	return cameraData.allowMSAA;
+}
+
+int Camera::GetMsaaQuailty()
+{
+	return msaaQuality;
 }
 
 bool Camera::FrustumTest(BoundingBox _bound)
@@ -369,6 +398,18 @@ void Camera::CreateDsv()
 	}
 }
 
+bool Camera::CreatePipelineMaterial()
+{
+	// create debug wire frame material
+	Shader* wireFrameShader = ShaderManager::Instance().CompileShader(L"DebugWireFrame.hlsl", "WireFrameVS", "WireFramePS");
+	if (wireFrameShader != nullptr)
+	{
+		pipelineMaterials[MaterialType::DebugWireFrame] = MaterialManager::Instance().CreateMaterialFromShader(wireFrameShader, *this, D3D12_FILL_MODE_WIREFRAME, D3D12_CULL_MODE_NONE);
+	}
+
+	return true;
+}
+
 DXGI_FORMAT Camera::GetColorFormat(DXGI_FORMAT _typelessFormat)
 {
 	DXGI_FORMAT colorFormat = DXGI_FORMAT_UNKNOWN;
@@ -424,52 +465,4 @@ D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS Camera::CheckMsaaQuality(int _samp
 	}
 
 	return aaData;
-}
-
-bool Camera::CreateDebugMaterial()
-{
-	// create debug pso
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
-	ZeroMemory(&desc, sizeof(desc));
-
-	// create debug wire frame shader
-	Shader *wireFrameShader = ShaderManager::Instance().CompileShader(L"DebugWireFrame.hlsl", "WireFrameVS", "WireFramePS");
-	if (wireFrameShader == nullptr)
-	{
-		LogMessage(L"[SqGraphic Error]: Shader error.");
-		return false;
-	}
-
-	desc.pRootSignature = wireFrameShader->GetRootSignatureRef().Get();
-	desc.VS.BytecodeLength = wireFrameShader->GetVS()->GetBufferSize();
-	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(wireFrameShader->GetVS()->GetBufferPointer());
-	desc.PS.BytecodeLength = wireFrameShader->GetPS()->GetBufferSize();
-	desc.PS.pShaderBytecode = reinterpret_cast<BYTE*>(wireFrameShader->GetPS()->GetBufferPointer());
-	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	desc.SampleMask = UINT_MAX;
-	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	desc.RasterizerState.FrontCounterClockwise = true;
-	desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
-
-	auto layout = MeshManager::Instance().GetDefaultInputLayout();
-	desc.InputLayout.pInputElementDescs = layout.data();
-	desc.InputLayout.NumElements = (UINT)layout.size();
-	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	desc.NumRenderTargets = numOfRenderTarget;
-
-	for (int i = 0; i < numOfRenderTarget; i++)
-	{
-		desc.RTVFormats[i] = renderTarrgetDesc[i].Format;
-	}
-
-	desc.DSVFormat = depthTargetDesc.Format;
-	desc.SampleDesc.Count = cameraData.allowMSAA;
-	desc.SampleDesc.Quality = msaaQuality;
-
-	MaterialData md;
-	md.graphicPipeline = desc;
-
-	return debugWireFrame.Initialize(md);
 }

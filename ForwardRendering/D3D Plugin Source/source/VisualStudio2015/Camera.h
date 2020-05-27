@@ -3,11 +3,12 @@
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
 #include <vector>
+#include <unordered_map>
 #include <wrl.h>
+#include "Material.h" 
 using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
-#include "MaterialManager.h"
 
 const int MaxRenderTargets = 8;
 
@@ -21,6 +22,11 @@ struct CameraData
 	int instanceID;
 	void **renderTarget;
 	void *depthTarget;
+};
+
+enum MaterialType
+{
+	DebugWireFrame = 0
 };
 
 class Camera
@@ -48,7 +54,12 @@ public:
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetProjMatrix();
 	XMFLOAT3 GetPosition();
-	Material GetDebugMaterial();
+	Material GetPipelineMaterial(MaterialType _type);
+	int GetNumOfRT();
+	D3D12_RESOURCE_DESC* GetColorRTDesc();
+	D3D12_RESOURCE_DESC GetDepthDesc();
+	int GetMsaaCount();
+	int GetMsaaQuailty();
 	bool FrustumTest(BoundingBox _bound);
 
 private:
@@ -56,10 +67,10 @@ private:
 	HRESULT CreateDsvDescriptorHeaps();
 	void CreateRtv();
 	void CreateDsv();
+	bool CreatePipelineMaterial();
 	DXGI_FORMAT GetColorFormat(DXGI_FORMAT _typelessFormat);
 	DXGI_FORMAT GetDepthFormat(DXGI_FORMAT _typelessFormat);
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS CheckMsaaQuality(int _sampleCount, DXGI_FORMAT _format);
-	bool CreateDebugMaterial();
 
 	CameraData cameraData;
 
@@ -82,8 +93,8 @@ private:
 	ComPtr<ID3D12DescriptorHeap> dsvHandle;
 	ComPtr<ID3D12DescriptorHeap> msaaDsvHandle;
 
-	// debug material
-	Material debugWireFrame;
+	// material
+	unordered_map<int, Material> pipelineMaterials;
 
 	// matrix and view port
 	XMFLOAT4X4 viewMatrix;

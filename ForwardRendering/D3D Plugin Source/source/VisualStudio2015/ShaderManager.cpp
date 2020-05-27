@@ -26,7 +26,8 @@ Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string 
 		// reset root signature for parsing
 		cBufferRegNum = 0;
 		rootSignatureParam.clear();
-		CollectRootSignature(_fileName);
+
+		CollectShaderData(_fileName);
 		BuildRootSignature(newShader);
 
 		shaders.push_back(std::move(newShader));
@@ -38,6 +39,7 @@ Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string 
 		newShader.reset();
 	}
 
+	LogMessage(L"[SqGraphic Error]: Shader "+ _fileName + L" error.");
 	return nullptr;
 }
 
@@ -85,7 +87,7 @@ ID3DBlob *ShaderManager::CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *ma
 	return shaderBlob;
 }
 
-void ShaderManager::CollectRootSignature(wstring _fileName)
+void ShaderManager::CollectShaderData(wstring _fileName)
 {
 	ifstream input(shaderPath + _fileName, ios::in);
 	while (!input.eof())
@@ -101,7 +103,7 @@ void ShaderManager::CollectRootSignature(wstring _fileName)
 
 			// remove "" of include name
 			includeName.erase(std::remove(includeName.begin(), includeName.end(), '"'), includeName.end());
-			CollectRootSignature(AnsiToWString(includeName));
+			CollectShaderData(AnsiToWString(includeName));
 		}
 		else if (s == "cbuffer")
 		{

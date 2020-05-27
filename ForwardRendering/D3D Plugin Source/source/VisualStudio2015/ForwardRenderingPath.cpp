@@ -241,8 +241,9 @@ void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadI
 	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
 
 	// set pso and topo
-	_cmdList->SetPipelineState(_camera.GetDebugMaterial().GetPSO());
-	_cmdList->SetGraphicsRootSignature(_camera.GetDebugMaterial().GetRootSignature());
+	Material mat = _camera.GetPipelineMaterial(MaterialType::DebugWireFrame);
+	_cmdList->SetPipelineState(mat.GetPSO());
+	_cmdList->SetGraphicsRootSignature(mat.GetRootSignature());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 

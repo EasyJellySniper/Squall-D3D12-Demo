@@ -29,7 +29,7 @@ public:
 
 private:
 	ID3DBlob *CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *macro, string _entry, string _target);
-	void CollectRootSignature(wstring _fileName);
+	void CollectShaderData(wstring _fileName);
 	void BuildRootSignature(unique_ptr<Shader>& _shader);
 	bool ValidShader(Shader *_shader);
 

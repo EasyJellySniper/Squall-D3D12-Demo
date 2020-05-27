@@ -17,8 +17,8 @@ public:
 	void SetDS(ComPtr<ID3DBlob> _input);
 	void SetHS(ComPtr<ID3DBlob> _input);
 	void SetGS(ComPtr<ID3DBlob> _input);
-	ComPtr<ID3D12RootSignature> &GetRootSignatureRef();
 
+	ComPtr<ID3D12RootSignature> &GetRootSignatureRef();
 	ComPtr<ID3DBlob> GetVS();
 	ComPtr<ID3DBlob> GetPS();
 	ComPtr<ID3DBlob> GetDS();

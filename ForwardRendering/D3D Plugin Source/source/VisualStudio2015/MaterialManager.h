@@ -1,4 +1,6 @@
 #pragma once
+#include "Shader.h"
+#include "Camera.h"
 #include "Material.h"
 
 class MaterialManager
@@ -17,7 +19,7 @@ public:
 
 	MaterialManager() {}
 	~MaterialManager() {}
-
+	Material CreateMaterialFromShader(Shader *_shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode);
 	void Release();
 
 private:
