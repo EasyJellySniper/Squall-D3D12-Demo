@@ -25,6 +25,8 @@ Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string 
 	{
 		// reset root signature for parsing
 		cBufferRegNum = 0;
+		srvRegNum = 0;
+		samplerRegNum = 0;
 		rootSignatureParam.clear();
 
 		CollectShaderData(_fileName);
@@ -107,9 +109,18 @@ void ShaderManager::CollectShaderData(wstring _fileName)
 		}
 		else if (s == "cbuffer")
 		{
+			// constant buffer view
 			CD3DX12_ROOT_PARAMETER p;
 			p.InitAsConstantBufferView(cBufferRegNum++);
 			rootSignatureParam.push_back(p);
+		}
+		else if (s == "Texture2D")
+		{
+			srvRegNum++;
+		}
+		else if (s == "SamplerState")
+		{
+			samplerRegNum++;
 		}
 	}
 	input.close();
@@ -117,6 +128,32 @@ void ShaderManager::CollectShaderData(wstring _fileName)
 
 void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 {
+	if (srvRegNum > 0)
+	{
+		// we will share texture table and dynamic indexing in shader
+		CD3DX12_DESCRIPTOR_RANGE texTable;
+		texTable.Init(
+			D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+			1,  // number of descriptors
+			0);
+
+		CD3DX12_ROOT_PARAMETER p;
+		p.InitAsDescriptorTable(1, &texTable);
+	}
+
+	if (samplerRegNum > 0)
+	{
+		// we will share sampler table and dynamic indexing in shader
+		CD3DX12_DESCRIPTOR_RANGE samplerTable;
+		samplerTable.Init(
+			D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
+			1,  // number of descriptors
+			0);
+
+		CD3DX12_ROOT_PARAMETER p;
+		p.InitAsDescriptorTable(1, &samplerTable);
+	}
+
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc((int)rootSignatureParam.size(), rootSignatureParam.data(),
 		0, nullptr,
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);

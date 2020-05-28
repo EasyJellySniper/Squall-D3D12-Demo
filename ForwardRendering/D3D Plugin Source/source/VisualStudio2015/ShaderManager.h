@@ -37,4 +37,6 @@ private:
 	vector<unique_ptr<Shader>> shaders;
 	vector<CD3DX12_ROOT_PARAMETER> rootSignatureParam;
 	int cBufferRegNum;
+	int srvRegNum;
+	int samplerRegNum;
 };
