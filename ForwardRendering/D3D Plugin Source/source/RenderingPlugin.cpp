@@ -68,14 +68,19 @@ extern "C" GameTime UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetGameTime()
 	return GraphicManager::Instance().GetGameTime();
 }
 
-extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddMesh(int _instanceID, MeshData _MeshData)
+extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMesh(int _instanceID, MeshData _MeshData)
 {
 	return MeshManager::Instance().AddMesh(_instanceID, _MeshData);
 }
 
-extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddRenderer(int _instanceID, int _meshInstanceID, int _numOfMaterial, int* _renderQueue)
+extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeRenderer(int _instanceID, int _meshInstanceID)
 {
-	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID, _numOfMaterial, _renderQueue);
+	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID);
+}
+
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterial(int _instanceID, int _queue)
+{
+	RendererManager::Instance().AddMaterial(_instanceID, _queue);
 }
 
 extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez)

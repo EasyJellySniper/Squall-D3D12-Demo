@@ -9,7 +9,7 @@ void RendererManager::Init()
 	queuedRenderers[RenderQueue::Transparent].reserve(TRANSPARENT_CAPACITY);
 }
 
-int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID, int _numOfMaterial, int* _renderQueue)
+int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
 {
 	int id = -1;
 	for (int i = 0; i < (int)renderers.size(); i++)
@@ -25,17 +25,26 @@ int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID, int _numO
 	id = (int)renderers.size() - 1;
 	renderers[id]->Init(_meshInstanceID);
 	renderers[id]->SetInstanceID(_instanceID);
-	renderers[id]->SetRenderQueue(_numOfMaterial, _renderQueue);
-	
+
 	return id;
+}
+
+void RendererManager::AddMaterial(int _instanceID, int _renderQueue)
+{
+	if (_instanceID < 0 || _instanceID >= (int)renderers.size())
+	{
+		return;
+	}
+
+	renderers[_instanceID]->AddMaterial(_renderQueue);
 }
 
 void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera _camera)
 {
 	XMFLOAT3 camPos = _camera.GetPosition();
-	auto renderQueue = _renderer->GetSubRenderQueue();
+	auto mat = _renderer->GetMaterials();
 
-	for (int i = 0; i < _renderer->GetNumSubRender(); i++)
+	for (int i = 0; i < _renderer->GetNumMaterials(); i++)
 	{
 		QueueRenderer qr;
 		qr.cache = _renderer;
@@ -49,7 +58,7 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera _camera)
 		// get min z distance to camera
 		qr.zDistanceToCam = min(abs(minZ - camPos.z), abs(maxZ - camPos.z));
 		
-		queuedRenderers[renderQueue[i]].push_back(qr);
+		queuedRenderers[mat[i].GetRenderQueue()].push_back(qr);
 	}
 }
 

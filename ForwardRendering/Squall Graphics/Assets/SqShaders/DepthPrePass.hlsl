@@ -6,7 +6,7 @@ struct v2f
 	float2 uv1 : TEXCOORD0;
 };
 
-cbuffer ObjectConstant : register(b1)
+cbuffer MaterialConstant : register(b1)
 {
 	float4 _MainTex_ST;
 	float _CutOff;

@@ -18,6 +18,7 @@ EXPORTS
    SetViewPortScissorRect
    SetWorldMatrix
    GetGameTime
-   AddMesh
-   AddRenderer
+   AddNativeMesh
+   AddNativeRenderer
+   AddNativeMaterial
    UpdateRendererBound

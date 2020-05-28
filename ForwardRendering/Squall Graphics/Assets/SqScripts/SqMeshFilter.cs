@@ -76,7 +76,7 @@ struct MeshData
 public class SqMeshFilter : MonoBehaviour
 {
     [DllImport("SquallGraphics")]
-    static extern bool AddMesh(int _instanceID, MeshData _meshData);
+    static extern bool AddNativeMesh(int _instanceID, MeshData _meshData);
 
     MeshData meshData;
     Mesh mesh;
@@ -127,7 +127,7 @@ public class SqMeshFilter : MonoBehaviour
         }
 
         // add mesh to native plugin
-        if (!AddMesh(mesh.GetInstanceID(), meshData))
+        if (!AddNativeMesh(mesh.GetInstanceID(), meshData))
         {
             Debug.LogError("[Error] SqMeshFilter: AddMesh() Failed.");
             enabled = false;

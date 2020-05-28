@@ -19,7 +19,12 @@ void Renderer::Release()
 		rendererConstant[i].reset();
 	}
 
-	subRenderQueue.clear();
+	for (size_t i = 0; i < materials.size(); i++)
+	{
+		materials[i].Release();
+	}
+	materials.clear();
+
 	mesh = nullptr;
 }
 
@@ -51,14 +56,11 @@ void Renderer::SetInstanceID(int _id)
 	instanceID = _id;
 }
 
-void Renderer::SetRenderQueue(int _numOfMaterial, int* _renderQueue)
+void Renderer::AddMaterial(int _renderQueue)
 {
-	subRenderQueue.clear();
-	for (int i = 0; i < _numOfMaterial; i++)
-	{
-		subRenderQueue.push_back(_renderQueue[i]);
-	}
-	numSubRender = _numOfMaterial;
+	Material m;
+	m.SetRenderQueue(_renderQueue);
+	materials.push_back(m);
 }
 
 XMFLOAT4X4 Renderer::GetWorld()
@@ -86,14 +88,14 @@ int Renderer::GetInstanceID()
 	return instanceID;
 }
 
-int Renderer::GetNumSubRender()
+int Renderer::GetNumMaterials()
 {
-	return numSubRender;
+	return (int)materials.size();
 }
 
-vector<int> Renderer::GetSubRenderQueue()
+const vector<Material> Renderer::GetMaterials()
 {
-	return subRenderQueue;
+	return materials;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS Renderer::GetSystemConstantGPU(int _frameIdx)
