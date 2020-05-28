@@ -25,7 +25,6 @@ class Material
 public:
 	bool Initialize(MaterialData _materialData);
 	void AddMaterialConstant(UINT _byteSize, void* _data);
-	void UpdataMaterialConstant(int _frameIdx, void* _data);
 	void Release();
 	void SetRenderQueue(int _queue);
 

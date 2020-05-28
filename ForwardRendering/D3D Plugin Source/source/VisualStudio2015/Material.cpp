@@ -26,16 +26,6 @@ void Material::AddMaterialConstant(UINT _byteSize, void* _data)
 	}
 }
 
-void Material::UpdataMaterialConstant(int _frameIdx, void* _data)
-{
-	// only upload material constant if it is dirty
-	if (isDirty)
-	{
-		materialConstant[_frameIdx]->CopyData(0, _data);
-	}
-	isDirty = false;
-}
-
 void Material::Release()
 {
 	pso.Reset();
