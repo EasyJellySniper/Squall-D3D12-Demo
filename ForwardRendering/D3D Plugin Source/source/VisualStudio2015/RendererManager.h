@@ -39,7 +39,9 @@ public:
 	void ClearQueueRenderer();
 	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 	void SetWorldMatrix(int _id, XMFLOAT4X4 _world);
+	void AddNativeMaterialProp(int _id, int _matId, UINT _byteSize, void* _data);
 	void Release();
+
 	vector<shared_ptr<Renderer>> &GetRenderers();
 	map<int, vector<QueueRenderer>>& GetQueueRenderers();
 

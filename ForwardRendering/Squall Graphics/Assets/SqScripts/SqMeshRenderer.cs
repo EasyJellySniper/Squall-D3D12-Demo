@@ -40,7 +40,7 @@ public class SqMeshRenderer : MonoBehaviour
     //static extern int AddNativeSampler(int _texID, FilterMode _filterMode, TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);
 
     //[DllImport("SquallGraphics")]
-    //static extern void SetMaterialConstant(int _instanceID, int _matID, MaterialConstant _mc);
+    //static extern void AddNativeMaterialProp(int _instanceID, int _matID, uint _byteSize, MaterialConstant _mc);
 
     MeshRenderer rendererCache;
     int rendererNativeID = -1;
@@ -93,7 +93,7 @@ public class SqMeshRenderer : MonoBehaviour
         //    mc._MainTex_ST = new Vector4(mats[i].mainTextureScale.x, mats[i].mainTextureScale.y, mats[i].mainTextureOffset.x, mats[i].mainTextureOffset.y);
         //    mc._CutOff = mats[i].GetFloat("_Cutoff");
 
-        //    SetMaterialConstant(rendererNativeID, i, mc);
+        //    AddNativeMaterialProp(rendererNativeID, i, _byteSize, mc);
         //}
     }
 }

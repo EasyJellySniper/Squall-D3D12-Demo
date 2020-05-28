@@ -17,6 +17,7 @@ public:
 	void SetWorld(XMFLOAT4X4 _world);
 	void SetInstanceID(int _id);
 	void AddMaterial(int _renderQueue);
+	void AddMaterialProp(int _matId, UINT _byteSize, void* _data);
 
 	XMFLOAT4X4 GetWorld();
 	Mesh *GetMesh();
