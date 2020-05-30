@@ -12,6 +12,7 @@
 #include "VisualStudio2015/MaterialManager.h"
 #include "VisualStudio2015/ShaderManager.h"
 #include "VisualStudio2015/RendererManager.h"
+#include "VisualStudio2015/TextureManager.h"
 #include "Unity/IUnityGraphicsD3D12.h"
 
 class RenderAPI_D3D12 : public RenderAPI
@@ -72,8 +73,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	}
 
 	initSucceed = GraphicManager::Instance().Initialize(mainDevice, _numOfThreads);
-	MeshManager::Instance().Init();
-	RendererManager::Instance().Init();
+	TextureManager::Instance().Init(mainDevice);
 }
 
 void RenderAPI_D3D12::ReleaseResources()
@@ -84,6 +84,7 @@ void RenderAPI_D3D12::ReleaseResources()
 	MaterialManager::Instance().Release();
 	ShaderManager::Instance().Release();
 	RendererManager::Instance().Release();
+	TextureManager::Instance().Release();
 }
 
 int RenderAPI_D3D12::GetRenderThreadCount()

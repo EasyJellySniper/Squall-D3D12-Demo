@@ -1,6 +1,6 @@
 #include "MeshManager.h"
 
-void MeshManager::Init()
+MeshManager::MeshManager()
 {
 	// create defalut input layout
 	defaultInputLayout =

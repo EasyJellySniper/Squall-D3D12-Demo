@@ -19,10 +19,9 @@ public:
 		return instance;
 	}
 
-	MeshManager() {}
+	MeshManager();
 	~MeshManager() {}
 
-	void Init();
 	bool AddMesh(int _instanceID, MeshData _mesh);
 	void Release();
 	Mesh *GetMesh(int _instanceID);

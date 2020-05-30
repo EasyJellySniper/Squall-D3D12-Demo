@@ -1,7 +1,7 @@
 #include "RendererManager.h"
 #include "Material.h"
 
-void RendererManager::Init()
+RendererManager::RendererManager()
 {
 	// request memory for common render queue
 	queuedRenderers[RenderQueue::Opaque].reserve(OPAQUE_CAPACITY);

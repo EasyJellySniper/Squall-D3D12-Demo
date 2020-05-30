@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "ForwardRenderingPath.h"
 #include "d3dx12.h"
-#include "RendererManager.h"
 
 bool GraphicManager::Initialize(ID3D12Device* _device, int _numOfThreads)
 {

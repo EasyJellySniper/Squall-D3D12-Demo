@@ -34,7 +34,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern void SetWorldMatrix(int _instanceID, Matrix4x4 _world);
 
     //[DllImport("SquallGraphics")]
-    //static extern int AddNativeTexture(int _texID, IntPtr _texture);
+    //static extern int AddNativeTexture(int _texID, int _format, IntPtr _texture);
 
     //[DllImport("SquallGraphics")]
     //static extern int AddNativeSampler(int _texID, FilterMode _filterMode, TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);

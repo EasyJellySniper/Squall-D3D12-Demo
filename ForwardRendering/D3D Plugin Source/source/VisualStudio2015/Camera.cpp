@@ -12,12 +12,12 @@ bool Camera::Initialize(CameraData _cameraData)
 	numOfRenderTarget = 0;
 	msaaQuality = 0;
 
-	for (int i = 0; i < MaxRenderTargets; i++)
+	for (int i = 0; i < MAX_RENDER_TARGETS; i++)
 	{
 		renderTarget.push_back((ID3D12Resource*)cameraData.renderTarget[i]);
 	}
 
-	for (int i = 0; i < MaxRenderTargets; i++)
+	for (int i = 0; i < MAX_RENDER_TARGETS; i++)
 	{
 		// at least need 1 target
 		if (renderTarget[0] == nullptr)
@@ -302,7 +302,7 @@ HRESULT Camera::CreateRtvDescriptorHeaps()
 
 	// create render target handle
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-	rtvHeapDesc.NumDescriptors = MaxRenderTargets;
+	rtvHeapDesc.NumDescriptors = MAX_RENDER_TARGETS;
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	rtvHeapDesc.NodeMask = 0;
@@ -311,7 +311,7 @@ HRESULT Camera::CreateRtvDescriptorHeaps()
 	// create aa target handle if necessary
 	if (cameraData.allowMSAA > 1)
 	{
-		rtvHeapDesc.NumDescriptors = MaxRenderTargets;
+		rtvHeapDesc.NumDescriptors = MAX_RENDER_TARGETS;
 		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(msaaRtvHandle.GetAddressOf())), hr);
 	}
 
@@ -344,7 +344,7 @@ void Camera::CreateRtv()
 {
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rHandle(rtvHandle->GetCPUDescriptorHandleForHeapStart());
 
-	for (int i = 0; i < MaxRenderTargets; i++)
+	for (int i = 0; i < MAX_RENDER_TARGETS; i++)
 	{
 		if (renderTarget[i] != nullptr)
 		{

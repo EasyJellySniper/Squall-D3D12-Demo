@@ -7,6 +7,7 @@
 #include "VisualStudio2015/GameTime.h"
 #include "VisualStudio2015/MeshManager.h"
 #include "VisualStudio2015/RendererManager.h"
+#include "VisualStudio2015/TextureManager.h"
 
 #include <assert.h>
 
@@ -91,6 +92,11 @@ extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRendererBound(
 extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterialProp(int _instanceID, int _matId, UINT _byteSize, void *_data)
 {
 	RendererManager::Instance().AddNativeMaterialProp(_instanceID, _matId, _byteSize, _data);
+}
+
+extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeTexture(int _instanceID, DXGI_FORMAT _format, void *_data)
+{
+	return TextureManager::Instance().AddNativeTexture(_instanceID, _format, _data);
 }
 
 // --------------------------------------------------------------------------

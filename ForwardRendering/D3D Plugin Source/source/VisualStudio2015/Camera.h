@@ -10,8 +10,6 @@ using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
 
-const int MaxRenderTargets = 8;
-
 // camera data
 struct CameraData
 {
@@ -63,6 +61,8 @@ public:
 	bool FrustumTest(BoundingBox _bound);
 
 private:
+	static const int MAX_RENDER_TARGETS = 8;
+
 	HRESULT CreateRtvDescriptorHeaps();
 	HRESULT CreateDsvDescriptorHeaps();
 	void CreateRtv();
@@ -79,7 +79,7 @@ private:
 	vector<ComPtr<ID3D12Resource>> msaaTarget;
 	ID3D12Resource *depthTarget;
 	ComPtr<ID3D12Resource> msaaDepthTarget;
-	D3D12_RESOURCE_DESC renderTarrgetDesc[MaxRenderTargets];
+	D3D12_RESOURCE_DESC renderTarrgetDesc[MAX_RENDER_TARGETS];
 	D3D12_RESOURCE_DESC depthTargetDesc;
 
 	D3D12_CLEAR_VALUE optClearColor;

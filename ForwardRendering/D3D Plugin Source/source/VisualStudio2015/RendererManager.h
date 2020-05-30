@@ -11,10 +11,6 @@ struct QueueRenderer
 	float zDistanceToCam;
 };
 
-const int OPAQUE_CAPACITY = 5000;
-const int CUTOFF_CAPACITY = 2500;
-const int TRANSPARENT_CAPACITY = 500;
-
 class RendererManager
 {
 public:
@@ -29,10 +25,9 @@ public:
 		return instance;
 	}
 
-	RendererManager() {}
+	RendererManager();
 	~RendererManager() {}
 
-	void Init();
 	int AddRenderer(int _instanceID, int _meshInstanceID);
 	void AddMaterial(int _instanceID, int _renderQueue);
 	void AddToQueueRenderer(Renderer* _renderer, Camera _camera);
@@ -46,6 +41,10 @@ public:
 	map<int, vector<QueueRenderer>>& GetQueueRenderers();
 
 private:
+	static const int OPAQUE_CAPACITY = 5000;
+	static const int CUTOFF_CAPACITY = 2500;
+	static const int TRANSPARENT_CAPACITY = 500;
+
 	vector<shared_ptr<Renderer>> renderers;
 	map<int, vector<QueueRenderer>> queuedRenderers;
 };
