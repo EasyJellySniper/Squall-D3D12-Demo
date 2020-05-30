@@ -94,9 +94,9 @@ extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterialPro
 	RendererManager::Instance().AddNativeMaterialProp(_instanceID, _matId, _byteSize, _data);
 }
 
-extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeTexture(int _instanceID, DXGI_FORMAT _format, void *_data)
+extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeTexture(int _instanceID, void *_data)
 {
-	return TextureManager::Instance().AddNativeTexture(_instanceID, _format, _data);
+	return TextureManager::Instance().AddNativeTexture(_instanceID, _data);
 }
 
 extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel)

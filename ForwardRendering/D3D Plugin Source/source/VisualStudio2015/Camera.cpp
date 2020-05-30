@@ -160,6 +160,7 @@ void Camera::Release()
 	{
 		m.second.Release();
 	}
+	pipelineMaterials.clear();
 }
 
 CameraData Camera::GetCameraData()

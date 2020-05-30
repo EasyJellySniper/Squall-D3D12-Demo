@@ -31,7 +31,7 @@ void TextureManager::Release()
 	samplers.clear();
 }
 
-int TextureManager::AddNativeTexture(int _texId, DXGI_FORMAT _format, void* _texData)
+int TextureManager::AddNativeTexture(int _texId, void* _texData)
 {
 	// check duplicate add
 	for (size_t i = 0; i < textures.size(); i++)
@@ -45,7 +45,10 @@ int TextureManager::AddNativeTexture(int _texId, DXGI_FORMAT _format, void* _tex
 	Texture t;
 	t.SetInstanceID(_texId);
 	t.SetResource((ID3D12Resource*)_texData);
-	t.SetFormat(_format);
+
+	D3D12_RESOURCE_DESC desc = t.GetResource()->GetDesc();
+	t.SetFormat(desc.Format);
+
 	textures.push_back(t);
 
 	int nativeId = (int)textures.size() - 1;

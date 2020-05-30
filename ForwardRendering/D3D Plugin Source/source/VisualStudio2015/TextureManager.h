@@ -26,7 +26,7 @@ public:
 
 	void Init(ID3D12Device* _device);
 	void Release();
-	int AddNativeTexture(int _texId, DXGI_FORMAT _format, void* _texData);
+	int AddNativeTexture(int _texId, void* _texData);
 	int AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel);
 
 private:

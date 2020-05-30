@@ -35,7 +35,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern void SetWorldMatrix(int _instanceID, Matrix4x4 _world);
 
     [DllImport("SquallGraphics")]
-    static extern int AddNativeTexture(int _texID, int _format, IntPtr _texture);
+    static extern int AddNativeTexture(int _texID, IntPtr _texture);
 
     [DllImport("SquallGraphics")]
     static extern int AddNativeSampler(TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);
@@ -88,8 +88,8 @@ public class SqMeshRenderer : MonoBehaviour
             Texture2D albedo = mats[i].mainTexture as Texture2D;
             if (albedo)
             {
-                //mc._TexIndex = (uint)AddNativeTexture(albedo.GetInstanceID(), (int)albedo.format, albedo.GetNativeTexturePtr());
-                //mc._SamplerIndex = (uint)AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+                mc._TexIndex = AddNativeTexture(albedo.GetInstanceID(), albedo.GetNativeTexturePtr());
+                //mc._SamplerIndex = AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
             }
             else
             {
