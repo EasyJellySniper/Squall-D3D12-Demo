@@ -79,6 +79,7 @@ public class SqGraphicManager : MonoBehaviour
     /// <summary>
     /// global aniso level
     /// </summary>
+    [Range(1, 16)]
     public int globalAnisoLevel = 8;
 
     /// <summary>

@@ -89,7 +89,7 @@ public class SqMeshRenderer : MonoBehaviour
             if (albedo)
             {
                 mc._TexIndex = AddNativeTexture(albedo.GetInstanceID(), albedo.GetNativeTexturePtr());
-                //mc._SamplerIndex = AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+                mc._SamplerIndex = AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
             }
             else
             {

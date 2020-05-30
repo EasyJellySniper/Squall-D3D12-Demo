@@ -160,5 +160,10 @@ void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
 
+	for (int i = 0; i < 4; i++)
+	{
+		samplerDesc.BorderColor[i] = 0;
+	}
+
 	GraphicManager::Instance().GetDevice()->CreateSampler(&samplerDesc, sTexture);
 }
