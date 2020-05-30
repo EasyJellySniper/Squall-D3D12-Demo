@@ -10,8 +10,8 @@ cbuffer MaterialConstant : register(b1)
 {
 	float4 _MainTex_ST;
 	float _CutOff;
-	uint _TexIndex;
-	uint _SamplerIndex;
+	int _TexIndex;
+	int _SamplerIndex;
 	float _Padding;
 };
 

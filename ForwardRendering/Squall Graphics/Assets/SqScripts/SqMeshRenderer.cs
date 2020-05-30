@@ -17,8 +17,8 @@ public class SqMeshRenderer : MonoBehaviour
     {
         public Vector4 _MainTex_ST;
         public float _CutOff;
-        public uint _TexIndex;
-        public uint _SamplerIndex;
+        public int _TexIndex;
+        public int _SamplerIndex;
         public float _Padding;
     };
 
@@ -88,12 +88,20 @@ public class SqMeshRenderer : MonoBehaviour
             Texture2D albedo = mats[i].mainTexture as Texture2D;
             if (albedo)
             {
-                mc._TexIndex = (uint)AddNativeTexture(albedo.GetInstanceID(), (int)albedo.format, albedo.GetNativeTexturePtr());
-                mc._SamplerIndex = (uint)AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+                //mc._TexIndex = (uint)AddNativeTexture(albedo.GetInstanceID(), (int)albedo.format, albedo.GetNativeTexturePtr());
+                //mc._SamplerIndex = (uint)AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+            }
+            else
+            {
+                mc._TexIndex = -1;
+                mc._SamplerIndex = -1;
             }
 
             mc._MainTex_ST = new Vector4(mats[i].mainTextureScale.x, mats[i].mainTextureScale.y, mats[i].mainTextureOffset.x, mats[i].mainTextureOffset.y);
-            mc._CutOff = mats[i].GetFloat("_Cutoff");
+            if (mats[i].HasProperty("_Cutoff"))
+            {
+                mc._CutOff = mats[i].GetFloat("_Cutoff");
+            }
 
             AddNativeMaterialProp(rendererNativeID, i, (uint)matConstantSize, mc);
         }
