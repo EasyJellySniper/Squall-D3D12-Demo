@@ -4,14 +4,14 @@
 class Texture
 {
 public:
-	void SetInstanceID(int _id) { instanceID = _id; }
-	int GetInstanceID() { return instanceID; }
+	void SetInstanceID(int _id);
+	int GetInstanceID();
 
-	void SetResource(ID3D12Resource* _data) { texResource = _data; }
-	ID3D12Resource* GetResource() { return texResource; }
+	void SetResource(ID3D12Resource* _data);
+	ID3D12Resource* GetResource();
 
-	void SetFormat(DXGI_FORMAT _format) { texFormat = _format; }
-	DXGI_FORMAT GetFormat() { return texFormat; }
+	void SetFormat(DXGI_FORMAT _format);
+	DXGI_FORMAT GetFormat();
 
 private:
 	int instanceID;

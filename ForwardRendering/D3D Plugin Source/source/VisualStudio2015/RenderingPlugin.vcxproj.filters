@@ -51,6 +51,7 @@
     <ClInclude Include="GameTimerManager.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Sampler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\RenderAPI.cpp" />
@@ -72,6 +73,8 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererManager.cpp" />
     <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="Sampler.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLEW">

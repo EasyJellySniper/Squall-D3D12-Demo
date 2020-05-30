@@ -12,6 +12,7 @@ public class SqMeshRenderer : MonoBehaviour
     /// <summary>
     /// material constant
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     struct MaterialConstant
     {
         public Vector4 _MainTex_ST;
@@ -33,14 +34,14 @@ public class SqMeshRenderer : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void SetWorldMatrix(int _instanceID, Matrix4x4 _world);
 
-    //[DllImport("SquallGraphics")]
-    //static extern int AddNativeTexture(int _texID, int _format, IntPtr _texture);
+    [DllImport("SquallGraphics")]
+    static extern int AddNativeTexture(int _texID, int _format, IntPtr _texture);
 
-    //[DllImport("SquallGraphics")]
-    //static extern int AddNativeSampler(int _texID, FilterMode _filterMode, TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);
+    [DllImport("SquallGraphics")]
+    static extern int AddNativeSampler(TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);
 
-    //[DllImport("SquallGraphics")]
-    //static extern void AddNativeMaterialProp(int _instanceID, int _matID, uint _byteSize, MaterialConstant _mc);
+    [DllImport("SquallGraphics")]
+    static extern void AddNativeMaterialProp(int _instanceID, int _matID, uint _byteSize, MaterialConstant _mc);
 
     MeshRenderer rendererCache;
     int rendererNativeID = -1;
@@ -79,21 +80,22 @@ public class SqMeshRenderer : MonoBehaviour
             AddNativeMaterial(rendererNativeID, mats[i].renderQueue);
         }
 
-        //for (int i = 0; i < mats.Length; i++)
-        //{
-        //    MaterialConstant mc = new MaterialConstant();
+        int matConstantSize = Marshal.SizeOf(typeof(MaterialConstant));
+        for (int i = 0; i < mats.Length; i++)
+        {
+            MaterialConstant mc = new MaterialConstant(); 
 
-        //    Texture2D albedo = mats[i].mainTexture as Texture2D;
-        //    if (albedo)
-        //    {
-        //        mc._TexIndex = (uint)AddNativeTexture(albedo.GetInstanceID(), albedo.GetNativeTexturePtr());
-        //        mc._SamplerIndex = (uint)AddNativeSampler(albedo.GetInstanceID(), albedo.filterMode, albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, albedo.anisoLevel);
-        //    }
+            Texture2D albedo = mats[i].mainTexture as Texture2D;
+            if (albedo)
+            {
+                mc._TexIndex = (uint)AddNativeTexture(albedo.GetInstanceID(), (int)albedo.format, albedo.GetNativeTexturePtr());
+                mc._SamplerIndex = (uint)AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+            }
 
-        //    mc._MainTex_ST = new Vector4(mats[i].mainTextureScale.x, mats[i].mainTextureScale.y, mats[i].mainTextureOffset.x, mats[i].mainTextureOffset.y);
-        //    mc._CutOff = mats[i].GetFloat("_Cutoff");
+            mc._MainTex_ST = new Vector4(mats[i].mainTextureScale.x, mats[i].mainTextureScale.y, mats[i].mainTextureOffset.x, mats[i].mainTextureOffset.y);
+            mc._CutOff = mats[i].GetFloat("_Cutoff");
 
-        //    AddNativeMaterialProp(rendererNativeID, i, _byteSize, mc);
-        //}
+            AddNativeMaterialProp(rendererNativeID, i, (uint)matConstantSize, mc);
+        }
     }
 }

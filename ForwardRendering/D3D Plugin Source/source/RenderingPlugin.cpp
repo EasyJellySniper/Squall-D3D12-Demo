@@ -99,6 +99,11 @@ extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeTexture(int 
 	return TextureManager::Instance().AddNativeTexture(_instanceID, _format, _data);
 }
 
+extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel)
+{
+	return TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel);
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

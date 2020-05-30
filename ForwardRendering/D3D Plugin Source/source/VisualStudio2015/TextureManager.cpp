@@ -28,6 +28,7 @@ void TextureManager::Release()
 	texDescriptorHeap.Reset();
 	samplerDescriptorHeap.Reset();
 	textures.clear();
+	samplers.clear();
 }
 
 int TextureManager::AddNativeTexture(int _texId, DXGI_FORMAT _format, void* _texData)
@@ -49,6 +50,27 @@ int TextureManager::AddNativeTexture(int _texId, DXGI_FORMAT _format, void* _tex
 
 	int nativeId = (int)textures.size() - 1;
 	AddTexToHeap(nativeId, t);
+
+	return nativeId;
+}
+
+int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel)
+{
+	// check duplicate add
+	for (size_t i = 0; i < samplers.size(); i++)
+	{
+		if (samplers[i].IsSameSampler(_wrapU, _wrapV, _wrapW, _anisoLevel))
+		{
+			return (int)i;
+		}
+	}
+
+	Sampler s;
+	s.CreateSampler(_wrapU, _wrapV, _wrapW, _anisoLevel);
+	samplers.push_back(s);
+
+	int nativeId = (int)samplers.size() - 1;
+	AddSamplerToHeap(nativeId, s);
 
 	return nativeId;
 }
@@ -81,6 +103,12 @@ void TextureManager::EnlargeSamplerDescriptorHeap()
 	samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 	samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerDescriptorHeap)));
+
+	// add sampler to heap again
+	for (size_t i = 0; i < samplers.size(); i++)
+	{
+		AddSamplerToHeap((int)i, samplers[i]);
+	}
 }
 
 void TextureManager::AddTexToHeap(int _index, Texture _texture)
@@ -104,4 +132,30 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 	srvDesc.Texture2D.MipLevels = -1;
 
 	GraphicManager::Instance().GetDevice()->CreateShaderResourceView(_texture.GetResource(), &srvDesc, hTexture);
+}
+
+void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)
+{
+	// check if we need to enlarge heap
+	if (_index >= MAX_SAMPLER_NUMBER * (samplerHeapEnlargeCount + 1))
+	{
+		EnlargeSamplerDescriptorHeap();
+	}
+
+	// index to sampler address
+	CD3DX12_CPU_DESCRIPTOR_HANDLE sTexture(samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	sTexture.Offset(_index, samplerDescriptorSize);
+
+	D3D12_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;	// force to use anisotropic
+	samplerDesc.MaxAnisotropy = _sampler.GetAnisoLevel();
+	samplerDesc.AddressU = Sampler::UnityWrapModeToNative(_sampler.GetWrapU());
+	samplerDesc.AddressV = Sampler::UnityWrapModeToNative(_sampler.GetWrapV());
+	samplerDesc.AddressW = Sampler::UnityWrapModeToNative(_sampler.GetWrapW());
+	samplerDesc.MipLODBias = 0;
+	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+
+	GraphicManager::Instance().GetDevice()->CreateSampler(&samplerDesc, sTexture);
 }

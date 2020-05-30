@@ -66,10 +66,20 @@ public class SqGraphicManager : MonoBehaviour
     static extern GameTime GetGameTime();
 
     /// <summary>
+    /// instance
+    /// </summary>
+    public static SqGraphicManager instance;
+
+    /// <summary>
     /// number of render threads
     /// </summary>
     [Range(2, 32)]
     public int numOfRenderThreads = 4;
+
+    /// <summary>
+    /// global aniso level
+    /// </summary>
+    public int globalAnisoLevel = 8;
 
     /// <summary>
     /// print timer info
@@ -83,6 +93,8 @@ public class SqGraphicManager : MonoBehaviour
 
     void Awake()
     {
+        instance = this;
+
         if (numOfRenderThreads < 2)
         {
             numOfRenderThreads = 2;
