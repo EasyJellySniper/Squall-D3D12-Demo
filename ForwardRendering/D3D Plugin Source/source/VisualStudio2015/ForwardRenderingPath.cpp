@@ -109,7 +109,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 
 			UploadConstant(targetCam, frameIndex, _threadIndex);
 			BindState(targetCam, frameIndex, _threadIndex);
-			DrawScene(targetCam, frameIndex, _threadIndex);
+			DrawWireFrame(targetCam, frameIndex, _threadIndex);
 
 #if defined(GRAPHICTIME)
 			TIMER_STOP
@@ -247,7 +247,7 @@ void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadI
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void ForwardRenderingPath::DrawScene(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	FrameResource fr = GraphicManager::Instance().GetFrameResource();
 	auto _cmdList = fr.workerGfxList[_threadIndex];

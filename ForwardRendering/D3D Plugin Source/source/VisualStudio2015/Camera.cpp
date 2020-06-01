@@ -158,9 +158,8 @@ void Camera::Release()
 
 	for (auto& m : pipelineMaterials)
 	{
-		m.second.Release();
+		m.Release();
 	}
-	pipelineMaterials.clear();
 }
 
 CameraData Camera::GetCameraData()
@@ -406,6 +405,20 @@ bool Camera::CreatePipelineMaterial()
 	if (wireFrameShader != nullptr)
 	{
 		pipelineMaterials[MaterialType::DebugWireFrame] = MaterialManager::Instance().CreateMaterialFromShader(wireFrameShader, *this, D3D12_FILL_MODE_WIREFRAME, D3D12_CULL_MODE_NONE);
+	}
+
+	// create depth prepass material
+	D3D_SHADER_MACRO depthMacro[] = { "_CUTOFF_ON","1",NULL,NULL };
+	Shader* depthPrePassOpaque = ShaderManager::Instance().CompileShader(L"DepthPrePass.hlsl", "DepthPrePassVS", "DepthPrePassPS");
+	Shader* depthPrePassCutoff = ShaderManager::Instance().CompileShader(L"DepthPrePass.hlsl", "DepthPrePassVS", "DepthPrePassPS", "", "", "", depthMacro);
+	if (depthPrePassOpaque != nullptr)
+	{
+		pipelineMaterials[MaterialType::DepthPrePassOpaque] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassOpaque, *this, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE);
+	}
+
+	if (depthPrePassCutoff != nullptr)
+	{
+		pipelineMaterials[MaterialType::DepthPrePassCutoff] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassCutoff, *this, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE);
 	}
 
 	return true;

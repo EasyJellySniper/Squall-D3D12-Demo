@@ -24,7 +24,7 @@ struct CameraData
 
 enum MaterialType
 {
-	DebugWireFrame = 0
+	DebugWireFrame = 0, DepthPrePassOpaque, DepthPrePassCutoff, EndSystemMaterial
 };
 
 class Camera
@@ -94,7 +94,7 @@ private:
 	ComPtr<ID3D12DescriptorHeap> msaaDsvHandle;
 
 	// material
-	unordered_map<int, Material> pipelineMaterials;
+	Material pipelineMaterials[MaterialType::EndSystemMaterial];
 
 	// matrix and view port
 	XMFLOAT4X4 viewMatrix;
