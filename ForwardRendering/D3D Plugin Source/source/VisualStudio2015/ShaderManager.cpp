@@ -9,7 +9,7 @@ Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string 
 	Shader *targetShader = FindShader(_fileName);
 	if (targetShader != nullptr)
 	{
-		return targetShader;
+		//return targetShader;
 	}
 
 	unique_ptr<Shader> newShader = make_unique<Shader>(_fileName);
@@ -78,7 +78,7 @@ ID3DBlob *ShaderManager::CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *ma
 
 	ID3DBlob *shaderBlob;
 	ID3DBlob *errorMsg;
-	HRESULT hr = D3DCompileFromFile(_fileName.c_str(), macro, D3D_COMPILE_STANDARD_FILE_INCLUDE, _entry.c_str(), _target.c_str(), 0, 0, &shaderBlob, &errorMsg);
+	HRESULT hr = D3DCompileFromFile(_fileName.c_str(), macro, D3D_COMPILE_STANDARD_FILE_INCLUDE, _entry.c_str(), _target.c_str(), D3DCOMPILE_ENABLE_UNBOUNDED_DESCRIPTOR_TABLES, 0, &shaderBlob, &errorMsg);
 
 	if (FAILED(hr))
 	{
@@ -134,11 +134,13 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 		CD3DX12_DESCRIPTOR_RANGE texTable;
 		texTable.Init(
 			D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-			1,  // number of descriptors
+			-1,  // number of descriptors, set -1 for use unbound
+			0,
 			0);
 
 		CD3DX12_ROOT_PARAMETER p;
 		p.InitAsDescriptorTable(1, &texTable);
+		rootSignatureParam.push_back(p);
 	}
 
 	if (samplerRegNum > 0)
@@ -147,11 +149,13 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 		CD3DX12_DESCRIPTOR_RANGE samplerTable;
 		samplerTable.Init(
 			D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-			1,  // number of descriptors
-			0);
+			-1,  // number of descriptors
+			0,
+			1);
 
 		CD3DX12_ROOT_PARAMETER p;
 		p.InitAsDescriptorTable(1, &samplerTable);
+		rootSignatureParam.push_back(p);
 	}
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc((int)rootSignatureParam.size(), rootSignatureParam.data(),

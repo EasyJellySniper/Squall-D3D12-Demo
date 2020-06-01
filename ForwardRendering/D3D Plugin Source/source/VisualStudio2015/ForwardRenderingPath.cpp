@@ -307,13 +307,19 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 		int count = (int)renderers.size() / numWorkerThreads + 1;
 		int start = _threadIndex * count;
 
+		// don't draw transparent
+		if (qr.first >= RenderQueue::CutoffStart)
+		{
+			break;
+		}
+
 		// choose pipeline material according to renderqueue
 		Material* pipeMat = nullptr;
 		if (qr.first < RenderQueue::CutoffStart)
 		{
 			pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassOpaque);
 		}
-		else if (qr.first && qr.first <= RenderQueue::OpaqueLast)
+		else if (qr.first >= RenderQueue::CutoffStart && qr.first <= RenderQueue::OpaqueLast)
 		{
 			pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassCutoff);
 		}
@@ -342,8 +348,11 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 			_cmdList->SetGraphicsRootConstantBufferView(1, objMat->GetMaterialConstantGPU(_frameIdx));
 
 			// setup descriptor table gpu
-			//_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-			//_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+			if (qr.first >= RenderQueue::CutoffStart)
+			{
+				_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+				_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+			}
 
 			// draw mesh
 			SubMesh sm = m->GetSubMesh(r.submeshIndex);
