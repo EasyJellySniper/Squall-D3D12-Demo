@@ -133,8 +133,8 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 	}
 
 	// index to correct address
-	CD3DX12_CPU_DESCRIPTOR_HANDLE hTexture(texDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	hTexture.Offset(_index, cbvSrvUavDescriptorSize);
+	D3D12_CPU_DESCRIPTOR_HANDLE hTexture = texDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	hTexture.ptr += _index * cbvSrvUavDescriptorSize;
 
 	// create shader resource view for texture
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -156,8 +156,8 @@ void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)
 	}
 
 	// index to sampler address
-	CD3DX12_CPU_DESCRIPTOR_HANDLE sTexture(samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	sTexture.Offset(_index, samplerDescriptorSize);
+	D3D12_CPU_DESCRIPTOR_HANDLE sTexture = samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	sTexture.ptr += _index * samplerDescriptorSize;
 
 	D3D12_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;	// force to use anisotropic

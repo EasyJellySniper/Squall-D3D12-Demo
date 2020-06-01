@@ -49,7 +49,7 @@ public:
 private:
 	void FrustumCulling(int _threadIndex);
 	void BeginFrame(Camera _camera);
-	void UploadConstant(Camera _camera, int _frameIdx, int _threadIndex);
+	void UploadSystemConstant(Camera _camera, int _frameIdx, int _threadIndex);
 	void BindState(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex);

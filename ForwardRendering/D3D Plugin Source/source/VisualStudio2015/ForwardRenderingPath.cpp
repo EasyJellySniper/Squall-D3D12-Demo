@@ -110,9 +110,10 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 			TIMER_START
 #endif
 
-			UploadConstant(targetCam, frameIndex, _threadIndex);
+			UploadSystemConstant(targetCam, frameIndex, _threadIndex);
 			BindState(targetCam, frameIndex, _threadIndex);
-			DrawWireFrame(targetCam, frameIndex, _threadIndex);
+			//DrawWireFrame(targetCam, frameIndex, _threadIndex);
+			DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
 
 #if defined(GRAPHICTIME)
 			TIMER_STOP
@@ -181,7 +182,7 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
 }
 
-void ForwardRenderingPath::UploadConstant(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::UploadSystemConstant(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
 
@@ -298,10 +299,6 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
-	// setup descriptor table gpu
-	_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-
 	// loop render-queue
 	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
 	for (auto const& qr : queueRenderers)
@@ -309,6 +306,17 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 		auto renderers = qr.second;
 		int count = (int)renderers.size() / numWorkerThreads + 1;
 		int start = _threadIndex * count;
+
+		// choose pipeline material according to renderqueue
+		Material* pipeMat = nullptr;
+		if (qr.first < RenderQueue::CutoffStart)
+		{
+			pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassOpaque);
+		}
+		else if (qr.first && qr.first <= RenderQueue::OpaqueLast)
+		{
+			pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassCutoff);
+		}
 
 		for (int i = start; i <= start + count; i++)
 		{
@@ -320,29 +328,22 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 			auto const r = renderers[i];
 			Mesh* m = r.cache->GetMesh();
 
-			// bind material
-			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
-			Material* mat = nullptr;
-
-			if (objMat->GetRenderQueue() < RenderQueue::CutoffStart)
-			{
-				mat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassOpaque);
-			}
-			else if (objMat->GetRenderQueue() >= RenderQueue::CutoffStart && objMat->GetRenderQueue() <= RenderQueue::OpaqueLast)
-			{
-				mat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassCutoff);
-			}
-
-			_cmdList->SetPipelineState(mat->GetPSO());
-			_cmdList->SetGraphicsRootSignature(mat->GetRootSignature());
-
 			// bind mesh
 			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
 			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
 
+			// bind pipeline material
+			_cmdList->SetPipelineState(pipeMat->GetPSO());
+			_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
+
 			// set system/object constant of renderer
+			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
 			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
-			_cmdList->SetGraphicsRootConstantBufferView(1, mat->GetMaterialConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(1, objMat->GetMaterialConstantGPU(_frameIdx));
+
+			// setup descriptor table gpu
+			//_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+			//_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 			// draw mesh
 			SubMesh sm = m->GetSubMesh(r.submeshIndex);
