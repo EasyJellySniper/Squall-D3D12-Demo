@@ -18,11 +18,6 @@ void Renderer::Release()
 	{
 		rendererConstant[i].reset();
 	}
-
-	for (size_t i = 0; i < materials.size(); i++)
-	{
-		materials[i].Release();
-	}
 	materials.clear();
 
 	mesh = nullptr;
@@ -56,11 +51,9 @@ void Renderer::SetInstanceID(int _id)
 	instanceID = _id;
 }
 
-void Renderer::AddMaterial(int _renderQueue)
+void Renderer::AddMaterial(Material* _material)
 {
-	Material m;
-	m.SetRenderQueue(_renderQueue);
-	materials.push_back(m);
+	materials.push_back(_material);
 }
 
 void Renderer::AddMaterialProp(int _matId, UINT _byteSize, void* _data)
@@ -70,7 +63,7 @@ void Renderer::AddMaterialProp(int _matId, UINT _byteSize, void* _data)
 		return;
 	}
 
-	materials[_matId].AddMaterialConstant(_byteSize, _data);
+	materials[_matId]->AddMaterialConstant(_byteSize, _data);
 }
 
 XMFLOAT4X4 Renderer::GetWorld()
@@ -103,7 +96,7 @@ int Renderer::GetNumMaterials()
 	return (int)materials.size();
 }
 
-const vector<Material> Renderer::GetMaterials()
+const vector<Material*> Renderer::GetMaterials()
 {
 	return materials;
 }

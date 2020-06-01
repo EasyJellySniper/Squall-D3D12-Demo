@@ -1,5 +1,6 @@
 #include "RendererManager.h"
 #include "Material.h"
+#include "MaterialManager.h"
 
 RendererManager::RendererManager()
 {
@@ -29,14 +30,14 @@ int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
 	return id;
 }
 
-void RendererManager::AddMaterial(int _instanceID, int _renderQueue)
+void RendererManager::AddMaterial(int _instanceID, int _matInstanceId, int _renderQueue)
 {
 	if (_instanceID < 0 || _instanceID >= (int)renderers.size())
 	{
 		return;
 	}
 
-	renderers[_instanceID]->AddMaterial(_renderQueue);
+	renderers[_instanceID]->AddMaterial(MaterialManager::Instance().AddMaterial(_matInstanceId, _renderQueue));
 }
 
 void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera _camera)
@@ -58,7 +59,7 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera _camera)
 		// get min z distance to camera
 		qr.zDistanceToCam = min(abs(minZ - camPos.z), abs(maxZ - camPos.z));
 		
-		queuedRenderers[mat[i].GetRenderQueue()].push_back(qr);
+		queuedRenderers[mat[i]->GetRenderQueue()].push_back(qr);
 	}
 }
 

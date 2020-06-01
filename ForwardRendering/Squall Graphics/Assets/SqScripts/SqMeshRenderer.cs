@@ -26,7 +26,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern int AddNativeRenderer(int _instanceID, int _meshInstanceID);
 
     [DllImport("SquallGraphics")]
-    static extern int AddNativeMaterial(int _instanceID, int _queue);
+    static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue);
 
     [DllImport("SquallGraphics")]
     static extern bool UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
@@ -41,7 +41,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern int AddNativeSampler(TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);
 
     [DllImport("SquallGraphics")]
-    static extern void AddNativeMaterialProp(int _instanceID, int _matID, uint _byteSize, MaterialConstant _mc);
+    static extern void AddNativeMaterialProp(int _instanceID, int _matIndex, uint _byteSize, MaterialConstant _mc);
 
     MeshRenderer rendererCache;
     int rendererNativeID = -1;
@@ -77,7 +77,7 @@ public class SqMeshRenderer : MonoBehaviour
         Material[] mats = rendererCache.sharedMaterials;
         for (int i = 0; i < mats.Length; i++)
         {
-            AddNativeMaterial(rendererNativeID, mats[i].renderQueue);
+            AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue);
         }
 
         int matConstantSize = Marshal.SizeOf(typeof(MaterialConstant));

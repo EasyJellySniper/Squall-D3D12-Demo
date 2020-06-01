@@ -6,11 +6,6 @@ using namespace Microsoft::WRL;
 #include "UploadBuffer.h"
 #include "FrameResource.h"
 
-struct MaterialData
-{
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicPipeline;
-};
-
 enum RenderQueue
 {
 	Opaque = 2000,
@@ -23,7 +18,7 @@ enum RenderQueue
 class Material
 {
 public:
-	bool Initialize(MaterialData _materialData);
+	bool CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc);
 	void AddMaterialConstant(UINT _byteSize, void* _data);
 	void Release();
 	void SetRenderQueue(int _queue);
@@ -33,7 +28,7 @@ public:
 	int GetRenderQueue();
 
 private:
-	MaterialData matData;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ComPtr<ID3D12PipelineState> pso;
 	shared_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];
 

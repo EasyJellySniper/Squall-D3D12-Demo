@@ -38,15 +38,29 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _came
 	desc.SampleDesc.Count = _camera.GetMsaaCount();
 	desc.SampleDesc.Quality = _camera.GetMsaaQuailty();
 
-	MaterialData md;
-	md.graphicPipeline = desc;
-
 	Material result;
-	result.Initialize(md);
+	result.CreatePsoFromDesc(desc);
 	return result;
+}
+
+Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue)
+{
+	if (materialTable.find(_matInstanceId) != materialTable.end())
+	{
+		return materialTable[_matInstanceId].get();
+	}
+
+	materialTable[_matInstanceId] = make_unique<Material>();
+	materialTable[_matInstanceId]->SetRenderQueue(_renderQueue);
+
+	return materialTable[_matInstanceId].get();
 }
 
 void MaterialManager::Release()
 {
-	
+	for (auto& m : materialTable)
+	{
+		m.second->Release();
+	}
+	materialTable.clear();
 }

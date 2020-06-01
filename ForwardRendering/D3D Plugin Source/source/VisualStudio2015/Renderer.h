@@ -16,7 +16,7 @@ public:
 	void SetVisible(bool _visible);
 	void SetWorld(XMFLOAT4X4 _world);
 	void SetInstanceID(int _id);
-	void AddMaterial(int _renderQueue);
+	void AddMaterial(Material *_material);
 	void AddMaterialProp(int _matId, UINT _byteSize, void* _data);
 
 	XMFLOAT4X4 GetWorld();
@@ -25,7 +25,7 @@ public:
 	bool GetVisible();
 	int GetInstanceID();
 	int GetNumMaterials();
-	const vector<Material> GetMaterials();
+	const vector<Material*> GetMaterials();
 	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU(int _frameIdx);
 
 private:
@@ -37,6 +37,6 @@ private:
 	bool isVisible;
 	int instanceID = -1;
 
-	vector<Material> materials;
+	vector<Material*> materials;
 	XMFLOAT4X4 world;
 };

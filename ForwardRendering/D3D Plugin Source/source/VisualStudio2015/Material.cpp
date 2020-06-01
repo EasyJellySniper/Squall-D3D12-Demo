@@ -1,12 +1,12 @@
 #include "Material.h"
 #include "GraphicManager.h"
 
-bool Material::Initialize(MaterialData _materialData)
+bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 {
 	HRESULT hr = S_OK;
 
-	matData = _materialData;
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&matData.graphicPipeline, IID_PPV_ARGS(&pso)), hr);
+	psoDesc = _desc;
+	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&pso)), hr);
 	validMaterial = SUCCEEDED(hr);
 	isDirty = true;
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
@@ -47,7 +47,7 @@ ID3D12PipelineState * Material::GetPSO()
 
 ID3D12RootSignature* Material::GetRootSignature()
 {
-	return matData.graphicPipeline.pRootSignature;
+	return psoDesc.pRootSignature;
 }
 
 int Material::GetRenderQueue()
