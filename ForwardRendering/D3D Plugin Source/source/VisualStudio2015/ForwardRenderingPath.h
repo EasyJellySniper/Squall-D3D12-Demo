@@ -52,9 +52,13 @@ private:
 	void UploadConstant(Camera _camera, int _frameIdx, int _threadIndex);
 	void BindState(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex);
+	void DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex);
 	void EndFrame(Camera _camera);
+	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers);
 
 	Camera targetCam;
 	WorkerType workerType;
 	int frameIndex;
+	FrameResource currFrameResource;
+	int numWorkerThreads;
 };

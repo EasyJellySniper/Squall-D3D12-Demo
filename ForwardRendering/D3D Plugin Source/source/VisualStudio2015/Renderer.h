@@ -26,6 +26,7 @@ public:
 	int GetInstanceID();
 	int GetNumMaterials();
 	const vector<Material*> GetMaterials();
+	Material* const GetMaterial(int _index);
 	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU(int _frameIdx);
 
 private:

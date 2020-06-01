@@ -261,9 +261,9 @@ XMFLOAT3 Camera::GetPosition()
 	return position;
 }
 
-Material Camera::GetPipelineMaterial(MaterialType _type)
+Material *Camera::GetPipelineMaterial(MaterialType _type)
 {
-	return pipelineMaterials[_type];
+	return &pipelineMaterials[_type];
 }
 
 int Camera::GetNumOfRT()

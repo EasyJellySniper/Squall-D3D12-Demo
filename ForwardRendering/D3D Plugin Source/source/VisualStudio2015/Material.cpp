@@ -54,3 +54,8 @@ int Material::GetRenderQueue()
 {
 	return renderQueue;
 }
+
+D3D12_GPU_VIRTUAL_ADDRESS Material::GetMaterialConstantGPU(int _index)
+{
+	return materialConstant[_index]->Resource()->GetGPUVirtualAddress();
+}

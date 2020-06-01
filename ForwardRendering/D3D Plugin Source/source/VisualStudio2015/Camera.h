@@ -52,7 +52,7 @@ public:
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetProjMatrix();
 	XMFLOAT3 GetPosition();
-	Material GetPipelineMaterial(MaterialType _type);
+	Material *GetPipelineMaterial(MaterialType _type);
 	int GetNumOfRT();
 	D3D12_RESOURCE_DESC* GetColorRTDesc();
 	D3D12_RESOURCE_DESC GetDepthDesc();

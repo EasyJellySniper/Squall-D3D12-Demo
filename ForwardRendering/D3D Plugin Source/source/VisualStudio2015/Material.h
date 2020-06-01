@@ -9,6 +9,7 @@ using namespace Microsoft::WRL;
 enum RenderQueue
 {
 	Opaque = 2000,
+	CutoffStart = 2226,
 	Cutoff = 2450,
 	OpaqueLast = 2500,
 	Transparent = 3000,
@@ -26,6 +27,7 @@ public:
 	ID3D12PipelineState* GetPSO();
 	ID3D12RootSignature* GetRootSignature();
 	int GetRenderQueue();
+	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _index);
 
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;

@@ -78,6 +78,16 @@ int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wr
 	return nativeId;
 }
 
+ID3D12DescriptorHeap* TextureManager::GetTexHeap()
+{
+	return texDescriptorHeap.Get();
+}
+
+ID3D12DescriptorHeap* TextureManager::GetSamplerHeap()
+{
+	return samplerDescriptorHeap.Get();
+}
+
 void TextureManager::EnlargeTexDescriptorHeap()
 {
 	texHeapEnlargeCount++;

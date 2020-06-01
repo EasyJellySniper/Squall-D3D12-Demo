@@ -2,6 +2,7 @@
 #include "FrameResource.h"
 #include "GraphicManager.h"
 #include "ShaderManager.h"
+#include "TextureManager.h"
 #include "stdafx.h"
 #include "d3dx12.h"
 #include <algorithm>
@@ -13,6 +14,8 @@ void ForwardRenderingPath::CullingWork(Camera _camera)
 	TIMER_START
 #endif
 
+	currFrameResource = GraphicManager::Instance().GetFrameResource();
+	numWorkerThreads = GraphicManager::Instance().GetThreadCount() - 1;
 	targetCam = _camera;
 	workerType = WorkerType::Culling;
 	GraphicManager::Instance().ResetWorkerThreadFinish();
@@ -125,9 +128,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 void ForwardRenderingPath::FrustumCulling(int _threadIndex)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
-	int threads = GraphicManager::Instance().GetThreadCount() - 1;
-
-	int count = (int)renderers.size() / threads + 1;
+	int count = (int)renderers.size() / numWorkerThreads + 1;
 	int start = _threadIndex * count;
 
 	for (int i = start; i <= start + count; i++)
@@ -145,12 +146,11 @@ void ForwardRenderingPath::FrustumCulling(int _threadIndex)
 void ForwardRenderingPath::BeginFrame(Camera _camera)
 {
 	// get frame resource
-	FrameResource fr = GraphicManager::Instance().GetFrameResource();
-	LogIfFailedWithoutHR(fr.preGfxAllocator->Reset());
-	LogIfFailedWithoutHR(fr.preGfxList->Reset(fr.preGfxAllocator, nullptr));
+	LogIfFailedWithoutHR(currFrameResource.preGfxAllocator->Reset());
+	LogIfFailedWithoutHR(currFrameResource.preGfxList->Reset(currFrameResource.preGfxAllocator, nullptr));
 
 	CameraData camData = _camera.GetCameraData();
-	auto _cmdList = fr.preGfxList;
+	auto _cmdList = currFrameResource.preGfxList;
 
 #if defined(GRAPHICTIME)
 	// timer begin
@@ -186,8 +186,7 @@ void ForwardRenderingPath::UploadConstant(Camera _camera, int _frameIdx, int _th
 	auto renderers = RendererManager::Instance().GetRenderers();
 
 	// split thread group
-	int threads = GraphicManager::Instance().GetThreadCount() - 1;
-	int count = (int)renderers.size() / threads + 1;
+	int count = (int)renderers.size() / numWorkerThreads + 1;
 	int start = _threadIndex * count;
 
 	// update renderer constant
@@ -223,13 +222,12 @@ void ForwardRenderingPath::UploadConstant(Camera _camera, int _frameIdx, int _th
 void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	// get frame resource
-	FrameResource fr = GraphicManager::Instance().GetFrameResource();
-	LogIfFailedWithoutHR(fr.workerGfxAlloc[_threadIndex]->Reset());
-	LogIfFailedWithoutHR(fr.workerGfxList[_threadIndex]->Reset(fr.workerGfxAlloc[_threadIndex], nullptr));
+	LogIfFailedWithoutHR(currFrameResource.workerGfxAlloc[_threadIndex]->Reset());
+	LogIfFailedWithoutHR(currFrameResource.workerGfxList[_threadIndex]->Reset(currFrameResource.workerGfxAlloc[_threadIndex], nullptr));
 
 	// update camera constant
 	CameraData camData = _camera.GetCameraData();
-	auto _cmdList = fr.workerGfxList[_threadIndex];
+	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 
 	// bind
 	_cmdList->OMSetRenderTargets(1,
@@ -239,48 +237,37 @@ void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadI
 
 	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
-
-	// set pso and topo
-	Material mat = _camera.GetPipelineMaterial(MaterialType::DebugWireFrame);
-	_cmdList->SetPipelineState(mat.GetPSO());
-	_cmdList->SetGraphicsRootSignature(mat.GetRootSignature());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex)
 {
-	FrameResource fr = GraphicManager::Instance().GetFrameResource();
-	auto _cmdList = fr.workerGfxList[_threadIndex];
-	int threads = GraphicManager::Instance().GetThreadCount() - 1;
+	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
+	
+	// set debug wire frame material
+	Material *mat = _camera.GetPipelineMaterial(MaterialType::DebugWireFrame);
+	_cmdList->SetPipelineState(mat->GetPSO());
+	_cmdList->SetGraphicsRootSignature(mat->GetRootSignature());
 
 	// loop render-queue
 	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
 	for (auto const& qr : queueRenderers)
 	{
 		auto renderers = qr.second;
-		int count = (int)renderers.size() / threads + 1;
+		int count = (int)renderers.size() / numWorkerThreads + 1;
 		int start = _threadIndex * count;
 
 		for (int i = start; i <= start + count; i++)
 		{
-			if (i >= (int)renderers.size())
-			{
-				continue;
-			}
-
-			auto const r = renderers[i];
-			if (!r.cache->GetVisible())
-			{
-				continue;
-			}
-
-			Mesh* m = r.cache->GetMesh();
-			if (m == nullptr)
+			// valid renderer
+			if (!ValidRenderer(i, renderers))
 			{
 				continue;
 			}
 
 			// bind mesh
+			auto const r = renderers[i];
+			Mesh *m = r.cache->GetMesh();
 			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
 			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
 
@@ -303,15 +290,85 @@ void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _thr
 	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
 }
 
+void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex)
+{
+	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
+
+	// bind descriptor heap, only need to set once, changing descriptor heap isn't good
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	// setup descriptor table gpu
+	_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+
+	// loop render-queue
+	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
+	for (auto const& qr : queueRenderers)
+	{
+		auto renderers = qr.second;
+		int count = (int)renderers.size() / numWorkerThreads + 1;
+		int start = _threadIndex * count;
+
+		for (int i = start; i <= start + count; i++)
+		{
+			// valid renderer
+			if (!ValidRenderer(i, renderers))
+			{
+				continue;
+			}
+			auto const r = renderers[i];
+			Mesh* m = r.cache->GetMesh();
+
+			// bind material
+			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+			Material* mat = nullptr;
+
+			if (objMat->GetRenderQueue() < RenderQueue::CutoffStart)
+			{
+				mat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassOpaque);
+			}
+			else if (objMat->GetRenderQueue() >= RenderQueue::CutoffStart && objMat->GetRenderQueue() <= RenderQueue::OpaqueLast)
+			{
+				mat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassCutoff);
+			}
+
+			_cmdList->SetPipelineState(mat->GetPSO());
+			_cmdList->SetGraphicsRootSignature(mat->GetRootSignature());
+
+			// bind mesh
+			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
+			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
+
+			// set system/object constant of renderer
+			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(1, mat->GetMaterialConstantGPU(_frameIdx));
+
+			// draw mesh
+			SubMesh sm = m->GetSubMesh(r.submeshIndex);
+			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+
+#if defined(GRAPHICTIME)
+			GameTimerManager::Instance().gameTime.batchCount[_threadIndex] += 1;
+#endif
+		}
+	}
+
+	// close command list and execute
+	LogIfFailedWithoutHR(_cmdList->Close());
+	ID3D12CommandList* cmdsLists[] = { _cmdList };
+	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+}
+
 void ForwardRenderingPath::EndFrame(Camera _camera)
 {
 	// get frame resource
-	FrameResource fr = GraphicManager::Instance().GetFrameResource();
-	LogIfFailedWithoutHR(fr.postGfxAllocator->Reset());
-	LogIfFailedWithoutHR(fr.postGfxList->Reset(fr.postGfxAllocator, nullptr));
+	
+	LogIfFailedWithoutHR(currFrameResource.postGfxAllocator->Reset());
+	LogIfFailedWithoutHR(currFrameResource.postGfxList->Reset(currFrameResource.postGfxAllocator, nullptr));
 
 	CameraData camData = _camera.GetCameraData();
-	auto _cmdList = fr.postGfxList;
+	auto _cmdList = currFrameResource.postGfxList;
 
 	// transition resource back to common
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
@@ -351,4 +408,26 @@ void ForwardRenderingPath::EndFrame(Camera _camera)
 
 	GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
 #endif
+}
+
+bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers)
+{
+	if (_index >= (int)_renderers.size())
+	{
+		return false;
+	}
+
+	auto const r = _renderers[_index];
+	if (!r.cache->GetVisible())
+	{
+		return false;
+	}
+
+	Mesh* m = r.cache->GetMesh();
+	if (m == nullptr)
+	{
+		return false;
+	}
+
+	return true;
 }

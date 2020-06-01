@@ -28,6 +28,8 @@ public:
 	void Release();
 	int AddNativeTexture(int _texId, void* _texData);
 	int AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel);
+	ID3D12DescriptorHeap* GetTexHeap();
+	ID3D12DescriptorHeap* GetSamplerHeap();
 
 private:
 	void EnlargeTexDescriptorHeap();

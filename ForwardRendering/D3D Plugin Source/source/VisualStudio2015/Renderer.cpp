@@ -101,6 +101,16 @@ const vector<Material*> Renderer::GetMaterials()
 	return materials;
 }
 
+Material* const Renderer::GetMaterial(int _index)
+{
+	if (_index < 0 || _index >= (int)materials.size())
+	{
+		return nullptr;
+	}
+
+	return materials[_index];
+}
+
 D3D12_GPU_VIRTUAL_ADDRESS Renderer::GetSystemConstantGPU(int _frameIdx)
 {
 	return rendererConstant[_frameIdx]->Resource()->GetGPUVirtualAddress();
