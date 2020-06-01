@@ -151,7 +151,7 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 			D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
 			-1,  // number of descriptors
 			0,
-			1);
+			1);	 // set space to 1 prevent overlap
 
 		CD3DX12_ROOT_PARAMETER p;
 		p.InitAsDescriptorTable(1, &samplerTable);

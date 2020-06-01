@@ -350,8 +350,8 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 			// setup descriptor table gpu
 			if (qr.first >= RenderQueue::CutoffStart)
 			{
-				_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-				_cmdList->SetGraphicsRootDescriptorTable(0, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+				_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+				_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 			}
 
 			// draw mesh
