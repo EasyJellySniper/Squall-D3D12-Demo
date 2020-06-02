@@ -25,5 +25,4 @@ EXPORTS
    AddNativeMaterialProp
    AddNativeTexture
    AddNativeSampler
-   SetDebugDepth
    SetRenderMode

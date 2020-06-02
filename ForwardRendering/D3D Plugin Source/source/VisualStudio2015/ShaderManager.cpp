@@ -156,7 +156,7 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 		p.InitAsDescriptorTable(1, &texTable);
 		rootSignatureParam.push_back(p);
 	}
-
+	
 	if (samplerRegNum > 0)
 	{
 		// we will share sampler table and dynamic indexing in shader

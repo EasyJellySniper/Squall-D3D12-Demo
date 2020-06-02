@@ -237,11 +237,6 @@ void Camera::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scisso
 	scissorRect = _scissorRect;
 }
 
-void Camera::SetDebugDepth(void* _debugDepth)
-{
-	debugDepth = (ID3D12Resource*)_debugDepth;
-}
-
 void Camera::SetRenderMode(int _mode)
 {
 	renderMode = (RenderMode)_mode;
@@ -310,11 +305,6 @@ RenderMode Camera::GetRenderMode()
 ID3D12Resource* Camera::GetCameraDepth()
 {
 	return depthTarget;
-}
-
-ID3D12Resource* Camera::GetDebugDepth()
-{
-	return debugDepth;
 }
 
 bool Camera::FrustumTest(BoundingBox _bound)

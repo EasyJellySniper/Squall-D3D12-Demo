@@ -406,12 +406,6 @@ void ForwardRenderingPath::EndFrame(Camera _camera)
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON));
 	}
 
-	// copy depth for debug
-	if (_camera.GetDebugDepth() != nullptr)
-	{
-		_cmdList->CopyResource(_camera.GetDebugDepth(), _camera.GetCameraDepth());
-	}
-
 #if defined(GRAPHICTIME)
 	// timer end
 	_cmdList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 1);

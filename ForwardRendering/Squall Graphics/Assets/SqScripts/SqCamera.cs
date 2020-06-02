@@ -127,11 +127,6 @@ public class SqCamera : MonoBehaviour
     /// </summary>
     public RenderTexture renderTarget;
 
-    /// <summary>
-    /// debug depth
-    /// </summary>
-    public RenderTexture debugDepth;
-
     Camera attachedCam;
     CameraData camData;
     MsaaFactor lastMsaaSample;
@@ -145,7 +140,6 @@ public class SqCamera : MonoBehaviour
 
         CreateRenderTarget();
         CreateCameraData();
-        SetDebugDepth(attachedCam.GetInstanceID(), debugDepth.GetNativeDepthBufferPtr());
         lastMsaaSample = msaaSample;
     }
 
@@ -155,12 +149,6 @@ public class SqCamera : MonoBehaviour
         {
             renderTarget.Release();
             DestroyImmediate(renderTarget);
-        }
-
-        if (debugDepth)
-        {
-            debugDepth.Release();
-            DestroyImmediate(debugDepth);
         }
     }
 
@@ -217,9 +205,6 @@ public class SqCamera : MonoBehaviour
 
         // actually create so that we have native resources
         renderTarget.Create();
-
-        debugDepth = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 24, RenderTextureFormat.Depth);
-        debugDepth.Create();
     }
 
     void CreateCameraData()

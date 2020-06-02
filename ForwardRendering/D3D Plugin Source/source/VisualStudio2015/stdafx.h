@@ -13,9 +13,7 @@ inline wstring AnsiToWString(const string& str)
 
 inline void LogMessage(wstring _str)
 {
-#if _DEBUG
 	OutputDebugString((_str + L"\n").c_str());
-#endif
 }
 
 #ifndef LogIfFailedWithoutHR
