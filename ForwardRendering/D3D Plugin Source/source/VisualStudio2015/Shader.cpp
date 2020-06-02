@@ -13,6 +13,11 @@ void Shader::Release()
 	domainShader.Reset();
 	hullShader.Reset();
 	geometryShader.Reset();
+
+	for (int i = 0; i < MAX_KEYWORD; i++)
+	{
+		keywords[i] = "";
+	}
 }
 
 wstring Shader::GetName()
@@ -45,6 +50,30 @@ void Shader::SetGS(ComPtr<ID3DBlob> _input)
 	geometryShader = _input;
 }
 
+void Shader::CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro)
+{
+	for (int i = 0; i < MAX_KEYWORD; i++)
+	{
+		if (i < (int)_keywords.size())
+		{
+			keywords[i] = _keywords[i];
+		}
+		else
+		{
+			keywords[i] = "";
+		}
+	}
+
+	if (macro != nullptr)
+	{
+		keywordUsage = CalcKeywordUsage(macro);
+	}
+	else
+	{
+		keywordUsage = 0;
+	}
+}
+
 ComPtr<ID3D12RootSignature>& Shader::GetRootSignatureRef()
 {
 	return rootSignature;
@@ -73,4 +102,46 @@ ComPtr<ID3DBlob> Shader::GetHS()
 ComPtr<ID3DBlob> Shader::GetGS()
 {
 	return geometryShader;
+}
+
+bool Shader::IsSameKeyword(D3D_SHADER_MACRO* macro)
+{
+	if (macro == nullptr)
+	{
+		// no keyword usage at all
+		if (keywordUsage == 0)
+		{
+			return true;
+		}
+
+		// can't continue
+		return false;
+	}
+
+	if (CalcKeywordUsage(macro) == keywordUsage)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+int Shader::CalcKeywordUsage(D3D_SHADER_MACRO* macro)
+{
+	int usageBit = 0;
+	D3D_SHADER_MACRO* p = &macro[0];
+	while (p->Name != NULL)
+	{
+		for (int i = 0; i < MAX_KEYWORD; i++)
+		{
+			if (p->Name == keywords[i])
+			{
+				usageBit |= (1 << i);
+			}
+		}
+
+		p++;
+	}
+
+	return usageBit;
 }

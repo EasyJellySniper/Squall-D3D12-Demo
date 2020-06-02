@@ -1,4 +1,5 @@
 #include "SqInclude.hlsl"
+#pragma sq_keyword _CUTOFF_ON
 
 struct v2f
 {

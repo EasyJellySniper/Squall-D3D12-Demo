@@ -24,7 +24,7 @@ public:
 	~ShaderManager() {}
 
 	Shader *CompileShader(wstring _fileName, string _entryVS, string _entryPS, string _entryGS = "", string _entryDS = "", string _entryHS = "", D3D_SHADER_MACRO *macro = nullptr);
-	Shader *FindShader(wstring _shaderName);
+	Shader *FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro = nullptr);
 	void Release();
 
 private:
@@ -36,6 +36,7 @@ private:
 	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
 	vector<CD3DX12_ROOT_PARAMETER> rootSignatureParam;
+	vector<string> keywordGroup;
 	int cBufferRegNum;
 	int srvRegNum;
 	int samplerRegNum;

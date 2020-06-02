@@ -6,10 +6,10 @@
 
 Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string _entryPS, string _entryGS, string _entryDS, string _entryHS, D3D_SHADER_MACRO *macro)
 {
-	Shader *targetShader = FindShader(_fileName);
+	Shader *targetShader = FindShader(_fileName, macro);
 	if (targetShader != nullptr)
 	{
-		//return targetShader;
+		return targetShader;
 	}
 
 	unique_ptr<Shader> newShader = make_unique<Shader>(_fileName);
@@ -28,9 +28,11 @@ Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string 
 		srvRegNum = 0;
 		samplerRegNum = 0;
 		rootSignatureParam.clear();
+		keywordGroup.clear();
 
 		CollectShaderData(_fileName);
 		BuildRootSignature(newShader);
+		newShader->CollectAllKeyword(keywordGroup, macro);
 
 		shaders.push_back(std::move(newShader));
 		return shaders[shaders.size() - 1].get();
@@ -56,11 +58,11 @@ void ShaderManager::Release()
 	rootSignatureParam.clear();
 }
 
-Shader *ShaderManager::FindShader(wstring _shaderName)
+Shader *ShaderManager::FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro)
 {
 	for (size_t i = 0; i < shaders.size(); i++)
 	{
-		if (shaders[i]->GetName() == _shaderName)
+		if (shaders[i]->GetName() == _shaderName && shaders[i]->IsSameKeyword(macro))
 		{
 			return shaders[i].get();
 		}
@@ -121,6 +123,17 @@ void ShaderManager::CollectShaderData(wstring _fileName)
 		else if (s == "SamplerState")
 		{
 			samplerRegNum++;
+		}
+		else if (s == "#pragma")
+		{
+			input >> s;
+			if (s == "sq_keyword")
+			{
+				// get keyword
+				string keyword;
+				input >> keyword;
+				keywordGroup.push_back(keyword);
+			}
 		}
 	}
 	input.close();
