@@ -18,7 +18,7 @@ cbuffer MaterialConstant : register(b1)
 
 // need /enable_unbounded_descriptor_tables when compiling
 Texture2D _TexTable[] : register(t0);
-SamplerState _SamplerTable[] : register(s0, space1);
+SamplerState _SamplerTable[] : register(s0);
 
 v2f DepthPrePassVS(VertexInput i)
 {

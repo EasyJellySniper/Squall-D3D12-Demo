@@ -146,14 +146,10 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 	{
 		// we will share texture table and dynamic indexing in shader
 		CD3DX12_DESCRIPTOR_RANGE texTable;
-		texTable.Init(
-			D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-			-1,  // number of descriptors, set -1 for use unbound
-			0,
-			0);
+		texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, -1, 0, 0);
 
 		CD3DX12_ROOT_PARAMETER p;
-		p.InitAsDescriptorTable(1, &texTable);
+		p.InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
 		rootSignatureParam.push_back(p);
 	}
 	
@@ -161,14 +157,10 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 	{
 		// we will share sampler table and dynamic indexing in shader
 		CD3DX12_DESCRIPTOR_RANGE samplerTable;
-		samplerTable.Init(
-			D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-			-1,  // number of descriptors
-			0,
-			1);	 // set space to 1 prevent overlap
+		samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, -1, 0, 0);
 
 		CD3DX12_ROOT_PARAMETER p;
-		p.InitAsDescriptorTable(1, &samplerTable);
+		p.InitAsDescriptorTable(1, &samplerTable, D3D12_SHADER_VISIBILITY_ALL);
 		rootSignatureParam.push_back(p);
 	}
 
