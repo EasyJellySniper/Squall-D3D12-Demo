@@ -242,6 +242,11 @@ void Camera::SetDebugDepth(void* _debugDepth)
 	debugDepth = (ID3D12Resource*)_debugDepth;
 }
 
+void Camera::SetRenderMode(int _mode)
+{
+	renderMode = (RenderMode)_mode;
+}
+
 D3D12_VIEWPORT Camera::GetViewPort()
 {
 	return viewPort;
@@ -295,6 +300,11 @@ int Camera::GetMsaaCount()
 int Camera::GetMsaaQuailty()
 {
 	return msaaQuality;
+}
+
+RenderMode Camera::GetRenderMode()
+{
+	return renderMode;
 }
 
 ID3D12Resource* Camera::GetCameraDepth()

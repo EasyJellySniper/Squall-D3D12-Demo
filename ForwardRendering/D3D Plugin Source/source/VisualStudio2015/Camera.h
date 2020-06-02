@@ -27,6 +27,11 @@ enum MaterialType
 	DebugWireFrame = 0, DepthPrePassOpaque, DepthPrePassCutoff, EndSystemMaterial
 };
 
+enum RenderMode
+{
+	None = 0, WireFrame, Depth
+};
+
 class Camera
 {
 public:
@@ -48,6 +53,7 @@ public:
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void SetDebugDepth(void *_debugDepth);
+	void SetRenderMode(int _mode);
 
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
@@ -60,6 +66,7 @@ public:
 	D3D12_RESOURCE_DESC GetDepthDesc();
 	int GetMsaaCount();
 	int GetMsaaQuailty();
+	RenderMode GetRenderMode();
 	ID3D12Resource* GetCameraDepth();
 	ID3D12Resource* GetDebugDepth();
 	bool FrustumTest(BoundingBox _bound);
@@ -77,6 +84,7 @@ private:
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS CheckMsaaQuality(int _sampleCount, DXGI_FORMAT _format);
 
 	CameraData cameraData;
+	RenderMode renderMode = RenderMode::None;
 
 	// render targets
 	vector<ID3D12Resource*> renderTarget;

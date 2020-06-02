@@ -24,6 +24,9 @@ public class SqCamera : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void SetDebugDepth(int _instance, IntPtr _debugDepth);
 
+    [DllImport("SquallGraphics")]
+    static extern void SetRenderMode(int _instance, int _renderMode);
+
     /// <summary>
     /// msaa factor
     /// </summary>
@@ -33,6 +36,15 @@ public class SqCamera : MonoBehaviour
         Msaa2x = 2,
         Msaa4x = 4,
         Msaa8x = 8
+    }
+
+    /// <summary>
+    /// render mode
+    /// </summary>
+    public enum RenderMode
+    {
+        WireFrame = 1,
+        Depth
     }
 
     /// <summary>
@@ -101,6 +113,11 @@ public class SqCamera : MonoBehaviour
     }
 
     /// <summary>
+    /// render mode
+    /// </summary>
+    public RenderMode renderMode = RenderMode.WireFrame;
+
+    /// <summary>
     /// msaa sample
     /// </summary>
     public MsaaFactor msaaSample = MsaaFactor.None;
@@ -150,6 +167,7 @@ public class SqCamera : MonoBehaviour
     void Update()
     {
         int instanceID = attachedCam.GetInstanceID();
+        SetRenderMode(instanceID, (int)renderMode);
 
         // check aa change
         if (lastMsaaSample != msaaSample)

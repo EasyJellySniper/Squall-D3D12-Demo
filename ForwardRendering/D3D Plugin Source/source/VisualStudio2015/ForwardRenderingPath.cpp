@@ -112,8 +112,16 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 
 			UploadSystemConstant(targetCam, frameIndex, _threadIndex);
 			BindState(targetCam, frameIndex, _threadIndex);
-			//DrawWireFrame(targetCam, frameIndex, _threadIndex);
-			DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
+
+			if (targetCam.GetRenderMode() == RenderMode::WireFrame)
+			{
+				DrawWireFrame(targetCam, frameIndex, _threadIndex);
+			}
+
+			if (targetCam.GetRenderMode() == RenderMode::Depth)
+			{
+				DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
+			}
 
 #if defined(GRAPHICTIME)
 			TIMER_STOP
