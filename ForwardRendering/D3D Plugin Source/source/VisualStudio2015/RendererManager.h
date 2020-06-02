@@ -25,9 +25,10 @@ public:
 		return instance;
 	}
 
-	RendererManager();
+	RendererManager() {}
 	~RendererManager() {}
 
+	void Init();
 	int AddRenderer(int _instanceID, int _meshInstanceID);
 	void AddMaterial(int _instanceID, int _matInstanceId, int _renderQueue);
 	void AddToQueueRenderer(Renderer* _renderer, Camera _camera);

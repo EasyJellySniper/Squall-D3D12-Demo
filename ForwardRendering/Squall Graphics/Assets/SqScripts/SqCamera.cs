@@ -21,6 +21,9 @@ public class SqCamera : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void SetViewPortScissorRect(int _instanceID, ViewPort _viewPort, RawRect _rawRect);
 
+    [DllImport("SquallGraphics")]
+    static extern void SetDebugDepth(int _instance, IntPtr _debugDepth);
+
     /// <summary>
     /// msaa factor
     /// </summary>
@@ -107,6 +110,11 @@ public class SqCamera : MonoBehaviour
     /// </summary>
     public RenderTexture renderTarget;
 
+    /// <summary>
+    /// debug depth
+    /// </summary>
+    public RenderTexture debugDepth;
+
     Camera attachedCam;
     CameraData camData;
     MsaaFactor lastMsaaSample;
@@ -120,6 +128,7 @@ public class SqCamera : MonoBehaviour
 
         CreateRenderTarget();
         CreateCameraData();
+        SetDebugDepth(attachedCam.GetInstanceID(), debugDepth.GetNativeDepthBufferPtr());
         lastMsaaSample = msaaSample;
     }
 
@@ -129,6 +138,12 @@ public class SqCamera : MonoBehaviour
         {
             renderTarget.Release();
             DestroyImmediate(renderTarget);
+        }
+
+        if (debugDepth)
+        {
+            debugDepth.Release();
+            DestroyImmediate(debugDepth);
         }
     }
 
@@ -177,13 +192,16 @@ public class SqCamera : MonoBehaviour
 
     void CreateRenderTarget()
     {
-        renderTarget = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.DefaultHDR);
+        renderTarget = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 24, RenderTextureFormat.DefaultHDR);
         renderTarget.name = name + " Target";
         renderTarget.antiAliasing = 1;
         renderTarget.bindTextureMS = false;
 
         // actually create so that we have native resources
         renderTarget.Create();
+
+        debugDepth = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 24, RenderTextureFormat.Depth);
+        debugDepth.Create();
     }
 
     void CreateCameraData()

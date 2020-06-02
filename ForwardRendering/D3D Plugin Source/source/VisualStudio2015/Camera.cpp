@@ -156,9 +156,10 @@ void Camera::Release()
 	renderTarget.clear();
 	msaaTarget.clear();
 
-	for (auto& m : pipelineMaterials)
+	for (int i = 0; i < MaterialType::EndSystemMaterial; i++)
 	{
-		m.Release();
+		pipelineMaterials[i].Release();
+		pipelineMaterials[i] = Material();
 	}
 }
 
@@ -236,6 +237,11 @@ void Camera::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scisso
 	scissorRect = _scissorRect;
 }
 
+void Camera::SetDebugDepth(void* _debugDepth)
+{
+	debugDepth = (ID3D12Resource*)_debugDepth;
+}
+
 D3D12_VIEWPORT Camera::GetViewPort()
 {
 	return viewPort;
@@ -289,6 +295,16 @@ int Camera::GetMsaaCount()
 int Camera::GetMsaaQuailty()
 {
 	return msaaQuality;
+}
+
+ID3D12Resource* Camera::GetCameraDepth()
+{
+	return depthTarget;
+}
+
+ID3D12Resource* Camera::GetDebugDepth()
+{
+	return debugDepth;
 }
 
 bool Camera::FrustumTest(BoundingBox _bound)

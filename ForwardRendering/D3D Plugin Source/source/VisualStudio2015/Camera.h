@@ -47,6 +47,8 @@ public:
 	ID3D12DescriptorHeap *GetMsaaDsv();
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
+	void SetDebugDepth(void *_debugDepth);
+
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
 	XMFLOAT4X4 GetViewMatrix();
@@ -58,6 +60,8 @@ public:
 	D3D12_RESOURCE_DESC GetDepthDesc();
 	int GetMsaaCount();
 	int GetMsaaQuailty();
+	ID3D12Resource* GetCameraDepth();
+	ID3D12Resource* GetDebugDepth();
 	bool FrustumTest(BoundingBox _bound);
 
 private:
@@ -78,6 +82,7 @@ private:
 	vector<ID3D12Resource*> renderTarget;
 	vector<ComPtr<ID3D12Resource>> msaaTarget;
 	ID3D12Resource *depthTarget;
+	ID3D12Resource *debugDepth;
 	ComPtr<ID3D12Resource> msaaDepthTarget;
 	D3D12_RESOURCE_DESC renderTarrgetDesc[MAX_RENDER_TARGETS];
 	D3D12_RESOURCE_DESC depthTargetDesc;

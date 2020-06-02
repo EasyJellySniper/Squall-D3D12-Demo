@@ -104,6 +104,15 @@ extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeSampler(Text
 	return TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetDebugDepth(int _instance, void* _debugDepth)
+{
+	Camera* c = CameraManager::Instance().GetCamera(_instance);
+	if (c != nullptr)
+	{
+		c->SetDebugDepth(_debugDepth);
+	}
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

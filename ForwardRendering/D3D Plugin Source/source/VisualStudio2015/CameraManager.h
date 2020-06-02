@@ -27,9 +27,9 @@ public:
 	void SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void Release();
 	vector<Camera> &GetCameras();
+	Camera* GetCamera(int _instanceID);
 
 private:
-	Camera *GetCamera(int _instanceID);
 
 	vector<Camera> cameras;
 	unordered_map<int, Camera*> cameraLookup;

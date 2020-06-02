@@ -56,6 +56,7 @@ void ShaderManager::Release()
 
 	shaders.clear();
 	rootSignatureParam.clear();
+	keywordGroup.clear();
 }
 
 Shader *ShaderManager::FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro)
