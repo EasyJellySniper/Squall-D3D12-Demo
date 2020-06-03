@@ -43,7 +43,7 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _came
 	return result;
 }
 
-Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue)
+Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode)
 {
 	if (materialTable.find(_matInstanceId) != materialTable.end())
 	{
@@ -52,6 +52,7 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue)
 
 	materialTable[_matInstanceId] = make_unique<Material>();
 	materialTable[_matInstanceId]->SetRenderQueue(_renderQueue);
+	materialTable[_matInstanceId]->SetCullMode(_cullMode);
 
 	return materialTable[_matInstanceId].get();
 }

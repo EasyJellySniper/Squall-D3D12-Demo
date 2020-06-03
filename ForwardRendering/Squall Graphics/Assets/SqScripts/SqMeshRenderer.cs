@@ -26,7 +26,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern int AddNativeRenderer(int _instanceID, int _meshInstanceID);
 
     [DllImport("SquallGraphics")]
-    static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue);
+    static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode);
 
     [DllImport("SquallGraphics")]
     static extern bool UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
@@ -77,7 +77,8 @@ public class SqMeshRenderer : MonoBehaviour
         Material[] mats = rendererCache.sharedMaterials;
         for (int i = 0; i < mats.Length; i++)
         {
-            AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue);
+            int cullMode = (mats[i].HasProperty("_CullMode")) ? (int)mats[i].GetFloat("_CullMode") : 0;
+            AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode);
         }
 
         int matConstantSize = Marshal.SizeOf(typeof(MaterialConstant));

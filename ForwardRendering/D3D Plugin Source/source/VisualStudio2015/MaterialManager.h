@@ -21,7 +21,7 @@ public:
 	~MaterialManager() {}
 	Material CreateMaterialFromShader(Shader *_shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode);
 
-	Material* AddMaterial(int _matInstanceId, int _renderQueue);
+	Material* AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode);
 	void Release();
 
 private:

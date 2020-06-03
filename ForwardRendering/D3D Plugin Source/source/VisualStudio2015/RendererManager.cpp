@@ -30,14 +30,14 @@ int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
 	return id;
 }
 
-void RendererManager::AddMaterial(int _instanceID, int _matInstanceId, int _renderQueue)
+void RendererManager::AddMaterial(int _instanceID, int _matInstanceId, int _renderQueue, int _cullMode)
 {
 	if (_instanceID < 0 || _instanceID >= (int)renderers.size())
 	{
 		return;
 	}
 
-	renderers[_instanceID]->AddMaterial(MaterialManager::Instance().AddMaterial(_matInstanceId, _renderQueue));
+	renderers[_instanceID]->AddMaterial(MaterialManager::Instance().AddMaterial(_matInstanceId, _renderQueue, _cullMode));
 }
 
 void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera _camera)
