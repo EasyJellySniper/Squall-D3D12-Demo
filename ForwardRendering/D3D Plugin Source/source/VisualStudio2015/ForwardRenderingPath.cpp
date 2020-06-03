@@ -254,7 +254,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _thr
 	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 	
 	// set debug wire frame material
-	Material *mat = _camera.GetPipelineMaterial(MaterialType::DebugWireFrame);
+	Material *mat = _camera.GetPipelineMaterial(MaterialType::DebugWireFrame, CullMode::Off);
 	_cmdList->SetPipelineState(mat->GetPSO());
 	_cmdList->SetGraphicsRootSignature(mat->GetRootSignature());
 
@@ -321,17 +321,6 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 			break;
 		}
 
-		// choose pipeline material according to renderqueue
-		Material* pipeMat = nullptr;
-		if (qr.first < RenderQueue::CutoffStart)
-		{
-			pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassOpaque);
-		}
-		else if (qr.first >= RenderQueue::CutoffStart && qr.first <= RenderQueue::OpaqueLast)
-		{
-			pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassCutoff);
-		}
-
 		for (int i = start; i <= start + count; i++)
 		{
 			// valid renderer
@@ -346,12 +335,23 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
 			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
 
+			// choose pipeline material according to renderqueue
+			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+			Material* pipeMat = nullptr;
+			if (qr.first < RenderQueue::CutoffStart)
+			{
+				pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassOpaque, objMat->GetCullMode());
+			}
+			else if (qr.first >= RenderQueue::CutoffStart && qr.first <= RenderQueue::OpaqueLast)
+			{
+				pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassCutoff, objMat->GetCullMode());
+			}
+
 			// bind pipeline material
 			_cmdList->SetPipelineState(pipeMat->GetPSO());
 			_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
 
 			// set system/object constant of renderer
-			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
 			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
 			_cmdList->SetGraphicsRootConstantBufferView(1, objMat->GetMaterialConstantGPU(_frameIdx));
 

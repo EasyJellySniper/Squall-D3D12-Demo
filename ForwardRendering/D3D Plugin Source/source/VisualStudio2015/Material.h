@@ -16,6 +16,11 @@ enum RenderQueue
 	TransparentLast = 3500,
 };
 
+enum CullMode
+{
+	Off, Front, Back
+};
+
 class Material
 {
 public:
@@ -23,10 +28,12 @@ public:
 	void AddMaterialConstant(UINT _byteSize, void* _data);
 	void Release();
 	void SetRenderQueue(int _queue);
+	void SetCullMode(int _mode);
 
 	ID3D12PipelineState* GetPSO();
 	ID3D12RootSignature* GetRootSignature();
 	int GetRenderQueue();
+	CullMode GetCullMode();
 	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _index);
 
 private:
@@ -35,6 +42,7 @@ private:
 	shared_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];
 
 	int renderQueue = 2000;
+	CullMode cullMode = CullMode::Off;
 	bool validMaterial = false;
 	bool isDirty = true;
 };

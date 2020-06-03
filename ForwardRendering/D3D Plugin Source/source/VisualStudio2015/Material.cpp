@@ -40,6 +40,11 @@ void Material::SetRenderQueue(int _queue)
 	renderQueue = _queue;
 }
 
+void Material::SetCullMode(int _mode)
+{
+	cullMode = (CullMode)_mode;
+}
+
 ID3D12PipelineState * Material::GetPSO()
 {
 	return pso.Get();
@@ -53,6 +58,11 @@ ID3D12RootSignature* Material::GetRootSignature()
 int Material::GetRenderQueue()
 {
 	return renderQueue;
+}
+
+CullMode Material::GetCullMode()
+{
+	return cullMode;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS Material::GetMaterialConstantGPU(int _index)

@@ -59,7 +59,7 @@ public:
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetProjMatrix();
 	XMFLOAT3 GetPosition();
-	Material *GetPipelineMaterial(MaterialType _type);
+	Material *GetPipelineMaterial(MaterialType _type, CullMode _cullMode);
 	int GetNumOfRT();
 	D3D12_RESOURCE_DESC* GetColorRTDesc();
 	D3D12_RESOURCE_DESC GetDepthDesc();
@@ -71,6 +71,7 @@ public:
 
 private:
 	static const int MAX_RENDER_TARGETS = 8;
+	static const int MAX_CULL_MODE = 3;
 
 	HRESULT CreateRtvDescriptorHeaps();
 	HRESULT CreateDsvDescriptorHeaps();
@@ -104,7 +105,7 @@ private:
 	ComPtr<ID3D12DescriptorHeap> msaaDsvHandle;
 
 	// material
-	Material pipelineMaterials[MaterialType::EndSystemMaterial];
+	unordered_map<int, vector<Material>> pipelineMaterials;
 
 	// matrix and view port
 	XMFLOAT4X4 viewMatrix;
