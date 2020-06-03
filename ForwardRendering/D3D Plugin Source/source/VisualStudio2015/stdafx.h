@@ -3,12 +3,29 @@
 #include <comdef.h>
 #include <mutex>
 using namespace std;
+#include <locale>
+#include <codecvt>
 
 inline wstring AnsiToWString(const string& str)
 {
-	WCHAR buffer[512];
-	MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, buffer, 512);
-	return wstring(buffer);
+	//setup converter
+	using convert_type = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_type, wchar_t> converter;
+
+	//use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
+	std::wstring converted_wstr = converter.from_bytes(str);
+	return converted_wstr;
+}
+
+inline string WStringToAnsi(const wstring& wstr)
+{
+	//setup converter
+	using convert_type = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_type, wchar_t> converter;
+
+	//use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
+	std::string converted_str = converter.to_bytes(wstr);
+	return converted_str;
 }
 
 inline void LogMessage(wstring _str)

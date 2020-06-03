@@ -96,16 +96,16 @@ ID3DBlob *ShaderManager::CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *ma
 
 void ShaderManager::CollectShaderData(wstring _fileName)
 {
-	ifstream input(shaderPath + _fileName, ios::in);
+	wifstream input(shaderPath + _fileName, ios::in);
 	while (!input.eof())
 	{
-		string buff;
+		wstring buff;
 		getline(input, buff);
 
 		// comment detect
 		bool isComment = false;
-		istringstream is(buff);
-		string ss;
+		wistringstream is(buff);
+		wstring ss;
 
 		while (!is.eof() && !isComment)
 		{
@@ -129,61 +129,61 @@ void ShaderManager::CollectShaderData(wstring _fileName)
 	input.close();
 }
 
-void ShaderManager::ParseShaderLine(string _input)
+void ShaderManager::ParseShaderLine(wstring _input)
 {
-	istringstream is(_input);
+	wistringstream is(_input);
 
-	string ss;
+	wstring ss;
 	while (!is.eof())
 	{
 		is >> ss;
 
 		// include other file, we need to call function recursively
-		if (ss == "#include")
+		if (ss == L"#include")
 		{
-			string includeName;
+			wstring includeName;
 			is >> includeName;
 
 			// remove "" of include name
 			includeName.erase(std::remove(includeName.begin(), includeName.end(), '"'), includeName.end());
-			CollectShaderData(AnsiToWString(includeName));
+			CollectShaderData(includeName);
 		}
-		else if (ss == "cbuffer")
+		else if (ss == L"cbuffer")
 		{
 			// constant buffer view
 			CD3DX12_ROOT_PARAMETER p;
 			p.InitAsConstantBufferView(cBufferRegNum++);
 			rootSignatureParam.push_back(p);
 		}
-		else if (ss == "Texture2D")
+		else if (ss == L"Texture2D")
 		{
 			if (parseSrv)
 			{
 				srvRegNum++;
 			}
 		}
-		else if (ss == "SamplerState")
+		else if (ss == L"SamplerState")
 		{
 			if (parseSrv)
 			{
 				samplerRegNum++;
 			}
 		}
-		else if (ss == "#pragma")
+		else if (ss == L"#pragma")
 		{
 			is >> ss;
-			if (ss == "sq_keyword")
+			if (ss == L"sq_keyword")
 			{
 				// get keyword
-				string keyword;
+				wstring keyword;
 				is >> keyword;
-				keywordGroup.push_back(keyword);
+				keywordGroup.push_back(WStringToAnsi(keyword));
 			}
-			else if (ss == "sq_srvStart")
+			else if (ss == L"sq_srvStart")
 			{
 				parseSrv = true;
 			}
-			else if (ss == "sq_srvEnd")
+			else if (ss == L"sq_srvEnd")
 			{
 				parseSrv = false;
 			}
