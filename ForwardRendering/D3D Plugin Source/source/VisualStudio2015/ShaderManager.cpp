@@ -3,6 +3,7 @@
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"d3dcompiler.lib")
 #include "GraphicManager.h"
+#include <sstream>
 
 Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string _entryPS, string _entryGS, string _entryDS, string _entryHS, D3D_SHADER_MACRO *macro)
 {
@@ -97,47 +98,59 @@ void ShaderManager::CollectShaderData(wstring _fileName)
 	ifstream input(shaderPath + _fileName, ios::in);
 	while (!input.eof())
 	{
-		string s;
-		input >> s;
+		string buff;
+		getline(input, buff);
+		ParseShaderLine(buff);
+	}
+	input.close();
+}
+
+void ShaderManager::ParseShaderLine(string _input)
+{
+	istringstream is(_input);
+
+	string ss;
+	while (!is.eof())
+	{
+		is >> ss;
 
 		// include other file, we need to call function recursively
-		if (s == "#include")
+		if (ss == "#include")
 		{
 			string includeName;
-			input >> includeName;
+			is >> includeName;
 
 			// remove "" of include name
 			includeName.erase(std::remove(includeName.begin(), includeName.end(), '"'), includeName.end());
 			CollectShaderData(AnsiToWString(includeName));
 		}
-		else if (s == "cbuffer")
+		else if (ss == "cbuffer")
 		{
 			// constant buffer view
 			CD3DX12_ROOT_PARAMETER p;
 			p.InitAsConstantBufferView(cBufferRegNum++);
 			rootSignatureParam.push_back(p);
 		}
-		else if (s == "Texture2D")
+		else if (ss == "Texture2D")
 		{
 			srvRegNum++;
 		}
-		else if (s == "SamplerState")
+		else if (ss == "SamplerState")
 		{
 			samplerRegNum++;
 		}
-		else if (s == "#pragma")
+		else if (ss == "#pragma")
 		{
-			input >> s;
-			if (s == "sq_keyword")
+			is >> ss;
+			if (ss == "sq_keyword")
 			{
 				// get keyword
 				string keyword;
-				input >> keyword;
+				is >> keyword;
 				keywordGroup.push_back(keyword);
 			}
 		}
 	}
-	input.close();
 }
 
 void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
