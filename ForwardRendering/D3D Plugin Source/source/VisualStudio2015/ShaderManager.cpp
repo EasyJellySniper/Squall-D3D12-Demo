@@ -30,6 +30,7 @@ Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string 
 		samplerRegNum = 0;
 		rootSignatureParam.clear();
 		keywordGroup.clear();
+		parseSrv = false;
 
 		CollectShaderData(_fileName);
 		BuildRootSignature(newShader);
@@ -133,11 +134,17 @@ void ShaderManager::ParseShaderLine(string _input)
 		}
 		else if (ss == "Texture2D")
 		{
-			srvRegNum++;
+			if (parseSrv)
+			{
+				srvRegNum++;
+			}
 		}
 		else if (ss == "SamplerState")
 		{
-			samplerRegNum++;
+			if (parseSrv)
+			{
+				samplerRegNum++;
+			}
 		}
 		else if (ss == "#pragma")
 		{
@@ -148,6 +155,14 @@ void ShaderManager::ParseShaderLine(string _input)
 				string keyword;
 				is >> keyword;
 				keywordGroup.push_back(keyword);
+			}
+			else if (ss == "sq_srvStart")
+			{
+				parseSrv = true;
+			}
+			else if (ss == "sq_srvEnd")
+			{
+				parseSrv = false;
 			}
 		}
 	}

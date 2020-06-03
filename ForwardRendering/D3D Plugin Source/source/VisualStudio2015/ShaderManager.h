@@ -41,4 +41,5 @@ private:
 	int cBufferRegNum;
 	int srvRegNum;
 	int samplerRegNum;
+	bool parseSrv;
 };

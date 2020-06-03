@@ -16,9 +16,11 @@ cbuffer MaterialConstant : register(b1)
 	float _Padding;
 };
 
+#pragma sq_srvStart
 // need /enable_unbounded_descriptor_tables when compiling
 Texture2D _TexTable[] : register(t0);
 SamplerState _SamplerTable[] : register(s0);
+#pragma sq_srvEnd
 
 v2f DepthPrePassVS(VertexInput i)
 {
