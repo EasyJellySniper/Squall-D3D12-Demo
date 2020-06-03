@@ -5,9 +5,9 @@
 #include "GraphicManager.h"
 #include <sstream>
 
-Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string _entryPS, string _entryGS, string _entryDS, string _entryHS, D3D_SHADER_MACRO *macro)
+Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 {
-	Shader *targetShader = FindShader(_fileName, macro);
+	Shader* targetShader = FindShader(_fileName, macro);
 	if (targetShader != nullptr)
 	{
 		return targetShader;
@@ -15,27 +15,34 @@ Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string 
 
 	unique_ptr<Shader> newShader = make_unique<Shader>(_fileName);
 
-	// create shaders
-	newShader->SetVS(CompileFromFile(shaderPath + _fileName, macro, _entryVS, "vs_5_1"));
-	newShader->SetPS(CompileFromFile(shaderPath + _fileName, macro, _entryPS, "ps_5_1"));
-	newShader->SetHS(CompileFromFile(shaderPath + _fileName, macro, _entryHS, "hs_5_1"));
-	newShader->SetDS(CompileFromFile(shaderPath + _fileName, macro, _entryDS, "ds_5_1"));
-	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, _entryGS, "gs_5_1"));
+	// reset root signature for parsing
+	cBufferRegNum = 0;
+	srvRegNum = 0;
+	samplerRegNum = 0;
+	rootSignatureParam.clear();
+	keywordGroup.clear();
+	parseSrv = false;
+	entryVS = "";
+	entryPS = "";
+	entryHS = "";
+	entryDS = "";
+	entryGS = "";
+
+	// collect data
+	CollectShaderData(_fileName);
+	BuildRootSignature(newShader);
+	newShader->CollectAllKeyword(keywordGroup, macro);
+
+	// actually compile shader
+	newShader->SetVS(CompileFromFile(shaderPath + _fileName, macro, entryVS, "vs_5_1"));
+	newShader->SetPS(CompileFromFile(shaderPath + _fileName, macro, entryPS, "ps_5_1"));
+	newShader->SetHS(CompileFromFile(shaderPath + _fileName, macro, entryHS, "hs_5_1"));
+	newShader->SetDS(CompileFromFile(shaderPath + _fileName, macro, entryDS, "ds_5_1"));
+	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"));
+
 
 	if (ValidShader(newShader.get()))
 	{
-		// reset root signature for parsing
-		cBufferRegNum = 0;
-		srvRegNum = 0;
-		samplerRegNum = 0;
-		rootSignatureParam.clear();
-		keywordGroup.clear();
-		parseSrv = false;
-
-		CollectShaderData(_fileName);
-		BuildRootSignature(newShader);
-		newShader->CollectAllKeyword(keywordGroup, macro);
-
 		shaders.push_back(std::move(newShader));
 		return shaders[shaders.size() - 1].get();
 	}
@@ -45,7 +52,7 @@ Shader *ShaderManager::CompileShader(wstring _fileName, string _entryVS, string 
 		newShader.reset();
 	}
 
-	LogMessage(L"[SqGraphic Error]: Shader "+ _fileName + L" error.");
+	LogMessage(L"[SqGraphic Error]: Shader " + _fileName + L" error.");
 	return nullptr;
 }
 
@@ -186,6 +193,18 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			else if (ss == L"sq_srvEnd")
 			{
 				parseSrv = false;
+			}
+			else if (ss == L"sq_vertex")
+			{
+				wstring vs;
+				is >> vs;
+				entryVS = WStringToAnsi(vs);
+			}
+			else if (ss == L"sq_pixel")
+			{
+				wstring ps;
+				is >> ps;
+				entryPS = WStringToAnsi(ps);
 			}
 		}
 	}

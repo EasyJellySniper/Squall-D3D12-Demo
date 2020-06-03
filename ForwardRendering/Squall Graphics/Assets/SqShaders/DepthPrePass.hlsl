@@ -1,4 +1,6 @@
 #include "SqInclude.hlsl"
+#pragma sq_vertex DepthPrePassVS
+#pragma sq_pixel DepthPrePassPS
 #pragma sq_keyword _CUTOFF_ON
 
 struct v2f

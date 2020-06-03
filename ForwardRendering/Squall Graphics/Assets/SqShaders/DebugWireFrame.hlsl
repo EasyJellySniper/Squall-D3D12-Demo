@@ -1,4 +1,6 @@
 #include "SqInclude.hlsl"
+#pragma sq_vertex WireFrameVS
+#pragma sq_pixel WireFramePS
 
 struct v2f
 {

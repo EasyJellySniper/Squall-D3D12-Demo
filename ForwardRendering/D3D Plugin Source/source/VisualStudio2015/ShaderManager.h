@@ -23,7 +23,7 @@ public:
 	ShaderManager() {}
 	~ShaderManager() {}
 
-	Shader *CompileShader(wstring _fileName, string _entryVS, string _entryPS, string _entryGS = "", string _entryDS = "", string _entryHS = "", D3D_SHADER_MACRO *macro = nullptr);
+	Shader *CompileShader(wstring _fileName, D3D_SHADER_MACRO *macro = nullptr);
 	Shader *FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro = nullptr);
 	void Release();
 
@@ -42,4 +42,9 @@ private:
 	int srvRegNum;
 	int samplerRegNum;
 	bool parseSrv;
+	string entryVS;
+	string entryPS;
+	string entryHS;
+	string entryDS;
+	string entryGS;
 };
