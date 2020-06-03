@@ -5,7 +5,7 @@
 #include "GraphicManager.h"
 #include <sstream>
 
-Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
+Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro, bool _ignoreInputLayout)
 {
 	Shader* targetShader = FindShader(_fileName, macro);
 	if (targetShader != nullptr)
@@ -19,6 +19,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	cBufferRegNum = 0;
 	srvRegNum = 0;
 	samplerRegNum = 0;
+	msSrvRegNum = 0;
 	rootSignatureParam.clear();
 	keywordGroup.clear();
 	parseSrv = false;
@@ -30,7 +31,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 
 	// collect data
 	CollectShaderData(_fileName);
-	BuildRootSignature(newShader);
+	BuildRootSignature(newShader, _ignoreInputLayout);
 	newShader->CollectAllKeyword(keywordGroup, macro);
 
 	// actually compile shader
@@ -176,6 +177,20 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				samplerRegNum++;
 			}
 		}
+		else if (ss.find(L"Texture2DMS") != string::npos)
+		{
+			if (parseSrv)
+			{
+				// prevent stripped by compiler
+				static CD3DX12_DESCRIPTOR_RANGE texTable;
+				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, msSrvRegNum++, 1);
+
+				// multisample texture2d srv, force to use space1
+				CD3DX12_ROOT_PARAMETER p;
+				p.InitAsDescriptorTable(1, &texTable);
+				rootSignatureParam.push_back(p);
+			}
+		}
 		else if (ss == L"#pragma")
 		{
 			is >> ss;
@@ -210,17 +225,14 @@ void ShaderManager::ParseShaderLine(wstring _input)
 	}
 }
 
-void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
+void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, bool _ignoreInputLayout)
 {
-	// need to define here, otherwise get stripped by compiler
-	CD3DX12_DESCRIPTOR_RANGE texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, -1, 0, 0);
-
-	CD3DX12_DESCRIPTOR_RANGE samplerTable;
-	samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, -1, 0, 0);
-
 	if (srvRegNum > 0)
 	{
+		// static prevent stripped by compiler
+		static CD3DX12_DESCRIPTOR_RANGE texTable;
+		texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, -1, 0, 0);
+
 		// we will share texture table and dynamic indexing in shader
 		CD3DX12_ROOT_PARAMETER p;
 		p.InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
@@ -229,6 +241,10 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 	
 	if (samplerRegNum > 0)
 	{
+		// static prevent stripped by compiler
+		static CD3DX12_DESCRIPTOR_RANGE samplerTable;
+		samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, -1, 0, 0);
+
 		// we will share sampler table and dynamic indexing in shader
 		CD3DX12_ROOT_PARAMETER p;
 		p.InitAsDescriptorTable(1, &samplerTable, D3D12_SHADER_VISIBILITY_ALL);
@@ -237,7 +253,7 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader)
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc((UINT)rootSignatureParam.size(), rootSignatureParam.data(),
 		0, nullptr,
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		(!_ignoreInputLayout) ? D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT : D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
 	// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
 	ComPtr<ID3DBlob> serializedRootSig = nullptr;

@@ -106,6 +106,7 @@ private:
 
 	// material
 	unordered_map<int, vector<Material>> pipelineMaterials;
+	Material resolveDepthMaterial;
 
 	// matrix and view port
 	XMFLOAT4X4 viewMatrix;

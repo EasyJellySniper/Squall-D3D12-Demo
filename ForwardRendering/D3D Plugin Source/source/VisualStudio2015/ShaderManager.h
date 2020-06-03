@@ -23,7 +23,7 @@ public:
 	ShaderManager() {}
 	~ShaderManager() {}
 
-	Shader *CompileShader(wstring _fileName, D3D_SHADER_MACRO *macro = nullptr);
+	Shader *CompileShader(wstring _fileName, D3D_SHADER_MACRO *macro = nullptr, bool _ignoreInputLayout = false);
 	Shader *FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro = nullptr);
 	void Release();
 
@@ -31,7 +31,7 @@ private:
 	ID3DBlob *CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *macro, string _entry, string _target);
 	void CollectShaderData(wstring _fileName);
 	void ParseShaderLine(wstring _input);
-	void BuildRootSignature(unique_ptr<Shader>& _shader);
+	void BuildRootSignature(unique_ptr<Shader>& _shader, bool _ignoreInputLayout);
 	bool ValidShader(Shader *_shader);
 
 	const wstring shaderPath = L"Assets//SqShaders//";
@@ -41,6 +41,7 @@ private:
 	int cBufferRegNum;
 	int srvRegNum;
 	int samplerRegNum;
+	int msSrvRegNum;
 	bool parseSrv;
 	string entryVS;
 	string entryPS;

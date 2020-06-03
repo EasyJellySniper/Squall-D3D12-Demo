@@ -165,6 +165,7 @@ void Camera::Release()
 		m.second.clear();
 	}
 	pipelineMaterials.clear();
+	resolveDepthMaterial.Release();
 }
 
 CameraData Camera::GetCameraData()
@@ -451,6 +452,12 @@ bool Camera::CreatePipelineMaterial()
 		{
 			pipelineMaterials[MaterialType::DepthPrePassCutoff][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassCutoff, *this, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
 		}
+	}
+
+	Shader* resolveDepth = ShaderManager::Instance().CompileShader(L"ResolveDepth.hlsl", nullptr, true);
+	if (resolveDepth != nullptr)
+	{
+		resolveDepthMaterial = MaterialManager::Instance().CreateMaterialPost(resolveDepth, *this, true);
 	}
 
 	return true;

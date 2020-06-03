@@ -43,6 +43,47 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _came
 	return result;
 }
 
+Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bool _zWrite)
+{
+	// create pso
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+
+	desc.pRootSignature = _shader->GetRootSignatureRef().Get();
+	desc.VS.BytecodeLength = _shader->GetVS()->GetBufferSize();
+	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetVS()->GetBufferPointer());
+	desc.PS.BytecodeLength = _shader->GetPS()->GetBufferSize();
+	desc.PS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetPS()->GetBufferPointer());
+	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	desc.SampleMask = UINT_MAX;
+	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	desc.RasterizerState.FrontCounterClockwise = true;
+	desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	desc.DepthStencilState.DepthEnable = _zWrite;
+
+	desc.InputLayout.pInputElementDescs = nullptr;
+	desc.InputLayout.NumElements = 0;
+	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	desc.NumRenderTargets = _camera.GetNumOfRT();
+
+	auto rtDesc = _camera.GetColorRTDesc();
+	for (int i = 0; i < _camera.GetNumOfRT(); i++)
+	{
+		desc.RTVFormats[i] = rtDesc[i].Format;
+	}
+
+	desc.DSVFormat = _camera.GetDepthDesc().Format;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+
+	Material result;
+	result.CreatePsoFromDesc(desc);
+	return result;
+}
+
 Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode)
 {
 	if (materialTable.find(_matInstanceId) != materialTable.end())

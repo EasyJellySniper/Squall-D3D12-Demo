@@ -23,7 +23,7 @@ cbuffer RDConstants : register(b0)
 };
 
 #pragma sq_srvStart
-Texture2DMS<float> _MsaaDepth : register(t0);
+Texture2DMS<float> _MsaaDepth : register(t0, space1);
 #pragma sq_srvEnd
 
 v2f ResolveDepthVS(uint vid : SV_VertexID)
