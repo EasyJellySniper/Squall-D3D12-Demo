@@ -101,7 +101,30 @@ void ShaderManager::CollectShaderData(wstring _fileName)
 	{
 		string buff;
 		getline(input, buff);
-		ParseShaderLine(buff);
+
+		// comment detect
+		bool isComment = false;
+		istringstream is(buff);
+		string ss;
+
+		while (!is.eof() && !isComment)
+		{
+			is >> ss;
+			for (size_t i = 1; i < ss.size(); i++)
+			{
+				if (ss[i] == '/' && ss[i - 1] == '/' && i == 1)
+				{
+					isComment = true;
+					break;
+				}
+			}
+		}
+
+		// ignore comment parse
+		if (!isComment)
+		{
+			ParseShaderLine(buff);
+		}
 	}
 	input.close();
 }
