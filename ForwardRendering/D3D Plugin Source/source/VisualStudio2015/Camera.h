@@ -103,6 +103,8 @@ private:
 	ComPtr<ID3D12DescriptorHeap> msaaRtvHandle;
 	ComPtr<ID3D12DescriptorHeap> dsvHandle;
 	ComPtr<ID3D12DescriptorHeap> msaaDsvHandle;
+	ComPtr<ID3D12DescriptorHeap> depthSrvHandle;
+	ComPtr<ID3D12DescriptorHeap> msDepthSrvHandle;
 
 	// material
 	unordered_map<int, vector<Material>> pipelineMaterials;

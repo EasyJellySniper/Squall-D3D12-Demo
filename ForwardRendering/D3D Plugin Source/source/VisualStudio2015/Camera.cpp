@@ -146,6 +146,8 @@ void Camera::Release()
 	msaaRtvHandle.Reset();
 	dsvHandle.Reset();
 	msaaDsvHandle.Reset();
+	depthSrvHandle.Reset();
+	msDepthSrvHandle.Reset();
 
 	for (size_t i = 0; i < msaaTarget.size(); i++)
 	{
@@ -349,13 +351,39 @@ HRESULT Camera::CreateDsvDescriptorHeaps()
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	dsvHeapDesc.NodeMask = 0;
 
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
+	srvHeapDesc.NumDescriptors = 1;
+	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	srvHeapDesc.NodeMask = 0;
+
 	if (cameraData.allowMSAA == 1)
 	{
 		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHandle.GetAddressOf())), hr);
+		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(depthSrvHandle.GetAddressOf())), hr);
+
+		// add depth to srv
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;	// assume 32 bit depth
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = -1;
+
+		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(depthTarget, &srvDesc, depthSrvHandle->GetCPUDescriptorHandleForHeapStart());
 	}
 	else
 	{
 		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(msaaDsvHandle.GetAddressOf())), hr);
+		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(msDepthSrvHandle.GetAddressOf())), hr);
+
+		// add depth to srv
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;	// assume 32 bit depth
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
+		
+		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(msaaDepthTarget.Get(), &srvDesc, msDepthSrvHandle->GetCPUDescriptorHandleForHeapStart());
 	}
 
 	return hr;

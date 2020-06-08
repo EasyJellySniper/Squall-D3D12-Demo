@@ -434,11 +434,17 @@ void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdLis
 void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, Camera _camera)
 {
 	CameraData camData = _camera.GetCameraData();
+	bool useMsaa = (camData.allowMSAA > 1);
 
-	// transition to common
+	// transition to common or srv 
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetDsvSrc()
 		, D3D12_RESOURCE_STATE_DEPTH_WRITE
-		, D3D12_RESOURCE_STATE_COMMON));
+		, (useMsaa) ? D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE : D3D12_RESOURCE_STATE_COMMON));
+
+	if (useMsaa)
+	{
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
+	}
 }
 
 bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers)
