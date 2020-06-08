@@ -381,30 +381,14 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 void ForwardRenderingPath::EndFrame(Camera _camera)
 {
 	// get frame resource
-	
 	LogIfFailedWithoutHR(currFrameResource.postGfxAllocator->Reset());
 	LogIfFailedWithoutHR(currFrameResource.postGfxList->Reset(currFrameResource.postGfxAllocator, nullptr));
 
 	CameraData camData = _camera.GetCameraData();
 	auto _cmdList = currFrameResource.postGfxList;
 
-	// transition resource back to common
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
-		, D3D12_RESOURCE_STATE_RENDER_TARGET
-		, (camData.allowMSAA > 1) ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_COMMON));
-
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetDsvSrc()
-		, D3D12_RESOURCE_STATE_DEPTH_WRITE
-		, D3D12_RESOURCE_STATE_COMMON));
-
-	// resolve to non-AA target if MSAA enabled
-	if (camData.allowMSAA > 1)
-	{
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetRtvSrc(0), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST));
-		_cmdList->ResolveSubresource(_camera.GetRtvSrc(0), 0, _camera.GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON));
-	}
+	ResolveColorBuffer(_cmdList, _camera);
+	ResolveDepthBuffer(_cmdList, _camera);
 
 #if defined(GRAPHICTIME)
 	// timer end
@@ -426,6 +410,35 @@ void ForwardRenderingPath::EndFrame(Camera _camera)
 
 	GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
 #endif
+}
+
+void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList, Camera _camera)
+{
+	CameraData camData = _camera.GetCameraData();
+
+	// transition resource to resolve or common
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
+		, D3D12_RESOURCE_STATE_RENDER_TARGET
+		, (camData.allowMSAA > 1) ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_COMMON));
+
+	// resolve to non-AA target if MSAA enabled
+	if (camData.allowMSAA > 1)
+	{
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetRtvSrc(0), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+		_cmdList->ResolveSubresource(_camera.GetRtvSrc(0), 0, _camera.GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON));
+	}
+}
+
+void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, Camera _camera)
+{
+	CameraData camData = _camera.GetCameraData();
+
+	// transition to common
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetDsvSrc()
+		, D3D12_RESOURCE_STATE_DEPTH_WRITE
+		, D3D12_RESOURCE_STATE_COMMON));
 }
 
 bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers)

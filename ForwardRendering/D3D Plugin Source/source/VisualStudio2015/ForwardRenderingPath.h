@@ -54,6 +54,8 @@ private:
 	void DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex);
 	void EndFrame(Camera _camera);
+	void ResolveColorBuffer(ID3D12GraphicsCommandList *_cmdList, Camera _camera);
+	void ResolveDepthBuffer(ID3D12GraphicsCommandList *_cmdList, Camera _camera);
 	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers);
 
 	Camera targetCam;
