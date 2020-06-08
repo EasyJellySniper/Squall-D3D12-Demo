@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 /// <summary>
 /// sq camera
@@ -26,6 +27,9 @@ public class SqCamera : MonoBehaviour
 
     [DllImport("SquallGraphics")]
     static extern void SetRenderMode(int _instance, int _renderMode);
+
+    [DllImport("SquallGraphics")]
+    static extern void GetDebugDepth(int _instance, IntPtr _debugDepth);
 
     /// <summary>
     /// msaa factor
@@ -125,7 +129,12 @@ public class SqCamera : MonoBehaviour
     /// <summary>
     /// render target
     /// </summary>
-    public RenderTexture renderTarget;
+    RenderTexture renderTarget;
+
+    /// <summary>
+    /// debug depth
+    /// </summary>
+    RenderTexture debugDepth;
 
     Camera attachedCam;
     CameraData camData;
@@ -140,6 +149,7 @@ public class SqCamera : MonoBehaviour
 
         CreateRenderTarget();
         CreateCameraData();
+        GetDebugDepth(attachedCam.GetInstanceID(), debugDepth.GetNativeDepthBufferPtr());
         lastMsaaSample = msaaSample;
     }
 
@@ -193,18 +203,29 @@ public class SqCamera : MonoBehaviour
 
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        Graphics.Blit(renderTarget, destination);
+        if (renderMode == RenderMode.Depth)
+        {
+            Graphics.Blit(debugDepth, destination);
+        }
+        else
+        {
+            Graphics.Blit(renderTarget, destination);
+        }
     }
 
     void CreateRenderTarget()
     {
-        renderTarget = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 24, RenderTextureFormat.DefaultHDR);
+        renderTarget = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR);
         renderTarget.name = name + " Target";
         renderTarget.antiAliasing = 1;
         renderTarget.bindTextureMS = false;
 
         // actually create so that we have native resources
         renderTarget.Create();
+
+        debugDepth = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.Depth);
+        debugDepth.name = "Debug Depth";
+        debugDepth.Create();
     }
 
     void CreateCameraData()

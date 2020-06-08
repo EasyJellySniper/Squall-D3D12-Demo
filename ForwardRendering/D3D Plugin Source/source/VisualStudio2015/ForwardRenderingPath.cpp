@@ -172,7 +172,7 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 		, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	// transition to depth write
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetDsvSrc()
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetCameraDepth()
 		, D3D12_RESOURCE_STATE_COMMON
 		, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
@@ -437,28 +437,41 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 	bool useMsaa = (camData.allowMSAA > 1);
 
 	// transition to common or srv 
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetDsvSrc()
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetCameraDepth()
 		, D3D12_RESOURCE_STATE_DEPTH_WRITE
 		, (useMsaa) ? D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE : D3D12_RESOURCE_STATE_COMMON));
 
 	if (useMsaa)
 	{
 		// prepare to resolve
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDsvSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 		// bind resolve depth pipeline
 		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera.GetMsaaSrv() };
 		_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
 		_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		_cmdList->RSSetViewports(1, &_camera.GetViewPort());
+		_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
+		_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 		_cmdList->SetPipelineState(_camera.GetPostMaterial()->GetPSO());
 		_cmdList->SetGraphicsRootSignature(_camera.GetPostMaterial()->GetRootSignature());
 		_cmdList->SetGraphicsRootConstantBufferView(0, _camera.GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
 		_cmdList->SetGraphicsRootDescriptorTable(1, _camera.GetMsaaSrv()->GetGPUDescriptorHandleForHeapStart());
 		_cmdList->DrawInstanced(6, 1, 0, 0);
 
+		// copy to debug depth
+		if (_camera.GetRenderMode() == RenderMode::Depth)
+		{
+			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE));
+			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+			_cmdList->CopyResource(_camera.GetDebugDepth(), _camera.GetCameraDepth());
+			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON));
+			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
+		}
+
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
 	}
 }
 

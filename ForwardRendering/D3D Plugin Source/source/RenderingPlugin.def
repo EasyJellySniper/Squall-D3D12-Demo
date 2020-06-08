@@ -26,3 +26,4 @@ EXPORTS
    AddNativeTexture
    AddNativeSampler
    SetRenderMode
+   GetDebugDepth

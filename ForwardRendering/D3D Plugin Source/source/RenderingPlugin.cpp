@@ -113,6 +113,15 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRenderMode(int _in
 	}
 }
 
+extern "C" void GetDebugDepth(int _id, void* _debugDepth)
+{
+	Camera* c = CameraManager::Instance().GetCamera(_id);
+	if (c != nullptr)
+	{
+		c->CopyDepth(_debugDepth);
+	}
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

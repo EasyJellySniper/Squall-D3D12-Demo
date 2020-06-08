@@ -57,7 +57,7 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bo
 	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	desc.SampleMask = UINT_MAX;
 	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	desc.RasterizerState.FrontCounterClockwise = true;
+	desc.RasterizerState.FrontCounterClockwise = FALSE;
 	desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 	desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);

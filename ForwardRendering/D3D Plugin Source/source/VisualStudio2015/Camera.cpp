@@ -180,9 +180,9 @@ ID3D12Resource * Camera::GetRtvSrc(int _index)
 	return renderTarget[_index];
 }
 
-ID3D12Resource * Camera::GetDsvSrc()
+ID3D12Resource* Camera::GetDebugDepth()
 {
-	return depthTarget;
+	return debugDepth;
 }
 
 ID3D12Resource * Camera::GetMsaaRtvSrc(int _index)
@@ -252,6 +252,11 @@ void Camera::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scisso
 void Camera::SetRenderMode(int _mode)
 {
 	renderMode = (RenderMode)_mode;
+}
+
+void Camera::CopyDepth(void* _dest)
+{
+	debugDepth = (ID3D12Resource*)_dest;
 }
 
 D3D12_VIEWPORT Camera::GetViewPort()
