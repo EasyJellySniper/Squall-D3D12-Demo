@@ -50,6 +50,7 @@ public:
 	ID3D12DescriptorHeap *GetMsaaRtv();
 	ID3D12DescriptorHeap *GetDsv();
 	ID3D12DescriptorHeap *GetMsaaDsv();
+	ID3D12DescriptorHeap* GetMsaaSrv();
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void SetRenderMode(int _mode);
@@ -60,6 +61,7 @@ public:
 	XMFLOAT4X4 GetProjMatrix();
 	XMFLOAT3 GetPosition();
 	Material *GetPipelineMaterial(MaterialType _type, CullMode _cullMode);
+	Material* GetPostMaterial();
 	int GetNumOfRT();
 	D3D12_RESOURCE_DESC* GetColorRTDesc();
 	D3D12_RESOURCE_DESC GetDepthDesc();

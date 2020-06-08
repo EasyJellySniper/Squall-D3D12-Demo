@@ -215,6 +215,11 @@ ID3D12DescriptorHeap * Camera::GetMsaaDsv()
 	return msaaDsvHandle.Get();
 }
 
+ID3D12DescriptorHeap* Camera::GetMsaaSrv()
+{
+	return msDepthSrvHandle.Get();
+}
+
 void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position)
 {
 	// data from unity is column major, while d3d matrix use row major
@@ -277,6 +282,11 @@ XMFLOAT3 Camera::GetPosition()
 Material *Camera::GetPipelineMaterial(MaterialType _type, CullMode _cullMode)
 {
 	return &pipelineMaterials[_type][_cullMode];
+}
+
+Material* Camera::GetPostMaterial()
+{
+	return &resolveDepthMaterial;
 }
 
 int Camera::GetNumOfRT()
@@ -357,34 +367,28 @@ HRESULT Camera::CreateDsvDescriptorHeaps()
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	srvHeapDesc.NodeMask = 0;
 
-	if (cameraData.allowMSAA == 1)
-	{
-		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHandle.GetAddressOf())), hr);
-		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(depthSrvHandle.GetAddressOf())), hr);
+	// Common Depth
+	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHandle.GetAddressOf())), hr);
+	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(depthSrvHandle.GetAddressOf())), hr);
 
-		// add depth to srv
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;	// assume 32 bit depth
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = -1;
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;	// assume 32 bit depth
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = -1;
 
-		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(depthTarget, &srvDesc, depthSrvHandle->GetCPUDescriptorHandleForHeapStart());
-	}
-	else
-	{
-		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(msaaDsvHandle.GetAddressOf())), hr);
-		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(msDepthSrvHandle.GetAddressOf())), hr);
+	GraphicManager::Instance().GetDevice()->CreateShaderResourceView(depthTarget, &srvDesc, depthSrvHandle->GetCPUDescriptorHandleForHeapStart());
 
-		// add depth to srv
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;	// assume 32 bit depth
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
-		
-		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(msaaDepthTarget.Get(), &srvDesc, msDepthSrvHandle->GetCPUDescriptorHandleForHeapStart());
-	}
+	// MSAA Depth
+	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(msaaDsvHandle.GetAddressOf())), hr);
+	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(msDepthSrvHandle.GetAddressOf())), hr);
+
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;	// assume 32 bit depth
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
+
+	GraphicManager::Instance().GetDevice()->CreateShaderResourceView(msaaDepthTarget.Get(), &srvDesc, msDepthSrvHandle->GetCPUDescriptorHandleForHeapStart());
 
 	return hr;
 }
@@ -435,16 +439,11 @@ void Camera::CreateDsv()
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
 	depthStencilViewDesc.Format = depthStencilFormat;
-	depthStencilViewDesc.ViewDimension = (cameraData.allowMSAA > 1) ? D3D12_DSV_DIMENSION_TEXTURE2DMS : D3D12_DSV_DIMENSION_TEXTURE2D;
+	depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	GraphicManager::Instance().GetDevice()->CreateDepthStencilView(depthTarget, &depthStencilViewDesc, dsvHandle->GetCPUDescriptorHandleForHeapStart());
 
-	if (cameraData.allowMSAA == 1)
-	{
-		GraphicManager::Instance().GetDevice()->CreateDepthStencilView(depthTarget, &depthStencilViewDesc, dsvHandle->GetCPUDescriptorHandleForHeapStart());
-	}
-	else
-	{
-		GraphicManager::Instance().GetDevice()->CreateDepthStencilView(msaaDepthTarget.Get(), &depthStencilViewDesc, msaaDsvHandle->GetCPUDescriptorHandleForHeapStart());
-	}
+	depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
+	GraphicManager::Instance().GetDevice()->CreateDepthStencilView(msaaDepthTarget.Get(), &depthStencilViewDesc, msaaDsvHandle->GetCPUDescriptorHandleForHeapStart());
 }
 
 bool Camera::CreatePipelineMaterial()
@@ -486,6 +485,16 @@ bool Camera::CreatePipelineMaterial()
 	if (resolveDepth != nullptr)
 	{
 		resolveDepthMaterial = MaterialManager::Instance().CreateMaterialPost(resolveDepth, *this, true);
+
+		struct RDConstants
+		{
+			UINT _msaaCount;
+			XMFLOAT3 _padding;
+		};
+		static RDConstants rConstants;
+		rConstants._msaaCount = GetMsaaCount();
+
+		resolveDepthMaterial.AddMaterialConstant(sizeof(RDConstants), &rConstants);
 	}
 
 	return true;

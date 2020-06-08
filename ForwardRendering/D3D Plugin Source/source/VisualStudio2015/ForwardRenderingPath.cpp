@@ -443,7 +443,22 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 
 	if (useMsaa)
 	{
+		// prepare to resolve
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDsvSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
+		// bind resolve depth pipeline
+		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera.GetMsaaSrv() };
+		_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+
+		_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		_cmdList->SetPipelineState(_camera.GetPostMaterial()->GetPSO());
+		_cmdList->SetGraphicsRootSignature(_camera.GetPostMaterial()->GetRootSignature());
+		_cmdList->SetGraphicsRootConstantBufferView(0, _camera.GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
+		_cmdList->SetGraphicsRootDescriptorTable(1, _camera.GetMsaaSrv()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->DrawInstanced(6, 1, 0, 0);
+
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
 	}
 }
 
