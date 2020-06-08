@@ -13,8 +13,8 @@ cbuffer MaterialConstant : register(b1)
 {
 	float4 _MainTex_ST;
 	float _CutOff;
-	int _TexIndex;
-	int _SamplerIndex;
+	int _DiffuseIndex;
+	int _DiffuseSampler;
 	float _Padding;
 };
 
@@ -36,7 +36,7 @@ v2f DepthPrePassVS(VertexInput i)
 void DepthPrePassPS(v2f i)
 {
 #ifdef _CUTOFF_ON
-	float alpha = _TexTable[_TexIndex].Sample(_SamplerTable[_SamplerIndex], i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw).a;
+	float alpha = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_DiffuseSampler], i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw).a;
 	clip(alpha - _CutOff);
 #endif
 }

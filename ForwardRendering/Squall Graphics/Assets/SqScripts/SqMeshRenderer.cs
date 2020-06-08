@@ -17,8 +17,8 @@ public class SqMeshRenderer : MonoBehaviour
     {
         public Vector4 _MainTex_ST;
         public float _CutOff;
-        public int _TexIndex;
-        public int _SamplerIndex;
+        public int _DiffuseIndex;
+        public int _DiffuseSampler;
         public float _Padding;
     };
 
@@ -89,13 +89,13 @@ public class SqMeshRenderer : MonoBehaviour
             Texture2D albedo = mats[i].mainTexture as Texture2D;
             if (albedo)
             {
-                mc._TexIndex = AddNativeTexture(albedo.GetInstanceID(), albedo.GetNativeTexturePtr());
-                mc._SamplerIndex = AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+                mc._DiffuseIndex = AddNativeTexture(albedo.GetInstanceID(), albedo.GetNativeTexturePtr());
+                mc._DiffuseSampler = AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
             }
             else
             {
-                mc._TexIndex = -1;
-                mc._SamplerIndex = -1;
+                mc._DiffuseIndex = -1;
+                mc._DiffuseSampler = -1;
             }
 
             mc._MainTex_ST = new Vector4(mats[i].mainTextureScale.x, mats[i].mainTextureScale.y, mats[i].mainTextureOffset.x, mats[i].mainTextureOffset.y);
