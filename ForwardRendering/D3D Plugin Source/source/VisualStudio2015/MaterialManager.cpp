@@ -2,7 +2,22 @@
 #include "d3dx12.h"
 #include "MeshManager.h"
 
-Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode)
+void MaterialManager::Init()
+{
+	blendTable[0] = D3D12_BLEND_ZERO;
+	blendTable[1] = D3D12_BLEND_ONE;
+	blendTable[2] = D3D12_BLEND_DEST_COLOR;
+	blendTable[3] = D3D12_BLEND_SRC_COLOR;
+	blendTable[4] = D3D12_BLEND_INV_DEST_COLOR;
+	blendTable[5] = D3D12_BLEND_SRC_ALPHA;
+	blendTable[6] = D3D12_BLEND_INV_SRC_COLOR;
+	blendTable[7] = D3D12_BLEND_DEST_ALPHA;
+	blendTable[8] = D3D12_BLEND_INV_DEST_ALPHA;
+	blendTable[9] = D3D12_BLEND_SRC_ALPHA_SAT;
+	blendTable[10] = D3D12_BLEND_INV_SRC_ALPHA;
+}
+
+Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode, int _srcBlend, int _dstBlend)
 {
 	// create pso
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
@@ -13,7 +28,18 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _came
 	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetVS()->GetBufferPointer());
 	desc.PS.BytecodeLength = _shader->GetPS()->GetBufferSize();
 	desc.PS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetPS()->GetBufferPointer());
+
+	// feed blend according to input
 	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	desc.BlendState.IndependentBlendEnable = (_camera.GetNumOfRT() > 1);
+	for (int i = 0; i < _camera.GetNumOfRT(); i++)
+	{
+		// if it is one/zero, doesn't need blend
+		desc.BlendState.RenderTarget[i].BlendEnable = (_srcBlend == 1 && _dstBlend == 0) ? false : true;
+		desc.BlendState.RenderTarget[i].SrcBlend = blendTable[_srcBlend];
+		desc.BlendState.RenderTarget[i].DestBlend = blendTable[_dstBlend];
+	}
+
 	desc.SampleMask = UINT_MAX;
 	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	desc.RasterizerState.FrontCounterClockwise = true;
