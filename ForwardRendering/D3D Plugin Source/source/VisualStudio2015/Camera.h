@@ -29,7 +29,7 @@ enum MaterialType
 
 enum RenderMode
 {
-	None = 0, WireFrame, Depth
+	None = 0, WireFrame, Depth, ForwardPass
 };
 
 class Camera

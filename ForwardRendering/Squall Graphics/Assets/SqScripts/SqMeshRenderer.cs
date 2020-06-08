@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// sq mesh renderer
@@ -12,8 +14,8 @@ public class SqMeshRenderer : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern int AddNativeRenderer(int _instanceID, int _meshInstanceID);
 
-    [DllImport("SquallGraphics")]
-    static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode, int _srcBlend, int _dstBlend);
+    [DllImport("SquallGraphics", CharSet = CharSet.Ansi)]
+    static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode, int _srcBlend, int _dstBlend, string _nativeShader, int _numMacro, string []_macro);
 
     [DllImport("SquallGraphics")]
     static extern bool UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
@@ -61,7 +63,16 @@ public class SqMeshRenderer : MonoBehaviour
             int cullMode = (mats[i].HasProperty("_CullMode")) ? (int)mats[i].GetFloat("_CullMode") : 0;
             int srcBlend = (mats[i].HasProperty("_SrcBlend")) ? (int)mats[i].GetFloat("_SrcBlend") : 1;
             int dstBlend = (mats[i].HasProperty("_DstBlend")) ? (int)mats[i].GetFloat("_DstBlend") : 0;
-            AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode, srcBlend, dstBlend);
+            bool isCutOff = (mats[i].renderQueue <= (int)RenderQueue.GeometryLast) && (mats[i].renderQueue >= 2226);
+
+            List<string> macro = new List<string>();
+            if (isCutOff)
+            {
+                macro.Add("_CUTOFF_ON");
+            }
+
+            AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode, srcBlend, dstBlend, "ForwardPass.hlsl", macro.Count, macro.ToArray());
+            macro.Clear();
         }
 
         for (int i = 0; i < mats.Length; i++)

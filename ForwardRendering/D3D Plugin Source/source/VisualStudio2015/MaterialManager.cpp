@@ -1,6 +1,8 @@
 #include "MaterialManager.h"
 #include "d3dx12.h"
 #include "MeshManager.h"
+#include "ShaderManager.h"
+#include "CameraManager.h"
 
 void MaterialManager::Init()
 {
@@ -110,14 +112,47 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bo
 	return result;
 }
 
-Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend)
+Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend, char* _nativeShader, int _numMacro, char** _macro)
 {
 	if (materialTable.find(_matInstanceId) != materialTable.end())
 	{
 		return materialTable[_matInstanceId].get();
 	}
 
-	materialTable[_matInstanceId] = make_unique<Material>();
+	if (_nativeShader == nullptr)
+	{
+		materialTable[_matInstanceId] = make_unique<Material>();
+	}
+	else
+	{
+		Shader* forwardShader = nullptr;
+
+		if (_numMacro == 0)
+		{
+			forwardShader = ShaderManager::Instance().CompileShader(AnsiToWString(_nativeShader));
+		}
+		else
+		{
+			D3D_SHADER_MACRO* macro = new D3D_SHADER_MACRO[_numMacro + 1];
+			for (int i = 0; i < _numMacro; i++)
+			{
+				macro[i].Name = _macro[i];
+				macro[i].Definition = "1";
+			}
+			macro[_numMacro].Name = NULL;
+			macro[_numMacro].Definition = NULL;
+
+			forwardShader = ShaderManager::Instance().CompileShader(AnsiToWString(_nativeShader), macro);
+			delete[] macro;
+		}
+
+		if (forwardShader != nullptr)
+		{
+			auto const c = CameraManager::Instance().GetCameras()[0];
+			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(forwardShader, c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1), _srcBlend, _dstBlend));
+		}
+	}
+
 	materialTable[_matInstanceId]->SetRenderQueue(_renderQueue);
 	materialTable[_matInstanceId]->SetCullMode(_cullMode);
 	materialTable[_matInstanceId]->SetBlendMode(_srcBlend, _dstBlend);

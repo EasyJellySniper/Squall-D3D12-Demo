@@ -48,7 +48,8 @@ public class SqCamera : MonoBehaviour
     public enum RenderMode
     {
         WireFrame = 1,
-        Depth
+        Depth,
+        ForwardPass
     }
 
     /// <summary>
