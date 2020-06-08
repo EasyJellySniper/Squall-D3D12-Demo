@@ -21,6 +21,21 @@ enum CullMode
 	Off, Front, Back
 };
 
+enum BlendMode
+{
+	Zero = 0,
+	One = 1,
+	DstColor = 2,
+	SrcColor = 3,
+	OneMinusDstColor = 4,
+	SrcAlpha = 5,
+	OneMinusSrcColor = 6,
+	DstAlpha = 7,
+	OneMinusDstAlpha = 8,
+	SrcAlphaSaturate = 9,
+	OneMinusSrcAlpha = 10
+};
+
 class Material
 {
 public:
@@ -29,6 +44,7 @@ public:
 	void Release();
 	void SetRenderQueue(int _queue);
 	void SetCullMode(int _mode);
+	void SetBlendMode(int _srcBlend, int _dstBlend);
 
 	ID3D12PipelineState* GetPSO();
 	ID3D12RootSignature* GetRootSignature();
@@ -43,6 +59,9 @@ private:
 
 	int renderQueue = 2000;
 	CullMode cullMode = CullMode::Off;
+	int srcBlend;
+	int dstBlend;
+
 	bool validMaterial = false;
 	bool isDirty = true;
 };

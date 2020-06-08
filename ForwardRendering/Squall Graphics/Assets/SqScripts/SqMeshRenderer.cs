@@ -13,7 +13,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern int AddNativeRenderer(int _instanceID, int _meshInstanceID);
 
     [DllImport("SquallGraphics")]
-    static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode);
+    static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode, int _srcBlend, int _dstBlend);
 
     [DllImport("SquallGraphics")]
     static extern bool UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
@@ -59,7 +59,9 @@ public class SqMeshRenderer : MonoBehaviour
         for (int i = 0; i < mats.Length; i++)
         {
             int cullMode = (mats[i].HasProperty("_CullMode")) ? (int)mats[i].GetFloat("_CullMode") : 0;
-            AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode);
+            int srcBlend = (mats[i].HasProperty("_SrcBlend")) ? (int)mats[i].GetFloat("_SrcBlend") : 1;
+            int dstBlend = (mats[i].HasProperty("_DstBlend")) ? (int)mats[i].GetFloat("_DstBlend") : 0;
+            AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode, srcBlend, dstBlend);
         }
 
         for (int i = 0; i < mats.Length; i++)

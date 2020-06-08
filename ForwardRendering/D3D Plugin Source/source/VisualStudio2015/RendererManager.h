@@ -30,7 +30,7 @@ public:
 
 	void Init();
 	int AddRenderer(int _instanceID, int _meshInstanceID);
-	void AddMaterial(int _instanceID, int _matInstanceId, int _renderQueue, int _cullMode);
+	void AddMaterial(int _instanceID, int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend);
 	void AddToQueueRenderer(Renderer* _renderer, Camera _camera);
 	void ClearQueueRenderer();
 	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);

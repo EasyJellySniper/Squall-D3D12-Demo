@@ -84,7 +84,7 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bo
 	return result;
 }
 
-Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode)
+Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend)
 {
 	if (materialTable.find(_matInstanceId) != materialTable.end())
 	{
@@ -94,6 +94,7 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 	materialTable[_matInstanceId] = make_unique<Material>();
 	materialTable[_matInstanceId]->SetRenderQueue(_renderQueue);
 	materialTable[_matInstanceId]->SetCullMode(_cullMode);
+	materialTable[_matInstanceId]->SetBlendMode(_srcBlend, _dstBlend);
 
 	return materialTable[_matInstanceId].get();
 }

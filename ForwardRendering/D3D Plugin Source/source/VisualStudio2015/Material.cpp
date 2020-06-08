@@ -45,6 +45,12 @@ void Material::SetCullMode(int _mode)
 	cullMode = (CullMode)_mode;
 }
 
+void Material::SetBlendMode(int _srcBlend, int _dstBlend)
+{
+	srcBlend = _srcBlend;
+	dstBlend = _dstBlend;
+}
+
 ID3D12PipelineState * Material::GetPSO()
 {
 	return pso.Get();

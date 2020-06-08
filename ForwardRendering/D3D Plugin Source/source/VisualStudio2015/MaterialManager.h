@@ -22,7 +22,7 @@ public:
 	Material CreateMaterialFromShader(Shader *_shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode);
 	Material CreateMaterialPost(Shader* _shader, Camera _camera, bool _zWrite);
 
-	Material* AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode);
+	Material* AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend);
 	void Release();
 
 private:
