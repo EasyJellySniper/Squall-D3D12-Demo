@@ -124,7 +124,7 @@ public class SqGraphicManager : MonoBehaviour
 #endif
     }
 
-    void OnDestroy()
+    void OnApplicationQuit()
     {
         ReleaseSqGraphic();
 
