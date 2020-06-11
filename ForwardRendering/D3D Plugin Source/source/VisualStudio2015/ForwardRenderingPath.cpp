@@ -75,13 +75,18 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	TIMER_START
 #endif
 
+	targetCam = _camera;
+	frameIndex = _frameIdx;
+
 	// begin frame
 	BeginFrame(_camera);
 
+	// upload work
+	workerType = WorkerType::Upload;
+	WakeAndWaitWorker();
+
 	// pre pass work
-	targetCam = _camera;
 	workerType = WorkerType::PrePassRendering;
-	frameIndex = _frameIdx;
 	WakeAndWaitWorker();
 
 	// opaque pass
@@ -113,10 +118,13 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		{
 			FrustumCulling(_threadIndex);
 		}
+		else if (workerType == WorkerType::Upload)
+		{
+			UploadSystemConstant(targetCam, frameIndex, _threadIndex);
+		}
 		else if(workerType == WorkerType::PrePassRendering)
 		{
 			// process render thread
-			UploadSystemConstant(targetCam, frameIndex, _threadIndex);
 			BindState(targetCam, frameIndex, _threadIndex);
 
 			if (targetCam.GetRenderMode() == RenderMode::WireFrame)
@@ -509,7 +517,7 @@ void ForwardRenderingPath::EndFrame(Camera _camera)
 	uint64_t t2 = pRes[1];
 	GraphicManager::Instance().GetGpuTimeResult()->Unmap(0, nullptr);
 
-	GameTimerManager::Instance().gameTime.gpuTime = static_cast<float>(t2 - t1) / static_cast<float>(GraphicManager::Instance().GetGpuFreq());
+	GameTimerManager::Instance().gameTime.gpuTime = static_cast<double>(t2 - t1) / static_cast<double>(GraphicManager::Instance().GetGpuFreq()) * 1000.0;
 #endif
 }
 

@@ -10,6 +10,7 @@ using namespace Microsoft;
 enum WorkerType
 {
 	Culling = 0,
+	Upload,
 	PrePassRendering,
 	OpaqueRendering,
 	CutoffRendering,
