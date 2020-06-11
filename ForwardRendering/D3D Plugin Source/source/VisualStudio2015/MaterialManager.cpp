@@ -19,7 +19,8 @@ void MaterialManager::Init()
 	blendTable[10] = D3D12_BLEND_INV_SRC_ALPHA;
 }
 
-Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode, int _srcBlend, int _dstBlend)
+Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode
+	, int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
 {
 	// create pso
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
@@ -48,7 +49,8 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _came
 	desc.RasterizerState.FillMode = _fillMode;
 	desc.RasterizerState.CullMode = _cullMode;
 	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+	desc.DepthStencilState.DepthFunc = _depthFunc;
+	desc.DepthStencilState.DepthWriteMask = (_zWrite) ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 
 	auto layout = MeshManager::Instance().GetDefaultInputLayout();
 	desc.InputLayout.pInputElementDescs = layout.data();
@@ -71,7 +73,7 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _came
 	return result;
 }
 
-Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bool _zWrite)
+Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bool _enableDepth)
 {
 	// create pso
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
@@ -90,7 +92,7 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bo
 	desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-	desc.DepthStencilState.DepthEnable = _zWrite;
+	desc.DepthStencilState.DepthEnable = _enableDepth;
 
 	desc.InputLayout.pInputElementDescs = nullptr;
 	desc.InputLayout.NumElements = 0;
@@ -149,7 +151,8 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 		if (forwardShader != nullptr)
 		{
 			auto const c = CameraManager::Instance().GetCameras()[0];
-			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(forwardShader, c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1), _srcBlend, _dstBlend));
+			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(forwardShader, c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
+				, _srcBlend, _dstBlend, D3D12_COMPARISON_FUNC_EQUAL, false));
 		}
 	}
 
