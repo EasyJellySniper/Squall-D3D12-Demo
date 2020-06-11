@@ -10,7 +10,10 @@ using namespace Microsoft;
 enum WorkerType
 {
 	Culling = 0,
-	Rendering
+	PrePassRendering,
+	OpaqueRendering,
+	CutoffRendering,
+	TransparentRendering,
 };
 
 inline bool FrontToBackRender(QueueRenderer const &i, QueueRenderer const &j)
@@ -47,12 +50,14 @@ public:
 	void RenderLoop(Camera _camera, int _frameIdx);
 	void WorkerThread(int _threadIndex);
 private:
+	void WakeAndWaitWorker();
 	void FrustumCulling(int _threadIndex);
 	void BeginFrame(Camera _camera);
 	void UploadSystemConstant(Camera _camera, int _frameIdx, int _threadIndex);
 	void BindState(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex);
+	void DrawOpaquePass(Camera _camera, int _frameIdx, int _threadIndex);
 	void EndFrame(Camera _camera);
 	void ResolveColorBuffer(ID3D12GraphicsCommandList *_cmdList, Camera _camera);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList *_cmdList, Camera _camera);

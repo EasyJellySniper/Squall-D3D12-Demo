@@ -75,13 +75,19 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	TIMER_START
 #endif
 
+	// begin frame
 	BeginFrame(_camera);
+
+	// pre pass work
 	targetCam = _camera;
-	workerType = WorkerType::Rendering;
+	workerType = WorkerType::PrePassRendering;
 	frameIndex = _frameIdx;
-	GraphicManager::Instance().ResetWorkerThreadFinish();
-	GraphicManager::Instance().SetBeginWorkerThreadEvent();
-	GraphicManager::Instance().WaitForWorkerThread();
+	WakeAndWaitWorker();
+
+	// opaque pass
+	workerType = WorkerType::OpaqueRendering;
+	WakeAndWaitWorker();
+
 	EndFrame(_camera);
 
 #if defined(GRAPHICTIME)
@@ -97,19 +103,19 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		// wait anything notify to work
 		GraphicManager::Instance().WaitBeginWorkerThread(_threadIndex);
 
+#if defined(GRAPHICTIME)
+		TIMER_INIT
+		TIMER_START
+#endif
+
 		// culling work
 		if (workerType == WorkerType::Culling)
 		{
 			FrustumCulling(_threadIndex);
 		}
-		else if(workerType == WorkerType::Rendering)
+		else if(workerType == WorkerType::PrePassRendering)
 		{
 			// process render thread
-#if defined(GRAPHICTIME)
-			TIMER_INIT
-			TIMER_START
-#endif
-
 			UploadSystemConstant(targetCam, frameIndex, _threadIndex);
 			BindState(targetCam, frameIndex, _threadIndex);
 
@@ -123,15 +129,40 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 				DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
 			}
 
+			if (targetCam.GetRenderMode() == RenderMode::ForwardPass)
+			{
+				DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
+			}
+
 #if defined(GRAPHICTIME)
 			TIMER_STOP
-			GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex] = elapsedTime;
+			GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex] += elapsedTime;
+#endif
+		}
+		else if (workerType == WorkerType::OpaqueRendering)
+		{
+			if (targetCam.GetRenderMode() == RenderMode::ForwardPass)
+			{
+				BindState(targetCam, frameIndex, _threadIndex);
+				DrawOpaquePass(targetCam, frameIndex, _threadIndex);
+			}
+
+#if defined(GRAPHICTIME)
+			TIMER_STOP
+			GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex] += elapsedTime;
 #endif
 		}
 
 		// set worker finish
 		GraphicManager::Instance().SetWorkerThreadFinishEvent(_threadIndex);
 	}
+}
+
+void ForwardRenderingPath::WakeAndWaitWorker()
+{
+	GraphicManager::Instance().ResetWorkerThreadFinish();
+	GraphicManager::Instance().SetBeginWorkerThreadEvent();
+	GraphicManager::Instance().WaitForWorkerThread();
 }
 
 void ForwardRenderingPath::FrustumCulling(int _threadIndex)
@@ -157,6 +188,12 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 	// get frame resource
 	LogIfFailedWithoutHR(currFrameResource.preGfxAllocator->Reset());
 	LogIfFailedWithoutHR(currFrameResource.preGfxList->Reset(currFrameResource.preGfxAllocator, nullptr));
+
+	// reset thread's allocator
+	for (int i = 0; i < numWorkerThreads; i++)
+	{
+		LogIfFailedWithoutHR(currFrameResource.workerGfxAlloc[i]->Reset());
+	}
 
 	CameraData camData = _camera.GetCameraData();
 	auto _cmdList = currFrameResource.preGfxList;
@@ -231,7 +268,6 @@ void ForwardRenderingPath::UploadSystemConstant(Camera _camera, int _frameIdx, i
 void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	// get frame resource
-	LogIfFailedWithoutHR(currFrameResource.workerGfxAlloc[_threadIndex]->Reset());
 	LogIfFailedWithoutHR(currFrameResource.workerGfxList[_threadIndex]->Reset(currFrameResource.workerGfxAlloc[_threadIndex], nullptr));
 
 	// update camera constant
@@ -316,9 +352,9 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 		int start = _threadIndex * count;
 
 		// don't draw transparent
-		if (qr.first >= RenderQueue::CutoffStart)
+		if (qr.first > RenderQueue::OpaqueLast)
 		{
-			break;
+			continue;
 		}
 
 		for (int i = start; i <= start + count; i++)
@@ -361,6 +397,71 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 				_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 				_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 			}
+
+			// draw mesh
+			SubMesh sm = m->GetSubMesh(r.submeshIndex);
+			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+
+#if defined(GRAPHICTIME)
+			GameTimerManager::Instance().gameTime.batchCount[_threadIndex] += 1;
+#endif
+		}
+	}
+
+	// close command list and execute
+	LogIfFailedWithoutHR(_cmdList->Close());
+	ID3D12CommandList* cmdsLists[] = { _cmdList };
+	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+}
+
+void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _threadIndex)
+{
+	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
+
+	 // bind descriptor heap, only need to set once, changing descriptor heap isn't good
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	// loop render-queue
+	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
+	for (auto const& qr : queueRenderers)
+	{
+		auto renderers = qr.second;
+		int count = (int)renderers.size() / numWorkerThreads + 1;
+		int start = _threadIndex * count;
+
+		// onlt draw opaque
+		if (qr.first >= RenderQueue::CutoffStart)
+		{
+			continue;
+		}
+
+		for (int i = start; i <= start + count; i++)
+		{
+			// valid renderer
+			if (!ValidRenderer(i, renderers))
+			{
+				continue;
+			}
+			auto const r = renderers[i];
+			Mesh* m = r.cache->GetMesh();
+
+			// bind mesh
+			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
+			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
+
+			// choose pipeline material according to renderqueue
+			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+
+			// bind pipeline material
+			_cmdList->SetPipelineState(objMat->GetPSO());
+			_cmdList->SetGraphicsRootSignature(objMat->GetRootSignature());
+
+			// set system/object constant of renderer
+			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(1, objMat->GetMaterialConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+			_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 			// draw mesh
 			SubMesh sm = m->GetSubMesh(r.submeshIndex);
