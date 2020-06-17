@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -9,10 +10,14 @@ using UnityEngine;
 public struct MaterialConstant
 {
     public Vector4 _MainTex_ST;
+    public Vector4 _Color;
+    public Vector4 _SpecColor;
     public float _CutOff;
+    public float _Smoothness;
     public int _DiffuseIndex;
     public int _DiffuseSampler;
-    public float _Padding;
+    public int _SpecularIndex;
+    public int _SpecularSampler;
 };
 
 public class SqMaterial
@@ -73,17 +78,9 @@ public class SqMaterial
     {
         MaterialConstant mc = new MaterialConstant();
 
-        Texture2D albedo = _mat.mainTexture as Texture2D;
-        if (albedo)
-        {
-            mc._DiffuseIndex = AddNativeTexture(albedo.GetInstanceID(), albedo.GetNativeTexturePtr());
-            mc._DiffuseSampler = AddNativeSampler(albedo.wrapModeU, albedo.wrapModeV, albedo.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
-        }
-        else
-        {
-            mc._DiffuseIndex = AddNativeTexture(whiteTex.GetInstanceID(), whiteTex.GetNativeTexturePtr());
-            mc._DiffuseSampler = AddNativeSampler(whiteTex.wrapModeU, whiteTex.wrapModeV, whiteTex.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
-        }
+        // get diffuse
+        SetupTexAndSampler(_mat, "_MainTex", ref mc._DiffuseIndex, ref mc._DiffuseSampler);
+        SetupTexAndSampler(_mat, "_SpecGlossMap", ref mc._SpecularIndex, ref mc._SpecularSampler);
 
         mc._MainTex_ST = new Vector4(_mat.mainTextureScale.x, _mat.mainTextureScale.y, _mat.mainTextureOffset.x, _mat.mainTextureOffset.y);
         if (_mat.HasProperty("_Cutoff"))
@@ -91,7 +88,44 @@ public class SqMaterial
             mc._CutOff = _mat.GetFloat("_Cutoff");
         }
 
+        // property
+        mc._Color = _mat.color.linear;
+        mc._SpecColor = _mat.GetColor("_SpecColor").linear;
+        mc._Smoothness = _mat.GetFloat("_Glossiness");
+
         return mc;
+    }
+
+    public void AddTexKeyword(Material _mat, ref List<string> _macro, string _texName, string _keyName)
+    {
+        if (_mat.HasProperty(_texName))
+        {
+            if (_mat.GetTexture(_texName))
+            {
+                _macro.Add(_keyName);
+            }
+        }
+    }
+
+    void SetupTexAndSampler(Material _mat, string _texName, ref int _texIndex, ref int _samplerIndex)
+    {
+        Texture2D _tex = null;
+
+        if (_mat.HasProperty(_texName))
+        {
+            _tex = _mat.GetTexture(_texName) as Texture2D;
+        }
+
+        if (_tex)
+        {
+            _texIndex = AddNativeTexture(_tex.GetInstanceID(), _tex.GetNativeTexturePtr());
+            _samplerIndex = AddNativeSampler(_tex.wrapModeU, _tex.wrapModeV, _tex.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+        }
+        else
+        {
+            _texIndex = AddNativeTexture(whiteTex.GetInstanceID(), whiteTex.GetNativeTexturePtr());
+            _samplerIndex = AddNativeSampler(whiteTex.wrapModeU, whiteTex.wrapModeV, whiteTex.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+        }
     }
 
     void Init()

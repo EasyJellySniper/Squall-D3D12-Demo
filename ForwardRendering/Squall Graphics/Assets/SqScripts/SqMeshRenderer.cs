@@ -70,6 +70,7 @@ public class SqMeshRenderer : MonoBehaviour
             {
                 macro.Add("_CUTOFF_ON");
             }
+            SqMaterial.Instance.AddTexKeyword(mats[i], ref macro, "_SpecGlossMap", "_SPEC_GLOSS_MAP");
 
             AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode, srcBlend, dstBlend, "ForwardPass.hlsl", macro.Count, macro.ToArray());
             macro.Clear();

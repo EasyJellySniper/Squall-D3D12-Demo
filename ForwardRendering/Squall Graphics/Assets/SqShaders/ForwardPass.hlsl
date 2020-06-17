@@ -2,6 +2,7 @@
 #pragma sq_vertex ForwardPassVS
 #pragma sq_pixel ForwardPassPS
 #pragma sq_keyword _CUTOFF_ON
+#pragma sq_keyword _SPEC_GLOSS_MAP
 
 struct v2f
 {
@@ -12,10 +13,14 @@ struct v2f
 cbuffer MaterialConstant : register(b1)
 {
 	float4 _MainTex_ST;
+	float4 _Color;
+	float4 _SpecColor;
 	float _CutOff;
+	float _Smoothness;
 	int _DiffuseIndex;
 	int _DiffuseSampler;
-	float _Padding;
+	int _SpecularIndex;
+	int _SpecularSampler;
 };
 
 #pragma sq_srvStart
@@ -36,7 +41,7 @@ v2f ForwardPassVS(VertexInput i)
 float4 ForwardPassPS(v2f i) : SV_Target
 {
 	float2 uvTiled = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
-	float4 diffuse = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_DiffuseSampler], uvTiled);
+	float4 diffuse = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_DiffuseSampler], uvTiled) * _Color;
 
 #ifdef _CUTOFF_ON
 	clip(diffuse.a - _CutOff);
