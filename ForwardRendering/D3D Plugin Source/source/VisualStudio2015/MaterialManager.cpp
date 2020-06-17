@@ -38,7 +38,7 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _came
 	for (int i = 0; i < _camera.GetNumOfRT(); i++)
 	{
 		// if it is one/zero, doesn't need blend
-		desc.BlendState.RenderTarget[i].BlendEnable = (_srcBlend == 1 && _dstBlend == 0) ? false : true;
+		desc.BlendState.RenderTarget[i].BlendEnable = (_srcBlend == 1 && _dstBlend == 0) ? FALSE : TRUE;
 		desc.BlendState.RenderTarget[i].SrcBlend = blendTable[_srcBlend];
 		desc.BlendState.RenderTarget[i].DestBlend = blendTable[_dstBlend];
 	}
@@ -152,7 +152,7 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 		{
 			auto const c = CameraManager::Instance().GetCameras()[0];
 			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(forwardShader, c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
-				, _srcBlend, _dstBlend, D3D12_COMPARISON_FUNC_EQUAL, false));
+				, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER, false));
 		}
 	}
 
