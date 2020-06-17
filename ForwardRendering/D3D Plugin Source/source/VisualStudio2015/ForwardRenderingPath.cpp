@@ -250,9 +250,7 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 		, 0.0f, 0, 0, nullptr);
 
 	// close command list and execute
-	LogIfFailedWithoutHR(_cmdList->Close());
-	ID3D12CommandList* cmdsLists[] = { _cmdList };
-	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::UploadSystemConstant(Camera _camera, int _frameIdx, int _threadIndex)
@@ -358,9 +356,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _thr
 	}
 
 	// close command list and execute
-	LogIfFailedWithoutHR(_cmdList->Close());
-	ID3D12CommandList* cmdsLists[] = { _cmdList };
-	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex)
@@ -437,9 +433,7 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 	}
 
 	// close command list and execute
-	LogIfFailedWithoutHR(_cmdList->Close());
-	ID3D12CommandList* cmdsLists[] = { _cmdList };
-	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _threadIndex, int _excludeMode)
@@ -502,9 +496,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _th
 	}
 
 	// close command list and execute
-	LogIfFailedWithoutHR(_cmdList->Close());
-	ID3D12CommandList* cmdsLists[] = { _cmdList };
-	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::DrawCutoutPass(Camera _camera, int _frameIdx, int _threadIndex)
@@ -583,9 +575,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera _camera, int _frameIdx)
 	}
 
 	// close command list and execute
-	LogIfFailedWithoutHR(_cmdList->Close());
-	ID3D12CommandList* cmdsLists[] = { _cmdList };
-	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::EndFrame(Camera _camera)
@@ -607,9 +597,7 @@ void ForwardRenderingPath::EndFrame(Camera _camera)
 #endif
 
 	// close command list and execute
-	LogIfFailedWithoutHR(_cmdList->Close());
-	ID3D12CommandList* cmdsLists[] = { _cmdList };
-	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+	ExecuteCmdList(_cmdList);
 
 #if defined(GRAPHICTIME)
 	uint64_t* pRes;
@@ -705,4 +693,12 @@ bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _rend
 	}
 
 	return true;
+}
+
+void ForwardRenderingPath::ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList)
+{
+	// close command list and execute
+	LogIfFailedWithoutHR(_cmdList->Close());
+	ID3D12CommandList* cmdsLists[] = { _cmdList };
+	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
 }

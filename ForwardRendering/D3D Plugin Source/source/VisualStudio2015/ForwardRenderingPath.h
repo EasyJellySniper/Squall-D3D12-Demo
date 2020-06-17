@@ -65,6 +65,7 @@ private:
 	void ResolveColorBuffer(ID3D12GraphicsCommandList *_cmdList, Camera _camera);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList *_cmdList, Camera _camera);
 	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers);
+	void ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList);
 
 	Camera targetCam;
 	WorkerType workerType;
