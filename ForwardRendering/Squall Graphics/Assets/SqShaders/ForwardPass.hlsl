@@ -1,4 +1,4 @@
-#include "SqInclude.hlsl"
+#include "SqForwardInclude.hlsl"
 #pragma sq_vertex ForwardPassVS
 #pragma sq_pixel ForwardPassPS
 #pragma sq_keyword _CUTOFF_ON
@@ -9,25 +9,6 @@ struct v2f
 	float4 vertex : SV_POSITION;
 	float2 uv1 : TEXCOORD0;
 };
-
-cbuffer MaterialConstant : register(b1)
-{
-	float4 _MainTex_ST;
-	float4 _Color;
-	float4 _SpecColor;
-	float _CutOff;
-	float _Smoothness;
-	int _DiffuseIndex;
-	int _DiffuseSampler;
-	int _SpecularIndex;
-	int _SpecularSampler;
-};
-
-#pragma sq_srvStart
-// need /enable_unbounded_descriptor_tables when compiling
-Texture2D _TexTable[] : register(t0);
-SamplerState _SamplerTable[] : register(s0);
-#pragma sq_srvEnd
 
 v2f ForwardPassVS(VertexInput i)
 {
@@ -42,10 +23,15 @@ float4 ForwardPassPS(v2f i) : SV_Target
 {
 	float2 uvTiled = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
 	float4 diffuse = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_DiffuseSampler], uvTiled) * _Color;
+	float3 specular = GetSpecular(uvTiled);
+
+	float4 output = 0;
+	output.rgb = DiffuseAndSpecularLerp(diffuse, specular);
+	output.a = diffuse.a;
 
 #ifdef _CUTOFF_ON
-	clip(diffuse.a - _CutOff);
+	clip(output.a - _CutOff);
 #endif
 
-	return diffuse;
+	return output;
 }

@@ -98,7 +98,10 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	WakeAndWaitWorker();
 
 	// transparent pass, this can only be rendered with 1 thread for correct order
-	DrawTransparentPass(_camera, _frameIdx);
+	if (_camera.GetRenderMode() == RenderMode::ForwardPass)
+	{
+		DrawTransparentPass(_camera, _frameIdx);
+	}
 
 	EndFrame(_camera);
 
@@ -659,17 +662,17 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 		_cmdList->SetGraphicsRootDescriptorTable(1, _camera.GetMsaaSrv()->GetGPUDescriptorHandleForHeapStart());
 		_cmdList->DrawInstanced(6, 1, 0, 0);
 
-		// copy to debug depth
-		if (_camera.GetRenderMode() == RenderMode::Depth)
-		{
-			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE));
-			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
-			_cmdList->CopyResource(_camera.GetDebugDepth(), _camera.GetCameraDepth());
-			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON));
-			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
-		}
-
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
+	}
+
+	// copy to debug depth
+	if (_camera.GetRenderMode() == RenderMode::Depth)
+	{
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+		_cmdList->CopyResource(_camera.GetDebugDepth(), _camera.GetCameraDepth());
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
 	}
 }
 
