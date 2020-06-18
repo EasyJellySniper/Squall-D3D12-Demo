@@ -30,6 +30,8 @@ public:
 
 private:
 	static const int NUM_BLEND_MODE = 11;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC CollectPsoDesc(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
+		int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite);
 
 	unordered_map<int, unique_ptr<Material>> materialTable;
 	D3D12_BLEND blendTable[NUM_BLEND_MODE];

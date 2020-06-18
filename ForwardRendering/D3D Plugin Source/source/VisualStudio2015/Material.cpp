@@ -6,13 +6,10 @@ bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 	HRESULT hr = S_OK;
 
 	psoDesc = _desc;
+	pso.Reset();
 	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&pso)), hr);
 	validMaterial = SUCCEEDED(hr);
 	isDirty = true;
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
-	{
-		materialConstant[i] = nullptr;
-	}
 
 	return validMaterial;
 }

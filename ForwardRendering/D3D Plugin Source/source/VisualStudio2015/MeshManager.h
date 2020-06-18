@@ -27,7 +27,8 @@ public:
 	void Release();
 	Mesh *GetMesh(int _instanceID);
 
-	vector<D3D12_INPUT_ELEMENT_DESC> &GetDefaultInputLayout();
+	D3D12_INPUT_ELEMENT_DESC* GetDefaultInputLayout();
+	UINT GetDefaultInputLayoutSize();
 
 private:
 	unordered_map<int, Mesh> meshes;

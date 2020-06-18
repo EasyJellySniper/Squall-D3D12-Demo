@@ -22,51 +22,7 @@ void MaterialManager::Init()
 Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode
 	, int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
 {
-	// create pso
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
-	ZeroMemory(&desc, sizeof(desc));
-
-	desc.pRootSignature = _shader->GetRootSignatureRef().Get();
-	desc.VS.BytecodeLength = _shader->GetVS()->GetBufferSize();
-	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetVS()->GetBufferPointer());
-	desc.PS.BytecodeLength = _shader->GetPS()->GetBufferSize();
-	desc.PS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetPS()->GetBufferPointer());
-
-	// feed blend according to input
-	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	desc.BlendState.IndependentBlendEnable = (_camera.GetNumOfRT() > 1);
-	for (int i = 0; i < _camera.GetNumOfRT(); i++)
-	{
-		// if it is one/zero, doesn't need blend
-		desc.BlendState.RenderTarget[i].BlendEnable = (_srcBlend == 1 && _dstBlend == 0) ? FALSE : TRUE;
-		desc.BlendState.RenderTarget[i].SrcBlend = blendTable[_srcBlend];
-		desc.BlendState.RenderTarget[i].DestBlend = blendTable[_dstBlend];
-	}
-
-	desc.SampleMask = UINT_MAX;
-	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	desc.RasterizerState.FrontCounterClockwise = true;
-	desc.RasterizerState.FillMode = _fillMode;
-	desc.RasterizerState.CullMode = _cullMode;
-	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	desc.DepthStencilState.DepthFunc = _depthFunc;
-	desc.DepthStencilState.DepthWriteMask = (_zWrite) ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
-
-	auto layout = MeshManager::Instance().GetDefaultInputLayout();
-	desc.InputLayout.pInputElementDescs = layout.data();
-	desc.InputLayout.NumElements = (UINT)layout.size();
-	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	desc.NumRenderTargets = _camera.GetNumOfRT();
-
-	auto rtDesc = _camera.GetColorRTDesc();
-	for (int i = 0; i < _camera.GetNumOfRT(); i++)
-	{
-		desc.RTVFormats[i] = rtDesc[i].Format;
-	}
-
-	desc.DSVFormat = _camera.GetDepthDesc().Format;
-	desc.SampleDesc.Count = _camera.GetMsaaCount();
-	desc.SampleDesc.Quality = _camera.GetMsaaQuailty();
+	auto desc = CollectPsoDesc(_shader, _camera, _fillMode, _cullMode, _srcBlend, _dstBlend, _depthFunc, _zWrite);
 
 	Material result;
 	result.CreatePsoFromDesc(desc);
@@ -170,4 +126,55 @@ void MaterialManager::Release()
 		m.second->Release();
 	}
 	materialTable.clear();
+}
+
+D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
+	int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
+{
+	// create pso
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+
+	desc.pRootSignature = _shader->GetRootSignatureRef().Get();
+	desc.VS.BytecodeLength = _shader->GetVS()->GetBufferSize();
+	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetVS()->GetBufferPointer());
+	desc.PS.BytecodeLength = _shader->GetPS()->GetBufferSize();
+	desc.PS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetPS()->GetBufferPointer());
+
+	// feed blend according to input
+	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	desc.BlendState.IndependentBlendEnable = (_camera.GetNumOfRT() > 1);
+	for (int i = 0; i < _camera.GetNumOfRT(); i++)
+	{
+		// if it is one/zero, doesn't need blend
+		desc.BlendState.RenderTarget[i].BlendEnable = (_srcBlend == 1 && _dstBlend == 0) ? FALSE : TRUE;
+		desc.BlendState.RenderTarget[i].SrcBlend = blendTable[_srcBlend];
+		desc.BlendState.RenderTarget[i].DestBlend = blendTable[_dstBlend];
+	}
+
+	desc.SampleMask = UINT_MAX;
+	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	desc.RasterizerState.FrontCounterClockwise = true;
+	desc.RasterizerState.FillMode = _fillMode;
+	desc.RasterizerState.CullMode = _cullMode;
+	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	desc.DepthStencilState.DepthFunc = _depthFunc;
+	desc.DepthStencilState.DepthWriteMask = (_zWrite) ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+
+	desc.InputLayout.pInputElementDescs = MeshManager::Instance().GetDefaultInputLayout();
+	desc.InputLayout.NumElements = MeshManager::Instance().GetDefaultInputLayoutSize();
+	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	desc.NumRenderTargets = _camera.GetNumOfRT();
+
+	auto rtDesc = _camera.GetColorRTDesc();
+	for (int i = 0; i < _camera.GetNumOfRT(); i++)
+	{
+		desc.RTVFormats[i] = rtDesc[i].Format;
+	}
+
+	desc.DSVFormat = _camera.GetDepthDesc().Format;
+	desc.SampleDesc.Count = _camera.GetMsaaCount();
+	desc.SampleDesc.Quality = _camera.GetMsaaQuailty();
+
+	return desc;
 }
