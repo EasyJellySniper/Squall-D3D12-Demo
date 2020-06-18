@@ -119,6 +119,18 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 	return materialTable[_matInstanceId].get();
 }
 
+void MaterialManager::ResetNativeMaterial(Camera _camera)
+{
+	for (auto& m : materialTable)
+	{
+		auto desc = m.second->GetPsoDesc();
+		desc.SampleDesc.Count = _camera.GetMsaaCount();
+		desc.SampleDesc.Quality = _camera.GetMsaaQuailty();
+
+		m.second->CreatePsoFromDesc(desc);
+	}
+}
+
 void MaterialManager::Release()
 {
 	for (auto& m : materialTable)

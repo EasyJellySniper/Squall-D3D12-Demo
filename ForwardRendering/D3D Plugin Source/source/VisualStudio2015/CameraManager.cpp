@@ -1,5 +1,6 @@
 #include "CameraManager.h"
 #include "GraphicManager.h"
+#include "MaterialManager.h"
 #include <fstream>
 #include <algorithm> 
 using namespace std;
@@ -20,6 +21,7 @@ bool CameraManager::AddCamera(CameraData _camData)
 		cameras.push_back(cam);
 		sort(cameras.begin(), cameras.end(), SortFunction);
 		cameraLookup[cam.GetCameraData().instanceID] = GetCamera(_camData.instanceID);
+		MaterialManager::Instance().ResetNativeMaterial(cam);
 	}
 
 	return camInit;

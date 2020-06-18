@@ -51,6 +51,7 @@ public:
 	int GetRenderQueue();
 	CullMode GetCullMode();
 	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _index);
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC GetPsoDesc();
 
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;

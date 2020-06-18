@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 
 /// <summary>
 /// sq camera
@@ -118,6 +117,11 @@ public class SqCamera : MonoBehaviour
     }
 
     /// <summary>
+    /// instance
+    /// </summary>
+    public static SqCamera instance = null;
+
+    /// <summary>
     /// render mode
     /// </summary>
     public RenderMode renderMode = RenderMode.WireFrame;
@@ -143,6 +147,14 @@ public class SqCamera : MonoBehaviour
 
     void Start ()
     {
+        // one instance only
+        if (instance != null)
+        {
+            enabled = false;
+            return;
+        }
+
+        instance = this;
         attachedCam = GetComponent<Camera>();
         attachedCam.renderingPath = RenderingPath.Forward;  // currently only fw is implement
         attachedCam.cullingMask = 0;    // draw nothing
@@ -161,6 +173,7 @@ public class SqCamera : MonoBehaviour
             renderTarget.Release();
             DestroyImmediate(renderTarget);
         }
+        instance = null;
     }
 
     void Update()
@@ -174,6 +187,7 @@ public class SqCamera : MonoBehaviour
             RemoveCamera(instanceID);
             OnDestroy();
             Start();
+            SqGraphicManager.instance.resetingFrame = true;
         }
 
         // update VP matrix

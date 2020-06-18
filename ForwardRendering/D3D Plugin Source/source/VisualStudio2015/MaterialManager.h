@@ -26,6 +26,7 @@ public:
 	Material CreateMaterialPost(Shader* _shader, Camera _camera, bool _enableDepth);
 
 	Material* AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend, char* _nativeShader, int _numMacro, char** _macro);
+	void ResetNativeMaterial(Camera _camera);
 	void Release();
 
 private:

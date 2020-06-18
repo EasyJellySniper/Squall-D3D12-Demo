@@ -87,6 +87,12 @@ public class SqGraphicManager : MonoBehaviour
     /// </summary>
     public bool printTimerInfo = false;
 
+    /// <summary>
+    /// reseting frame
+    /// </summary>
+    [HideInInspector]
+    public bool resetingFrame = false;
+
     GameTime gameTime;
     float gameTimeUpdate = 0f;
     GUIStyle guiStyle;
@@ -135,6 +141,12 @@ public class SqGraphicManager : MonoBehaviour
 
     void LateUpdate()
     {
+        if (resetingFrame)
+        {
+            resetingFrame = false;
+            return;
+        }
+
         UpdateSqGraphic();
         RenderSqGraphic();
         gameTimeUpdate += Time.deltaTime;
