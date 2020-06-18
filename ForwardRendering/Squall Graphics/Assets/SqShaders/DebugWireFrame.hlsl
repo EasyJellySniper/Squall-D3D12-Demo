@@ -1,4 +1,4 @@
-#include "SqInclude.hlsl"
+#include "SqForwardInclude.hlsl"
 #pragma sq_vertex WireFrameVS
 #pragma sq_pixel WireFramePS
 

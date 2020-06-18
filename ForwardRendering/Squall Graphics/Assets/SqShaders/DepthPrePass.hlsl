@@ -1,4 +1,4 @@
-#include "SqInclude.hlsl"
+#include "SqForwardInclude.hlsl"
 #pragma sq_vertex DepthPrePassVS
 #pragma sq_pixel DepthPrePassPS
 #pragma sq_keyword _CUTOFF_ON
@@ -8,21 +8,6 @@ struct v2f
 	float4 vertex : SV_POSITION;
 	float2 uv1 : TEXCOORD0;
 };
-
-cbuffer MaterialConstant : register(b1)
-{
-	float4 _MainTex_ST;
-	float _CutOff;
-	int _DiffuseIndex;
-	int _DiffuseSampler;
-	float _Padding;
-};
-
-#pragma sq_srvStart
-// need /enable_unbounded_descriptor_tables when compiling
-Texture2D _TexTable[] : register(t0);
-SamplerState _SamplerTable[] : register(s0);
-#pragma sq_srvEnd
 
 v2f DepthPrePassVS(VertexInput i)
 {
