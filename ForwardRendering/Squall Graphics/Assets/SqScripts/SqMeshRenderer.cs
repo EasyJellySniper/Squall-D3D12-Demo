@@ -72,6 +72,12 @@ public class SqMeshRenderer : MonoBehaviour
             }
             SqMaterial.Instance.AddTexKeyword(mats[i], ref macro, "_SpecGlossMap", "_SPEC_GLOSS_MAP");
 
+            bool shouldEmissionBeEnabled = (mats[i].globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+            if (shouldEmissionBeEnabled)
+            {
+                macro.Add("_EMISSION");
+            }
+
             AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode, srcBlend, dstBlend, "ForwardPass.hlsl", macro.Count, macro.ToArray());
             macro.Clear();
         }

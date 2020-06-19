@@ -12,6 +12,7 @@ public struct MaterialConstant
     public Vector4 _MainTex_ST;
     public Vector4 _Color;
     public Vector4 _SpecColor;
+    public Vector4 _EmissionColor;
     public float _CutOff;
     public float _Smoothness;
     public float _OcclusionStrength;
@@ -21,6 +22,8 @@ public struct MaterialConstant
     public int _SpecularSampler;
     public int _OcclusionIndex;
     public int _OcclusionSampler;
+    public int _EmissionIndex;
+    public int _EmissionSampler;
 };
 
 public class SqMaterial
@@ -85,6 +88,7 @@ public class SqMaterial
         SetupTexAndSampler(_mat, "_MainTex", ref mc._DiffuseIndex, ref mc._DiffuseSampler);
         SetupTexAndSampler(_mat, "_SpecGlossMap", ref mc._SpecularIndex, ref mc._SpecularSampler);
         SetupTexAndSampler(_mat, "_OcclusionMap", ref mc._OcclusionIndex, ref mc._OcclusionSampler);
+        SetupTexAndSampler(_mat, "_EmissionMap", ref mc._EmissionIndex, ref mc._EmissionSampler);
 
         mc._MainTex_ST = new Vector4(_mat.mainTextureScale.x, _mat.mainTextureScale.y, _mat.mainTextureOffset.x, _mat.mainTextureOffset.y);
         if (_mat.HasProperty("_Cutoff"))
@@ -97,6 +101,7 @@ public class SqMaterial
         mc._SpecColor = _mat.GetColor("_SpecColor").linear;
         mc._Smoothness = _mat.GetFloat("_Glossiness");
         mc._OcclusionStrength = _mat.GetFloat("_OcclusionStrength");
+        mc._EmissionColor = _mat.GetColor("_EmissionColor").linear;
 
         return mc;
     }

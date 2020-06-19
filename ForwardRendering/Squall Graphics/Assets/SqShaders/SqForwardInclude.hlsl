@@ -20,6 +20,7 @@ cbuffer MaterialConstant : register(b1)
 	float4 _MainTex_ST;
 	float4 _Color;
 	float4 _SpecColor;
+	float4 _EmissionColor;
 	float _CutOff;
 	float _Smoothness;
 	float _OcclusionStrength;
@@ -29,6 +30,8 @@ cbuffer MaterialConstant : register(b1)
 	int _SpecularSampler;
 	int _OcclusionIndex;
 	int _OcclusionSampler;
+	int _EmissionIndex;
+	int _EmissionSampler;
 };
 
 #pragma sq_srvStart
@@ -55,6 +58,16 @@ float GetOcclusion(float2 uv)
 {
 	float o = _TexTable[_OcclusionIndex].Sample(_SamplerTable[_OcclusionSampler], uv).g;
 	return lerp(1, o, _OcclusionStrength);
+}
+
+float3 GetEmission(float2 uv)
+{
+#ifdef _EMISSION
+	float3 emission = _TexTable[_EmissionIndex].Sample(_SamplerTable[_EmissionSampler], uv).rgb;
+	return emission * _EmissionColor.rgb;
+#else
+	return 0;
+#endif
 }
 
 #endif

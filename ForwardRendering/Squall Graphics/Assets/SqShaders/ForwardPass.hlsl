@@ -3,6 +3,7 @@
 #pragma sq_pixel ForwardPassPS
 #pragma sq_keyword _CUTOFF_ON
 #pragma sq_keyword _SPEC_GLOSS_MAP
+#pragma sq_keyword _EMISSION
 
 struct v2f
 {
@@ -41,7 +42,9 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// BRDF
 
 	// emission
+	float3 emission = GetEmission(i.uv1);
 
 	float4 output = diffuse * occlusion;
+	output.rgb += emission;
 	return output;
 }
