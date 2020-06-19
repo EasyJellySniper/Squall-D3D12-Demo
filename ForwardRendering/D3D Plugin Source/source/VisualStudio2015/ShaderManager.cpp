@@ -16,8 +16,6 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 	unique_ptr<Shader> newShader = make_unique<Shader>(_fileName);
 
 	// reset root signature for parsing
-	cBufferRegNum = 0;
-	srvRegNum = 0;
 	rootSignatureParam.clear();
 	keywordGroup.clear();
 	parseSrv = false;
@@ -158,7 +156,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 		{
 			// constant buffer view
 			CD3DX12_ROOT_PARAMETER p;
-			p.InitAsConstantBufferView(cBufferRegNum++);
+			p.InitAsConstantBufferView(GetRegisterNumber(_input));
 			rootSignatureParam.push_back(p);
 		}
 		else if (ss == L"Texture2D")
@@ -167,7 +165,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			{
 				// static prevent stripped by compiler
 				static CD3DX12_DESCRIPTOR_RANGE texTable;
-				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, -1, 0, 0);
+				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, -1, GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 				// we will share texture table and dynamic indexing in shader
 				CD3DX12_ROOT_PARAMETER p;
@@ -181,7 +179,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			{
 				// static prevent stripped by compiler
 				static CD3DX12_DESCRIPTOR_RANGE samplerTable;
-				samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, -1, 0, 0);
+				samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, -1, GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 				// we will share sampler table and dynamic indexing in shader
 				CD3DX12_ROOT_PARAMETER p;
@@ -193,11 +191,9 @@ void ShaderManager::ParseShaderLine(wstring _input)
 		{
 			if (parseSrv)
 			{
-				int spaceNum = GetSpaceNumber(_input);
-
 				// prevent stripped by compiler
 				static CD3DX12_DESCRIPTOR_RANGE texTable;
-				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, srvRegNum++, spaceNum);
+				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 				// multisample texture2d srv
 				CD3DX12_ROOT_PARAMETER p;
@@ -209,10 +205,8 @@ void ShaderManager::ParseShaderLine(wstring _input)
 		{
 			if (parseSrv)
 			{
-				int spaceNum = GetSpaceNumber(_input);
-
 				CD3DX12_ROOT_PARAMETER p;
-				p.InitAsShaderResourceView(srvRegNum++, spaceNum);
+				p.InitAsShaderResourceView(GetRegisterNumber(_input), GetSpaceNumber(_input));
 				rootSignatureParam.push_back(p);
 			}
 		}
@@ -295,6 +289,40 @@ bool ShaderManager::ValidShader(Shader *_shader)
 	return false;
 }
 
+int ShaderManager::GetRegisterNumber(wstring _input)
+{
+	// parse register
+	size_t regPos = _input.find(L"register");
+	wstring regNum = L"";
+
+	if (regPos != string::npos)
+	{
+		bool startGrab = false;
+		for (int i = (int)regPos + 8; i < (int)_input.size(); i++)
+		{
+			wchar_t c = _input[i];
+			if (startGrab)
+			{
+				if (iswdigit(c))
+				{
+					regNum += c;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			if (c == L'b' || c == L't' || c == L's')
+			{
+				startGrab = true;
+			}
+		}
+	}
+
+	return (regNum == L"") ? 0 : stoi(regNum);
+}
+
 int ShaderManager::GetSpaceNumber(wstring _input)
 {
 	// parse register
@@ -306,7 +334,7 @@ int ShaderManager::GetSpaceNumber(wstring _input)
 		int spacePos = (int)_input.find(L"space", regPos);
 		if (spacePos != string::npos)
 		{
-			for (int i = (int)spacePos + 5; i < _input.size(); i++)
+			for (int i = (int)spacePos + 5; i < (int)_input.size(); i++)
 			{
 				wchar_t c = _input[i];
 				if (!iswdigit(c))
@@ -318,5 +346,5 @@ int ShaderManager::GetSpaceNumber(wstring _input)
 		}
 	}
 
-	return stoi(spaceNum);
+	return (spaceNum == L"") ? 0 : stoi(spaceNum);
 }
