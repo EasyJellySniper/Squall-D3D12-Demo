@@ -14,24 +14,34 @@ v2f ForwardPassVS(VertexInput i)
 {
 	v2f o = (v2f)0;
 	o.vertex = mul(SQ_MATRIX_MVP, float4(i.vertex, 1.0f));
-	o.uv1 = i.uv1;
+	o.uv1 = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
 
 	return o;
 }
 
 float4 ForwardPassPS(v2f i) : SV_Target
 {
-	float2 uvTiled = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
-	float4 diffuse = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_DiffuseSampler], uvTiled) * _Color;
-	float3 specular = GetSpecular(uvTiled);
-
-	float4 output = 0;
-	output.rgb = DiffuseAndSpecularLerp(diffuse, specular);
-	output.a = diffuse.a;
-
+	// diffuse
+	float4 diffuse = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_DiffuseSampler], i.uv1) * _Color;
 #ifdef _CUTOFF_ON
-	clip(output.a - _CutOff);
+	clip(diffuse.a - _CutOff);
 #endif
 
+	// specular
+	float4 specular = GetSpecular(i.uv1);
+	diffuse.rgb = DiffuseAndSpecularLerp(diffuse, specular.rgb);
+
+	// direct lighting
+
+	// occlusion 
+	float occlusion = GetOcclusion(i.uv1);
+
+	// GI
+
+	// BRDF
+
+	// emission
+
+	float4 output = diffuse * occlusion;
 	return output;
 }
