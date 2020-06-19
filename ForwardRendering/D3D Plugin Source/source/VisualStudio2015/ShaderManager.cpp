@@ -165,7 +165,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			{
 				// static prevent stripped by compiler
 				static CD3DX12_DESCRIPTOR_RANGE texTable;
-				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, -1, GetRegisterNumber(_input), GetSpaceNumber(_input));
+				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 				// we will share texture table and dynamic indexing in shader
 				CD3DX12_ROOT_PARAMETER p;
@@ -179,7 +179,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			{
 				// static prevent stripped by compiler
 				static CD3DX12_DESCRIPTOR_RANGE samplerTable;
-				samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, -1, GetRegisterNumber(_input), GetSpaceNumber(_input));
+				samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 				// we will share sampler table and dynamic indexing in shader
 				CD3DX12_ROOT_PARAMETER p;
@@ -193,7 +193,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			{
 				// prevent stripped by compiler
 				static CD3DX12_DESCRIPTOR_RANGE texTable;
-				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, GetRegisterNumber(_input), GetSpaceNumber(_input));
+				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 				// multisample texture2d srv
 				CD3DX12_ROOT_PARAMETER p;
@@ -347,4 +347,40 @@ int ShaderManager::GetSpaceNumber(wstring _input)
 	}
 
 	return (spaceNum == L"") ? 0 : stoi(spaceNum);
+}
+
+int ShaderManager::GetNumDescriptor(wstring _input)
+{
+	size_t regPos = _input.find(L"[");
+
+	// no [] char, it has only one descriptor
+	if (regPos == string::npos)
+	{
+		return 1;
+	}
+
+	wstring num = L"";
+	for (int i = (int)regPos; i < (int)_input.size(); i++)
+	{
+		wchar_t c = _input[i];
+
+		if (iswdigit(c))
+		{
+			num += c;
+		}
+
+		// end descriptor search
+		if (c == L']')
+		{
+			break;
+		}
+	}
+
+	// it's a unbound array, return -1
+	if (num == L"")
+	{
+		return -1;
+	}
+
+	return stoi(num);
 }

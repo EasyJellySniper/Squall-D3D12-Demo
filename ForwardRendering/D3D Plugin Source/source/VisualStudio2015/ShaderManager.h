@@ -35,6 +35,7 @@ private:
 	bool ValidShader(Shader *_shader);
 	int GetRegisterNumber(wstring _input);
 	int GetSpaceNumber(wstring _input);
+	int GetNumDescriptor(wstring _input);
 
 	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
