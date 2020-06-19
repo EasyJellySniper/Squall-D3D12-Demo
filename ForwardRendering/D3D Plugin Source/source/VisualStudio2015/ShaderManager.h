@@ -33,13 +33,14 @@ private:
 	void ParseShaderLine(wstring _input);
 	void BuildRootSignature(unique_ptr<Shader>& _shader, bool _ignoreInputLayout);
 	bool ValidShader(Shader *_shader);
+	int GetSpaceNumber(wstring _input);
 
 	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
 	vector<CD3DX12_ROOT_PARAMETER> rootSignatureParam;
 	vector<string> keywordGroup;
 	int cBufferRegNum;
-	int srvRegNum;
+	int textureRegNum;
 	int samplerRegNum;
 	int msSrvRegNum;
 	bool parseSrv;
