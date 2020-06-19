@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <wrl.h>
 #include "Material.h" 
+#include "Shader.h"
 using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
@@ -71,6 +72,7 @@ public:
 	int GetMsaaQuailty();
 	RenderMode GetRenderMode();
 	bool FrustumTest(BoundingBox _bound);
+	Shader* GetFallbackShader();
 
 private:
 	static const int MAX_RENDER_TARGETS = 8;
@@ -113,6 +115,7 @@ private:
 	// material
 	unordered_map<int, vector<Material>> pipelineMaterials;
 	Material resolveDepthMaterial;
+	Shader* wireFrameDebug;
 
 	// matrix and view port
 	XMFLOAT4X4 viewMatrix;

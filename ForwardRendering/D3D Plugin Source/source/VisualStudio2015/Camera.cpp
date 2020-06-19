@@ -334,6 +334,11 @@ bool Camera::FrustumTest(BoundingBox _bound)
 	return (camFrustum.Contains(_bound) != DirectX::DISJOINT);
 }
 
+Shader* Camera::GetFallbackShader()
+{
+	return wireFrameDebug;
+}
+
 HRESULT Camera::CreateRtvDescriptorHeaps()
 {
 	HRESULT hr = S_OK;
@@ -464,6 +469,7 @@ bool Camera::CreatePipelineMaterial()
 	if (wireFrameShader != nullptr)
 	{
 		pipelineMaterials[MaterialType::DebugWireFrame][CullMode::Off] = MaterialManager::Instance().CreateMaterialFromShader(wireFrameShader, *this, D3D12_FILL_MODE_WIREFRAME, D3D12_CULL_MODE_NONE);
+		wireFrameDebug = wireFrameShader;
 	}
 
 	// create depth prepass material

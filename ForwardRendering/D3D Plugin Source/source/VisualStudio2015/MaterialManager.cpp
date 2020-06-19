@@ -104,10 +104,15 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 			delete[] macro;
 		}
 
+		auto c = CameraManager::Instance().GetCameras()[0];
 		if (forwardShader != nullptr)
 		{
-			auto const c = CameraManager::Instance().GetCameras()[0];
 			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(forwardShader, c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
+				, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER, false));
+		}
+		else
+		{
+			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(c.GetFallbackShader(), c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
 				, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER, false));
 		}
 	}
