@@ -1,5 +1,6 @@
 #ifndef SQFORWARDINCLUDE
 #define SQFORWARDINCLUDE
+#include "SqLight.hlsl"
 
 struct VertexInput
 {
@@ -38,6 +39,9 @@ cbuffer MaterialConstant : register(b1)
 // need /enable_unbounded_descriptor_tables when compiling
 Texture2D _TexTable[] : register(t0);
 SamplerState _SamplerTable[] : register(s0);
+StructuredBuffer<SqLight> _SqDirLight: register(t0, space1);
+StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
+StructuredBuffer<SqLight> _SqSpotLight: register(t2, space1);
 #pragma sq_srvEnd
 
 float4 GetSpecular(float2 uv)

@@ -17,9 +17,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 
 	// reset root signature for parsing
 	cBufferRegNum = 0;
-	textureRegNum = 0;
-	samplerRegNum = 0;
-	msSrvRegNum = 0;
+	srvRegNum = 0;
 	rootSignatureParam.clear();
 	keywordGroup.clear();
 	parseSrv = false;
@@ -167,14 +165,28 @@ void ShaderManager::ParseShaderLine(wstring _input)
 		{
 			if (parseSrv)
 			{
-				textureRegNum++;
+				// static prevent stripped by compiler
+				static CD3DX12_DESCRIPTOR_RANGE texTable;
+				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, -1, 0, 0);
+
+				// we will share texture table and dynamic indexing in shader
+				CD3DX12_ROOT_PARAMETER p;
+				p.InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
+				rootSignatureParam.push_back(p);
 			}
 		}
 		else if (ss == L"SamplerState")
 		{
 			if (parseSrv)
 			{
-				samplerRegNum++;
+				// static prevent stripped by compiler
+				static CD3DX12_DESCRIPTOR_RANGE samplerTable;
+				samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, -1, 0, 0);
+
+				// we will share sampler table and dynamic indexing in shader
+				CD3DX12_ROOT_PARAMETER p;
+				p.InitAsDescriptorTable(1, &samplerTable, D3D12_SHADER_VISIBILITY_ALL);
+				rootSignatureParam.push_back(p);
 			}
 		}
 		else if (ss.find(L"Texture2DMS") != string::npos)
@@ -185,11 +197,22 @@ void ShaderManager::ParseShaderLine(wstring _input)
 
 				// prevent stripped by compiler
 				static CD3DX12_DESCRIPTOR_RANGE texTable;
-				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, msSrvRegNum++, spaceNum);
+				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, srvRegNum++, spaceNum);
 
 				// multisample texture2d srv
 				CD3DX12_ROOT_PARAMETER p;
 				p.InitAsDescriptorTable(1, &texTable);
+				rootSignatureParam.push_back(p);
+			}
+		}
+		else if (ss.find(L"StructuredBuffer") != string::npos)
+		{
+			if (parseSrv)
+			{
+				int spaceNum = GetSpaceNumber(_input);
+
+				CD3DX12_ROOT_PARAMETER p;
+				p.InitAsShaderResourceView(srvRegNum++, spaceNum);
 				rootSignatureParam.push_back(p);
 			}
 		}
@@ -229,30 +252,6 @@ void ShaderManager::ParseShaderLine(wstring _input)
 
 void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, bool _ignoreInputLayout)
 {
-	if (textureRegNum > 0)
-	{
-		// static prevent stripped by compiler
-		static CD3DX12_DESCRIPTOR_RANGE texTable;
-		texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, -1, 0, 0);
-
-		// we will share texture table and dynamic indexing in shader
-		CD3DX12_ROOT_PARAMETER p;
-		p.InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
-		rootSignatureParam.push_back(p);
-	}
-	
-	if (samplerRegNum > 0)
-	{
-		// static prevent stripped by compiler
-		static CD3DX12_DESCRIPTOR_RANGE samplerTable;
-		samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, -1, 0, 0);
-
-		// we will share sampler table and dynamic indexing in shader
-		CD3DX12_ROOT_PARAMETER p;
-		p.InitAsDescriptorTable(1, &samplerTable, D3D12_SHADER_VISIBILITY_ALL);
-		rootSignatureParam.push_back(p);
-	}
-
 	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc((UINT)rootSignatureParam.size(), rootSignatureParam.data(),
 		0, nullptr,
 		(!_ignoreInputLayout) ? D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT : D3D12_ROOT_SIGNATURE_FLAG_NONE);

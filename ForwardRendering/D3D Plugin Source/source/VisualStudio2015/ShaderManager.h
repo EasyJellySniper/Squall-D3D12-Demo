@@ -40,9 +40,7 @@ private:
 	vector<CD3DX12_ROOT_PARAMETER> rootSignatureParam;
 	vector<string> keywordGroup;
 	int cBufferRegNum;
-	int textureRegNum;
-	int samplerRegNum;
-	int msSrvRegNum;
+	int srvRegNum;
 	bool parseSrv;
 	string entryVS;
 	string entryPS;
