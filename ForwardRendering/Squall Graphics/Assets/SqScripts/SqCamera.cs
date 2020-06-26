@@ -147,6 +147,13 @@ public class SqCamera : MonoBehaviour
 
     void Start ()
     {
+        // return if sqgraphic not init
+        if (SqGraphicManager.instance == null)
+        {
+            enabled = false;
+            return;
+        }
+
         // one instance only
         if (instance != null)
         {

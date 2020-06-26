@@ -31,6 +31,13 @@ public class SqMeshRenderer : MonoBehaviour
 
     void Start ()
     {
+        // return if sqgraphic not init
+        if (SqGraphicManager.instance == null)
+        {
+            enabled = false;
+            return;
+        }
+
         InitRenderer();
         ExtractMaterialData();
     }

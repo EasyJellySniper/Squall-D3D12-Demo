@@ -88,6 +88,13 @@ public class SqMeshFilter : MonoBehaviour
 
 	void Awake ()
     {
+        // return if sqgraphic not init
+        if (SqGraphicManager.instance == null)
+        {
+            enabled = false;
+            return;
+        }
+
         mesh = GetComponent<MeshFilter>().sharedMesh;
 
         // setup basic info

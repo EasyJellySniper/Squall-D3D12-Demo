@@ -51,6 +51,9 @@ public class SqGraphicManager : MonoBehaviour
     static extern bool InitializeSqGraphic(int _numOfThreads);
 
     [DllImport("SquallGraphics")]
+    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight);
+
+    [DllImport("SquallGraphics")]
     static extern void ReleaseSqGraphic();
 
     [DllImport("SquallGraphics")]
@@ -83,6 +86,21 @@ public class SqGraphicManager : MonoBehaviour
     public int globalAnisoLevel = 8;
 
     /// <summary>
+    /// max dir light
+    /// </summary>
+    public int maxDirectionalLight = 5;
+
+    /// <summary>
+    /// max point light
+    /// </summary>
+    public int maxPointLight = 64;
+
+    /// <summary>
+    /// max spot light
+    /// </summary>
+    public int maxSpotLight = 32;
+
+    /// <summary>
     /// print timer info
     /// </summary>
     public bool printTimerInfo = false;
@@ -100,7 +118,12 @@ public class SqGraphicManager : MonoBehaviour
 
     void Awake()
     {
-        instance = this;
+        if (instance != null)
+        {
+            Debug.LogError("Only one SqGraphicManager can be created.");
+            enabled = false;
+            return;
+        }
 
         if (numOfRenderThreads < 2)
         {
@@ -110,6 +133,7 @@ public class SqGraphicManager : MonoBehaviour
         if (InitializeSqGraphic(numOfRenderThreads))
         {
             Debug.Log("[SqGraphicManager] Squall Graphics initialized.");
+            instance = this;
         }
         else
         {
@@ -117,6 +141,8 @@ public class SqGraphicManager : MonoBehaviour
             enabled = false;
             return;
         }
+
+        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight);
 
         Debug.Log("[SqGraphicManager] Number of render threads: " + GetRenderThreadCount());
         guiStyle = new GUIStyle();

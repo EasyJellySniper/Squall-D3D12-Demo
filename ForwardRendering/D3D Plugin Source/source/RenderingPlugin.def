@@ -8,6 +8,7 @@ EXPORTS
    UnityPluginUnload
    GetRenderEventFunc
    InitializeSqGraphic
+   InitSqLight
    ReleaseSqGraphic
    GetRenderThreadCount
    UpdateSqGraphic
@@ -27,3 +28,5 @@ EXPORTS
    AddNativeSampler
    SetRenderMode
    GetDebugDepth
+   AddNativeLight
+   UpdateNativeLight

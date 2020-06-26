@@ -8,6 +8,7 @@
 #include "VisualStudio2015/MeshManager.h"
 #include "VisualStudio2015/RendererManager.h"
 #include "VisualStudio2015/TextureManager.h"
+#include "VisualStudio2015/LightManager.h"
 
 #include <assert.h>
 
@@ -17,6 +18,11 @@ extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitializeSqGraphic(i
 {
 	s_CurrentAPI->CreateResources(_numOfThreads);
 	return s_CurrentAPI->CheckDevice();
+}
+
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight)
+{
+	LightManager::Instance().Init(_numDirLight, _numPointLight, _numSpotLight);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API ReleaseSqGraphic()
@@ -114,13 +120,23 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRenderMode(int _in
 	}
 }
 
-extern "C" void GetDebugDepth(int _id, void* _debugDepth)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetDebugDepth(int _id, void* _debugDepth)
 {
 	Camera* c = CameraManager::Instance().GetCamera(_id);
 	if (c != nullptr)
 	{
 		c->CopyDepth(_debugDepth);
 	}
+}
+
+extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeLight(int _instanceID, SqLightData _sqLightData)
+{
+	return LightManager::Instance().AddNativeLight(_instanceID, _sqLightData);
+}
+
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateNativeLight(int _nativeID, SqLightData _sqLightData)
+{
+	LightManager::Instance().UpdateNativeLight(_nativeID, _sqLightData);
 }
 
 // --------------------------------------------------------------------------

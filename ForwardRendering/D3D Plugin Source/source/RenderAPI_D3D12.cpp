@@ -13,6 +13,7 @@
 #include "VisualStudio2015/ShaderManager.h"
 #include "VisualStudio2015/RendererManager.h"
 #include "VisualStudio2015/TextureManager.h"
+#include "VisualStudio2015/LightManager.h"
 #include "Unity/IUnityGraphicsD3D12.h"
 
 class RenderAPI_D3D12 : public RenderAPI
@@ -88,6 +89,7 @@ void RenderAPI_D3D12::ReleaseResources()
 	ShaderManager::Instance().Release();
 	RendererManager::Instance().Release();
 	TextureManager::Instance().Release();
+	LightManager::Instance().Release();
 }
 
 int RenderAPI_D3D12::GetRenderThreadCount()
