@@ -13,9 +13,19 @@ void Light::SetLightData(SqLightData _data)
 	isDirty = true;
 }
 
+SqLightData Light::GetLightData()
+{
+	return lightDataCPU;
+}
+
 int Light::GetInstanceID()
 {
 	return instanceID;
+}
+
+void Light::SetDirty(bool _dirty)
+{
+	isDirty = _dirty;
 }
 
 bool Light::IsDirty()

@@ -27,7 +27,11 @@ public:
 	void Init(int _instanceID, SqLightData _data);
 
 	void SetLightData(SqLightData _data);
+	SqLightData GetLightData();
+
 	int GetInstanceID();
+
+	void SetDirty(bool _dirty);
 	bool IsDirty();
 
 private:

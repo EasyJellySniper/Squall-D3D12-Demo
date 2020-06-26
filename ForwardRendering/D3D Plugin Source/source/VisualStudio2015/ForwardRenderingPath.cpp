@@ -3,6 +3,7 @@
 #include "GraphicManager.h"
 #include "ShaderManager.h"
 #include "TextureManager.h"
+#include "LightManager.h"
 #include "stdafx.h"
 #include "d3dx12.h"
 #include <algorithm>
@@ -84,6 +85,7 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	// upload work
 	workerType = WorkerType::Upload;
 	WakeAndWaitWorker();
+	LightManager::Instance().UploadLightBuffer(frameIndex);
 
 	// pre pass work
 	workerType = WorkerType::PrePassRendering;

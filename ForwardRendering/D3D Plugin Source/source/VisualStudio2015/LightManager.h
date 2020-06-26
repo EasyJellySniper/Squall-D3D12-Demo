@@ -26,6 +26,7 @@ public:
 
 	int AddNativeLight(int _instanceID, SqLightData _data);
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
+	void UploadLightBuffer(int _frameIdx);
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
