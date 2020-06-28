@@ -85,7 +85,7 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	// upload work
 	workerType = WorkerType::Upload;
 	WakeAndWaitWorker();
-	LightManager::Instance().UploadLightBuffer(frameIndex);
+	LightManager::Instance().UploadLightBuffer();
 
 	// pre pass work
 	workerType = WorkerType::PrePassRendering;

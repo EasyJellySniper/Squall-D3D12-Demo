@@ -73,29 +73,9 @@ public class SqLight : MonoBehaviour
         nativeID = AddNativeLight(lightCache.GetInstanceID(), lightData);
     }
 
-#if UNITY_EDITOR
-    void OnValidate()
-    {
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-
-        if (lightCache == null)
-        {
-            return;
-        }
-
-        lightData.color = lightCache.color.linear;
-        lightData.type = (int)lightCache.type;
-        lightData.intensity = lightCache.intensity;
-        UpdateNativeLight(nativeID, lightData);
-    }
-#endif
-
     void Update()
     {
-        if (transform.hasChanged)
+        if (transform.hasChanged || LightChanged())
         {
             if (lightCache.type == LightType.Directional)
             {
@@ -106,8 +86,26 @@ public class SqLight : MonoBehaviour
                 lightData.worldPos = transform.position;
             }
 
+            lightData.color = lightCache.color.linear;
+            lightData.intensity = lightCache.intensity;
+
             UpdateNativeLight(nativeID, lightData);
             transform.hasChanged = false;
         }
+    }
+
+    bool LightChanged()
+    {
+        if (lightData.intensity != lightCache.intensity)
+        {
+            return true;
+        }
+
+        if (Vector4.SqrMagnitude(lightData.color - (Vector4)lightCache.color.linear) > 0.1)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

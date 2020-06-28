@@ -81,7 +81,7 @@ float3 AccumulateDirLight()
 	_SqDirLight.GetDimensions(numLight, stride);
 
 	float3 col = 0;
-	for (uint i = 0; i < numLight; i++)
+	for (uint i = 0; i < 1; i++)
 	{
 		col += _SqDirLight[i].color * _SqDirLight[i].intensity;
 	}
