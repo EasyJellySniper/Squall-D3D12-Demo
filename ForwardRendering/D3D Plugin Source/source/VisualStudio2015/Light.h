@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include <DirectXMath.h>
 using namespace DirectX;
+#include "FrameResource.h"
 
 enum LightType
 {
@@ -31,11 +32,11 @@ public:
 
 	int GetInstanceID();
 
-	void SetDirty(bool _dirty);
-	bool IsDirty();
+	void SetDirty(bool _dirty, int _frameIdx);
+	bool IsDirty(int _frameIdx);
 
 private:
-	bool isDirty;
+	bool isDirty[MAX_FRAME_COUNT];
 	int instanceID;
 	SqLightData lightDataCPU;
 };

@@ -62,18 +62,14 @@ void LightManager::UpdateNativeLight(int _id, SqLightData _data)
 	}
 }
 
-void LightManager::UploadLightBuffer()
+void LightManager::UploadLightBuffer(int _frameIdx)
 {
 	for (int i = 0; i < (int)dirLights.size(); i++)
 	{
-		if (dirLights[i].IsDirty())
+		if (dirLights[i].IsDirty(_frameIdx))
 		{
-			for (int j = 0; j < MAX_FRAME_COUNT; j++)
-			{
-				dirLightData[j]->CopyData(i, dirLights[i].GetLightData());
-			}
-
-			dirLights[i].SetDirty(false);
+			dirLightData[_frameIdx]->CopyData(i, dirLights[i].GetLightData());
+			dirLights[i].SetDirty(false, _frameIdx);
 		}
 	}
 }

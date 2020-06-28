@@ -4,13 +4,21 @@ void Light::Init(int _instanceID, SqLightData _data)
 {
 	instanceID = _instanceID;
 	lightDataCPU = _data;
-	isDirty = false;
+
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		isDirty[i] = false;
+	}
 }
 
 void Light::SetLightData(SqLightData _data)
 {
 	lightDataCPU = _data;
-	isDirty = true;
+
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		isDirty[i] = true;
+	}
 }
 
 SqLightData Light::GetLightData()
@@ -23,12 +31,12 @@ int Light::GetInstanceID()
 	return instanceID;
 }
 
-void Light::SetDirty(bool _dirty)
+void Light::SetDirty(bool _dirty, int _frameIdx)
 {
-	isDirty = _dirty;
+	isDirty[_frameIdx] = _dirty;
 }
 
-bool Light::IsDirty()
+bool Light::IsDirty(int _idx)
 {
-	return isDirty;
+	return isDirty[_idx];
 }
