@@ -76,10 +76,6 @@ float3 GetEmission(float2 uv)
 
 float3 AccumulateDirLight()
 {
-	uint numLight = 0;
-	uint stride = 0;
-	_SqDirLight.GetDimensions(numLight, stride);
-
 	float3 col = 0;
 	for (uint i = 0; i < 1; i++)
 	{
