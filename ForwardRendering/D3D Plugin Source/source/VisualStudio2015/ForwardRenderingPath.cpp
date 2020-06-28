@@ -316,6 +316,24 @@ void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadI
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
+void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx)
+{
+	// bind mesh
+	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
+	_cmdList->IASetIndexBuffer(&_mesh->GetIndexBufferView());
+
+	// bind pipeline material
+	_cmdList->SetPipelineState(_mat->GetPSO());
+	_cmdList->SetGraphicsRootSignature(_mat->GetRootSignature());
+
+	// set system/object constant of renderer
+	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetSystemConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(1, _mat->GetMaterialConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootShaderResourceView(4, LightManager::Instance().GetDirLightResource(_frameIdx)->GetGPUVirtualAddress());
+}
+
 void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
@@ -473,23 +491,11 @@ void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _th
 			auto const r = renderers[i];
 			Mesh* m = r.cache->GetMesh();
 
-			// bind mesh
-			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
-			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
-
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
 
-			// bind pipeline material
-			_cmdList->SetPipelineState(objMat->GetPSO());
-			_cmdList->SetGraphicsRootSignature(objMat->GetRootSignature());
-
-			// set system/object constant of renderer
-			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
-			_cmdList->SetGraphicsRootConstantBufferView(1, objMat->GetMaterialConstantGPU(_frameIdx));
-			_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-			_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-			_cmdList->SetGraphicsRootShaderResourceView(4, LightManager::Instance().GetDirLightResource(_frameIdx)->GetGPUVirtualAddress());
+			// bind forward object
+			BindForwardObject(_cmdList, r.cache, objMat, m, frameIndex);
 
 			// draw mesh
 			SubMesh sm = m->GetSubMesh(r.submeshIndex);
@@ -553,23 +559,11 @@ void ForwardRenderingPath::DrawTransparentPass(Camera _camera, int _frameIdx)
 			auto const r = renderers[i];
 			Mesh* m = r.cache->GetMesh();
 
-			// bind mesh
-			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
-			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
-
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
 
-			// bind pipeline material
-			_cmdList->SetPipelineState(objMat->GetPSO());
-			_cmdList->SetGraphicsRootSignature(objMat->GetRootSignature());
-
-			// set system/object constant of renderer
-			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
-			_cmdList->SetGraphicsRootConstantBufferView(1, objMat->GetMaterialConstantGPU(_frameIdx));
-			_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-			_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-			_cmdList->SetGraphicsRootShaderResourceView(4, LightManager::Instance().GetDirLightResource(_frameIdx)->GetGPUVirtualAddress());
+			// bind forward object
+			BindForwardObject(_cmdList, r.cache, objMat, m, frameIndex);
 
 			// draw mesh
 			SubMesh sm = m->GetSubMesh(r.submeshIndex);
