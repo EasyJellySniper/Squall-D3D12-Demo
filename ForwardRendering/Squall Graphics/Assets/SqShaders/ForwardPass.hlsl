@@ -30,9 +30,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 
 	// specular
 	float4 specular = GetSpecular(i.uv1);
-	diffuse.rgb = DiffuseAndSpecularLerp(diffuse, specular.rgb);
-
-	// direct lighting
+	diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
 
 	// occlusion 
 	float occlusion = GetOcclusion(i.uv1);
@@ -40,6 +38,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// GI
 
 	// BRDF
+	diffuse.rgb = LightBRDF(diffuse.rgb);
 
 	// emission
 	float3 emission = GetEmission(i.uv1);

@@ -40,8 +40,8 @@ cbuffer MaterialConstant : register(b1)
 Texture2D _TexTable[] : register(t0);
 SamplerState _SamplerTable[] : register(s0);
 StructuredBuffer<SqLight> _SqDirLight: register(t0, space1);
-StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
-StructuredBuffer<SqLight> _SqSpotLight: register(t2, space1);
+//StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
+//StructuredBuffer<SqLight> _SqSpotLight: register(t2, space1);
 #pragma sq_srvEnd
 
 float4 GetSpecular(float2 uv)
@@ -72,6 +72,26 @@ float3 GetEmission(float2 uv)
 #else
 	return 0;
 #endif
+}
+
+float3 AccumulateDirLight()
+{
+	uint numLight = 0;
+	uint stride = 0;
+	_SqDirLight.GetDimensions(numLight, stride);
+
+	float3 col = 0;
+	for (uint i = 0; i < numLight; i++)
+	{
+		col += _SqDirLight[i].color * _SqDirLight[i].intensity;
+	}
+
+	return col;
+}
+
+float3 LightBRDF(float3 diffColor)
+{
+	return diffColor * AccumulateDirLight();
 }
 
 #endif

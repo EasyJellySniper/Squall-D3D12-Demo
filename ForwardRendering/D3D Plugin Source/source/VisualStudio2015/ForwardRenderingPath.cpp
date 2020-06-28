@@ -489,6 +489,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _th
 			_cmdList->SetGraphicsRootConstantBufferView(1, objMat->GetMaterialConstantGPU(_frameIdx));
 			_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 			_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+			_cmdList->SetGraphicsRootShaderResourceView(4, LightManager::Instance().GetDirLightResource(_frameIdx)->GetGPUVirtualAddress());
 
 			// draw mesh
 			SubMesh sm = m->GetSubMesh(r.submeshIndex);

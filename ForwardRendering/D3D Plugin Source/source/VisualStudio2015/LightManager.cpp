@@ -74,6 +74,11 @@ void LightManager::UploadLightBuffer(int _frameIdx)
 	}
 }
 
+ID3D12Resource* LightManager::GetDirLightResource(int _frameIdx)
+{
+	return dirLightData[_frameIdx]->Resource();
+}
+
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)
 {
 	for (int i = 0; i < (int)_lights.size(); i++)

@@ -38,6 +38,8 @@
     <ClInclude Include="GameTime.h" />
     <ClInclude Include="GameTimerManager.h" />
     <ClInclude Include="GraphicManager.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="LightManager.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="Mesh.h" />
@@ -62,6 +64,8 @@
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="ForwardRenderingPath.cpp" />
     <ClCompile Include="GraphicManager.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="Mesh.cpp" />

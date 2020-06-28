@@ -28,6 +28,8 @@ public:
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
 	void UploadLightBuffer(int _frameIdx);
 
+	ID3D12Resource* GetDirLightResource(int _frameIdx);
+
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
 	int AddDirLight(int _instanceID, SqLightData _data);

@@ -52,6 +52,8 @@
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Sampler.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="LightManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\RenderAPI.cpp" />
@@ -75,6 +77,8 @@
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="LightManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLEW">
