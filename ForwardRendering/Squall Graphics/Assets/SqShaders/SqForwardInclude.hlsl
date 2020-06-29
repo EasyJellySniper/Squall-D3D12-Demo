@@ -93,12 +93,15 @@ float3 LightDir(SqLight light, float3 worldPos)
 float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos)
 {
 	float roughness = 1 - _Smoothness;
-	float3 viewDir = worldPos - _CameraPos;
+	float3 viewDir = -normalize(worldPos - _CameraPos);
 
 	float3 col = 0;
 	for (uint i = 0; i < numLight; i++)
 	{
-		float ndotL = dot(normal, -LightDir(light[i], worldPos));
+		float3 lightDir = -LightDir(light[i], worldPos);
+		float ndotL = saturate(dot(normal, lightDir));
+		float3 halfDir = (viewDir + lightDir) / (length(viewDir + lightDir) + 0.00001f);	// safe normalize
+
 		col += light[i].color * light[i].intensity * ndotL;
 	}
 
