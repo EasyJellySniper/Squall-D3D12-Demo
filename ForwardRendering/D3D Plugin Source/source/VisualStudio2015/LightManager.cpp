@@ -10,6 +10,7 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 	ID3D12Device *device = GraphicManager::Instance().GetDevice();
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
+		lightConstantGPU[i] = make_unique<UploadBuffer<LightConstant>>(device, 1, true);
 		dirLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxDirLight, false);
 		//pointLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxPointLight, false);
 		//spotLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxSpotLight, false);
@@ -24,6 +25,7 @@ void LightManager::Release()
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
+		lightConstantGPU[i].reset();
 		dirLightData[i].reset();
 		pointLightData[i].reset();
 		spotLightData[i].reset();
@@ -64,6 +66,12 @@ void LightManager::UpdateNativeLight(int _id, SqLightData _data)
 
 void LightManager::UploadLightBuffer(int _frameIdx)
 {
+	// light constant upload
+	LightConstant lc;
+	lc.numDirLight = (int)dirLights.size();
+	lightConstantGPU[_frameIdx]->CopyData(0, lc);
+
+	// per light upload
 	for (int i = 0; i < (int)dirLights.size(); i++)
 	{
 		if (dirLights[i].IsDirty(_frameIdx))
@@ -72,6 +80,11 @@ void LightManager::UploadLightBuffer(int _frameIdx)
 			dirLights[i].SetDirty(false, _frameIdx);
 		}
 	}
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetLightConstant(int _frameIdx)
+{
+	return lightConstantGPU[_frameIdx]->Resource()->GetGPUVirtualAddress();
 }
 
 ID3D12Resource* LightManager::GetDirLightResource(int _frameIdx)

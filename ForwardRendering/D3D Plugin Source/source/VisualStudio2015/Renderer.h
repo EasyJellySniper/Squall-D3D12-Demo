@@ -6,6 +6,11 @@
 using namespace DirectX;
 #include "Material.h"
 
+struct ObjectConstant
+{
+	XMFLOAT4X4 sqMatrixMvp;
+};
+
 class Renderer
 {
 public:

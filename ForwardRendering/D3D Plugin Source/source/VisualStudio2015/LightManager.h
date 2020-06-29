@@ -4,6 +4,13 @@
 #include "FrameResource.h"
 #include "UploadBuffer.h"
 
+struct LightConstant
+{
+	int numDirLight;
+	int numPointLight;
+	int numSpotLight;
+};
+
 class LightManager
 {
 public:
@@ -28,6 +35,7 @@ public:
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
 	void UploadLightBuffer(int _frameIdx);
 
+	D3D12_GPU_VIRTUAL_ADDRESS GetLightConstant(int _frameIdx);
 	ID3D12Resource* GetDirLightResource(int _frameIdx);
 
 private:
@@ -44,6 +52,7 @@ private:
 	vector<Light> pointLights;
 	vector<Light> spotLights;
 
+	unique_ptr<UploadBuffer<LightConstant>> lightConstantGPU[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> dirLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> pointLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];

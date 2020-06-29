@@ -19,8 +19,3 @@ struct FrameResource
 	ID3D12CommandAllocator *workerGfxAlloc[MAX_WORKER_THREAD_COUNT];
 	ID3D12GraphicsCommandList *workerGfxList[MAX_WORKER_THREAD_COUNT];
 };
-
-struct ObjectConstant
-{
-	XMFLOAT4X4 sqMatrixMvp;
-};

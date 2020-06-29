@@ -81,12 +81,12 @@ float3 GetEmission(float2 uv)
 #endif
 }
 
-float3 AccumulateDirLight()
+float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light)
 {
 	float3 col = 0;
-	for (uint i = 0; i < 1; i++)
+	for (uint i = 0; i < numLight; i++)
 	{
-		col += _SqDirLight[i].color * _SqDirLight[i].intensity;
+		col += light[i].color * light[i].intensity;
 	}
 
 	return col;
@@ -94,7 +94,7 @@ float3 AccumulateDirLight()
 
 float3 LightBRDF(float3 diffColor)
 {
-	return diffColor * AccumulateDirLight();
+	return diffColor * AccumulateLight(_NumDirLight, _SqDirLight);
 }
 
 #endif
