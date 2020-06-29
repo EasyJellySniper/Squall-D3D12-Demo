@@ -290,9 +290,9 @@ void ForwardRenderingPath::UploadSystemConstant(Camera _camera, int _frameIdx, i
 		XMFLOAT4X4 view = _camera.GetViewMatrix();
 		XMFLOAT4X4 proj = _camera.GetProjMatrix();
 
-		SystemConstant sc;
+		ObjectConstant sc;
 		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world) * XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
-		r->UpdateSystemConstant(sc, _frameIdx);
+		r->UpdateObjectConstant(sc, _frameIdx);
 	}
 }
 

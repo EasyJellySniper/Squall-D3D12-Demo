@@ -5,7 +5,7 @@ void Renderer::Init(int _meshID)
 {
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
-		rendererConstant[i] = make_unique<UploadBuffer<SystemConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
+		rendererConstant[i] = make_unique<UploadBuffer<ObjectConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
 	}
 
 	mesh = MeshManager::Instance().GetMesh(_meshID);
@@ -23,10 +23,10 @@ void Renderer::Release()
 	mesh = nullptr;
 }
 
-void Renderer::UpdateSystemConstant(SystemConstant _sc, int _frameIdx)
+void Renderer::UpdateObjectConstant(ObjectConstant _sc, int _frameIdx)
 {
-	currentSysConst = _sc;
-	rendererConstant[_frameIdx]->CopyData(0, currentSysConst);
+	currentObjConst = _sc;
+	rendererConstant[_frameIdx]->CopyData(0, currentObjConst);
 }
 
 void Renderer::UpdateBound(float _cx, float _cy, float _cz, float _ex, float _ey, float _ez)

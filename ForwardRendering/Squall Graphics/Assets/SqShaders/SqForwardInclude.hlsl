@@ -11,7 +11,7 @@ struct VertexInput
 	float2 uv2 : TEXCOORD1;
 };
 
-cbuffer SystemConstant : register(b0)
+cbuffer ObjectConstant : register(b0)
 {
 	float4x4 SQ_MATRIX_MVP;
 };

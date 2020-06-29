@@ -11,7 +11,7 @@ class Renderer
 public:
 	void Init(int _meshID);
 	void Release();
-	void UpdateSystemConstant(SystemConstant _sc, int _frameIdx);
+	void UpdateObjectConstant(ObjectConstant _sc, int _frameIdx);
 	void UpdateBound(float _cx,float _cy, float _cz, float _ex, float _ey, float _ez);
 	void SetVisible(bool _visible);
 	void SetWorld(XMFLOAT4X4 _world);
@@ -30,8 +30,8 @@ public:
 	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU(int _frameIdx);
 
 private:
-	SystemConstant currentSysConst;
-	unique_ptr<UploadBuffer<SystemConstant>> rendererConstant[MAX_FRAME_COUNT];
+	ObjectConstant currentObjConst;
+	unique_ptr<UploadBuffer<ObjectConstant>> rendererConstant[MAX_FRAME_COUNT];
 
 	Mesh *mesh;
 	BoundingBox bound;

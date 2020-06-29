@@ -20,7 +20,7 @@ struct FrameResource
 	ID3D12GraphicsCommandList *workerGfxList[MAX_WORKER_THREAD_COUNT];
 };
 
-struct SystemConstant
+struct ObjectConstant
 {
 	XMFLOAT4X4 sqMatrixMvp;
 };
