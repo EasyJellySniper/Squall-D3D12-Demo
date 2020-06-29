@@ -14,6 +14,7 @@ struct VertexInput
 cbuffer ObjectConstant : register(b0)
 {
 	float4x4 SQ_MATRIX_MVP;
+	float4x4 SQ_MATRIX_WORLD;
 };
 
 cbuffer SystemConstant : register(b1)
@@ -81,20 +82,31 @@ float3 GetEmission(float2 uv)
 #endif
 }
 
-float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light)
+float3 LightDir(SqLight light, float3 worldPos)
+{
+	return lerp(normalize(worldPos - light.world.xyz), light.world.xyz, light.type == 1);
+}
+
+//   BRDF = kD / pi + kS * (D * V * F) / 4
+//   I = BRDF * NdotL
+float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos)
 {
 	float3 col = 0;
 	for (uint i = 0; i < numLight; i++)
 	{
-		col += light[i].color * light[i].intensity;
+		float ndotL = dot(normal, -LightDir(light[i], worldPos));
+		col += light[i].color * light[i].intensity * ndotL;
 	}
 
 	return col;
 }
 
-float3 LightBRDF(float3 diffColor)
+float3 LightBRDF(float3 diffColor, float3 normal, float3 worldPos)
 {
-	return diffColor * AccumulateLight(_NumDirLight, _SqDirLight);
+	normal = normalize(normal);
+	float3 dirLightResult = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos);
+
+	return diffColor * dirLightResult;
 }
 
 #endif

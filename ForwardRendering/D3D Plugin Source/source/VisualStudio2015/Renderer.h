@@ -9,6 +9,7 @@ using namespace DirectX;
 struct ObjectConstant
 {
 	XMFLOAT4X4 sqMatrixMvp;
+	XMFLOAT4X4 sqMatrixWorld;
 };
 
 class Renderer

@@ -9,6 +9,8 @@ struct v2f
 {
 	float4 vertex : SV_POSITION;
 	float2 uv1 : TEXCOORD0;
+	float3 worldPos : TEXCOORD1;
+	float3 normal : NORMAL;
 };
 
 v2f ForwardPassVS(VertexInput i)
@@ -16,6 +18,10 @@ v2f ForwardPassVS(VertexInput i)
 	v2f o = (v2f)0;
 	o.vertex = mul(SQ_MATRIX_MVP, float4(i.vertex, 1.0f));
 	o.uv1 = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
+
+	// assume uniform scale, mul normal with world matrix directly
+	o.normal = mul((float3x3)SQ_MATRIX_WORLD, i.normal);
+	o.worldPos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f)).xyz;
 
 	return o;
 }
@@ -38,7 +44,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// GI
 
 	// BRDF
-	diffuse.rgb = LightBRDF(diffuse.rgb);
+	diffuse.rgb = LightBRDF(diffuse.rgb, i.normal, i.worldPos);
 
 	// emission
 	float3 emission = GetEmission(i.uv1);
