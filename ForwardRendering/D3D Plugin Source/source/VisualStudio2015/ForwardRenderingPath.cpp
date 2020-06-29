@@ -132,7 +132,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		}
 		else if (workerType == WorkerType::Upload)
 		{
-			UploadSystemConstant(targetCam, frameIndex, _threadIndex);
+			UploadObjectConstant(targetCam, frameIndex, _threadIndex);
 		}
 		else if(workerType == WorkerType::PrePassRendering)
 		{
@@ -258,7 +258,7 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::UploadSystemConstant(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::UploadObjectConstant(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
 
@@ -327,11 +327,11 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootSignature(_mat->GetRootSignature());
 
 	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetSystemConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, _mat->GetMaterialConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootShaderResourceView(4, LightManager::Instance().GetDirLightResource(_frameIdx)->GetGPUVirtualAddress());
+	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootShaderResourceView(5, LightManager::Instance().GetDirLightResource(_frameIdx)->GetGPUVirtualAddress());
 }
 
 void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex)
@@ -366,7 +366,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _thr
 			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
 
 			// set system constant of renderer
-			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(_frameIdx));
 
 			// draw mesh
 			SubMesh sm = m->GetSubMesh(r.submeshIndex);
@@ -435,14 +435,14 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 			_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
 
 			// set system/object constant of renderer
-			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetSystemConstantGPU(_frameIdx));
-			_cmdList->SetGraphicsRootConstantBufferView(1, objMat->GetMaterialConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(2, objMat->GetMaterialConstantGPU(_frameIdx));
 
 			// setup descriptor table gpu
 			if (qr.first >= RenderQueue::CutoffStart)
 			{
-				_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-				_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+				_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+				_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 			}
 
 			// draw mesh

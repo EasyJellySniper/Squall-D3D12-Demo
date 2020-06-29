@@ -16,7 +16,14 @@ cbuffer ObjectConstant : register(b0)
 	float4x4 SQ_MATRIX_MVP;
 };
 
-cbuffer MaterialConstant : register(b1)
+cbuffer SystemConstant : register(b1)
+{
+	int _NumDirLight;
+	int _NumPointLight;
+	int _NumSpotLight;
+};
+
+cbuffer MaterialConstant : register(b2)
 {
 	float4 _MainTex_ST;
 	float4 _Color;

@@ -54,7 +54,7 @@ private:
 	void WakeAndWaitWorker();
 	void FrustumCulling(int _threadIndex);
 	void BeginFrame(Camera _camera);
-	void UploadSystemConstant(Camera _camera, int _frameIdx, int _threadIndex);
+	void UploadObjectConstant(Camera _camera, int _frameIdx, int _threadIndex);
 	void BindState(Camera _camera, int _frameIdx, int _threadIndex);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh, int _frameIdx);
 	void DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex);

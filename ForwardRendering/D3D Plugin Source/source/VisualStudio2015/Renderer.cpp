@@ -111,7 +111,7 @@ Material* const Renderer::GetMaterial(int _index)
 	return materials[_index];
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS Renderer::GetSystemConstantGPU(int _frameIdx)
+D3D12_GPU_VIRTUAL_ADDRESS Renderer::GetObjectConstantGPU(int _frameIdx)
 {
 	return rendererConstant[_frameIdx]->Resource()->GetGPUVirtualAddress();
 }
