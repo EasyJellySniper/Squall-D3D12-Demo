@@ -29,6 +29,11 @@ bool GraphicManager::Initialize(ID3D12Device* _device, int _numOfThreads)
 		&& SUCCEEDED(CreateGraphicCommand())
 		&& SUCCEEDED(CreateGraphicFences())
 		&& CreateGraphicThreads();
+
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		systemConstantGPU[i] = make_unique<UploadBuffer<SystemConstant>>(_device, 1, true);
+	}
     
 	return initSucceed;
 }
@@ -64,6 +69,8 @@ void GraphicManager::Release()
 			workerGfxAllocator[j][i].Reset();
 			workerGfxList[j][i].Reset();
 		}
+
+		systemConstantGPU[i].reset();
 	}
 
 
@@ -445,4 +452,14 @@ void GraphicManager::WaitForWorkerThread()
 void GraphicManager::SetWorkerThreadFinishEvent(int _index)
 {
 	SetEvent(workerThreadFinish[_index]);
+}
+
+void GraphicManager::UploadSystemConstant(SystemConstant _sc, int _frameIdx)
+{
+	systemConstantGPU[_frameIdx]->CopyData(0, _sc);
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS GraphicManager::GetSystemConstant(int _frameIdx)
+{
+	return systemConstantGPU[_frameIdx]->Resource()->GetGPUVirtualAddress();
 }

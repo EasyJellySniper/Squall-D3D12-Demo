@@ -19,6 +19,7 @@ cbuffer ObjectConstant : register(b0)
 
 cbuffer SystemConstant : register(b1)
 {
+	float3 _CameraPos;
 	int _NumDirLight;
 	int _NumPointLight;
 	int _NumSpotLight;
@@ -91,6 +92,9 @@ float3 LightDir(SqLight light, float3 worldPos)
 //   I = BRDF * NdotL
 float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos)
 {
+	float roughness = 1 - _Smoothness;
+	float3 viewDir = worldPos - _CameraPos;
+
 	float3 col = 0;
 	for (uint i = 0; i < numLight; i++)
 	{

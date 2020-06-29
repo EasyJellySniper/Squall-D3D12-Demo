@@ -64,6 +64,8 @@ public:
 	void ResetWorkerThreadFinish();
 	void WaitForWorkerThread();
 	void SetWorkerThreadFinishEvent(int _index);
+	void UploadSystemConstant(SystemConstant _sc, int _frameIdx);
+	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstant(int _frameIdx);
 
 private:
 	HRESULT CreateGpuTimeQuery();
@@ -116,4 +118,7 @@ private:
 
 	// camera cache
 	Camera activeCam;
+
+	// system constant
+	unique_ptr<UploadBuffer<SystemConstant>> systemConstantGPU[MAX_FRAME_COUNT];
 };

@@ -19,3 +19,17 @@ struct FrameResource
 	ID3D12CommandAllocator *workerGfxAlloc[MAX_WORKER_THREAD_COUNT];
 	ID3D12GraphicsCommandList *workerGfxList[MAX_WORKER_THREAD_COUNT];
 };
+
+struct ObjectConstant
+{
+	XMFLOAT4X4 sqMatrixMvp;
+	XMFLOAT4X4 sqMatrixWorld;
+};
+
+struct SystemConstant
+{
+	XMFLOAT3 cameraPos;
+	int numDirLight;
+	int numPointLight;
+	int numSpotLight;
+};

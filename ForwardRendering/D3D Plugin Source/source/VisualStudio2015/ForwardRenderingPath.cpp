@@ -85,6 +85,12 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	// upload work
 	workerType = WorkerType::Upload;
 	WakeAndWaitWorker();
+
+	SystemConstant sc;
+	sc.cameraPos = _camera.GetPosition();
+	LightManager::Instance().FillSystemConstant(sc);
+
+	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 	LightManager::Instance().UploadLightBuffer(frameIndex);
 
 	// pre pass work
@@ -329,7 +335,7 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, LightManager::Instance().GetLightConstant(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstant(_frameIdx));
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
