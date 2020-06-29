@@ -98,11 +98,12 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 	float3 col = 0;
 	for (uint i = 0; i < numLight; i++)
 	{
+		float3 lightColor = light[i].color.rgb * light[i].intensity;
 		float3 lightDir = -LightDir(light[i], worldPos);
 		float ndotL = saturate(dot(normal, lightDir));
 		float3 halfDir = (viewDir + lightDir) / (length(viewDir + lightDir) + 0.00001f);	// safe normalize
 
-		col += light[i].color * light[i].intensity * ndotL;
+		col += lightColor * ndotL;
 	}
 
 	return col;
@@ -111,9 +112,9 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 float3 LightBRDF(float3 diffColor, float3 normal, float3 worldPos)
 {
 	normal = normalize(normal);
-	float3 dirLightResult = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos);
+	float3 dirLightDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos);
 
-	return diffColor * dirLightResult;
+	return diffColor * dirLightDiffuse;
 }
 
 #endif
