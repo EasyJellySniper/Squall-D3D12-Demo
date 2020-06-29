@@ -67,7 +67,7 @@ public class SqMeshRenderer : MonoBehaviour
         Material[] mats = rendererCache.sharedMaterials;
         for (int i = 0; i < mats.Length; i++)
         {
-            int cullMode = (mats[i].HasProperty("_CullMode")) ? (int)mats[i].GetFloat("_CullMode") : 0;
+            int cullMode = (mats[i].HasProperty("_CullMode")) ? (int)mats[i].GetFloat("_CullMode") : 2;
             int srcBlend = (mats[i].HasProperty("_SrcBlend")) ? (int)mats[i].GetFloat("_SrcBlend") : 1;
             int dstBlend = (mats[i].HasProperty("_DstBlend")) ? (int)mats[i].GetFloat("_DstBlend") : 0;
             bool isCutOff = (mats[i].renderQueue <= (int)RenderQueue.GeometryLast) && (mats[i].renderQueue >= 2226);
