@@ -101,7 +101,7 @@ float3 SchlickFresnel(float3 specColor, float ldotH)
 
 float BlinnPhong(float m, float ndotH)
 {
-	return pow(ndotH, m * m);
+	return pow(ndotH, m);
 }
 
 //   BRDF = Fresnel & Blinn Phong
