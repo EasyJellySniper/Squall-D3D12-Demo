@@ -44,7 +44,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// GI
 
 	// BRDF
-	diffuse.rgb = LightBRDF(diffuse.rgb, i.normal, i.worldPos);
+	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, i.normal, i.worldPos);
 
 	// emission
 	float3 emission = GetEmission(i.uv1);
