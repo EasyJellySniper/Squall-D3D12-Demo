@@ -20,7 +20,10 @@ float4 GetAlbedo(float2 uv, float2 detailUV)
 float4 GetSpecular(float2 uv)
 {
 #ifdef _SPEC_GLOSS_MAP
-	return _TexTable[_SpecularIndex].Sample(_SamplerTable[_SamplerIndex], uv);
+	float4 glossMap = _TexTable[_SpecularIndex].Sample(_SamplerTable[_SamplerIndex], uv);
+	glossMap.a *= _Smoothness;
+
+	return glossMap;
 #else
 	return float4(_SpecColor.rgb, _Smoothness);
 #endif

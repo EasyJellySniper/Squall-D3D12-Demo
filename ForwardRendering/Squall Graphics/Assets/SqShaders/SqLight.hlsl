@@ -25,9 +25,9 @@ float BlinnPhong(float m, float ndotH)
 
 //   BRDF = Fresnel & Blinn Phong
 //   I = BRDF * NdotL
-float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos, float3 specColor, out float3 specular)
+float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular)
 {
-	float roughness = 1 - _Smoothness;
+	float roughness = 1 - smoothness;
 	float3 viewDir = -normalize(worldPos - _CameraPos);
 
 	float3 col = 0;
@@ -50,11 +50,11 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 	return col;
 }
 
-float3 LightBRDF(float3 diffColor, float3 specColor, float3 normal, float3 worldPos)
+float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos)
 {
 	normal = normalize(normal);
 	float3 dirSpecular = 0;
-	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, dirSpecular);
+	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, smoothness, dirSpecular);
 
 	return diffColor * dirDiffuse + dirSpecular;
 }
