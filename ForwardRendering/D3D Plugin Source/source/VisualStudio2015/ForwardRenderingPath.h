@@ -59,7 +59,7 @@ private:
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh, int _frameIdx);
 	void DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex);
-	void DrawOpaquePass(Camera _camera, int _frameIdx, int _threadIndex, int _excludeMode = RenderQueue::CutoffStart);
+	void DrawOpaquePass(Camera _camera, int _frameIdx, int _threadIndex, bool _cutout = false);
 	void DrawCutoutPass(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawTransparentPass(Camera _camera, int _frameIdx);
 	void EndFrame(Camera _camera);

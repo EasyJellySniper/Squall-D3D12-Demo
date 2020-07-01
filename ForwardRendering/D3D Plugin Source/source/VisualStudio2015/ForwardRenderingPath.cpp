@@ -467,7 +467,7 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _threadIndex, int _excludeMode)
+void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _threadIndex, bool _cutout)
 {
 	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 
@@ -484,9 +484,18 @@ void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _th
 		int start = _threadIndex * count;
 
 		// onlt draw opaque
-		if (qr.first >= _excludeMode)
+		if (qr.first > RenderQueue::OpaqueLast)
 		{
 			continue;
+		}
+
+		if (_cutout)
+		{
+			// cutout pass check
+			if (qr.first < RenderQueue::CutoffStart)
+			{
+				continue;
+			}
 		}
 
 		for (int i = start; i <= start + count; i++)
@@ -521,7 +530,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _th
 
 void ForwardRenderingPath::DrawCutoutPass(Camera _camera, int _frameIdx, int _threadIndex)
 {
-	DrawOpaquePass(_camera, _frameIdx, _threadIndex, RenderQueue::OpaqueLast + 1);
+	DrawOpaquePass(_camera, _frameIdx, _threadIndex, true);
 }
 
 void ForwardRenderingPath::DrawTransparentPass(Camera _camera, int _frameIdx)
