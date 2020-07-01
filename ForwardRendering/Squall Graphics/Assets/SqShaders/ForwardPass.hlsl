@@ -71,7 +71,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// emission
 	float3 emission = GetEmission(i.tex.xy);
 
-	float4 output = diffuse * occlusion;
+	float4 output = diffuse;
 	output.rgb += emission;
 	return output;
 }
