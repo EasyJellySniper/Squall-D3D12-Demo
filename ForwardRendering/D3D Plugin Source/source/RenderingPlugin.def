@@ -21,6 +21,7 @@ EXPORTS
    GetGameTime
    AddNativeMesh
    AddNativeRenderer
+   SetNativeRendererActive
    AddNativeMaterial
    UpdateRendererBound
    AddNativeMaterialProp

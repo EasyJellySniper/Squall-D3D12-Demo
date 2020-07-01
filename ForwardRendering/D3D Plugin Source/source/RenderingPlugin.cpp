@@ -85,6 +85,11 @@ extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeRenderer(int 
 	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetNativeRendererActive(int _id, bool _active)
+{
+	RendererManager::Instance().SetNativeRendererActive(_id, _active);
+}
+
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode, int _srcBlend, int _dstBlend
 	, char* _nativeShader, int _numMacro, char** _macro)
 {

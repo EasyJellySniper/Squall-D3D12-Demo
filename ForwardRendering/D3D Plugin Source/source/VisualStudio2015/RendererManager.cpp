@@ -117,6 +117,15 @@ void RendererManager::Release()
 	queuedRenderers.clear();
 }
 
+void RendererManager::SetNativeRendererActive(int _id, bool _active)
+{
+	if (_id < 0 || _id >= (int)renderers.size())
+	{
+		return;
+	}
+	renderers[_id]->SetActive(_active);
+}
+
 vector<shared_ptr<Renderer>>& RendererManager::GetRenderers()
 {
 	return renderers;

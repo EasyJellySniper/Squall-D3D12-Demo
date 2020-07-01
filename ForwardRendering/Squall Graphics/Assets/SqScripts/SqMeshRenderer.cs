@@ -26,6 +26,9 @@ public class SqMeshRenderer : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void AddNativeMaterialProp(int _instanceID, int _matIndex, uint _byteSize, MaterialConstant _mc);
 
+    [DllImport("SquallGraphics")]
+    static extern void SetNativeRendererActive(int _id, bool _active);
+
     MeshRenderer rendererCache;
     int rendererNativeID = -1;
 
@@ -46,6 +49,16 @@ public class SqMeshRenderer : MonoBehaviour
 
         InitRenderer();
         ExtractMaterialData();
+    }
+
+    void OnEnable()
+    {
+        SetNativeRendererActive(rendererNativeID, true);
+    }
+
+    void OnDisable()
+    {
+        SetNativeRendererActive(rendererNativeID, false);
     }
 
     void Update()

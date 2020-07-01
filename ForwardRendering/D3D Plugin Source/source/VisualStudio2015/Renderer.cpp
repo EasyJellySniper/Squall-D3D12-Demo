@@ -10,6 +10,7 @@ void Renderer::Init(int _meshID)
 
 	mesh = MeshManager::Instance().GetMesh(_meshID);
 	isVisible = true;
+	isActive = true;
 }
 
 void Renderer::Release()
@@ -38,7 +39,12 @@ void Renderer::UpdateBound(float _cx, float _cy, float _cz, float _ex, float _ey
 
 void Renderer::SetVisible(bool _visible)
 {
-	isVisible = _visible;
+	isVisible = _visible && isActive;
+}
+
+void Renderer::SetActive(bool _active)
+{
+	isActive = _active;
 }
 
 void Renderer::SetWorld(XMFLOAT4X4 _world)
@@ -84,6 +90,11 @@ BoundingBox Renderer::GetBound()
 bool Renderer::GetVisible()
 {
 	return isVisible;
+}
+
+bool Renderer::GetActive()
+{
+	return isActive;
 }
 
 int Renderer::GetInstanceID()

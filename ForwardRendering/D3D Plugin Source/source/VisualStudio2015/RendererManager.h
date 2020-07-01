@@ -37,6 +37,7 @@ public:
 	void SetWorldMatrix(int _id, XMFLOAT4X4 _world);
 	void AddNativeMaterialProp(int _id, int _matId, UINT _byteSize, void* _data);
 	void Release();
+	void SetNativeRendererActive(int _id, bool _active);
 
 	vector<shared_ptr<Renderer>> &GetRenderers();
 	map<int, vector<QueueRenderer>>& GetQueueRenderers();
