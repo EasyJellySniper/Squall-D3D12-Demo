@@ -38,6 +38,12 @@ public class SqMeshRenderer : MonoBehaviour
             return;
         }
 
+        if (!GetComponent<MeshRenderer>().enabled)
+        {
+            enabled = false;
+            return;
+        }
+
         InitRenderer();
         ExtractMaterialData();
     }
