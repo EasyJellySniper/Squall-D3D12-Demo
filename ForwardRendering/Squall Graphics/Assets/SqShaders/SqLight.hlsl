@@ -44,7 +44,7 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 		float ndotH = saturate(dot(normal, halfDir));
 
 		col += lightColor * ndotL;
-		specular += lightColor * SchlickFresnel(specColor, ldotH) * BlinnPhong(roughness, ndotH) * ndotL;
+		specular += lightColor * SchlickFresnel(specColor, ldotH) * BlinnPhong(roughness, ndotH) * ndotL * 0.25f;
 	}
 
 	return col;
