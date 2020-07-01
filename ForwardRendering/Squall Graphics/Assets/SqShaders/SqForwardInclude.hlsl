@@ -16,6 +16,31 @@ float3 DiffuseAndSpecularLerp(float3 diffuse, float3 specular)
 	return diffuse * (float3(1, 1, 1) - specular);
 }
 
+float3 UnpackNormalMap(float4 packednormal)
+{
+	// This do the trick
+	packednormal.x *= packednormal.w;
+
+	float3 normal;
+	normal.xy = packednormal.xy * 2 - 1;
+	normal.z = sqrt(1 - saturate(dot(normal.xy, normal.xy)));
+	return normal;
+}
+
+float3 GetBumpNormal(float2 uv, float3 normal, float3x3 tbn = 0)
+{
+#ifdef _NORMAL_MAP
+	float4 packNormal = _TexTable[_NormalIndex].Sample(_SamplerTable[_NormalSampler], uv);
+	float3 normalTangent = UnpackNormalMap(packNormal);
+	normalTangent.xy *= _BumpScale;
+	normalTangent.z = sqrt(1.0 - saturate(dot(normalTangent.xy, normalTangent.xy)));
+
+	return normalize(normalTangent.x * tbn[0] + normalTangent.y * tbn[1] + normalTangent.z * tbn[2]);
+#else
+	return normal;
+#endif
+}
+
 float GetOcclusion(float2 uv)
 {
 	float o = _TexTable[_OcclusionIndex].Sample(_SamplerTable[_OcclusionSampler], uv).g;

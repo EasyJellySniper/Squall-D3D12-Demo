@@ -44,6 +44,7 @@ cbuffer MaterialConstant : register(b2)
 	float _CutOff;
 	float _Smoothness;
 	float _OcclusionStrength;
+	float _BumpScale;
 	int _DiffuseIndex;
 	int _DiffuseSampler;
 	int _SpecularIndex;

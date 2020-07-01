@@ -16,6 +16,7 @@ public struct MaterialConstant
     public float _CutOff;
     public float _Smoothness;
     public float _OcclusionStrength;
+    public float _BumpScale;
     public int _DiffuseIndex;
     public int _DiffuseSampler;
     public int _SpecularIndex;
@@ -105,6 +106,7 @@ public class SqMaterial
         mc._Smoothness = _mat.GetFloat("_Glossiness");
         mc._OcclusionStrength = _mat.GetFloat("_OcclusionStrength");
         mc._EmissionColor = _mat.GetColor("_EmissionColor").linear;
+        mc._BumpScale = _mat.GetFloat("_BumpScale");
 
         return mc;
     }

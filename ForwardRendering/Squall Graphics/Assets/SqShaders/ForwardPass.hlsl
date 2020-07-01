@@ -47,13 +47,20 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	float4 specular = GetSpecular(i.uv1);
 	diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
 
+	// normal
+	float3 bumpNormal = GetBumpNormal(i.uv1, i.normal
+#ifdef _NORMAL_MAP
+		, i.worldToTangent
+#endif
+		);
+
 	// occlusion 
 	float occlusion = GetOcclusion(i.uv1);
 
 	// GI
 
 	// BRDF
-	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, i.normal, i.worldPos);
+	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, bumpNormal, i.worldPos);
 
 	// emission
 	float3 emission = GetEmission(i.uv1);
