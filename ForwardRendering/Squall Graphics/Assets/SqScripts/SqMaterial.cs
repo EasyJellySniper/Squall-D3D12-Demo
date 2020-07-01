@@ -109,8 +109,8 @@ public class SqMaterial
         }
 
         // property
-        mc._Color = _mat.color.linear;
-        mc._SpecColor = _mat.GetColor("_SpecColor").linear;
+        mc._Color = _mat.color;
+        mc._SpecColor = _mat.GetColor("_SpecColor");
         mc._Smoothness = _mat.GetFloat("_Glossiness");
         mc._OcclusionStrength = _mat.GetFloat("_OcclusionStrength");
         mc._EmissionColor = _mat.GetColor("_EmissionColor").linear;
