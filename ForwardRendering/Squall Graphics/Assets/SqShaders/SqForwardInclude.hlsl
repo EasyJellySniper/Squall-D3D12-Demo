@@ -2,6 +2,11 @@
 #define SQFORWARDINCLUDE
 #include "SqInput.hlsl"
 
+float4 GetAlbedo(float2 uv)
+{
+	return _TexTable[_DiffuseIndex].Sample(_SamplerTable[_SamplerIndex], uv) * _Color;
+}
+
 float4 GetSpecular(float2 uv)
 {
 #ifdef _SPEC_GLOSS_MAP

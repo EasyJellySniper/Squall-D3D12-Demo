@@ -86,6 +86,11 @@ public class SqMeshRenderer : MonoBehaviour
                 macro.Add("_EMISSION");
             }
 
+            if (mats[i].GetTexture("_DetailAlbedoMap") || mats[i].GetTexture("_DetailNormalMap"))
+            {
+                macro.Add("_DETAIL_MAP");
+            }
+
             AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode, srcBlend, dstBlend, "ForwardPass.hlsl", macro.Count, macro.ToArray());
             macro.Clear();
         }

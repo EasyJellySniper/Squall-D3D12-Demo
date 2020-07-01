@@ -17,12 +17,17 @@ public struct MaterialConstant
     public float _Smoothness;
     public float _OcclusionStrength;
     public float _BumpScale;
+    public float _DetailBumpScale;
+    public float _DetailUV;
     public int _DiffuseIndex;
     public int _SamplerIndex;
     public int _SpecularIndex;
     public int _OcclusionIndex;
     public int _EmissionIndex;
     public int _NormalIndex;
+    public int _DetailMaskIndex;
+    public int _DetailAlbedoIndex;
+    public int _DetailNormalIndex;
 };
 
 public class SqMaterial
@@ -90,6 +95,9 @@ public class SqMaterial
         SetupTexAndSampler(_mat, "_OcclusionMap", ref mc._OcclusionIndex, ref dummy);
         SetupTexAndSampler(_mat, "_EmissionMap", ref mc._EmissionIndex, ref dummy);
         SetupTexAndSampler(_mat, "_BumpMap", ref mc._NormalIndex, ref dummy);
+        SetupTexAndSampler(_mat, "_DetailMask", ref mc._DetailMaskIndex, ref dummy);
+        SetupTexAndSampler(_mat, "_DetailAlbedoMap", ref mc._DetailAlbedoIndex, ref dummy);
+        SetupTexAndSampler(_mat, "_DetailNormalMap", ref mc._DetailNormalIndex, ref dummy);
 
         mc._MainTex_ST = new Vector4(_mat.mainTextureScale.x, _mat.mainTextureScale.y, _mat.mainTextureOffset.x, _mat.mainTextureOffset.y);
         if (_mat.HasProperty("_Cutoff"))
@@ -104,6 +112,8 @@ public class SqMaterial
         mc._OcclusionStrength = _mat.GetFloat("_OcclusionStrength");
         mc._EmissionColor = _mat.GetColor("_EmissionColor").linear;
         mc._BumpScale = _mat.GetFloat("_BumpScale");
+        mc._DetailBumpScale = _mat.GetFloat("_DetailNormalMapScale");
+        mc._DetailUV = _mat.GetFloat("_UVSec");
 
         return mc;
     }

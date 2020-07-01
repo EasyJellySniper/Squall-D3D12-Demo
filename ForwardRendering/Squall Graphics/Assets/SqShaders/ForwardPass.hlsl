@@ -6,6 +6,7 @@
 #pragma sq_keyword _SPEC_GLOSS_MAP
 #pragma sq_keyword _EMISSION
 #pragma sq_keyword _NORMAL_MAP
+#pragma sq_keyword _DETAIL_MAP
 
 struct v2f
 {
@@ -38,7 +39,7 @@ v2f ForwardPassVS(VertexInput i)
 float4 ForwardPassPS(v2f i) : SV_Target
 {
 	// diffuse
-	float4 diffuse = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_SamplerIndex], i.uv1) * _Color;
+	float4 diffuse = GetAlbedo(i.uv1);
 #ifdef _CUTOFF_ON
 	clip(diffuse.a - _CutOff);
 #endif
