@@ -18,15 +18,11 @@ public struct MaterialConstant
     public float _OcclusionStrength;
     public float _BumpScale;
     public int _DiffuseIndex;
-    public int _DiffuseSampler;
+    public int _SamplerIndex;
     public int _SpecularIndex;
-    public int _SpecularSampler;
     public int _OcclusionIndex;
-    public int _OcclusionSampler;
     public int _EmissionIndex;
-    public int _EmissionSampler;
     public int _NormalIndex;
-    public int _NormalSampler;
 };
 
 public class SqMaterial
@@ -88,11 +84,12 @@ public class SqMaterial
         MaterialConstant mc = new MaterialConstant();
 
         // get diffuse
-        SetupTexAndSampler(_mat, "_MainTex", ref mc._DiffuseIndex, ref mc._DiffuseSampler);
-        SetupTexAndSampler(_mat, "_SpecGlossMap", ref mc._SpecularIndex, ref mc._SpecularSampler);
-        SetupTexAndSampler(_mat, "_OcclusionMap", ref mc._OcclusionIndex, ref mc._OcclusionSampler);
-        SetupTexAndSampler(_mat, "_EmissionMap", ref mc._EmissionIndex, ref mc._EmissionSampler);
-        SetupTexAndSampler(_mat, "_BumpMap", ref mc._NormalIndex, ref mc._NormalSampler);
+        int dummy = 0;
+        SetupTexAndSampler(_mat, "_MainTex", ref mc._DiffuseIndex, ref mc._SamplerIndex);
+        SetupTexAndSampler(_mat, "_SpecGlossMap", ref mc._SpecularIndex, ref dummy);
+        SetupTexAndSampler(_mat, "_OcclusionMap", ref mc._OcclusionIndex, ref dummy);
+        SetupTexAndSampler(_mat, "_EmissionMap", ref mc._EmissionIndex, ref dummy);
+        SetupTexAndSampler(_mat, "_BumpMap", ref mc._NormalIndex, ref dummy);
 
         mc._MainTex_ST = new Vector4(_mat.mainTextureScale.x, _mat.mainTextureScale.y, _mat.mainTextureOffset.x, _mat.mainTextureOffset.y);
         if (_mat.HasProperty("_Cutoff"))

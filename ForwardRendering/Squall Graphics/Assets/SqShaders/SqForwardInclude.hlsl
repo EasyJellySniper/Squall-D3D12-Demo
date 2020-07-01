@@ -5,7 +5,7 @@
 float4 GetSpecular(float2 uv)
 {
 #ifdef _SPEC_GLOSS_MAP
-	return _TexTable[_SpecularIndex].Sample(_SamplerTable[_SpecularSampler], uv);
+	return _TexTable[_SpecularIndex].Sample(_SamplerTable[_SamplerIndex], uv);
 #else
 	return float4(_SpecColor.rgb, _Smoothness);
 #endif
@@ -30,7 +30,7 @@ float3 UnpackNormalMap(float4 packednormal)
 float3 GetBumpNormal(float2 uv, float3 normal, float3x3 tbn = 0)
 {
 #ifdef _NORMAL_MAP
-	float4 packNormal = _TexTable[_NormalIndex].Sample(_SamplerTable[_NormalSampler], uv);
+	float4 packNormal = _TexTable[_NormalIndex].Sample(_SamplerTable[_SamplerIndex], uv);
 	float3 normalTangent = UnpackNormalMap(packNormal);
 	normalTangent.xy *= _BumpScale;
 	normalTangent.z = sqrt(1.0 - saturate(dot(normalTangent.xy, normalTangent.xy)));
@@ -43,14 +43,14 @@ float3 GetBumpNormal(float2 uv, float3 normal, float3x3 tbn = 0)
 
 float GetOcclusion(float2 uv)
 {
-	float o = _TexTable[_OcclusionIndex].Sample(_SamplerTable[_OcclusionSampler], uv).g;
+	float o = _TexTable[_OcclusionIndex].Sample(_SamplerTable[_SamplerIndex], uv).g;
 	return lerp(1, o, _OcclusionStrength);
 }
 
 float3 GetEmission(float2 uv)
 {
 #ifdef _EMISSION
-	float3 emission = _TexTable[_EmissionIndex].Sample(_SamplerTable[_EmissionSampler], uv).rgb;
+	float3 emission = _TexTable[_EmissionIndex].Sample(_SamplerTable[_SamplerIndex], uv).rgb;
 	return emission * _EmissionColor.rgb;
 #else
 	return 0;

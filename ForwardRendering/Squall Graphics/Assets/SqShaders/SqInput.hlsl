@@ -46,15 +46,11 @@ cbuffer MaterialConstant : register(b2)
 	float _OcclusionStrength;
 	float _BumpScale;
 	int _DiffuseIndex;
-	int _DiffuseSampler;
+	int _SamplerIndex;
 	int _SpecularIndex;
-	int _SpecularSampler;
 	int _OcclusionIndex;
-	int _OcclusionSampler;
 	int _EmissionIndex;
-	int _EmissionSampler;
 	int _NormalIndex;
-	int _NormalSampler;
 };
 
 #pragma sq_srvStart

@@ -21,7 +21,7 @@ v2f DepthPrePassVS(VertexInput i)
 void DepthPrePassPS(v2f i)
 {
 #ifdef _CUTOFF_ON
-	float alpha = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_DiffuseSampler], i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw).a;
+	float alpha = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_SamplerIndex], i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw).a;
 	clip(alpha - _CutOff);
 #endif
 }

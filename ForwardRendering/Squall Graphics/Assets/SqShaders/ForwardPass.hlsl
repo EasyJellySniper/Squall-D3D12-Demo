@@ -38,7 +38,7 @@ v2f ForwardPassVS(VertexInput i)
 float4 ForwardPassPS(v2f i) : SV_Target
 {
 	// diffuse
-	float4 diffuse = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_DiffuseSampler], i.uv1) * _Color;
+	float4 diffuse = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_SamplerIndex], i.uv1) * _Color;
 #ifdef _CUTOFF_ON
 	clip(diffuse.a - _CutOff);
 #endif
