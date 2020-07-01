@@ -96,8 +96,14 @@ float3 LocalToWorldDir(float3 dir)
 float3x3 CreateTBN(float3 normal, float4 oTangent)
 {
 	float3 tangent = LocalToWorldDir(oTangent.xyz);
-	float3 binormal = cross(normal, tangent);
-	return float3x3(tangent, binormal, normal);
+	float3 binormal = cross(normal, tangent) * oTangent.w;
+
+	float3x3 tbn;
+	tbn[0] = tangent;
+	tbn[1] = binormal;
+	tbn[2] = normal;
+
+	return tbn;
 }
 
 #endif
