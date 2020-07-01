@@ -10,6 +10,7 @@ using UnityEngine;
 public struct MaterialConstant
 {
     public Vector4 _MainTex_ST;
+    public Vector4 _DetailAlbedoMap_ST;
     public Vector4 _Color;
     public Vector4 _SpecColor;
     public Vector4 _EmissionColor;
@@ -100,6 +101,8 @@ public class SqMaterial
         SetupTexAndSampler(_mat, "_DetailNormalMap", ref mc._DetailNormalIndex, ref dummy);
 
         mc._MainTex_ST = new Vector4(_mat.mainTextureScale.x, _mat.mainTextureScale.y, _mat.mainTextureOffset.x, _mat.mainTextureOffset.y);
+        mc._DetailAlbedoMap_ST = new Vector4(_mat.GetTextureScale("_DetailAlbedoMap").x, _mat.GetTextureScale("_DetailAlbedoMap").y
+            , _mat.GetTextureOffset("_DetailAlbedoMap").x, _mat.GetTextureOffset("_DetailAlbedoMap").y);
         if (_mat.HasProperty("_Cutoff"))
         {
             mc._CutOff = _mat.GetFloat("_Cutoff");

@@ -38,6 +38,7 @@ cbuffer SystemConstant : register(b1)
 cbuffer MaterialConstant : register(b2)
 {
 	float4 _MainTex_ST;
+	float4 _DetailAlbedoMap_ST;
 	float4 _Color;
 	float4 _SpecColor;
 	float4 _EmissionColor;

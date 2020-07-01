@@ -7,15 +7,17 @@
 #pragma sq_keyword _EMISSION
 #pragma sq_keyword _NORMAL_MAP
 #pragma sq_keyword _DETAIL_MAP
+#pragma sq_keyword _DETAIL_NORMAL_MAP
 
 struct v2f
 {
 	float4 vertex : SV_POSITION;
 	float2 uv1 : TEXCOORD0;
-	float3 worldPos : TEXCOORD1;
+	float2 uv2 : TEXCOORD1;
+	float3 worldPos : TEXCOORD2;
 	float3 normal : NORMAL;
 #ifdef _NORMAL_MAP
-	float3x3 worldToTangent : TEXCOORD2;
+	float3x3 worldToTangent : TEXCOORD3;
 #endif
 };
 
@@ -24,6 +26,7 @@ v2f ForwardPassVS(VertexInput i)
 	v2f o = (v2f)0;
 	o.vertex = mul(SQ_MATRIX_MVP, float4(i.vertex, 1.0f));
 	o.uv1 = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
+	o.uv2 = i.uv2;
 
 	// assume uniform scale, mul normal with world matrix directly
 	o.normal = LocalToWorldDir(i.normal);
@@ -38,8 +41,11 @@ v2f ForwardPassVS(VertexInput i)
 
 float4 ForwardPassPS(v2f i) : SV_Target
 {
+	float2 detailUV = lerp(i.uv1, i.uv2, _DetailUV);
+	detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
+
 	// diffuse
-	float4 diffuse = GetAlbedo(i.uv1);
+	float4 diffuse = GetAlbedo(i.uv1, detailUV);
 #ifdef _CUTOFF_ON
 	clip(diffuse.a - _CutOff);
 #endif
@@ -49,7 +55,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
 
 	// normal
-	float3 bumpNormal = GetBumpNormal(i.uv1, i.normal
+	float3 bumpNormal = GetBumpNormal(i.uv1, detailUV, i.normal
 #ifdef _NORMAL_MAP
 		, i.worldToTangent
 #endif
