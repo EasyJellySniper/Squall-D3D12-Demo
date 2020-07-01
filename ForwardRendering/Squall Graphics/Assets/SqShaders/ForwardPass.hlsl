@@ -1,9 +1,11 @@
 #include "SqForwardInclude.hlsl"
+#include "SqLight.hlsl"
 #pragma sq_vertex ForwardPassVS
 #pragma sq_pixel ForwardPassPS
 #pragma sq_keyword _CUTOFF_ON
 #pragma sq_keyword _SPEC_GLOSS_MAP
 #pragma sq_keyword _EMISSION
+#pragma sq_keyword _NORMAL_MAP
 
 struct v2f
 {
@@ -11,6 +13,9 @@ struct v2f
 	float2 uv1 : TEXCOORD0;
 	float3 worldPos : TEXCOORD1;
 	float3 normal : NORMAL;
+#ifdef _NORMAL_MAP
+	float3x3 worldToTangent : TEXCOORD2;
+#endif
 };
 
 v2f ForwardPassVS(VertexInput i)
@@ -20,8 +25,12 @@ v2f ForwardPassVS(VertexInput i)
 	o.uv1 = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
 
 	// assume uniform scale, mul normal with world matrix directly
-	o.normal = mul((float3x3)SQ_MATRIX_WORLD, i.normal);
+	o.normal = LocalToWorldDir(i.normal);
 	o.worldPos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f)).xyz;
+
+#ifdef _NORMAL_MAP
+	o.worldToTangent = CreateTBN(o.normal, i.tangent);
+#endif
 
 	return o;
 }

@@ -41,6 +41,7 @@ private:
 	vector<unique_ptr<Shader>> shaders;
 	vector<CD3DX12_ROOT_PARAMETER> rootSignatureParam;
 	vector<string> keywordGroup;
+	vector<wstring> includeFile;
 
 	bool parseSrv;
 	string entryVS;

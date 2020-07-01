@@ -18,6 +18,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 	// reset root signature for parsing
 	rootSignatureParam.clear();
 	keywordGroup.clear();
+	includeFile.clear();
 	parseSrv = false;
 	entryVS = "";
 	entryPS = "";
@@ -150,7 +151,21 @@ void ShaderManager::ParseShaderLine(wstring _input)
 
 			// remove "" of include name
 			includeName.erase(std::remove(includeName.begin(), includeName.end(), '"'), includeName.end());
-			CollectShaderData(includeName);
+
+			bool duplicateInclude = false;
+			for (int i = 0; i < includeFile.size(); i++)
+			{
+				if (includeFile[i] == includeName)
+				{
+					duplicateInclude = true;
+				}
+			}
+
+			if (!duplicateInclude)
+			{
+				CollectShaderData(includeName);
+				includeFile.push_back(includeName);
+			}
 		}
 		else if (ss == L"cbuffer")
 		{

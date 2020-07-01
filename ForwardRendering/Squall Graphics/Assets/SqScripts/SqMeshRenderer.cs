@@ -78,6 +78,7 @@ public class SqMeshRenderer : MonoBehaviour
                 macro.Add("_CUTOFF_ON");
             }
             SqMaterial.Instance.AddTexKeyword(mats[i], ref macro, "_SpecGlossMap", "_SPEC_GLOSS_MAP");
+            SqMaterial.Instance.AddTexKeyword(mats[i], ref macro, "_BumpMap", "_NORMAL_MAP");
 
             bool shouldEmissionBeEnabled = (mats[i].globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
             if (shouldEmissionBeEnabled)

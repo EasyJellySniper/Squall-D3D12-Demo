@@ -1,15 +1,62 @@
 #ifndef SQLIGHT
 #define SQLIGHT
+#include "SqInput.hlsl"
 
-struct SqLight
+float3 LightDir(SqLight light, float3 worldPos)
 {
-	float4 color;
+	return lerp(normalize(worldPos - light.world.xyz), light.world.xyz, light.type == 1);
+}
 
-	// as position for spot/point light, as dir for directional light
-	float4 world;
-	int type;
-	float intensity;
-	float2 padding;
-};
+float3 SchlickFresnel(float3 specColor, float ldotH)
+{
+	float cosIncidentAngle = ldotH;
+
+	// pow5
+	float f0 = 1.0f - cosIncidentAngle;
+	float3 reflectPercent = specColor + (1.0f - specColor) * (f0 * f0 * f0 * f0 * f0);
+
+	return reflectPercent;
+}
+
+float BlinnPhong(float m, float ndotH)
+{
+	return pow(ndotH, m);
+}
+
+//   BRDF = Fresnel & Blinn Phong
+//   I = BRDF * NdotL
+float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos, float3 specColor, out float3 specular)
+{
+	float roughness = 1 - _Smoothness;
+	float3 viewDir = -normalize(worldPos - _CameraPos);
+
+	float3 col = 0;
+	specular = 0;
+
+	for (uint i = 0; i < numLight; i++)
+	{
+		float3 lightColor = light[i].color.rgb * light[i].intensity;
+		float3 lightDir = -LightDir(light[i], worldPos);
+		float3 halfDir = (viewDir + lightDir) / (length(viewDir + lightDir) + 0.00001f);	// safe normalize
+
+		float ndotL = saturate(dot(normal, lightDir));
+		float ldotH = saturate(dot(lightDir, halfDir));
+		float ndotH = saturate(dot(normal, halfDir));
+
+		col += lightColor * ndotL;
+		specular += lightColor * SchlickFresnel(specColor, ldotH) * BlinnPhong(roughness, ndotH) * ndotL;
+	}
+
+	return col;
+}
+
+float3 LightBRDF(float3 diffColor, float3 specColor, float3 normal, float3 worldPos)
+{
+	normal = normalize(normal);
+	float3 dirSpecular = 0;
+	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, dirSpecular);
+
+	return diffColor * dirDiffuse + dirSpecular;
+}
 
 #endif
