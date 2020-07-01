@@ -12,12 +12,11 @@
 struct v2f
 {
 	float4 vertex : SV_POSITION;
-	float2 uv1 : TEXCOORD0;
-	float2 uv2 : TEXCOORD1;
-	float3 worldPos : TEXCOORD2;
+	float4 tex : TEXCOORD0;
+	float3 worldPos : TEXCOORD1;
 	float3 normal : NORMAL;
 #ifdef _NORMAL_MAP
-	float3x3 worldToTangent : TEXCOORD3;
+	float3x3 worldToTangent : TEXCOORD2;
 #endif
 };
 
@@ -25,8 +24,11 @@ v2f ForwardPassVS(VertexInput i)
 {
 	v2f o = (v2f)0;
 	o.vertex = mul(SQ_MATRIX_MVP, float4(i.vertex, 1.0f));
-	o.uv1 = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
-	o.uv2 = i.uv2;
+	o.tex.xy = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
+
+	float2 detailUV = lerp(i.uv1, i.uv2, _DetailUV);
+	detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
+	o.tex.zw = detailUV;
 
 	// assume uniform scale, mul normal with world matrix directly
 	o.normal = LocalToWorldDir(i.normal);
@@ -41,28 +43,25 @@ v2f ForwardPassVS(VertexInput i)
 
 float4 ForwardPassPS(v2f i) : SV_Target
 {
-	float2 detailUV = lerp(i.uv1, i.uv2, _DetailUV);
-	detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
-
 	// diffuse
-	float4 diffuse = GetAlbedo(i.uv1, detailUV);
+	float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
 #ifdef _CUTOFF_ON
 	clip(diffuse.a - _CutOff);
 #endif
 
 	// specular
-	float4 specular = GetSpecular(i.uv1);
+	float4 specular = GetSpecular(i.tex.xy);
 	diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
 
 	// normal
-	float3 bumpNormal = GetBumpNormal(i.uv1, detailUV, i.normal
+	float3 bumpNormal = GetBumpNormal(i.tex.xy, i.tex.zw, i.normal
 #ifdef _NORMAL_MAP
 		, i.worldToTangent
 #endif
 		);
 
 	// occlusion 
-	float occlusion = GetOcclusion(i.uv1);
+	float occlusion = GetOcclusion(i.tex.xy);
 
 	// GI
 
@@ -70,7 +69,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, bumpNormal, i.worldPos);
 
 	// emission
-	float3 emission = GetEmission(i.uv1);
+	float3 emission = GetEmission(i.tex.xy);
 
 	float4 output = diffuse * occlusion;
 	output.rgb += emission;
