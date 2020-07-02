@@ -71,7 +71,7 @@ float3 GetBumpNormal(float2 uv, float2 detailUV, float3 normal, float3x3 tbn = 0
 
 	return normalize(normalTangent.x * tbn[0] + normalTangent.y * tbn[1] + normalTangent.z * tbn[2]);
 #else
-	return normal;
+	return normalize(normal);
 #endif
 }
 

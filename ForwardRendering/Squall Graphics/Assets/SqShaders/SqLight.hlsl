@@ -52,7 +52,6 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 
 float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos)
 {
-	normal = normalize(normal);
 	float3 dirSpecular = 0;
 	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, smoothness, dirSpecular);
 
