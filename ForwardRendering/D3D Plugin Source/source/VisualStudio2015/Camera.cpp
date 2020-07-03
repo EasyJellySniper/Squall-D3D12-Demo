@@ -160,7 +160,7 @@ void Camera::Release()
 
 	for (auto& m : pipelineMaterials)
 	{
-		for (int i = 0; i < MAX_CULL_MODE; i++)
+		for (int i = 0; i < CullMode::NumCullMode; i++)
 		{
 			m.second[i].Release();
 		}
@@ -461,7 +461,7 @@ bool Camera::CreatePipelineMaterial()
 	// init vector
 	for (int i = 0; i < MaterialType::EndSystemMaterial; i++)
 	{
-		pipelineMaterials[i].resize(MAX_CULL_MODE);
+		pipelineMaterials[i].resize(CullMode::NumCullMode);
 	}
 
 	// create debug wire frame material
@@ -478,7 +478,7 @@ bool Camera::CreatePipelineMaterial()
 	Shader* depthPrePassCutoff = ShaderManager::Instance().CompileShader(L"DepthPrePass.hlsl", depthMacro);
 	if (depthPrePassOpaque != nullptr)
 	{
-		for (int i = 0; i < MAX_CULL_MODE; i++)
+		for (int i = 0; i < CullMode::NumCullMode; i++)
 		{
 			pipelineMaterials[MaterialType::DepthPrePassOpaque][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassOpaque, *this, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
 		}
@@ -486,7 +486,7 @@ bool Camera::CreatePipelineMaterial()
 
 	if (depthPrePassCutoff != nullptr)
 	{
-		for (int i = 0; i < MAX_CULL_MODE; i++)
+		for (int i = 0; i < CullMode::NumCullMode; i++)
 		{
 			pipelineMaterials[MaterialType::DepthPrePassCutoff][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassCutoff, *this, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
 		}

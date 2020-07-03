@@ -29,6 +29,15 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _came
 	return result;
 }
 
+Material MaterialManager::CreateMaterialDepthOnly(Shader* _shader, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode, int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
+{
+	auto desc = CollectPsoDepth(_shader, _fillMode, _cullMode, _srcBlend, _dstBlend, _depthFunc, _zWrite);
+
+	Material result;
+	result.CreatePsoFromDesc(desc);
+	return result;
+}
+
 Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bool _enableDepth)
 {
 	// create pso
@@ -192,6 +201,42 @@ D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shad
 	desc.DSVFormat = _camera.GetDepthDesc().Format;
 	desc.SampleDesc.Count = _camera.GetMsaaCount();
 	desc.SampleDesc.Quality = _camera.GetMsaaQuailty();
+
+	return desc;
+}
+
+D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDepth(Shader* _shader, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode, int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
+{
+	// create pso
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+
+	desc.pRootSignature = _shader->GetRootSignatureRef().Get();
+	desc.VS.BytecodeLength = _shader->GetVS()->GetBufferSize();
+	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetVS()->GetBufferPointer());
+	desc.PS.BytecodeLength = _shader->GetPS()->GetBufferSize();
+	desc.PS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetPS()->GetBufferPointer());
+
+	// feed blend according to input
+	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+
+	desc.SampleMask = UINT_MAX;
+	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	desc.RasterizerState.FrontCounterClockwise = true;
+	desc.RasterizerState.FillMode = _fillMode;
+	desc.RasterizerState.CullMode = _cullMode;
+	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	desc.DepthStencilState.DepthFunc = _depthFunc;
+	desc.DepthStencilState.DepthWriteMask = (_zWrite) ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+
+	desc.InputLayout.pInputElementDescs = MeshManager::Instance().GetDefaultInputLayout();
+	desc.InputLayout.NumElements = MeshManager::Instance().GetDefaultInputLayoutSize();
+	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	desc.NumRenderTargets = 0;
+
+	desc.DSVFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
 
 	return desc;
 }

@@ -18,7 +18,7 @@ enum RenderQueue
 
 enum CullMode
 {
-	Off, Front, Back
+	Off, Front, Back, NumCullMode
 };
 
 enum BlendMode

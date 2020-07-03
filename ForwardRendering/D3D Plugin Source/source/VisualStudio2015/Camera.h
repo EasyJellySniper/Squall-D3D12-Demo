@@ -76,7 +76,6 @@ public:
 
 private:
 	static const int MAX_RENDER_TARGETS = 8;
-	static const int MAX_CULL_MODE = 3;
 
 	HRESULT CreateRtvDescriptorHeaps();
 	HRESULT CreateDsvDescriptorHeaps();

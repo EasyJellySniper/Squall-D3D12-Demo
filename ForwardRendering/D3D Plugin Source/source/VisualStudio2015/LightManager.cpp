@@ -1,5 +1,6 @@
 #include "LightManager.h"
 #include "GraphicManager.h"
+#include "ShaderManager.h"
 
 void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 {
@@ -7,12 +8,31 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 	maxPointLight = _numPointLight;
 	maxSpotLight = _numSpotLight;
 
+	// create srv buffer
 	ID3D12Device *device = GraphicManager::Instance().GetDevice();
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		dirLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxDirLight, false);
 		//pointLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxPointLight, false);
 		//spotLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxSpotLight, false);
+	}
+
+	D3D_SHADER_MACRO shadowMacro[] = { "_SHADOW_CUTOFF_ON","1",NULL,NULL };
+	Shader* shadowPassOpaque = ShaderManager::Instance().CompileShader(L"ShadowPass.hlsl");
+	Shader* shadowPassCutoff = ShaderManager::Instance().CompileShader(L"ShadowPass.hlsl", shadowMacro);
+
+	// create shadow material
+	for (int i = 0; i < CullMode::NumCullMode; i++)
+	{
+		if (shadowPassOpaque != nullptr)
+		{
+			shadowOpaqueMat[i] = MaterialManager::Instance().CreateMaterialDepthOnly(shadowPassOpaque, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
+		}
+
+		if (shadowPassCutoff != nullptr)
+		{
+			shadowCutoutMat[i] = MaterialManager::Instance().CreateMaterialDepthOnly(shadowPassCutoff, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
+		}
 	}
 }
 
@@ -47,6 +67,12 @@ void LightManager::Release()
 		dirLightData[i].reset();
 		pointLightData[i].reset();
 		spotLightData[i].reset();
+	}
+
+	for (int i = 0; i < CullMode::NumCullMode; i++)
+	{
+		shadowOpaqueMat[i].Release();
+		shadowCutoutMat[i].Release();
 	}
 }
 

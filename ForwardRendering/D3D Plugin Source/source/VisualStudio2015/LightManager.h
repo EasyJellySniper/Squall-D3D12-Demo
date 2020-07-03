@@ -3,6 +3,7 @@
 #include <vector>
 #include "FrameResource.h"
 #include "UploadBuffer.h"
+#include "MaterialManager.h"
 
 class LightManager
 {
@@ -50,4 +51,7 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> dirLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> pointLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
+
+	Material shadowOpaqueMat[CullMode::NumCullMode];
+	Material shadowCutoutMat[CullMode::NumCullMode];
 };
