@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 #include "FrameResource.h"
+const int MAX_CASCADE_SHADOW = 4;
 
 enum LightType
 {
@@ -13,7 +14,7 @@ enum LightType
 
 struct SqLightData
 {
-	XMFLOAT4X4 shadowMatrix;
+	XMFLOAT4X4 shadowMatrix[MAX_CASCADE_SHADOW];
 	XMFLOAT4 color;
 	XMFLOAT4 worldPos;
 	int type;
@@ -37,8 +38,6 @@ public:
 	bool IsDirty(int _frameIdx);
 
 private:
-	static const int MAX_CASCADE_SHADOW = 8;
-
 	bool isDirty[MAX_FRAME_COUNT];
 	int instanceID;
 	SqLightData lightDataCPU;

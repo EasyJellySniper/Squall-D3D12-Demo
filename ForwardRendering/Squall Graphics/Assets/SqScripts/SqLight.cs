@@ -28,7 +28,8 @@ public class SqLight : MonoBehaviour
         /// <summary>
         /// shadow matrix
         /// </summary>
-        public Matrix4x4 shadowMatrix;
+        [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.Struct, SizeConst = 4)]
+        public Matrix4x4[] shadowMatrix;
 
         /// <summary>
         /// color
@@ -112,6 +113,7 @@ public class SqLight : MonoBehaviour
     {
         lightCache = GetComponent<Light>();
         lightData = new SqLightData();
+        lightData.shadowMatrix = new Matrix4x4[4];
         lightData.color = lightCache.color.linear;
         lightData.type = (int)lightCache.type;
         lightData.intensity = lightCache.intensity;
@@ -132,6 +134,12 @@ public class SqLight : MonoBehaviour
     {
         if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional)
         {
+            return;
+        }
+
+        if (cascadeSetting.Length > 4)
+        {
+            Debug.LogError("Max cascade is 4");
             return;
         }
 
