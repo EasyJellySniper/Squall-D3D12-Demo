@@ -16,6 +16,11 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 	}
 }
 
+void LightManager::InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw)
+{
+	AddDirShadow(_nativeID, _numCascade, _shadowMapRaw);
+}
+
 void LightManager::Release()
 {
 	for (int i = 0; i < (int)dirLights.size(); i++)
@@ -150,4 +155,14 @@ int LightManager::AddPointLight(int _instanceID, SqLightData _data)
 int LightManager::AddSpotLight(int _instanceID, SqLightData _data)
 {
 	return -1;
+}
+
+void LightManager::AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw)
+{
+	if (_nativeID < 0 || (int)_nativeID >= dirLights.size())
+	{
+		return;
+	}
+
+	dirLights[_nativeID].InitNativeShadows(_numCascade, _shadowMapRaw);
 }

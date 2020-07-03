@@ -5,6 +5,7 @@
 using namespace std;
 #include <locale>
 #include <codecvt>
+#include <dxgiformat.h>
 
 inline wstring AnsiToWString(const string& str)
 {
@@ -54,3 +55,54 @@ inline void LogMessage(wstring _str)
 	y = _hr; \
 }
 #endif
+
+inline DXGI_FORMAT GetColorFormatFromTypeless(DXGI_FORMAT _typelessFormat)
+{
+	DXGI_FORMAT colorFormat = DXGI_FORMAT_UNKNOWN;
+	if (_typelessFormat == DXGI_FORMAT_R16G16B16A16_TYPELESS)
+	{
+		colorFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	}
+	else
+	{
+		LogMessage(L"[SqGraphic Error] SqCamera: Unknown Render Target Format " + to_wstring(_typelessFormat) + L".");
+	}
+
+	return colorFormat;
+}
+
+inline DXGI_FORMAT GetDepthFormatFromTypeless(DXGI_FORMAT _typelessFormat)
+{
+	DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_UNKNOWN;
+
+	// need to choose depth buffer according to input
+	if (_typelessFormat == DXGI_FORMAT_R32G8X24_TYPELESS)
+	{
+		// 32 bit depth buffer
+		depthStencilFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+	}
+	else
+	{
+		LogMessage(L"[SqGraphic Error] SqCamera: Unknown Depth Target Format " + to_wstring(_typelessFormat) + L".");
+	}
+
+	return depthStencilFormat;
+}
+
+inline DXGI_FORMAT GetShaderFormatFromTypeless(DXGI_FORMAT _typelessFormat)
+{
+	DXGI_FORMAT srvFormat = DXGI_FORMAT_UNKNOWN;
+
+	// need to choose depth buffer according to input
+	if (_typelessFormat == DXGI_FORMAT_R32G8X24_TYPELESS)
+	{
+		// 32 bit depth buffer
+		srvFormat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+	}
+	else
+	{
+		LogMessage(L"[SqGraphic Error] SqCamera: Unknown Shader Target Format " + to_wstring(_typelessFormat) + L".");
+	}
+
+	return srvFormat;
+}

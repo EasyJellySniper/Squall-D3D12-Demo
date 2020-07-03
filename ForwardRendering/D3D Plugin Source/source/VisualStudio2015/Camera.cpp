@@ -36,7 +36,7 @@ bool Camera::Initialize(CameraData _cameraData)
 		// get target desc here
 		D3D12_RESOURCE_DESC srcDesc = renderTarget[i]->GetDesc();
 		renderTarrgetDesc[i] = srcDesc;
-		renderTarrgetDesc[i].Format = GetColorFormat(srcDesc.Format);
+		renderTarrgetDesc[i].Format = GetColorFormatFromTypeless(srcDesc.Format);
 
 		// create msaa target if necessary
 		if (cameraData.allowMSAA > 1)
@@ -93,12 +93,12 @@ bool Camera::Initialize(CameraData _cameraData)
 
 		// check aa quality
 		D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS aaData;
-		aaData = CheckMsaaQuality(cameraData.allowMSAA, GetDepthFormat(srcDesc.Format));
+		aaData = CheckMsaaQuality(cameraData.allowMSAA, GetDepthFormatFromTypeless(srcDesc.Format));
 		srcDesc.SampleDesc.Quality = max(aaData.NumQualityLevels - 1, 0);
 
 		optClearDepth.DepthStencil.Depth = 0.0f;
 		optClearDepth.DepthStencil.Stencil = 0;
-		optClearDepth.Format = GetDepthFormat(srcDesc.Format);
+		optClearDepth.Format = GetDepthFormatFromTypeless(srcDesc.Format);
 
 		HRESULT hr = S_OK;
 		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT)
@@ -444,7 +444,7 @@ void Camera::CreateDsv()
 {
 	D3D12_RESOURCE_DESC dsvRrcDesc = depthTarget->GetDesc();
 	depthTargetDesc = dsvRrcDesc;
-	depthTargetDesc.Format = GetDepthFormat(dsvRrcDesc.Format);
+	depthTargetDesc.Format = GetDepthFormatFromTypeless(dsvRrcDesc.Format);
 	DXGI_FORMAT depthStencilFormat = depthTargetDesc.Format;
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
@@ -509,45 +509,6 @@ bool Camera::CreatePipelineMaterial()
 	}
 
 	return true;
-}
-
-DXGI_FORMAT Camera::GetColorFormat(DXGI_FORMAT _typelessFormat)
-{
-	DXGI_FORMAT colorFormat = DXGI_FORMAT_UNKNOWN;
-	if (_typelessFormat == DXGI_FORMAT_R16G16B16A16_TYPELESS)
-	{
-		colorFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	}
-
-	return colorFormat;
-}
-
-DXGI_FORMAT Camera::GetDepthFormat(DXGI_FORMAT _typelessFormat)
-{
-	DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_UNKNOWN;
-
-	// need to choose depth buffer according to input
-	if (_typelessFormat == DXGI_FORMAT_R32G8X24_TYPELESS)
-	{
-		// 32 bit depth buffer
-		depthStencilFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-	}
-	else if (_typelessFormat == DXGI_FORMAT_R24G8_TYPELESS)
-	{
-		// 24 bit depth buffer
-		depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	}
-	else if (_typelessFormat == DXGI_FORMAT_R16_TYPELESS)
-	{
-		// 16 bit depth buffer
-		depthStencilFormat = DXGI_FORMAT_D16_UNORM;
-	}
-	else
-	{
-		LogMessage(L"[SqGraphic Error] SqCamera: Unknown Depth Target Format " + to_wstring(_typelessFormat) + L".");
-	}
-
-	return depthStencilFormat;
 }
 
 D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS Camera::CheckMsaaQuality(int _sampleCount, DXGI_FORMAT _format)

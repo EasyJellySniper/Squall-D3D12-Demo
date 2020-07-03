@@ -22,6 +22,7 @@ public:
 	~LightManager() {}
 
 	void Init(int _numDirLight, int _numPointLight, int _numSpotLight);
+	void InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void Release();
 
 	int AddNativeLight(int _instanceID, SqLightData _data);
@@ -36,6 +37,7 @@ private:
 	int AddDirLight(int _instanceID, SqLightData _data);
 	int AddPointLight(int _instanceID, SqLightData _data);
 	int AddSpotLight(int _instanceID, SqLightData _data);
+	void AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw);
 
 	int maxDirLight;
 	int maxPointLight;

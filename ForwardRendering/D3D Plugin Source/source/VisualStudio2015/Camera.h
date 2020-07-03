@@ -83,8 +83,6 @@ private:
 	void CreateRtv();
 	void CreateDsv();
 	bool CreatePipelineMaterial();
-	DXGI_FORMAT GetColorFormat(DXGI_FORMAT _typelessFormat);
-	DXGI_FORMAT GetDepthFormat(DXGI_FORMAT _typelessFormat);
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS CheckMsaaQuality(int _sampleCount, DXGI_FORMAT _format);
 
 	CameraData cameraData;

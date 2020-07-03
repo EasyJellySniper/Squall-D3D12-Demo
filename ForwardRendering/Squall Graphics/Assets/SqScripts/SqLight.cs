@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 /// <summary>
@@ -17,6 +18,9 @@ public class SqLight : MonoBehaviour
 
     [DllImport("SquallGraphics")]
     static extern void UpdateNativeLight(int _nativeID, SqLightData _sqLightData);
+
+    [DllImport("SquallGraphics")]
+    static extern void InitNativeShadows(int _nativeID, int _numCascade, IntPtr[] _shadowMaps);
 
     [StructLayout(LayoutKind.Sequential)]
     struct SqLightData
@@ -56,7 +60,7 @@ public class SqLight : MonoBehaviour
     /// <summary>
     /// cascade setting
     /// </summary>
-    [Header("Cascade setting, only works with directional shadow")]
+    [Header("Cascade setting")]
     public float[] cascadeSetting;
 
     /// <summary>
@@ -121,7 +125,7 @@ public class SqLight : MonoBehaviour
 
     void InitShadows()
     {
-        if (lightCache.shadows == LightShadows.None)
+        if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional)
         {
             return;
         }
@@ -129,7 +133,7 @@ public class SqLight : MonoBehaviour
         int size = shadowMapSize[(int)shadowSize];
 
         // create cascade shadows
-        if (lightCache.type == LightType.Directional && cascadeSetting.Length > 0)
+        if (cascadeSetting.Length > 0)
         {
             shadowMaps = new RenderTexture[cascadeSetting.Length];
             for (int i = 0; i < shadowMaps.Length; i++)
@@ -145,6 +149,13 @@ public class SqLight : MonoBehaviour
             shadowMaps[0] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth);
             shadowMaps[0].name = name + "_ShadowMap";
         }
+
+        IntPtr[] shadowPtr = new IntPtr[shadowMaps.Length];
+        for (int i = 0; i < shadowMaps.Length; i++)
+        {
+            shadowPtr[i] = shadowMaps[i].GetNativeDepthBufferPtr();
+        }
+        InitNativeShadows(nativeID, shadowMaps.Length, shadowPtr);
     }
 
     void UpdateNativeLight()
