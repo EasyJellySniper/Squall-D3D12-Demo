@@ -26,6 +26,11 @@ public class SqLight : MonoBehaviour
     struct SqLightData
     {
         /// <summary>
+        /// shadow matrix
+        /// </summary>
+        public Matrix4x4 shadowMatrix;
+
+        /// <summary>
         /// color
         /// </summary>
         public Vector4 color;

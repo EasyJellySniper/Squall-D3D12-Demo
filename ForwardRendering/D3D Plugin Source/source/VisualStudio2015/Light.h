@@ -13,6 +13,7 @@ enum LightType
 
 struct SqLightData
 {
+	XMFLOAT4X4 shadowMatrix;
 	XMFLOAT4 color;
 	XMFLOAT4 worldPos;
 	int type;

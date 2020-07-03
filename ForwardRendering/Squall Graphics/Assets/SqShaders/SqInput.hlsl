@@ -12,6 +12,7 @@ struct VertexInput
 
 struct SqLight
 {
+	float4x4 shadowMatrix;
 	float4 color;
 
 	// as position for spot/point light, as dir for directional light
