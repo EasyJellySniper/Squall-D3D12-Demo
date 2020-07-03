@@ -18,6 +18,21 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 
 void LightManager::Release()
 {
+	for (int i = 0; i < (int)dirLights.size(); i++)
+	{
+		dirLights[i].Release();
+	}
+
+	for (int i = 0; i < (int)pointLights.size(); i++)
+	{
+		pointLights[i].Release();
+	}
+
+	for (int i = 0; i < (int)spotLights.size(); i++)
+	{
+		spotLights[i].Release();
+	}
+
 	dirLights.clear();
 	pointLights.clear();
 	spotLights.clear();

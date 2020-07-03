@@ -11,6 +11,15 @@ void Light::Init(int _instanceID, SqLightData _data)
 	}
 }
 
+void Light::Release()
+{
+	for (int i = 0; i < MAX_CASCADE_SHADOW; i++)
+	{
+		shadowMapDSV[i].Reset();
+		shadowMapSRV[i].Reset();
+	}
+}
+
 void Light::SetLightData(SqLightData _data)
 {
 	lightDataCPU = _data;
