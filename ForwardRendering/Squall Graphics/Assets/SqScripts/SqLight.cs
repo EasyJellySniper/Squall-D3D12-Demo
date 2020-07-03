@@ -7,6 +7,11 @@ using UnityEngine;
 [RequireComponent(typeof(Light))]
 public class SqLight : MonoBehaviour
 {
+    public enum ShadowSize
+    {
+        S256 = 0, S512, S1024, S2048, S4096, S8192
+    }
+
     [DllImport("SquallGraphics")]
     static extern int AddNativeLight(int _instanceID, SqLightData _sqLightData);
 
@@ -42,9 +47,27 @@ public class SqLight : MonoBehaviour
         public Vector2 padding;
     }
 
+    /// <summary>
+    /// shadow size
+    /// </summary>
+    [Header("Shadow size, note even cascade use this size!")]
+    public ShadowSize shadowSize = ShadowSize.S4096;
+
+    /// <summary>
+    /// cascade setting
+    /// </summary>
+    [Header("Cascade setting, only works with directional shadow")]
+    public float[] cascadeSetting;
+
+    /// <summary>
+    /// shadow map
+    /// </summary>
+    public RenderTexture[] shadowMaps;
+
     SqLightData lightData;
     Light lightCache;
     int nativeID = -1;
+    int[] shadowMapSize = { 256, 512, 1024, 2048, 4096, 8192 };
 
     void Start()
     {
@@ -55,6 +78,29 @@ public class SqLight : MonoBehaviour
             return;
         }
 
+        InitNativeLight();
+        InitShadows();
+    }
+
+    void Update()
+    {
+        UpdateNativeLight();
+    }
+
+    void OnDestroy()
+    {
+        for (int i = 0; i < shadowMaps.Length; i++)
+        {
+            if (shadowMaps[i])
+            {
+                shadowMaps[i].Release();
+                DestroyImmediate(shadowMaps[i]);
+            }
+        }
+    }
+
+    void InitNativeLight()
+    {
         lightCache = GetComponent<Light>();
         lightData = new SqLightData();
         lightData.color = lightCache.color.linear;
@@ -73,7 +119,35 @@ public class SqLight : MonoBehaviour
         nativeID = AddNativeLight(lightCache.GetInstanceID(), lightData);
     }
 
-    void Update()
+    void InitShadows()
+    {
+        if (lightCache.shadows == LightShadows.None)
+        {
+            return;
+        }
+
+        int size = shadowMapSize[(int)shadowSize];
+
+        // create cascade shadows
+        if (lightCache.type == LightType.Directional && cascadeSetting.Length > 0)
+        {
+            shadowMaps = new RenderTexture[cascadeSetting.Length];
+            for (int i = 0; i < shadowMaps.Length; i++)
+            {
+                shadowMaps[i] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth);
+                shadowMaps[i].name = name + "_ShadowMap " + i;
+            }
+        }
+        else
+        {
+            // otherwise create normal shadow maps
+            shadowMaps = new RenderTexture[1];
+            shadowMaps[0] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth);
+            shadowMaps[0].name = name + "_ShadowMap";
+        }
+    }
+
+    void UpdateNativeLight()
     {
         if (transform.hasChanged || LightChanged())
         {
