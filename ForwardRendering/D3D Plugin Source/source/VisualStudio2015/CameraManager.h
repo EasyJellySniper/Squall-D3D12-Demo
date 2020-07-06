@@ -26,7 +26,7 @@ public:
 	void SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
 	void SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void Release();
-	vector<Camera> &GetCameras();
+	Camera* GetCamera();
 	Camera* GetCamera(int _instanceID);
 
 private:

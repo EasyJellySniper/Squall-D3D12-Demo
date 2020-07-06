@@ -293,16 +293,13 @@ void GraphicManager::DrawCamera()
 	}
 #endif
 
-	vector<Camera> cams = CameraManager::Instance().GetCameras();
-	for (size_t i = 0; i < cams.size(); i++)
+	// render path
+	Camera* cam = CameraManager::Instance().GetCamera();
+	if (cam->GetCameraData().renderingPath == RenderingPathType::Forward)
 	{
-		// render path
-		if (cams[i].GetCameraData().renderingPath == RenderingPathType::Forward)
-		{
-			ForwardRenderingPath::Instance().CullingWork(cams[i]);
-			ForwardRenderingPath::Instance().SortingWork(cams[i]);
-			ForwardRenderingPath::Instance().RenderLoop(cams[i], currFrameIndex);
-		}
+		ForwardRenderingPath::Instance().CullingWork(*cam);
+		ForwardRenderingPath::Instance().SortingWork(*cam);
+		ForwardRenderingPath::Instance().RenderLoop(*cam, currFrameIndex);
 	}
 }
 

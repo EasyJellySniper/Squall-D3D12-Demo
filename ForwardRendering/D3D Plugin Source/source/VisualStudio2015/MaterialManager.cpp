@@ -19,7 +19,7 @@ void MaterialManager::Init()
 	blendTable[10] = D3D12_BLEND_INV_SRC_ALPHA;
 }
 
-Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode
+Material MaterialManager::CreateMaterialFromShader(Shader* _shader, Camera* _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode
 	, int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
 {
 	auto desc = CollectPsoDesc(_shader, _camera, _fillMode, _cullMode, _srcBlend, _dstBlend, _depthFunc, _zWrite);
@@ -38,7 +38,7 @@ Material MaterialManager::CreateMaterialDepthOnly(Shader* _shader, D3D12_FILL_MO
 	return result;
 }
 
-Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bool _enableDepth)
+Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera* _camera, bool _enableDepth)
 {
 	// create pso
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
@@ -62,15 +62,15 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera _camera, bo
 	desc.InputLayout.pInputElementDescs = nullptr;
 	desc.InputLayout.NumElements = 0;
 	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	desc.NumRenderTargets = _camera.GetNumOfRT();
+	desc.NumRenderTargets = _camera->GetNumOfRT();
 
-	auto rtDesc = _camera.GetColorRTDesc();
-	for (int i = 0; i < _camera.GetNumOfRT(); i++)
+	auto rtDesc = _camera->GetColorRTDesc();
+	for (int i = 0; i < _camera->GetNumOfRT(); i++)
 	{
 		desc.RTVFormats[i] = rtDesc[i].Format;
 	}
 
-	desc.DSVFormat = _camera.GetDepthDesc().Format;
+	desc.DSVFormat = _camera->GetDepthDesc().Format;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 
@@ -113,7 +113,7 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 			delete[] macro;
 		}
 
-		auto c = CameraManager::Instance().GetCameras()[0];
+		auto c = CameraManager::Instance().GetCamera();
 		if (forwardShader != nullptr)
 		{
 			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(forwardShader, c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
@@ -121,7 +121,7 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 		}
 		else
 		{
-			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(c.GetFallbackShader(), c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
+			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(c->GetFallbackShader(), c, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
 				, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER, false));
 		}
 	}
@@ -133,13 +133,13 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 	return materialTable[_matInstanceId].get();
 }
 
-void MaterialManager::ResetNativeMaterial(Camera _camera)
+void MaterialManager::ResetNativeMaterial(Camera* _camera)
 {
 	for (auto& m : materialTable)
 	{
 		auto desc = m.second->GetPsoDesc();
-		desc.SampleDesc.Count = _camera.GetMsaaCount();
-		desc.SampleDesc.Quality = _camera.GetMsaaQuailty();
+		desc.SampleDesc.Count = _camera->GetMsaaCount();
+		desc.SampleDesc.Quality = _camera->GetMsaaQuailty();
 
 		m.second->CreatePsoFromDesc(desc);
 	}
@@ -154,7 +154,7 @@ void MaterialManager::Release()
 	materialTable.clear();
 }
 
-D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shader, Camera _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
+D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shader, Camera* _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
 	int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
 {
 	// create pso
@@ -169,8 +169,8 @@ D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shad
 
 	// feed blend according to input
 	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	desc.BlendState.IndependentBlendEnable = (_camera.GetNumOfRT() > 1);
-	for (int i = 0; i < _camera.GetNumOfRT(); i++)
+	desc.BlendState.IndependentBlendEnable = (_camera->GetNumOfRT() > 1);
+	for (int i = 0; i < _camera->GetNumOfRT(); i++)
 	{
 		// if it is one/zero, doesn't need blend
 		desc.BlendState.RenderTarget[i].BlendEnable = (_srcBlend == 1 && _dstBlend == 0) ? FALSE : TRUE;
@@ -190,17 +190,17 @@ D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shad
 	desc.InputLayout.pInputElementDescs = MeshManager::Instance().GetDefaultInputLayout();
 	desc.InputLayout.NumElements = MeshManager::Instance().GetDefaultInputLayoutSize();
 	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	desc.NumRenderTargets = _camera.GetNumOfRT();
+	desc.NumRenderTargets = _camera->GetNumOfRT();
 
-	auto rtDesc = _camera.GetColorRTDesc();
-	for (int i = 0; i < _camera.GetNumOfRT(); i++)
+	auto rtDesc = _camera->GetColorRTDesc();
+	for (int i = 0; i < _camera->GetNumOfRT(); i++)
 	{
 		desc.RTVFormats[i] = rtDesc[i].Format;
 	}
 
-	desc.DSVFormat = _camera.GetDepthDesc().Format;
-	desc.SampleDesc.Count = _camera.GetMsaaCount();
-	desc.SampleDesc.Quality = _camera.GetMsaaQuailty();
+	desc.DSVFormat = _camera->GetDepthDesc().Format;
+	desc.SampleDesc.Count = _camera->GetMsaaCount();
+	desc.SampleDesc.Quality = _camera->GetMsaaQuailty();
 
 	return desc;
 }

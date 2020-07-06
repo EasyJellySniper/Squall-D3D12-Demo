@@ -21,7 +21,7 @@ bool CameraManager::AddCamera(CameraData _camData)
 		cameras.push_back(cam);
 		sort(cameras.begin(), cameras.end(), SortFunction);
 		cameraLookup[cam.GetCameraData().instanceID] = GetCamera(_camData.instanceID);
-		MaterialManager::Instance().ResetNativeMaterial(cam);
+		MaterialManager::Instance().ResetNativeMaterial(cameraLookup[cam.GetCameraData().instanceID]);
 	}
 
 	return camInit;
@@ -76,9 +76,9 @@ void CameraManager::Release()
 	cameraLookup.clear();
 }
 
-vector<Camera> &CameraManager::GetCameras()
+Camera* CameraManager::GetCamera()
 {
-	return cameras;
+	return &cameras[0];
 }
 
 Camera *CameraManager::GetCamera(int _instanceID)
