@@ -308,7 +308,29 @@ void ForwardRenderingPath::UploadObjectConstant(Camera _camera, int _frameIdx, i
 
 void ForwardRenderingPath::ShadowWork()
 {
+	SystemConstant sc = GraphicManager::Instance().GetSystemConstantCPU();
+	auto dirLights = LightManager::Instance().GetDirLights();
+	int numDirLights = sc.numDirLight;
 
+	// upload and rendering
+	for (int i = 0; i < numDirLights; i++)
+	{
+		if (!dirLights[i].HasShadow())
+		{
+			continue;
+		}
+
+		// render all cascade
+		SqLightData sld = dirLights[i].GetLightData();
+		for (int j = 0; j < sld.numCascade; j++)
+		{
+			sc.sqMatrixShadow = sld.shadowMatrix[j];
+			GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
+
+			workerType = WorkerType::ShadowRendering;
+			WakeAndWaitWorker();
+		}
+	}
 }
 
 void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadIndex)
@@ -343,7 +365,7 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstant(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());

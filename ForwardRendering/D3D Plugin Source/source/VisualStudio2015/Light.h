@@ -37,9 +37,11 @@ public:
 	int GetInstanceID();
 	void SetDirty(bool _dirty, int _frameIdx);
 	bool IsDirty(int _frameIdx);
+	bool HasShadow();
 
 private:
 	bool isDirty[MAX_FRAME_COUNT];
+	bool hasShadow;
 	int instanceID;
 	SqLightData lightDataCPU;
 

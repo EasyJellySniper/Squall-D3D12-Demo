@@ -128,6 +128,11 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.numSpotLight = 0;
 }
 
+Light* LightManager::GetDirLights()
+{
+	return dirLights.data();
+}
+
 ID3D12Resource* LightManager::GetDirLightResource(int _frameIdx)
 {
 	return dirLightData[_frameIdx]->Resource();

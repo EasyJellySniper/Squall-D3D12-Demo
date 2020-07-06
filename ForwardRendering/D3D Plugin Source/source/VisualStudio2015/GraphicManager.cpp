@@ -460,7 +460,12 @@ void GraphicManager::UploadSystemConstant(SystemConstant _sc, int _frameIdx)
 	systemConstantGPU[_frameIdx]->CopyData(0, systemConstantCPU);
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS GraphicManager::GetSystemConstant(int _frameIdx)
+SystemConstant GraphicManager::GetSystemConstantCPU()
+{
+	return systemConstantCPU;
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS GraphicManager::GetSystemConstantGPU(int _frameIdx)
 {
 	return systemConstantGPU[_frameIdx]->Resource()->GetGPUVirtualAddress();
 }

@@ -10,6 +10,8 @@ void Light::Init(int _instanceID, SqLightData _data)
 	{
 		isDirty[i] = false;
 	}
+
+	hasShadow = false;
 }
 
 void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
@@ -66,6 +68,8 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 		dHandle.Offset(1, GraphicManager::Instance().GetDsvDesciptorSize());
 		sHandle.Offset(1, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	}
+
+	hasShadow = true;
 }
 
 void Light::Release()
@@ -103,4 +107,9 @@ void Light::SetDirty(bool _dirty, int _frameIdx)
 bool Light::IsDirty(int _idx)
 {
 	return isDirty[_idx];
+}
+
+bool Light::HasShadow()
+{
+	return hasShadow;
 }

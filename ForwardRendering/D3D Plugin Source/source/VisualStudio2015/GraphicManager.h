@@ -65,7 +65,8 @@ public:
 	void WaitForWorkerThread();
 	void SetWorkerThreadFinishEvent(int _index);
 	void UploadSystemConstant(SystemConstant _sc, int _frameIdx);
-	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstant(int _frameIdx);
+	SystemConstant GetSystemConstantCPU();
+	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU(int _frameIdx);
 
 private:
 	HRESULT CreateGpuTimeQuery();

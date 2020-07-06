@@ -30,6 +30,7 @@ public:
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
 	void UploadLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
+	Light *GetDirLights();
 
 	ID3D12Resource* GetDirLightResource(int _frameIdx);
 
