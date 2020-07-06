@@ -8,7 +8,7 @@
 #include "d3dx12.h"
 #include <algorithm>
 
-void ForwardRenderingPath::CullingWork(Camera _camera)
+void ForwardRenderingPath::CullingWork(Camera* _camera)
 {
 	GRAPHIC_TIMER_START
 
@@ -23,7 +23,7 @@ void ForwardRenderingPath::CullingWork(Camera _camera)
 	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
 }
 
-void ForwardRenderingPath::SortingWork(Camera _camera)
+void ForwardRenderingPath::SortingWork(Camera* _camera)
 {
 	GRAPHIC_TIMER_START
 
@@ -57,7 +57,7 @@ void ForwardRenderingPath::SortingWork(Camera _camera)
 	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.sortingTime)
 }
 
-void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
+void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 {
 	GRAPHIC_TIMER_START
 
@@ -72,7 +72,7 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	WakeAndWaitWorker();
 
 	SystemConstant sc;
-	sc.cameraPos = _camera.GetPosition();
+	sc.cameraPos = _camera->GetPosition();
 	LightManager::Instance().FillSystemConstant(sc);
 
 	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
@@ -94,7 +94,7 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	WakeAndWaitWorker();
 
 	// transparent pass, this can only be rendered with 1 thread for correct order
-	if (_camera.GetRenderMode() == RenderMode::ForwardPass)
+	if (_camera->GetRenderMode() == RenderMode::ForwardPass)
 	{
 		DrawTransparentPass(_camera, _frameIdx);
 	}
@@ -127,17 +127,17 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 			// process render thread
 			BindForwardState(targetCam, frameIndex, _threadIndex);
 
-			if (targetCam.GetRenderMode() == RenderMode::WireFrame)
+			if (targetCam->GetRenderMode() == RenderMode::WireFrame)
 			{
 				DrawWireFrame(targetCam, frameIndex, _threadIndex);
 			}
 
-			if (targetCam.GetRenderMode() == RenderMode::Depth)
+			if (targetCam->GetRenderMode() == RenderMode::Depth)
 			{
 				DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
 			}
 
-			if (targetCam.GetRenderMode() == RenderMode::ForwardPass)
+			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
 				DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
 			}
@@ -146,7 +146,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		}
 		else if (workerType == WorkerType::OpaqueRendering)
 		{
-			if (targetCam.GetRenderMode() == RenderMode::ForwardPass)
+			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
 				BindForwardState(targetCam, frameIndex, _threadIndex);
 				DrawOpaquePass(targetCam, frameIndex, _threadIndex);
@@ -156,7 +156,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		}
 		else if (workerType == WorkerType::CutoffRendering)
 		{
-			if (targetCam.GetRenderMode() == RenderMode::ForwardPass)
+			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
 				BindForwardState(targetCam, frameIndex, _threadIndex);
 				DrawCutoutPass(targetCam, frameIndex, _threadIndex);
@@ -190,12 +190,12 @@ void ForwardRenderingPath::FrustumCulling(int _threadIndex)
 			continue;
 		}
 
-		bool isVisible = targetCam.FrustumTest(renderers[i]->GetBound());
+		bool isVisible = targetCam->FrustumTest(renderers[i]->GetBound());
 		renderers[i]->SetVisible(isVisible);
 	}
 }
 
-void ForwardRenderingPath::BeginFrame(Camera _camera)
+void ForwardRenderingPath::BeginFrame(Camera* _camera)
 {
 	// get frame resource
 	LogIfFailedWithoutHR(currFrameResource.preGfxAllocator->Reset());
@@ -207,7 +207,7 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 		LogIfFailedWithoutHR(currFrameResource.workerGfxAlloc[i]->Reset());
 	}
 
-	CameraData camData = _camera.GetCameraData();
+	CameraData camData = _camera->GetCameraData();
 	auto _cmdList = currFrameResource.preGfxList;
 
 #if defined(GRAPHICTIME)
@@ -216,20 +216,20 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 #endif
 
 	// transition resource state to render target
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
 		, D3D12_RESOURCE_STATE_COMMON
 		, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	// transition to depth write
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetCameraDepth()
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera->GetMsaaDsvSrc() : _camera->GetCameraDepth()
 		, D3D12_RESOURCE_STATE_COMMON
 		, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	// clear render target view and depth view (reversed-z)
-	_cmdList->ClearRenderTargetView((camData.allowMSAA > 1) ? _camera.GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : _camera.GetRtv()->GetCPUDescriptorHandleForHeapStart()
+	_cmdList->ClearRenderTargetView((camData.allowMSAA > 1) ? _camera->GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : _camera->GetRtv()->GetCPUDescriptorHandleForHeapStart()
 		, camData.clearColor, 0, nullptr);
 
-	_cmdList->ClearDepthStencilView((camData.allowMSAA > 1) ? _camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : _camera.GetDsv()->GetCPUDescriptorHandleForHeapStart()
+	_cmdList->ClearDepthStencilView((camData.allowMSAA > 1) ? _camera->GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : _camera->GetDsv()->GetCPUDescriptorHandleForHeapStart()
 		, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL
 		, 0.0f, 0, 0, nullptr);
 
@@ -237,7 +237,7 @@ void ForwardRenderingPath::BeginFrame(Camera _camera)
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::UploadObjectConstant(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
 
@@ -266,8 +266,8 @@ void ForwardRenderingPath::UploadObjectConstant(Camera _camera, int _frameIdx, i
 		}
 
 		XMFLOAT4X4 world = r->GetWorld();
-		XMFLOAT4X4 view = _camera.GetViewMatrix();
-		XMFLOAT4X4 proj = _camera.GetProjMatrix();
+		XMFLOAT4X4 view = _camera->GetViewMatrix();
+		XMFLOAT4X4 proj = _camera->GetProjMatrix();
 
 		ObjectConstant sc;
 		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world) * XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
@@ -321,23 +321,23 @@ void ForwardRenderingPath::BindShadowState(Light _light, int _cascade)
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::BindForwardState(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::BindForwardState(Camera* _camera, int _frameIdx, int _threadIndex)
 {
 	// get frame resource
 	LogIfFailedWithoutHR(currFrameResource.workerGfxList[_threadIndex]->Reset(currFrameResource.workerGfxAlloc[_threadIndex], nullptr));
 
 	// update camera constant
-	CameraData camData = _camera.GetCameraData();
+	CameraData camData = _camera->GetCameraData();
 	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 
 	// bind
 	_cmdList->OMSetRenderTargets(1,
-		(camData.allowMSAA > 1) ? &_camera.GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetRtv()->GetCPUDescriptorHandleForHeapStart(),
+		(camData.allowMSAA > 1) ? &_camera->GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera->GetRtv()->GetCPUDescriptorHandleForHeapStart(),
 		true,
-		(camData.allowMSAA > 1) ? &_camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		(camData.allowMSAA > 1) ? &_camera->GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera->GetDsv()->GetCPUDescriptorHandleForHeapStart());
 
-	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
-	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
+	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
+	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -360,12 +360,12 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootShaderResourceView(5, LightManager::Instance().GetDirLightResource(_frameIdx)->GetGPUVirtualAddress());
 }
 
-void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _threadIndex)
 {
 	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 	
 	// set debug wire frame material
-	Material *mat = _camera.GetPipelineMaterial(MaterialType::DebugWireFrame, CullMode::Off);
+	Material *mat = _camera->GetPipelineMaterial(MaterialType::DebugWireFrame, CullMode::Off);
 	_cmdList->SetPipelineState(mat->GetPSO());
 	_cmdList->SetGraphicsRootSignature(mat->GetRootSignature());
 
@@ -408,7 +408,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera _camera, int _frameIdx, int _thr
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawPrepassDepth(Camera* _camera, int _frameIdx, int _threadIndex)
 {
 	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 
@@ -449,11 +449,11 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 			Material* pipeMat = nullptr;
 			if (qr.first < RenderQueue::CutoffStart)
 			{
-				pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassOpaque, objMat->GetCullMode());
+				pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassOpaque, objMat->GetCullMode());
 			}
 			else if (qr.first >= RenderQueue::CutoffStart && qr.first <= RenderQueue::OpaqueLast)
 			{
-				pipeMat = _camera.GetPipelineMaterial(MaterialType::DepthPrePassCutoff, objMat->GetCullMode());
+				pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassCutoff, objMat->GetCullMode());
 			}
 
 			// bind pipeline material
@@ -485,7 +485,7 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera _camera, int _frameIdx, int _
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _threadIndex, bool _cutout)
+void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _frameIdx, int _threadIndex, bool _cutout)
 {
 	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 
@@ -546,12 +546,12 @@ void ForwardRenderingPath::DrawOpaquePass(Camera _camera, int _frameIdx, int _th
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawCutoutPass(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawCutoutPass(Camera* _camera, int _frameIdx, int _threadIndex)
 {
 	DrawOpaquePass(_camera, _frameIdx, _threadIndex, true);
 }
 
-void ForwardRenderingPath::DrawTransparentPass(Camera _camera, int _frameIdx)
+void ForwardRenderingPath::DrawTransparentPass(Camera* _camera, int _frameIdx)
 {
 	// get frame resource, reuse BeginFrame's list
 	auto _cmdList = currFrameResource.preGfxList;
@@ -562,14 +562,14 @@ void ForwardRenderingPath::DrawTransparentPass(Camera _camera, int _frameIdx)
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// bind
-	CameraData camData = _camera.GetCameraData();
+	CameraData camData = _camera->GetCameraData();
 	_cmdList->OMSetRenderTargets(1,
-		(camData.allowMSAA > 1) ? &_camera.GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetRtv()->GetCPUDescriptorHandleForHeapStart(),
+		(camData.allowMSAA > 1) ? &_camera->GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera->GetRtv()->GetCPUDescriptorHandleForHeapStart(),
 		true,
-		(camData.allowMSAA > 1) ? &_camera.GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		(camData.allowMSAA > 1) ? &_camera->GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera->GetDsv()->GetCPUDescriptorHandleForHeapStart());
 
-	_cmdList->RSSetViewports(1, &_camera.GetViewPort());
-	_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
+	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
+	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// loop render-queue
@@ -614,13 +614,13 @@ void ForwardRenderingPath::DrawTransparentPass(Camera _camera, int _frameIdx)
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::EndFrame(Camera _camera)
+void ForwardRenderingPath::EndFrame(Camera* _camera)
 {
 	// get frame resource
 	LogIfFailedWithoutHR(currFrameResource.postGfxAllocator->Reset());
 	LogIfFailedWithoutHR(currFrameResource.postGfxList->Reset(currFrameResource.postGfxAllocator, nullptr));
 
-	CameraData camData = _camera.GetCameraData();
+	CameraData camData = _camera->GetCameraData();
 	auto _cmdList = currFrameResource.postGfxList;
 
 	ResolveColorBuffer(_cmdList, _camera);
@@ -646,66 +646,66 @@ void ForwardRenderingPath::EndFrame(Camera _camera)
 #endif
 }
 
-void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList, Camera _camera)
+void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
-	CameraData camData = _camera.GetCameraData();
+	CameraData camData = _camera->GetCameraData();
 
 	// transition resource to resolve or common
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaRtvSrc(0) : _camera.GetRtvSrc(0)
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
 		, D3D12_RESOURCE_STATE_RENDER_TARGET
 		, (camData.allowMSAA > 1) ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_COMMON));
 
 	// resolve to non-AA target if MSAA enabled
 	if (camData.allowMSAA > 1)
 	{
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetRtvSrc(0), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST));
-		_cmdList->ResolveSubresource(_camera.GetRtvSrc(0), 0, _camera.GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+		_cmdList->ResolveSubresource(_camera->GetRtvSrc(0), 0, _camera->GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON));
 	}
 }
 
-void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, Camera _camera)
+void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
-	CameraData camData = _camera.GetCameraData();
+	CameraData camData = _camera->GetCameraData();
 	bool useMsaa = (camData.allowMSAA > 1);
 
 	// transition to common or srv 
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera.GetMsaaDsvSrc() : _camera.GetCameraDepth()
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera->GetMsaaDsvSrc() : _camera->GetCameraDepth()
 		, D3D12_RESOURCE_STATE_DEPTH_WRITE
 		, (useMsaa) ? D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE : D3D12_RESOURCE_STATE_COMMON));
 
 	if (useMsaa)
 	{
 		// prepare to resolve
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 		// bind resolve depth pipeline
-		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera.GetMsaaSrv() };
+		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera->GetMsaaSrv() };
 		_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
-		_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera.GetDsv()->GetCPUDescriptorHandleForHeapStart());
-		_cmdList->RSSetViewports(1, &_camera.GetViewPort());
-		_cmdList->RSSetScissorRects(1, &_camera.GetScissorRect());
+		_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera->GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		_cmdList->RSSetViewports(1, &_camera->GetViewPort());
+		_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
 		_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		_cmdList->SetPipelineState(_camera.GetPostMaterial()->GetPSO());
-		_cmdList->SetGraphicsRootSignature(_camera.GetPostMaterial()->GetRootSignature());
-		_cmdList->SetGraphicsRootConstantBufferView(0, _camera.GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
-		_cmdList->SetGraphicsRootDescriptorTable(1, _camera.GetMsaaSrv()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetPipelineState(_camera->GetPostMaterial()->GetPSO());
+		_cmdList->SetGraphicsRootSignature(_camera->GetPostMaterial()->GetRootSignature());
+		_cmdList->SetGraphicsRootConstantBufferView(0, _camera->GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
+		_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv()->GetGPUDescriptorHandleForHeapStart());
 		_cmdList->DrawInstanced(6, 1, 0, 0);
 
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
 	}
 
 	// copy to debug depth
-	if (_camera.GetRenderMode() == RenderMode::Depth)
+	if (_camera->GetRenderMode() == RenderMode::Depth)
 	{
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
-		_cmdList->CopyResource(_camera.GetDebugDepth(), _camera.GetCameraDepth());
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera.GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+		_cmdList->CopyResource(_camera->GetDebugDepth(), _camera->GetCameraDepth());
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
 	}
 }
 

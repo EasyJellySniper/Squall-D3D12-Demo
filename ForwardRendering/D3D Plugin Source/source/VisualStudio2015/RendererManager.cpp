@@ -40,9 +40,9 @@ void RendererManager::AddMaterial(int _instanceID, int _matInstanceId, int _rend
 	renderers[_instanceID]->AddMaterial(MaterialManager::Instance().AddMaterial(_matInstanceId, _renderQueue, _cullMode, _srcBlend, _dstBlend, _nativeShader, _numMacro, _macro));
 }
 
-void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera _camera)
+void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 {
-	XMFLOAT3 camPos = _camera.GetPosition();
+	XMFLOAT3 camPos = _camera->GetPosition();
 	auto mat = _renderer->GetMaterials();
 
 	for (int i = 0; i < _renderer->GetNumMaterials(); i++)
