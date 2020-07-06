@@ -10,10 +10,7 @@
 
 void ForwardRenderingPath::CullingWork(Camera _camera)
 {
-#if defined(GRAPHICTIME)
-	TIMER_INIT
-	TIMER_START
-#endif
+	GRAPHIC_TIMER_START
 
 	currFrameResource = GraphicManager::Instance().GetFrameResource();
 	numWorkerThreads = GraphicManager::Instance().GetThreadCount() - 1;
@@ -23,18 +20,12 @@ void ForwardRenderingPath::CullingWork(Camera _camera)
 	GraphicManager::Instance().SetBeginWorkerThreadEvent();
 	GraphicManager::Instance().WaitForWorkerThread();
 
-#if defined(GRAPHICTIME)
-	TIMER_STOP
-	GameTimerManager::Instance().gameTime.cullingTime += elapsedTime;
-#endif
+	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
 }
 
 void ForwardRenderingPath::SortingWork(Camera _camera)
 {
-#if defined(GRAPHICTIME)
-	TIMER_INIT
-	TIMER_START
-#endif
+	GRAPHIC_TIMER_START
 
 	// group to queue renderer
 	RendererManager::Instance().ClearQueueRenderer();
@@ -63,18 +54,12 @@ void ForwardRenderingPath::SortingWork(Camera _camera)
 		}
 	}
 
-#if defined(GRAPHICTIME)
-	TIMER_STOP
-	GameTimerManager::Instance().gameTime.sortingTime += elapsedTime;
-#endif
+	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.sortingTime)
 }
 
 void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 {
-#if defined(GRAPHICTIME)
-	TIMER_INIT
-	TIMER_START
-#endif
+	GRAPHIC_TIMER_START
 
 	targetCam = _camera;
 	frameIndex = _frameIdx;
@@ -116,10 +101,7 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 
 	EndFrame(_camera);
 
-#if defined(GRAPHICTIME)
-	TIMER_STOP
-	GameTimerManager::Instance().gameTime.renderTime += elapsedTime;
-#endif
+	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderTime)
 }
 
 void ForwardRenderingPath::WorkerThread(int _threadIndex)
@@ -129,10 +111,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		// wait anything notify to work
 		GraphicManager::Instance().WaitBeginWorkerThread(_threadIndex);
 
-#if defined(GRAPHICTIME)
-		TIMER_INIT
-		TIMER_START
-#endif
+		GRAPHIC_TIMER_START
 
 		// culling work
 		if (workerType == WorkerType::Culling)
@@ -163,10 +142,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 				DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
 			}
 
-#if defined(GRAPHICTIME)
-			TIMER_STOP
-			GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex] += elapsedTime;
-#endif
+			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
 		}
 		else if (workerType == WorkerType::OpaqueRendering)
 		{
@@ -176,10 +152,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 				DrawOpaquePass(targetCam, frameIndex, _threadIndex);
 			}
 
-#if defined(GRAPHICTIME)
-			TIMER_STOP
-			GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex] += elapsedTime;
-#endif
+			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
 		}
 		else if (workerType == WorkerType::CutoffRendering)
 		{
@@ -189,10 +162,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 				DrawCutoutPass(targetCam, frameIndex, _threadIndex);
 			}
 
-#if defined(GRAPHICTIME)
-			TIMER_STOP
-			GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex] += elapsedTime;
-#endif
+			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
 		}
 
 		// set worker finish

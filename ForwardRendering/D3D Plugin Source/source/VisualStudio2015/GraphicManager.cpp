@@ -88,10 +88,7 @@ int GraphicManager::GetThreadCount()
 
 void GraphicManager::Update()
 {
-#if defined(GRAPHICTIME)
-	TIMER_INIT
-	TIMER_START
-#endif
+	GRAPHIC_TIMER_START
 	
 	const UINT64 lastCompletedFence = mainGraphicFence->GetCompletedValue();
 	currFrameIndex = (currFrameIndex + 1) % MAX_FRAME_COUNT;
@@ -105,10 +102,7 @@ void GraphicManager::Update()
 		WaitForSingleObject(eventHandle, INFINITE);
 	}
 
-#if defined(GRAPHICTIME)
-	TIMER_STOP
-	GameTimerManager::Instance().gameTime.updateTime = elapsedTime;
-#endif
+	GRAPHIC_TIMER_STOP(GameTimerManager::Instance().gameTime.updateTime)
 }
 
 void GraphicManager::Render()
