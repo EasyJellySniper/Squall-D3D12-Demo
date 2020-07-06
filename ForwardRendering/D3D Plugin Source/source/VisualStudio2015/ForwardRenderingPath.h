@@ -12,6 +12,7 @@ enum WorkerType
 	Culling = 0,
 	Upload,
 	PrePassRendering,
+	ShadowRendering,
 	OpaqueRendering,
 	CutoffRendering,
 	TransparentRendering,
@@ -55,6 +56,7 @@ private:
 	void FrustumCulling(int _threadIndex);
 	void BeginFrame(Camera _camera);
 	void UploadObjectConstant(Camera _camera, int _frameIdx, int _threadIndex);
+	void ShadowWork();
 	void BindState(Camera _camera, int _frameIdx, int _threadIndex);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh, int _frameIdx);
 	void DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex);

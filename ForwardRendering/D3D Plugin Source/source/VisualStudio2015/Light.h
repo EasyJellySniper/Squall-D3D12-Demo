@@ -19,9 +19,10 @@ struct SqLightData
 	XMFLOAT4 worldPos;
 	int type;
 	float intensity;
+	int numCascade;
 
 	// padding for 16-bytes alignment
-	XMFLOAT2 padding;
+	float padding;
 };
 
 class Light

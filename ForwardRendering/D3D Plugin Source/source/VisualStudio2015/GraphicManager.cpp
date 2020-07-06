@@ -456,7 +456,8 @@ void GraphicManager::SetWorkerThreadFinishEvent(int _index)
 
 void GraphicManager::UploadSystemConstant(SystemConstant _sc, int _frameIdx)
 {
-	systemConstantGPU[_frameIdx]->CopyData(0, _sc);
+	systemConstantCPU = _sc;
+	systemConstantGPU[_frameIdx]->CopyData(0, systemConstantCPU);
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS GraphicManager::GetSystemConstant(int _frameIdx)

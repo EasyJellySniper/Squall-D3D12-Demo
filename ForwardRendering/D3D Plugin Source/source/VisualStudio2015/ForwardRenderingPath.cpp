@@ -97,6 +97,9 @@ void ForwardRenderingPath::RenderLoop(Camera _camera, int _frameIdx)
 	workerType = WorkerType::PrePassRendering;
 	WakeAndWaitWorker();
 
+	// shadow work
+	ShadowWork();
+
 	// opaque pass
 	workerType = WorkerType::OpaqueRendering;
 	WakeAndWaitWorker();
@@ -301,6 +304,11 @@ void ForwardRenderingPath::UploadObjectConstant(Camera _camera, int _frameIdx, i
 		sc.sqMatrixWorld = world;
 		r->UpdateObjectConstant(sc, _frameIdx);
 	}
+}
+
+void ForwardRenderingPath::ShadowWork()
+{
+
 }
 
 void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadIndex)

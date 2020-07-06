@@ -118,6 +118,7 @@ private:
 
 	// camera cache
 	Camera activeCam;
+	SystemConstant systemConstantCPU;
 
 	// system constant
 	unique_ptr<UploadBuffer<SystemConstant>> systemConstantGPU[MAX_FRAME_COUNT];
