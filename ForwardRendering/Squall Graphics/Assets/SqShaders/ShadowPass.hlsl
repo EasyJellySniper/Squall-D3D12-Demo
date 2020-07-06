@@ -13,8 +13,10 @@ v2f ShadowPassVS(VertexInput i)
 {
 	v2f o = (v2f)0;
 
+	float4 wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
+
 	// need to offset shadow map handle on CPU side
-	o.vertex = mul(_SqDirLight[0].shadowMatrix[0], float4(i.vertex, 1.0f));
+	o.vertex = mul(SQ_MATRIX_SHADOW, wpos);
 	o.uv1 = i.uv1;
 
 	return o;

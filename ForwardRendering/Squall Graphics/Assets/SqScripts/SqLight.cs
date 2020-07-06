@@ -52,14 +52,9 @@ public class SqLight : MonoBehaviour
         public float intensity;
 
         /// <summary>
-        /// num cascade
-        /// </summary>
-        public int numCascade;
-
-        /// <summary>
         /// padding
         /// </summary>
-        public float padding;
+        public Vector2 padding;
     }
 
     /// <summary>
@@ -218,8 +213,6 @@ public class SqLight : MonoBehaviour
                 shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist * 0.5f;
                 lightData.shadowMatrix[i] = GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, true) * shadowCam.worldToCameraMatrix;
             }
-
-            lightData.numCascade = cascadeSetting.Length;
         }
 
         for (int i = 0; i < cascadeSetting.Length; i++)

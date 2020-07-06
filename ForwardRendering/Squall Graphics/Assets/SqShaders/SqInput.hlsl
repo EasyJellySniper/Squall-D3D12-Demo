@@ -20,8 +20,7 @@ struct SqLight
 	float4 world;
 	int type;
 	float intensity;
-	int numCascade;
-	float padding;
+	float2 padding;
 };
 
 cbuffer ObjectConstant : register(b0)
@@ -32,6 +31,7 @@ cbuffer ObjectConstant : register(b0)
 
 cbuffer SystemConstant : register(b1)
 {
+	float4x4 SQ_MATRIX_SHADOW;
 	float3 _CameraPos;
 	int _NumDirLight;
 	int _NumPointLight;
