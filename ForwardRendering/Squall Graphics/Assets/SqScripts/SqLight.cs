@@ -52,9 +52,14 @@ public class SqLight : MonoBehaviour
         public float intensity;
 
         /// <summary>
+        /// num cascade
+        /// </summary>
+        public int numCascade;
+
+        /// <summary>
         /// padding
         /// </summary>
-        public Vector2 padding;
+        public float padding;
     }
 
     /// <summary>
@@ -76,8 +81,13 @@ public class SqLight : MonoBehaviour
 
     SqLightData lightData;
     Light lightCache;
+    Camera shadowCam;
+    Camera mainCam;
+    Transform mainCamTrans;
+
     int nativeID = -1;
     int[] shadowMapSize = { 256, 512, 1024, 2048, 4096, 8192 };
+    float[] cascadeLast;
 
     void Start()
     {
@@ -88,12 +98,15 @@ public class SqLight : MonoBehaviour
             return;
         }
 
+        mainCam = Camera.main;
+        mainCamTrans = mainCam.transform;
         InitNativeLight();
         InitShadows();
     }
 
     void Update()
     {
+        UpdateShadowMatrix();
         UpdateNativeLight();
     }
 
@@ -149,10 +162,12 @@ public class SqLight : MonoBehaviour
         if (cascadeSetting.Length > 0)
         {
             shadowMaps = new RenderTexture[cascadeSetting.Length];
+            cascadeLast = new float[cascadeSetting.Length];
             for (int i = 0; i < shadowMaps.Length; i++)
             {
                 shadowMaps[i] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth);
                 shadowMaps[i].name = name + "_ShadowMap " + i;
+                cascadeLast[i] = cascadeSetting[i];
             }
         }
         else
@@ -169,11 +184,53 @@ public class SqLight : MonoBehaviour
             shadowPtr[i] = shadowMaps[i].GetNativeDepthBufferPtr();
         }
         InitNativeShadows(nativeID, shadowMaps.Length, shadowPtr);
+
+        // init shadow cam
+        GameObject newObj = new GameObject();
+        shadowCam = newObj.AddComponent<Camera>();
+        shadowCam.transform.SetParent(lightCache.transform);
+        shadowCam.transform.localPosition = Vector3.zero;
+        shadowCam.transform.localRotation = Quaternion.identity;
+        shadowCam.transform.localScale = Vector3.one;
+        shadowCam.orthographic = true;
+        shadowCam.targetDisplay = 3;
+        shadowCam.aspect = 1f;
+        transform.hasChanged = true;    // force update once
+    }
+
+    void UpdateShadowMatrix()
+    {
+        if (lightCache.type != LightType.Directional)
+        {
+            return;
+        }
+
+        if (transform.hasChanged || CascadeChanged())
+        {
+            for (int i = 0; i < cascadeSetting.Length; i++)
+            {
+                float dist = mainCam.farClipPlane * cascadeSetting[i];
+                shadowCam.nearClipPlane = lightCache.shadowNearPlane;
+                shadowCam.farClipPlane = dist;
+                shadowCam.orthographicSize = dist;
+
+                // position
+                shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist * 0.5f;
+                lightData.shadowMatrix[i] = GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, true) * shadowCam.worldToCameraMatrix;
+            }
+
+            lightData.numCascade = cascadeSetting.Length;
+        }
+
+        for (int i = 0; i < cascadeSetting.Length; i++)
+        {
+            cascadeLast[i] = cascadeSetting[i];
+        }
     }
 
     void UpdateNativeLight()
     {
-        if (transform.hasChanged || LightChanged())
+        if (transform.hasChanged || LightChanged() || CascadeChanged())
         {
             if (lightCache.type == LightType.Directional)
             {
@@ -202,6 +259,24 @@ public class SqLight : MonoBehaviour
         if (Vector4.SqrMagnitude(lightData.color - (Vector4)lightCache.color.linear) > 0.1)
         {
             return true;
+        }
+
+        return false;
+    }
+
+    bool CascadeChanged()
+    {
+        if (lightCache.type != LightType.Directional)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < cascadeSetting.Length; i++)
+        {
+            if (cascadeSetting[i] != cascadeLast[i])
+            {
+                return true;
+            }
         }
 
         return false;
