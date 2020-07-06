@@ -21,6 +21,10 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	for (int i = 0; i < numCascade; i++)
 	{
 		shadowMap[i] = (ID3D12Resource*)_shadowMapRaw[i];
+		if (shadowMap[i] == nullptr)
+		{
+			LogMessage(L"[SqGraphic Error] Shadow map null.");
+		}
 	}
 
 	// create shadow dsv heap
@@ -112,4 +116,20 @@ bool Light::IsDirty(int _idx)
 bool Light::HasShadow()
 {
 	return hasShadow;
+}
+
+ID3D12Resource* Light::GetShadowMapSrc(int _cascade)
+{
+	if (_cascade < 0 || _cascade >= MAX_CASCADE_SHADOW)
+	{
+		return nullptr;
+	}
+
+	return shadowMap[_cascade];
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Light::GetShadowDsv(int _cascade)
+{
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dHandle(shadowMapDSV->GetCPUDescriptorHandleForHeapStart());
+	return dHandle.Offset(_cascade, GraphicManager::Instance().GetDsvDesciptorSize());
 }

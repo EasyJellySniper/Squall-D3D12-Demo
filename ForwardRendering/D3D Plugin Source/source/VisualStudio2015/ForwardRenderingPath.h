@@ -5,6 +5,7 @@
 #include "UploadBuffer.h"
 #include "FrameResource.h"
 #include "RendererManager.h"
+#include "Light.h"
 using namespace Microsoft;
 
 enum WorkerType
@@ -57,7 +58,8 @@ private:
 	void BeginFrame(Camera _camera);
 	void UploadObjectConstant(Camera _camera, int _frameIdx, int _threadIndex);
 	void ShadowWork();
-	void BindState(Camera _camera, int _frameIdx, int _threadIndex);
+	void BindShadowState(Light _light, int _cascade);
+	void BindForwardState(Camera _camera, int _frameIdx, int _threadIndex);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh, int _frameIdx);
 	void DrawWireFrame(Camera _camera, int _frameIdx, int _threadIndex);
 	void DrawPrepassDepth(Camera _camera, int _frameIdx, int _threadIndex);

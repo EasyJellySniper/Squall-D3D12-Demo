@@ -167,6 +167,7 @@ public class SqLight : MonoBehaviour
             {
                 shadowMaps[i] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth);
                 shadowMaps[i].name = name + "_ShadowMap " + i;
+                shadowMaps[i].Create();
                 cascadeLast[i] = cascadeSetting[i];
             }
         }
@@ -176,6 +177,7 @@ public class SqLight : MonoBehaviour
             shadowMaps = new RenderTexture[1];
             shadowMaps[0] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth);
             shadowMaps[0].name = name + "_ShadowMap";
+            shadowMaps[0].Create();
         }
 
         IntPtr[] shadowPtr = new IntPtr[shadowMaps.Length];

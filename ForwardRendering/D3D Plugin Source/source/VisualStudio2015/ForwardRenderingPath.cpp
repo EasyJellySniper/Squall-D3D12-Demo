@@ -146,7 +146,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		else if(workerType == WorkerType::PrePassRendering)
 		{
 			// process render thread
-			BindState(targetCam, frameIndex, _threadIndex);
+			BindForwardState(targetCam, frameIndex, _threadIndex);
 
 			if (targetCam.GetRenderMode() == RenderMode::WireFrame)
 			{
@@ -172,7 +172,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		{
 			if (targetCam.GetRenderMode() == RenderMode::ForwardPass)
 			{
-				BindState(targetCam, frameIndex, _threadIndex);
+				BindForwardState(targetCam, frameIndex, _threadIndex);
 				DrawOpaquePass(targetCam, frameIndex, _threadIndex);
 			}
 
@@ -185,7 +185,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		{
 			if (targetCam.GetRenderMode() == RenderMode::ForwardPass)
 			{
-				BindState(targetCam, frameIndex, _threadIndex);
+				BindForwardState(targetCam, frameIndex, _threadIndex);
 				DrawCutoutPass(targetCam, frameIndex, _threadIndex);
 			}
 
@@ -327,13 +327,31 @@ void ForwardRenderingPath::ShadowWork()
 			sc.sqMatrixShadow = sld.shadowMatrix[j];
 			GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 
+			// single thread work
+			BindShadowState(dirLights[i], j);
+
+			// multi thread work
 			workerType = WorkerType::ShadowRendering;
 			WakeAndWaitWorker();
 		}
 	}
 }
 
-void ForwardRenderingPath::BindState(Camera _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::BindShadowState(Light _light, int _cascade)
+{
+	auto _cmdList = currFrameResource.preGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource.preGfxAllocator, nullptr));
+
+	// transition to depth write
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light.GetShadowMapSrc(_cascade), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	_cmdList->ClearDepthStencilView(_light.GetShadowDsv(_cascade), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 0.0f, 0, 0, nullptr);
+	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_light.GetShadowDsv(_cascade));
+	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	ExecuteCmdList(_cmdList);
+}
+
+void ForwardRenderingPath::BindForwardState(Camera _camera, int _frameIdx, int _threadIndex)
 {
 	// get frame resource
 	LogIfFailedWithoutHR(currFrameResource.workerGfxList[_threadIndex]->Reset(currFrameResource.workerGfxAlloc[_threadIndex], nullptr));

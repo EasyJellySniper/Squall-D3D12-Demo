@@ -38,6 +38,8 @@ public:
 	void SetDirty(bool _dirty, int _frameIdx);
 	bool IsDirty(int _frameIdx);
 	bool HasShadow();
+	ID3D12Resource* GetShadowMapSrc(int _cascade);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowDsv(int _cascade);
 
 private:
 	bool isDirty[MAX_FRAME_COUNT];
