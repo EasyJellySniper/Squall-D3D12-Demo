@@ -27,32 +27,8 @@ void ForwardRenderingPath::SortingWork(Camera* _camera)
 {
 	GRAPHIC_TIMER_START
 
-	// group to queue renderer
-	RendererManager::Instance().ClearQueueRenderer();
-	auto renderers = RendererManager::Instance().GetRenderers();
-	for (int i = 0; i < (int)renderers.size(); i++)
-	{
-		if (renderers[i]->GetVisible())
-		{
-			RendererManager::Instance().AddToQueueRenderer(renderers[i].get(), _camera);
-		}
-	}
-
-	// sort each queue renderers
-	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
-	for (auto& qr : queueRenderers)
-	{
-		if (qr.first <= RenderQueue::OpaqueLast)
-		{
-			// sort front-to-back
-			sort(qr.second.begin(), qr.second.end(), FrontToBackRender);
-		}
-		else
-		{
-			// sort back-to-front
-			sort(qr.second.begin(), qr.second.end(), BackToFrontRender);
-		}
-	}
+	// sort work
+	RendererManager::Instance().SortWork(_camera);
 
 	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.sortingTime)
 }

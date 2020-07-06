@@ -1,6 +1,7 @@
 #include "RendererManager.h"
 #include "Material.h"
 #include "MaterialManager.h"
+#include <algorithm>
 
 void RendererManager::Init()
 {
@@ -124,6 +125,33 @@ void RendererManager::SetNativeRendererActive(int _id, bool _active)
 		return;
 	}
 	renderers[_id]->SetActive(_active);
+}
+
+void RendererManager::SortWork(Camera* _camera)
+{
+	ClearQueueRenderer();
+
+	for (int i = 0; i < (int)renderers.size(); i++)
+	{
+		if (renderers[i]->GetVisible())
+		{
+			AddToQueueRenderer(renderers[i].get(), _camera);
+		}
+	}
+
+	for (auto& qr : queuedRenderers)
+	{
+		if (qr.first <= RenderQueue::OpaqueLast)
+		{
+			// sort front-to-back
+			sort(qr.second.begin(), qr.second.end(), FrontToBackRender);
+		}
+		else
+		{
+			// sort back-to-front
+			sort(qr.second.begin(), qr.second.end(), BackToFrontRender);
+		}
+	}
 }
 
 vector<shared_ptr<Renderer>>& RendererManager::GetRenderers()

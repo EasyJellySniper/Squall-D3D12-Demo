@@ -11,6 +11,18 @@ struct QueueRenderer
 	float zDistanceToCam;
 };
 
+inline bool FrontToBackRender(QueueRenderer const& i, QueueRenderer const& j)
+{
+	// sort from low distance to high distance (front to back)
+	return (i.zDistanceToCam < j.zDistanceToCam);
+}
+
+inline bool BackToFrontRender(QueueRenderer const& i, QueueRenderer const& j)
+{
+	// sort from high distance to low distance (back to front)
+	return (i.zDistanceToCam > j.zDistanceToCam);
+}
+
 class RendererManager
 {
 public:
@@ -31,13 +43,12 @@ public:
 	void Init();
 	int AddRenderer(int _instanceID, int _meshInstanceID);
 	void AddMaterial(int _instanceID, int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend, char* _nativeShader, int _numMacro, char** _macro);
-	void AddToQueueRenderer(Renderer* _renderer, Camera* _camera);
-	void ClearQueueRenderer();
 	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 	void SetWorldMatrix(int _id, XMFLOAT4X4 _world);
 	void AddNativeMaterialProp(int _id, int _matId, UINT _byteSize, void* _data);
 	void Release();
 	void SetNativeRendererActive(int _id, bool _active);
+	void SortWork(Camera* _camera);
 
 	vector<shared_ptr<Renderer>> &GetRenderers();
 	map<int, vector<QueueRenderer>>& GetQueueRenderers();
@@ -46,6 +57,9 @@ private:
 	static const int OPAQUE_CAPACITY = 5000;
 	static const int CUTOFF_CAPACITY = 2500;
 	static const int TRANSPARENT_CAPACITY = 500;
+
+	void ClearQueueRenderer();
+	void AddToQueueRenderer(Renderer* _renderer, Camera* _camera);
 
 	vector<shared_ptr<Renderer>> renderers;
 	map<int, vector<QueueRenderer>> queuedRenderers;

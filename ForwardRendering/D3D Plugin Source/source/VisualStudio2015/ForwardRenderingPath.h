@@ -19,18 +19,6 @@ enum WorkerType
 	TransparentRendering,
 };
 
-inline bool FrontToBackRender(QueueRenderer const &i, QueueRenderer const &j)
-{
-	// sort from low distance to high distance (front to back)
-	return (i.zDistanceToCam < j.zDistanceToCam);
-}
-
-inline bool BackToFrontRender(QueueRenderer const &i, QueueRenderer const &j)
-{
-	// sort from high distance to low distance (back to front)
-	return (i.zDistanceToCam > j.zDistanceToCam);
-}
-
 class ForwardRenderingPath
 {
 public:
