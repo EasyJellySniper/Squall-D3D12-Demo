@@ -88,7 +88,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		}
 		else if (workerType == WorkerType::Upload)
 		{
-			UploadObjectConstant(targetCam, frameIndex, _threadIndex);
+			RendererManager::Instance().UploadObjectConstant(targetCam, frameIndex, _threadIndex, numWorkerThreads);
 		}
 		else if(workerType == WorkerType::PrePassRendering)
 		{
@@ -250,45 +250,6 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 
 	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 	LightManager::Instance().UploadPerLightBuffer(frameIndex);
-}
-
-void ForwardRenderingPath::UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex)
-{
-	auto renderers = RendererManager::Instance().GetRenderers();
-
-	// split thread group
-	int count = (int)renderers.size() / numWorkerThreads + 1;
-	int start = _threadIndex * count;
-
-	// update renderer constant
-	for (int i = start; i <= start + count; i++)
-	{
-		if (i >= (int)renderers.size())
-		{
-			continue;
-		}
-
-		auto r = renderers[i];
-		if (!r->GetVisible())
-		{
-			continue;
-		}
-
-		Mesh* m = r->GetMesh();
-		if (m == nullptr)
-		{
-			continue;
-		}
-
-		XMFLOAT4X4 world = r->GetWorld();
-		XMFLOAT4X4 view = _camera->GetViewMatrix();
-		XMFLOAT4X4 proj = _camera->GetProjMatrix();
-
-		ObjectConstant sc;
-		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world) * XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
-		sc.sqMatrixWorld = world;
-		r->UpdateObjectConstant(sc, _frameIdx);
-	}
 }
 
 void ForwardRenderingPath::ShadowWork()

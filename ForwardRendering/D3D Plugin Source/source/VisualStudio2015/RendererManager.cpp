@@ -82,6 +82,45 @@ void RendererManager::UpdateRendererBound(int _id, float _x, float _y, float _z,
 	renderers[_id]->UpdateBound(_x, _y, _z, _ex, _ey, _ez);
 }
 
+void RendererManager::UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex, int _numThreads)
+{
+	auto renderers = RendererManager::Instance().GetRenderers();
+
+	// split thread group
+	int count = (int)renderers.size() / _numThreads + 1;
+	int start = _threadIndex * count;
+
+	// update renderer constant
+	for (int i = start; i <= start + count; i++)
+	{
+		if (i >= (int)renderers.size())
+		{
+			continue;
+		}
+
+		auto r = renderers[i];
+		if (!r->GetVisible())
+		{
+			continue;
+		}
+
+		Mesh* m = r->GetMesh();
+		if (m == nullptr)
+		{
+			continue;
+		}
+
+		XMFLOAT4X4 world = r->GetWorld();
+		XMFLOAT4X4 view = _camera->GetViewMatrix();
+		XMFLOAT4X4 proj = _camera->GetProjMatrix();
+
+		ObjectConstant sc;
+		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world) * XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
+		sc.sqMatrixWorld = world;
+		r->UpdateObjectConstant(sc, _frameIdx);
+	}
+}
+
 void RendererManager::SetWorldMatrix(int _id, XMFLOAT4X4 _world)
 {
 	if (_id < 0 || _id >= (int)renderers.size())

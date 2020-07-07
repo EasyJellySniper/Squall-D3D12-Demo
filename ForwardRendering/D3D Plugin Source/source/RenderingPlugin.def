@@ -31,5 +31,6 @@ EXPORTS
    GetDebugDepth
    AddNativeLight
    UpdateNativeLight
+   UpdateNativeShadow
    InitNativeShadows
    SetShadowViewPortScissorRect

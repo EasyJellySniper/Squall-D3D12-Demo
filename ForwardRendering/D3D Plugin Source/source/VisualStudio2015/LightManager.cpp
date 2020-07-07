@@ -108,6 +108,14 @@ void LightManager::UpdateNativeLight(int _id, SqLightData _data)
 	}
 }
 
+void LightManager::UpdateNativeShadow(int _nativeID, SqLightData _data)
+{
+	if (_data.type == LightType::Directional)
+	{
+		dirLights[_nativeID].SetLightData(_data, true);
+	}
+}
+
 void LightManager::SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
 {
 	// currently onyl dir light needs 
@@ -119,20 +127,25 @@ void LightManager::UploadPerLightBuffer(int _frameIdx)
 	// per light upload
 	for (int i = 0; i < (int)dirLights.size(); i++)
 	{
+		// upload light
 		if (dirLights[i].IsDirty(_frameIdx))
 		{
 			SqLightData* sld = dirLights[i].GetLightData();
 			dirLightData[_frameIdx]->CopyData(i, *sld);
+			dirLights[i].SetDirty(false, _frameIdx);
+		}
 
-			// upload cascade
+		// upload cascade
+		if (dirLights[i].IsShadowDirty(_frameIdx))
+		{
+			SqLightData* sld = dirLights[i].GetLightData();
 			for (int j = 0; j < sld->numCascade; j++)
 			{
 				LightConstant lc;
 				lc.sqMatrixShadow = sld->shadowMatrix[j];
 				dirLights[i].UploadLightConstant(lc, j, _frameIdx);
 			}
-
-			dirLights[i].SetDirty(false, _frameIdx);
+			dirLights[i].SetShadowDirty(false, _frameIdx);
 		}
 	}
 }

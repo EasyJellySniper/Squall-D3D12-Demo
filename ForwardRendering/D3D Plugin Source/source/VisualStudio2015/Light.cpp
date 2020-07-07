@@ -9,6 +9,7 @@ void Light::Init(int _instanceID, SqLightData _data)
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		isDirty[i] = false;
+		isShadowDirty[i] = false;
 		lightConstant[i] = make_shared<UploadBuffer<LightConstant>>(GraphicManager::Instance().GetDevice(), MAX_CASCADE_SHADOW, true);
 	}
 
@@ -89,13 +90,18 @@ void Light::Release()
 	}
 }
 
-void Light::SetLightData(SqLightData _data)
+void Light::SetLightData(SqLightData _data, bool _forShadow)
 {
 	lightDataCPU = _data;
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		isDirty[i] = true;
+
+		if (_forShadow)
+		{
+			isShadowDirty[i] = true;
+		}
 	}
 }
 
@@ -123,6 +129,16 @@ void Light::SetDirty(bool _dirty, int _frameIdx)
 bool Light::IsDirty(int _idx)
 {
 	return isDirty[_idx];
+}
+
+void Light::SetShadowDirty(bool _dirty, int _frameIdx)
+{
+	isShadowDirty[_frameIdx] = _dirty;
+}
+
+bool Light::IsShadowDirty(int _frameIdx)
+{
+	return isShadowDirty[_frameIdx];
 }
 
 bool Light::HasShadow()

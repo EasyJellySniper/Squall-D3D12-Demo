@@ -20,6 +20,9 @@ public class SqLight : MonoBehaviour
     static extern void UpdateNativeLight(int _nativeID, SqLightData _sqLightData);
 
     [DllImport("SquallGraphics")]
+    static extern void UpdateNativeShadow(int _nativeID, SqLightData _sqLightData);
+
+    [DllImport("SquallGraphics")]
     static extern void InitNativeShadows(int _nativeID, int _numCascade, IntPtr[] _shadowMaps);
 
     [DllImport("SquallGraphics")]
@@ -213,6 +216,10 @@ public class SqLight : MonoBehaviour
         shadowCam.aspect = 1f;
         shadowCam.cullingMask = 0;
         shadowCam.clearFlags = CameraClearFlags.Nothing;
+
+        // change shadow cam's view port 
+        shadowCam.targetTexture = shadowMaps[0];
+
         transform.hasChanged = true;    // force update once
     }
 
@@ -223,31 +230,26 @@ public class SqLight : MonoBehaviour
             return;
         }
 
-        if (transform.hasChanged || CascadeChanged())
-        {
-            // change shadow cam's view port 
-            shadowCam.targetTexture = shadowMaps[0];
-            SetupCascade();
+        SetupCascade();
 
-            // view port and scissor
-            Rect viewRect = shadowCam.pixelRect;
+        // view port and scissor
+        Rect viewRect = shadowCam.pixelRect;
 
-            ViewPort vp;
-            vp.TopLeftX = viewRect.xMin;
-            vp.TopLeftY = viewRect.yMin;
-            vp.Width = viewRect.width;
-            vp.Height = viewRect.height;
-            vp.MinDepth = 0f;
-            vp.MaxDepth = 1f;
+        ViewPort vp;
+        vp.TopLeftX = viewRect.xMin;
+        vp.TopLeftY = viewRect.yMin;
+        vp.Width = viewRect.width;
+        vp.Height = viewRect.height;
+        vp.MinDepth = 0f;
+        vp.MaxDepth = 1f;
 
-            RawRect rr;
-            rr.left = 0;
-            rr.top = 0;
-            rr.right = (int)viewRect.width;
-            rr.bottom = (int)viewRect.height;
+        RawRect rr;
+        rr.left = 0;
+        rr.top = 0;
+        rr.right = (int)viewRect.width;
+        rr.bottom = (int)viewRect.height;
 
-            SetShadowViewPortScissorRect(nativeID, vp, rr);
-        }
+        SetShadowViewPortScissorRect(nativeID, vp, rr);
     }
 
     void SetupCascade()
@@ -268,6 +270,8 @@ public class SqLight : MonoBehaviour
         }
 
         lightData.numCascade = numCascade;
+
+        UpdateNativeShadow(nativeID, lightData);
     }
 
     void UpdateNativeLight()

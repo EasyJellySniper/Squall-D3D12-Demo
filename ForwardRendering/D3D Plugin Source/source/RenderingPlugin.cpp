@@ -144,6 +144,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateNativeLight(int
 	LightManager::Instance().UpdateNativeLight(_nativeID, _sqLightData);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateNativeShadow(int _nativeID, SqLightData _sqLightData)
+{
+	LightManager::Instance().UpdateNativeShadow(_nativeID, _sqLightData);
+}
+
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw)
 {
 	LightManager::Instance().InitNativeShadows(_nativeID, _numCascade, _shadowMapRaw);
