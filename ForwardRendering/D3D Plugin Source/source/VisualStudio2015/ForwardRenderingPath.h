@@ -44,10 +44,12 @@ private:
 	void WakeAndWaitWorker();
 	void FrustumCulling(int _threadIndex);
 	void BeginFrame(Camera* _camera);
+	void UploadWork(Camera* _camera);
 	void UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex);
 	void ShadowWork();
 	void BindShadowState(Light _light, int _cascade);
 	void BindForwardState(Camera* _camera, int _frameIdx, int _threadIndex);
+	void BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh, int _frameIdx);
 	void DrawWireFrame(Camera* _camera, int _frameIdx, int _threadIndex);
 	void DrawPrepassDepth(Camera* _camera, int _frameIdx, int _threadIndex);
@@ -57,6 +59,7 @@ private:
 	void EndFrame(Camera* _camera);
 	void ResolveColorBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
+	void CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
 	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers);
 	void ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList);
 

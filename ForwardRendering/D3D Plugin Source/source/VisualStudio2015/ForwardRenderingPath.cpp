@@ -44,15 +44,7 @@ void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 	BeginFrame(_camera);
 
 	// upload work
-	workerType = WorkerType::Upload;
-	WakeAndWaitWorker();
-
-	SystemConstant sc;
-	sc.cameraPos = _camera->GetPosition();
-	LightManager::Instance().FillSystemConstant(sc);
-
-	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
-	LightManager::Instance().UploadLightBuffer(frameIndex);
+	UploadWork(_camera);
 
 	// pre pass work
 	workerType = WorkerType::PrePassRendering;
@@ -213,6 +205,19 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 	ExecuteCmdList(_cmdList);
 }
 
+void ForwardRenderingPath::UploadWork(Camera *_camera)
+{
+	workerType = WorkerType::Upload;
+	WakeAndWaitWorker();
+
+	SystemConstant sc;
+	sc.cameraPos = _camera->GetPosition();
+	LightManager::Instance().FillSystemConstant(sc);
+
+	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
+	LightManager::Instance().UploadLightBuffer(frameIndex);
+}
+
 void ForwardRenderingPath::UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
@@ -317,6 +322,38 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _frameIdx, int 
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
+void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx)
+{
+	Material* pipeMat = nullptr;
+	if (_queue < RenderQueue::CutoffStart)
+	{
+		pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassOpaque, _mat->GetCullMode());
+	}
+	else if (_queue >= RenderQueue::CutoffStart && _queue <= RenderQueue::OpaqueLast)
+	{
+		pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassCutoff, _mat->GetCullMode());
+	}
+
+	// bind mesh
+	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
+	_cmdList->IASetIndexBuffer(&_mesh->GetIndexBufferView());
+
+	// bind pipeline material
+	_cmdList->SetPipelineState(pipeMat->GetPSO());
+	_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
+
+	// set system/object constant of renderer
+	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
+
+	// setup descriptor table gpu
+	if (_queue >= RenderQueue::CutoffStart)
+	{
+		_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	}
+}
+
 void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx)
 {
 	// bind mesh
@@ -416,36 +453,9 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera* _camera, int _frameIdx, int 
 			auto const r = renderers[i];
 			Mesh* m = r.cache->GetMesh();
 
-			// bind mesh
-			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
-			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
-
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
-			Material* pipeMat = nullptr;
-			if (qr.first < RenderQueue::CutoffStart)
-			{
-				pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassOpaque, objMat->GetCullMode());
-			}
-			else if (qr.first >= RenderQueue::CutoffStart && qr.first <= RenderQueue::OpaqueLast)
-			{
-				pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassCutoff, objMat->GetCullMode());
-			}
-
-			// bind pipeline material
-			_cmdList->SetPipelineState(pipeMat->GetPSO());
-			_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
-
-			// set system/object constant of renderer
-			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(_frameIdx));
-			_cmdList->SetGraphicsRootConstantBufferView(2, objMat->GetMaterialConstantGPU(_frameIdx));
-
-			// setup descriptor table gpu
-			if (qr.first >= RenderQueue::CutoffStart)
-			{
-				_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-				_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-			}
+			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m, _frameIdx);
 
 			// draw mesh
 			SubMesh sm = m->GetSubMesh(r.submeshIndex);
@@ -601,6 +611,7 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 
 	ResolveColorBuffer(_cmdList, _camera);
 	ResolveDepthBuffer(_cmdList, _camera);
+	CopyDebugDepth(_cmdList, _camera);
 
 #if defined(GRAPHICTIME)
 	// timer end
@@ -673,10 +684,16 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
 	}
+}
 
+void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
+{
 	// copy to debug depth
 	if (_camera->GetRenderMode() == RenderMode::Depth)
 	{
+		CameraData camData = _camera->GetCameraData();
+		bool useMsaa = (camData.allowMSAA > 1);
+
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE));
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
 		_cmdList->CopyResource(_camera->GetDebugDepth(), _camera->GetCameraDepth());
