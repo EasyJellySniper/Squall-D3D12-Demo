@@ -31,6 +31,8 @@ public:
 	void UploadLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
 	Light *GetDirLights();
+	Material* GetShadowOpqaue(int _cullMode);
+	Material* GetShadowCutout(int _cullMode);
 
 	ID3D12Resource* GetDirLightResource(int _frameIdx);
 

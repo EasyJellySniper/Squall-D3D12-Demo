@@ -114,7 +114,11 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		}
 		else if (workerType == WorkerType::ShadowRendering)
 		{
-			BindShadowState(currLight, cascadeIndex, _threadIndex);
+			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
+			{
+				BindShadowState(currLight, cascadeIndex, _threadIndex);
+				DrawShadowPass(currLight, frameIndex, _threadIndex);
+			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
 		}
@@ -303,8 +307,6 @@ void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _thr
 	_cmdList->ClearDepthStencilView(_light->GetShadowDsv(_cascade), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 0.0f, 0, 0, nullptr);
 	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_light->GetShadowDsv(_cascade));
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::BindForwardState(Camera* _camera, int _frameIdx, int _threadIndex)
@@ -349,6 +351,40 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
+
+	// setup descriptor table gpu
+	if (_queue >= RenderQueue::CutoffStart)
+	{
+		_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	}
+}
+
+void ForwardRenderingPath::BindShadowObject(ID3D12GraphicsCommandList* _cmdList, Light* _light, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx)
+{
+	// choose shadow material
+	Material* pipeMat = nullptr;
+	if (_queue < RenderQueue::CutoffStart)
+	{
+		pipeMat = LightManager::Instance().GetShadowOpqaue(_mat->GetCullMode());
+	}
+	else if (_queue >= RenderQueue::CutoffStart)
+	{
+		pipeMat = LightManager::Instance().GetShadowCutout(_mat->GetCullMode());
+	}
+
+	// bind mesh
+	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
+	_cmdList->IASetIndexBuffer(&_mesh->GetIndexBufferView());
+
+	// bind pipeline material
+	_cmdList->SetPipelineState(pipeMat->GetPSO());
+	_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
+
+	// set system/object constant of renderer
+	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
 
 	// setup descriptor table gpu
@@ -473,6 +509,49 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera* _camera, int _frameIdx, int 
 	}
 
 	// close command list and execute
+	ExecuteCmdList(_cmdList);
+}
+
+void ForwardRenderingPath::DrawShadowPass(Light* _light, int _frameIdx, int _threadIndex)
+{
+	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
+
+	// bind heap
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	// loop render-queue
+	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
+	for (auto const& qr : queueRenderers)
+	{
+		auto renderers = qr.second;
+		int count = (int)renderers.size() / numWorkerThreads + 1;
+		int start = _threadIndex * count;
+
+		for (int i = start; i <= start + count; i++)
+		{
+			// valid renderer
+			if (!ValidRenderer(i, renderers))
+			{
+				continue;
+			}
+			auto const r = renderers[i];
+			Mesh* m = r.cache->GetMesh();
+
+			// choose pipeline material according to renderqueue
+			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+			BindShadowObject(_cmdList, _light, qr.first, r.cache, objMat, m, _frameIdx);
+
+			// draw mesh
+			SubMesh sm = m->GetSubMesh(r.submeshIndex);
+			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+
+#if defined(GRAPHICTIME)
+			GameTimerManager::Instance().gameTime.batchCount[_threadIndex] += 1;
+#endif
+		}
+	}
+
 	ExecuteCmdList(_cmdList);
 }
 

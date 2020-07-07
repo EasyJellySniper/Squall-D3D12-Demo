@@ -133,6 +133,16 @@ Light* LightManager::GetDirLights()
 	return dirLights.data();
 }
 
+Material* LightManager::GetShadowOpqaue(int _cullMode)
+{
+	return &shadowOpaqueMat[_cullMode];
+}
+
+Material* LightManager::GetShadowCutout(int _cullMode)
+{
+	return &shadowCutoutMat[_cullMode];
+}
+
 ID3D12Resource* LightManager::GetDirLightResource(int _frameIdx)
 {
 	return dirLightData[_frameIdx]->Resource();
