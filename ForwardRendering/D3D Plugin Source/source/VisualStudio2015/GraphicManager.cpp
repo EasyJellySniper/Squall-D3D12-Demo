@@ -295,7 +295,7 @@ void GraphicManager::DrawCamera()
 
 	// render path
 	Camera* cam = CameraManager::Instance().GetCamera();
-	if (cam->GetCameraData().renderingPath == RenderingPathType::Forward)
+	if (cam->GetCameraData()->renderingPath == RenderingPathType::Forward)
 	{
 		ForwardRenderingPath::Instance().CullingWork(cam);
 		ForwardRenderingPath::Instance().SortingWork(cam);
@@ -381,24 +381,22 @@ UINT GraphicManager::GetCbvSrvUavDesciptorSize()
 	return cbvSrvUavDescriptorSize;
 }
 
-FrameResource GraphicManager::GetFrameResource()
+FrameResource* GraphicManager::GetFrameResource()
 {
-	FrameResource fr;
-
-	fr.preGfxAllocator = preGfxAllocator[currFrameIndex].Get();
-	fr.preGfxList = preGfxList[currFrameIndex].Get();
-	fr.midGfxAllocator = midGfxAllocator[currFrameIndex].Get();
-	fr.midGfxList = midGfxList[currFrameIndex].Get();
-	fr.postGfxAllocator = postGfxAllocator[currFrameIndex].Get();
-	fr.postGfxList = postGfxList[currFrameIndex].Get();
+	frameResource.preGfxAllocator = preGfxAllocator[currFrameIndex].Get();
+	frameResource.preGfxList = preGfxList[currFrameIndex].Get();
+	frameResource.midGfxAllocator = midGfxAllocator[currFrameIndex].Get();
+	frameResource.midGfxList = midGfxList[currFrameIndex].Get();
+	frameResource.postGfxAllocator = postGfxAllocator[currFrameIndex].Get();
+	frameResource.postGfxList = postGfxList[currFrameIndex].Get();
 
 	for (int i = 0; i < numOfLogicalCores - 1; i++)
 	{
-		fr.workerGfxAlloc[i] = workerGfxAllocator[i][currFrameIndex].Get();
-		fr.workerGfxList[i] = workerGfxList[i][currFrameIndex].Get();
+		frameResource.workerGfxAlloc[i] = workerGfxAllocator[i][currFrameIndex].Get();
+		frameResource.workerGfxList[i] = workerGfxList[i][currFrameIndex].Get();
 	}
 
-	return fr;
+	return &frameResource;
 }
 
 GameTime GraphicManager::GetGameTime()

@@ -170,9 +170,9 @@ void Camera::Release()
 	resolveDepthMaterial.Release();
 }
 
-CameraData Camera::GetCameraData()
+CameraData *Camera::GetCameraData()
 {
-	return cameraData;
+	return &cameraData;
 }
 
 ID3D12Resource * Camera::GetRtvSrc(int _index)

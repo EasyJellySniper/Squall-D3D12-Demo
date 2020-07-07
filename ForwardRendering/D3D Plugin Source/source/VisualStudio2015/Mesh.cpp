@@ -88,11 +88,6 @@ D3D12_INDEX_BUFFER_VIEW Mesh::GetIndexBufferView()
 	return ibv;
 }
 
-vector<SubMesh> Mesh::GetSubmeshes()
-{
-	return submeshes;
-}
-
 SubMesh Mesh::GetSubMesh(int _index)
 {
 	if (_index < 0 || (int)_index >= submeshes.size())

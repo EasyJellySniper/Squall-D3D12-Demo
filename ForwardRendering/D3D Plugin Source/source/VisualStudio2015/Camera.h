@@ -42,7 +42,7 @@ public:
 	bool Initialize(CameraData _cameraData);
 	void Release();
 
-	CameraData GetCameraData();
+	CameraData *GetCameraData();
 	ID3D12Resource *GetRtvSrc(int _index);
 	ID3D12Resource* GetCameraDepth();
 	ID3D12Resource* GetDebugDepth();

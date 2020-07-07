@@ -73,6 +73,6 @@ private:
 	WorkerType workerType;
 	int frameIndex;
 	int cascadeIndex;
-	FrameResource currFrameResource;
+	FrameResource *currFrameResource;
 	int numWorkerThreads;
 };

@@ -8,7 +8,7 @@ using namespace std;
 
 bool SortFunction(Camera &_lhs, Camera &_rhs)
 {
-	return _lhs.GetCameraData().camOrder < _rhs.GetCameraData().camOrder;
+	return _lhs.GetCameraData()->camOrder < _rhs.GetCameraData()->camOrder;
 }
 
 bool CameraManager::AddCamera(CameraData _camData)
@@ -20,8 +20,8 @@ bool CameraManager::AddCamera(CameraData _camData)
 	{
 		cameras.push_back(cam);
 		sort(cameras.begin(), cameras.end(), SortFunction);
-		cameraLookup[cam.GetCameraData().instanceID] = GetCamera(_camData.instanceID);
-		MaterialManager::Instance().ResetNativeMaterial(cameraLookup[cam.GetCameraData().instanceID]);
+		cameraLookup[cam.GetCameraData()->instanceID] = GetCamera(_camData.instanceID);
+		MaterialManager::Instance().ResetNativeMaterial(cameraLookup[cam.GetCameraData()->instanceID]);
 	}
 
 	return camInit;
@@ -36,7 +36,7 @@ void CameraManager::RemoveCamera(int _instanceID)
 	for (auto i = cameras.begin(); i != cameras.end(); i++)
 	{
 		removeIdx++;
-		if (i->GetCameraData().instanceID == _instanceID)
+		if (i->GetCameraData()->instanceID == _instanceID)
 		{
 			i->Release();
 			cameras.erase(cameras.begin() + removeIdx);
@@ -85,7 +85,7 @@ Camera *CameraManager::GetCamera(int _instanceID)
 {
 	for (size_t i = 0; i < cameras.size(); i++)
 	{
-		if (cameras[i].GetCameraData().instanceID == _instanceID)
+		if (cameras[i].GetCameraData()->instanceID == _instanceID)
 		{
 			return &cameras[i];
 		}

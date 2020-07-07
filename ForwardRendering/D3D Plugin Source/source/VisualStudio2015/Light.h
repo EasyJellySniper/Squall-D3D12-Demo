@@ -34,7 +34,7 @@ public:
 	void SetLightData(SqLightData _data);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 
-	SqLightData GetLightData();
+	SqLightData *GetLightData();
 	int GetInstanceID();
 	void SetDirty(bool _dirty, int _frameIdx);
 	bool IsDirty(int _frameIdx);

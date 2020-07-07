@@ -56,7 +56,7 @@ public:
 	UINT GetRtvDesciptorSize();
 	UINT GetDsvDesciptorSize();
 	UINT GetCbvSrvUavDesciptorSize();
-	FrameResource GetFrameResource();
+	FrameResource *GetFrameResource();
 	GameTime GetGameTime();
 	UINT64 GetGpuFreq();
 	void WaitBeginWorkerThread(int _index);
@@ -120,6 +120,7 @@ private:
 	// camera cache
 	Camera activeCam;
 	SystemConstant systemConstantCPU;
+	FrameResource frameResource;
 
 	// system constant
 	unique_ptr<UploadBuffer<SystemConstant>> systemConstantGPU[MAX_FRAME_COUNT];

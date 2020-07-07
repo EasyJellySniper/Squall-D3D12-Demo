@@ -99,9 +99,9 @@ void Light::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissor
 	shadowScissorRect = _scissorRect;
 }
 
-SqLightData Light::GetLightData()
+SqLightData* Light::GetLightData()
 {
-	return lightDataCPU;
+	return &lightDataCPU;
 }
 
 int Light::GetInstanceID()

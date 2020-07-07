@@ -121,7 +121,7 @@ void LightManager::UploadLightBuffer(int _frameIdx)
 	{
 		if (dirLights[i].IsDirty(_frameIdx))
 		{
-			dirLightData[_frameIdx]->CopyData(i, dirLights[i].GetLightData());
+			dirLightData[_frameIdx]->CopyData(i, *dirLights[i].GetLightData());
 			dirLights[i].SetDirty(false, _frameIdx);
 		}
 	}
