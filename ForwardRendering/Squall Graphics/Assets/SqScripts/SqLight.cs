@@ -111,6 +111,12 @@ public class SqLight : MonoBehaviour
     {
         UpdateShadowMatrix();
         UpdateNativeLight();
+
+        // keep cascade
+        for (int i = 0; i < cascadeSetting.Length; i++)
+        {
+            cascadeLast[i] = cascadeSetting[i];
+        }
     }
 
     void OnDestroy()
@@ -241,11 +247,6 @@ public class SqLight : MonoBehaviour
             rr.bottom = (int)viewRect.height;
 
             SetShadowViewPortScissorRect(nativeID, vp, rr);
-        }
-
-        for (int i = 0; i < cascadeSetting.Length; i++)
-        {
-            cascadeLast[i] = cascadeSetting[i];
         }
     }
 
