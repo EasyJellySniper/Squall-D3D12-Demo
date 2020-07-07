@@ -115,6 +115,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		else if (workerType == WorkerType::ShadowRendering)
 		{
 			BindShadowState(currLight, cascadeIndex, _threadIndex);
+
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
 		}
 		else if (workerType == WorkerType::OpaqueRendering)
