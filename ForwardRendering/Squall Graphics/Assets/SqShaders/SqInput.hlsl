@@ -32,14 +32,18 @@ cbuffer ObjectConstant : register(b0)
 
 cbuffer SystemConstant : register(b1)
 {
-	float4x4 SQ_MATRIX_SHADOW;
 	float3 _CameraPos;
 	int _NumDirLight;
 	int _NumPointLight;
 	int _NumSpotLight;
 };
 
-cbuffer MaterialConstant : register(b2)
+cbuffer LightConstant : register(b2)
+{
+	float4x4 SQ_MATRIX_SHADOW;
+};
+
+cbuffer MaterialConstant : register(b3)
 {
 	float4 _MainTex_ST;
 	float4 _DetailAlbedoMap_ST;

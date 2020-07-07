@@ -125,3 +125,8 @@ private:
     UINT mElementByteSize = 0;
     bool mIsConstantBuffer = false;
 };
+
+inline UINT CalcConstantBufferByteSize(UINT _size)
+{
+    return(_size + 255) & ~255;
+}
