@@ -58,6 +58,7 @@ private:
 	void DrawOpaquePass(Camera* _camera, int _frameIdx, int _threadIndex, bool _cutout = false);
 	void DrawCutoutPass(Camera* _camera, int _frameIdx, int _threadIndex);
 	void DrawTransparentPass(Camera* _camera, int _frameIdx);
+	void DrawSubmesh(ID3D12GraphicsCommandList* _cmdList, Mesh* _mesh, int _subIndex);
 	void EndFrame(Camera* _camera);
 	void ResolveColorBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);

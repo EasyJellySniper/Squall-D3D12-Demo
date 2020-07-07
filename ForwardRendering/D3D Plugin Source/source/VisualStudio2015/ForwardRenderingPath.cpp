@@ -449,12 +449,9 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _th
 			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(_frameIdx));
 
 			// draw mesh
-			SubMesh sm = m->GetSubMesh(r.submeshIndex);
-			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+			DrawSubmesh(_cmdList, m, r.submeshIndex);
 
-#if defined(GRAPHICTIME)
-			GameTimerManager::Instance().gameTime.batchCount[_threadIndex] += 1;
-#endif
+			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
 
@@ -499,12 +496,9 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera* _camera, int _frameIdx, int 
 			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m, _frameIdx);
 
 			// draw mesh
-			SubMesh sm = m->GetSubMesh(r.submeshIndex);
-			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+			DrawSubmesh(_cmdList, m, r.submeshIndex);
 
-#if defined(GRAPHICTIME)
-			GameTimerManager::Instance().gameTime.batchCount[_threadIndex] += 1;
-#endif
+			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
 
@@ -543,12 +537,9 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _frameIdx, int _thr
 			BindShadowObject(_cmdList, _light, qr.first, r.cache, objMat, m, _frameIdx);
 
 			// draw mesh
-			SubMesh sm = m->GetSubMesh(r.submeshIndex);
-			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+			DrawSubmesh(_cmdList, m, r.submeshIndex);
 
-#if defined(GRAPHICTIME)
-			GameTimerManager::Instance().gameTime.batchCount[_threadIndex] += 1;
-#endif
+			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
 
@@ -603,12 +594,9 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _frameIdx, int _t
 			BindForwardObject(_cmdList, r.cache, objMat, m, frameIndex);
 
 			// draw mesh
-			SubMesh sm = m->GetSubMesh(r.submeshIndex);
-			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+			DrawSubmesh(_cmdList, m, r.submeshIndex);
 
-#if defined(GRAPHICTIME)
-			GameTimerManager::Instance().gameTime.batchCount[_threadIndex] += 1;
-#endif
+			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
 
@@ -671,17 +659,20 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera, int _frameIdx)
 			BindForwardObject(_cmdList, r.cache, objMat, m, frameIndex);
 
 			// draw mesh
-			SubMesh sm = m->GetSubMesh(r.submeshIndex);
-			_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+			DrawSubmesh(_cmdList, m, r.submeshIndex);
 
-#if defined(GRAPHICTIME)
-			GameTimerManager::Instance().gameTime.batchCount[0] += 1;
-#endif
+			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
 		}
 	}
 
 	// close command list and execute
 	ExecuteCmdList(_cmdList);
+}
+
+void ForwardRenderingPath::DrawSubmesh(ID3D12GraphicsCommandList *_cmdList, Mesh* _mesh, int _subIndex)
+{
+	SubMesh sm = _mesh->GetSubMesh(_subIndex);
+	_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
 }
 
 void ForwardRenderingPath::EndFrame(Camera* _camera)

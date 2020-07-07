@@ -32,9 +32,12 @@ x = elapsedTime; \
 TIMER_STOP  \
 x += elapsedTime; \
 
+#define GRAPHIC_BATCH_ADD(x) x += 1;
+
 #else
 // null define
 #define GRAPHIC_TIMER_START
 #define GRAPHIC_TIMER_STOP(x)
 #define GRAPHIC_TIMER_STOP_ADD(x)
+#define GRAPHIC_BATCH_ADD(x)
 #endif
