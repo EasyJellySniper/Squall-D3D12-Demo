@@ -22,6 +22,9 @@ public class SqLight : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void InitNativeShadows(int _nativeID, int _numCascade, IntPtr[] _shadowMaps);
 
+    [DllImport("SquallGraphics")]
+    static extern void SetShadowViewPortScissorRect(int _nativeID, ViewPort _viewPort, RawRect _rawRect);
+
     [StructLayout(LayoutKind.Sequential)]
     struct SqLightData
     {
@@ -112,6 +115,11 @@ public class SqLight : MonoBehaviour
 
     void OnDestroy()
     {
+        if (shadowCam)
+        {
+            shadowCam.targetTexture = null;
+        }
+
         for (int i = 0; i < shadowMaps.Length; i++)
         {
             if (shadowMaps[i])
@@ -197,6 +205,8 @@ public class SqLight : MonoBehaviour
         shadowCam.orthographic = true;
         shadowCam.targetDisplay = 3;
         shadowCam.aspect = 1f;
+        shadowCam.cullingMask = 0;
+        shadowCam.clearFlags = CameraClearFlags.Nothing;
         transform.hasChanged = true;    // force update once
     }
 
@@ -209,24 +219,54 @@ public class SqLight : MonoBehaviour
 
         if (transform.hasChanged || CascadeChanged())
         {
-            for (int i = 0; i < cascadeSetting.Length; i++)
-            {
-                float dist = mainCam.farClipPlane * cascadeSetting[i];
-                shadowCam.nearClipPlane = lightCache.shadowNearPlane;
-                shadowCam.farClipPlane = dist;
-                shadowCam.orthographicSize = dist;
+            // change shadow cam's view port 
+            shadowCam.targetTexture = shadowMaps[0];
+            SetupCascade();
 
-                // position
-                shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist * 0.5f;
-                lightData.shadowMatrix[i] = GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, true) * shadowCam.worldToCameraMatrix;
-            }
-            lightData.numCascade = cascadeSetting.Length;
+            // view port and scissor
+            Rect viewRect = shadowCam.pixelRect;
+
+            ViewPort vp;
+            vp.TopLeftX = viewRect.xMin;
+            vp.TopLeftY = viewRect.yMin;
+            vp.Width = viewRect.width;
+            vp.Height = viewRect.height;
+            vp.MinDepth = 0f;
+            vp.MaxDepth = 1f;
+
+            RawRect rr;
+            rr.left = 0;
+            rr.top = 0;
+            rr.right = (int)viewRect.width;
+            rr.bottom = (int)viewRect.height;
+
+            SetShadowViewPortScissorRect(nativeID, vp, rr);
         }
 
         for (int i = 0; i < cascadeSetting.Length; i++)
         {
             cascadeLast[i] = cascadeSetting[i];
         }
+    }
+
+    void SetupCascade()
+    {
+        int numCascade = cascadeSetting.Length;
+        numCascade = (numCascade == 0) ? 1 : numCascade;
+
+        for (int i = 0; i < numCascade; i++)
+        {
+            float dist = mainCam.farClipPlane * ((cascadeSetting.Length == 0) ? 1f : cascadeSetting[i]);
+            shadowCam.nearClipPlane = lightCache.shadowNearPlane;
+            shadowCam.farClipPlane = dist;
+            shadowCam.orthographicSize = dist;
+
+            // position
+            shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist * 0.5f;
+            lightData.shadowMatrix[i] = GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, true) * shadowCam.worldToCameraMatrix;
+        }
+
+        lightData.numCascade = numCascade;
     }
 
     void UpdateNativeLight()
