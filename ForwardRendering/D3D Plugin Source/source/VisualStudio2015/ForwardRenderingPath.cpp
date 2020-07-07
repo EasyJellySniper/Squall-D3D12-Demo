@@ -308,14 +308,6 @@ void ForwardRenderingPath::ShadowWork()
 		// render all cascade
 		SqLightData *sld = dirLights[i].GetLightData();
 
-		// upload cascade
-		for (int j = 0; j < sld->numCascade; j++)
-		{
-			LightConstant lc;
-			lc.sqMatrixShadow = sld->shadowMatrix[j];
-			LightManager::Instance().UploadLightConstant(lc, j, frameIndex);
-		}
-
 		for (int j = 0; j < sld->numCascade; j++)
 		{
 			// multi thread work
@@ -415,7 +407,7 @@ void ForwardRenderingPath::BindShadowObject(ID3D12GraphicsCommandList* _cmdList,
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(2, LightManager::Instance().GetLightConstantGPU(cascadeIndex, _frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(2, _light->GetLightConstantGPU(cascadeIndex, _frameIdx));
 	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(_frameIdx));
 
 	// setup descriptor table gpu

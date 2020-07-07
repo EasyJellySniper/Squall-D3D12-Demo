@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include <DirectXMath.h>
 using namespace DirectX;
+#include "UploadBuffer.h"
 #include "FrameResource.h"
 const int MAX_CASCADE_SHADOW = 4;
 
@@ -44,6 +45,9 @@ public:
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
 
+	void UploadLightConstant(LightConstant lc, int _cascade, int _frameIdx);
+	D3D12_GPU_VIRTUAL_ADDRESS GetLightConstantGPU(int _cascade, int _frameIdx);
+
 private:
 	bool isDirty[MAX_FRAME_COUNT];
 	bool hasShadow;
@@ -56,4 +60,6 @@ private:
 	ComPtr<ID3D12DescriptorHeap> shadowMapSRV;
 	D3D12_VIEWPORT shadowViewPort;
 	D3D12_RECT shadowScissorRect;
+
+	shared_ptr<UploadBuffer<LightConstant>> lightConstant[MAX_FRAME_COUNT];
 };

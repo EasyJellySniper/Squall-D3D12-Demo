@@ -30,7 +30,6 @@ public:
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
 	void SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void UploadPerLightBuffer(int _frameIdx);
-	void UploadLightConstant(LightConstant lc, int _cascade, int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
 
 	Light *GetDirLights();
@@ -39,7 +38,6 @@ public:
 	Material* GetShadowCutout(int _cullMode);
 
 	ID3D12Resource* GetDirLightResource(int _frameIdx);
-	D3D12_GPU_VIRTUAL_ADDRESS GetLightConstantGPU(int _cascade, int _frameIdx);
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
@@ -59,7 +57,6 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> dirLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> pointLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
-	unique_ptr<UploadBuffer<LightConstant>> lightConstant[MAX_FRAME_COUNT];
 
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];

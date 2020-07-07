@@ -9,6 +9,7 @@ void Light::Init(int _instanceID, SqLightData _data)
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		isDirty[i] = false;
+		lightConstant[i] = make_shared<UploadBuffer<LightConstant>>(GraphicManager::Instance().GetDevice(), MAX_CASCADE_SHADOW, true);
 	}
 
 	hasShadow = false;
@@ -81,6 +82,11 @@ void Light::Release()
 	shadowMapDSV.Reset();
 	shadowMapSRV.Reset();
 	numCascade = 1;
+
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		lightConstant[i].reset();
+	}
 }
 
 void Light::SetLightData(SqLightData _data)
@@ -148,4 +154,15 @@ D3D12_VIEWPORT Light::GetViewPort()
 D3D12_RECT Light::GetScissorRect()
 {
 	return shadowScissorRect;
+}
+
+void Light::UploadLightConstant(LightConstant lc, int _cascade, int _frameIdx)
+{
+	lightConstant[_frameIdx]->CopyData(_cascade, lc);
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS Light::GetLightConstantGPU(int _cascade, int _frameIdx)
+{
+	UINT lightConstantSize = CalcConstantBufferByteSize(sizeof(LightConstant));
+	return lightConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + lightConstantSize * _cascade;
 }

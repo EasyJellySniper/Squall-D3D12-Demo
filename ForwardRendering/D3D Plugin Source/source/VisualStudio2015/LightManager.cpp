@@ -15,7 +15,6 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 		dirLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxDirLight, false);
 		//pointLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxPointLight, false);
 		//spotLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxSpotLight, false);
-		lightConstant[i] = make_unique<UploadBuffer<LightConstant>>(device, MAX_CASCADE_SHADOW, true);
 	}
 
 	D3D_SHADER_MACRO shadowMacro[] = { "_SHADOW_CUTOFF_ON","1",NULL,NULL };
@@ -68,7 +67,6 @@ void LightManager::Release()
 		dirLightData[i].reset();
 		pointLightData[i].reset();
 		spotLightData[i].reset();
-		lightConstant[i].reset();
 	}
 
 	for (int i = 0; i < CullMode::NumCullMode; i++)
@@ -123,15 +121,20 @@ void LightManager::UploadPerLightBuffer(int _frameIdx)
 	{
 		if (dirLights[i].IsDirty(_frameIdx))
 		{
-			dirLightData[_frameIdx]->CopyData(i, *dirLights[i].GetLightData());
+			SqLightData* sld = dirLights[i].GetLightData();
+			dirLightData[_frameIdx]->CopyData(i, *sld);
+
+			// upload cascade
+			for (int j = 0; j < sld->numCascade; j++)
+			{
+				LightConstant lc;
+				lc.sqMatrixShadow = sld->shadowMatrix[j];
+				dirLights[i].UploadLightConstant(lc, j, _frameIdx);
+			}
+
 			dirLights[i].SetDirty(false, _frameIdx);
 		}
 	}
-}
-
-void LightManager::UploadLightConstant(LightConstant lc, int _cascade, int _frameIdx)
-{
-	lightConstant[_frameIdx]->CopyData(_cascade, lc);
 }
 
 void LightManager::FillSystemConstant(SystemConstant& _sc)
@@ -164,12 +167,6 @@ Material* LightManager::GetShadowCutout(int _cullMode)
 ID3D12Resource* LightManager::GetDirLightResource(int _frameIdx)
 {
 	return dirLightData[_frameIdx]->Resource();
-}
-
-D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetLightConstantGPU(int _cascade, int _frameIdx)
-{
-	UINT lightConstantSize = CalcConstantBufferByteSize(sizeof(LightConstant));
-	return lightConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + _cascade * lightConstantSize;
 }
 
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)
