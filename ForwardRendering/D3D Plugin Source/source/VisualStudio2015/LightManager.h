@@ -31,7 +31,9 @@ public:
 	void SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void UploadLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
+
 	Light *GetDirLights();
+	int GetNumDirLights();
 	Material* GetShadowOpqaue(int _cullMode);
 	Material* GetShadowCutout(int _cullMode);
 

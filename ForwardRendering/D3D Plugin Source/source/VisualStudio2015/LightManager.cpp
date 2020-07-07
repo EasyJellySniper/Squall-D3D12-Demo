@@ -139,6 +139,11 @@ Light* LightManager::GetDirLights()
 	return dirLights.data();
 }
 
+int LightManager::GetNumDirLights()
+{
+	return (int)dirLights.size();
+}
+
 Material* LightManager::GetShadowOpqaue(int _cullMode)
 {
 	return &shadowOpaqueMat[_cullMode];

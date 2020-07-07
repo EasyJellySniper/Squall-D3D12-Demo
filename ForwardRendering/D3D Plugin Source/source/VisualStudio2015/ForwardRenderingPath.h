@@ -44,6 +44,8 @@ private:
 	void WakeAndWaitWorker();
 	void FrustumCulling(int _threadIndex);
 	void BeginFrame(Camera* _camera);
+	void ClearCamera(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
+	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
 	void UploadWork(Camera* _camera);
 	void UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex);
 	void ShadowWork();

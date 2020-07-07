@@ -185,13 +185,23 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 		LogIfFailedWithoutHR(currFrameResource.workerGfxAlloc[i]->Reset());
 	}
 
-	CameraData camData = _camera->GetCameraData();
 	auto _cmdList = currFrameResource.preGfxList;
 
 #if defined(GRAPHICTIME)
 	// timer begin
 	_cmdList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
 #endif
+
+	ClearCamera(_cmdList, _camera);
+	ClearLight(_cmdList);
+
+	// close command list and execute
+	ExecuteCmdList(_cmdList);
+}
+
+void ForwardRenderingPath::ClearCamera(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
+{
+	CameraData camData = _camera->GetCameraData();
 
 	// transition resource state to render target
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData.allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
@@ -208,11 +218,25 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 		, camData.clearColor, 0, nullptr);
 
 	_cmdList->ClearDepthStencilView((camData.allowMSAA > 1) ? _camera->GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : _camera->GetDsv()->GetCPUDescriptorHandleForHeapStart()
-		, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL
+		, D3D12_CLEAR_FLAG_DEPTH
 		, 0.0f, 0, 0, nullptr);
+}
 
-	// close command list and execute
-	ExecuteCmdList(_cmdList);
+void ForwardRenderingPath::ClearLight(ID3D12GraphicsCommandList* _cmdList)
+{
+	auto dirLights = LightManager::Instance().GetDirLights();
+	int numDirLight = LightManager::Instance().GetNumDirLights();
+
+	for (int i = 0; i < numDirLight; i++)
+	{
+		SqLightData sld = dirLights[i].GetLightData();
+
+		for (int j = 0; j < sld.numCascade; j++)
+		{
+			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(dirLights[i].GetShadowMapSrc(j), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+			_cmdList->ClearDepthStencilView(dirLights[i].GetShadowDsv(j), D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
+		}
+	}
 }
 
 void ForwardRenderingPath::UploadWork(Camera *_camera)
@@ -271,7 +295,7 @@ void ForwardRenderingPath::ShadowWork()
 {
 	SystemConstant sc = GraphicManager::Instance().GetSystemConstantCPU();
 	auto dirLights = LightManager::Instance().GetDirLights();
-	int numDirLights = sc.numDirLight;
+	int numDirLights = LightManager::Instance().GetNumDirLights();
 
 	// upload and rendering
 	for (int i = 0; i < numDirLights; i++)
@@ -283,6 +307,7 @@ void ForwardRenderingPath::ShadowWork()
 
 		// render all cascade
 		SqLightData sld = dirLights[i].GetLightData();
+
 		for (int j = 0; j < sld.numCascade; j++)
 		{
 			sc.sqMatrixShadow = sld.shadowMatrix[j];
@@ -303,10 +328,7 @@ void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _thr
 	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 
 	// transition to depth write
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowMapSrc(_cascade), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-	_cmdList->ClearDepthStencilView(_light->GetShadowDsv(_cascade), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 0.0f, 0, 0, nullptr);
 	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_light->GetShadowDsv(_cascade));
-
 	_cmdList->RSSetViewports(1, &_light->GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_light->GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
