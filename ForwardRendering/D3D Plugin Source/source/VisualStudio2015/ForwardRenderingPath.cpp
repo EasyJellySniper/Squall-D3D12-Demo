@@ -112,6 +112,11 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
 		}
+		else if (workerType == WorkerType::ShadowRendering)
+		{
+			BindShadowState(currLight, cascadeIndex, _threadIndex);
+			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
+		}
 		else if (workerType == WorkerType::OpaqueRendering)
 		{
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
@@ -278,25 +283,24 @@ void ForwardRenderingPath::ShadowWork()
 			sc.sqMatrixShadow = sld.shadowMatrix[j];
 			GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 
-			// single thread work
-			BindShadowState(dirLights[i], j);
-
 			// multi thread work
+			cascadeIndex = j;
+			currLight = &dirLights[i];
 			workerType = WorkerType::ShadowRendering;
 			WakeAndWaitWorker();
 		}
 	}
 }
 
-void ForwardRenderingPath::BindShadowState(Light _light, int _cascade)
+void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _threadIndex)
 {
-	auto _cmdList = currFrameResource.preGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource.preGfxAllocator, nullptr));
+	LogIfFailedWithoutHR(currFrameResource.workerGfxList[_threadIndex]->Reset(currFrameResource.workerGfxAlloc[_threadIndex], nullptr));
+	auto _cmdList = currFrameResource.workerGfxList[_threadIndex];
 
 	// transition to depth write
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light.GetShadowMapSrc(_cascade), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-	_cmdList->ClearDepthStencilView(_light.GetShadowDsv(_cascade), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 0.0f, 0, 0, nullptr);
-	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_light.GetShadowDsv(_cascade));
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowMapSrc(_cascade), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	_cmdList->ClearDepthStencilView(_light->GetShadowDsv(_cascade), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 0.0f, 0, 0, nullptr);
+	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_light->GetShadowDsv(_cascade));
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	ExecuteCmdList(_cmdList);

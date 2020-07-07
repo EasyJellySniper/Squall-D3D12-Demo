@@ -47,7 +47,7 @@ private:
 	void UploadWork(Camera* _camera);
 	void UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex);
 	void ShadowWork();
-	void BindShadowState(Light _light, int _cascade);
+	void BindShadowState(Light *_light, int _cascade, int _threadIndex);
 	void BindForwardState(Camera* _camera, int _frameIdx, int _threadIndex);
 	void BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh, int _frameIdx);
@@ -64,8 +64,10 @@ private:
 	void ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList);
 
 	Camera* targetCam;
+	Light* currLight;
 	WorkerType workerType;
 	int frameIndex;
+	int cascadeIndex;
 	FrameResource currFrameResource;
 	int numWorkerThreads;
 };
