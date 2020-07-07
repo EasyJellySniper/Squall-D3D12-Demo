@@ -149,6 +149,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitNativeShadows(int
 	LightManager::Instance().InitNativeShadows(_nativeID, _numCascade, _shadowMapRaw);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetShadowViewPortScissorRect(int _nativeId, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
+{
+	LightManager::Instance().SetViewPortScissorRect(_nativeId, _viewPort, _scissorRect);
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

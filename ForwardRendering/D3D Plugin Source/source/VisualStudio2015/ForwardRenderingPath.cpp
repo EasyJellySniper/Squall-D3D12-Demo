@@ -306,6 +306,9 @@ void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _thr
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowMapSrc(_cascade), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 	_cmdList->ClearDepthStencilView(_light->GetShadowDsv(_cascade), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 0.0f, 0, 0, nullptr);
 	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_light->GetShadowDsv(_cascade));
+
+	_cmdList->RSSetViewports(1, &_light->GetViewPort());
+	_cmdList->RSSetScissorRects(1, &_light->GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 

@@ -32,14 +32,17 @@ public:
 	void InitNativeShadows(int _numCascade, void** _shadowMapRaw);
 	void Release();
 	void SetLightData(SqLightData _data);
-	SqLightData GetLightData();
+	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 
+	SqLightData GetLightData();
 	int GetInstanceID();
 	void SetDirty(bool _dirty, int _frameIdx);
 	bool IsDirty(int _frameIdx);
 	bool HasShadow();
 	ID3D12Resource* GetShadowMapSrc(int _cascade);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowDsv(int _cascade);
+	D3D12_VIEWPORT GetViewPort();
+	D3D12_RECT GetScissorRect();
 
 private:
 	bool isDirty[MAX_FRAME_COUNT];
@@ -51,4 +54,6 @@ private:
 	ID3D12Resource* shadowMap[MAX_CASCADE_SHADOW];
 	ComPtr<ID3D12DescriptorHeap> shadowMapDSV;
 	ComPtr<ID3D12DescriptorHeap> shadowMapSRV;
+	D3D12_VIEWPORT shadowViewPort;
+	D3D12_RECT shadowScissorRect;
 };

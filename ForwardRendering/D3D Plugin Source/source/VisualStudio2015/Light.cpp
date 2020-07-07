@@ -93,6 +93,12 @@ void Light::SetLightData(SqLightData _data)
 	}
 }
 
+void Light::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
+{
+	shadowViewPort = _viewPort;
+	shadowScissorRect = _scissorRect;
+}
+
 SqLightData Light::GetLightData()
 {
 	return lightDataCPU;
@@ -132,4 +138,14 @@ D3D12_CPU_DESCRIPTOR_HANDLE Light::GetShadowDsv(int _cascade)
 {
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dHandle(shadowMapDSV->GetCPUDescriptorHandleForHeapStart());
 	return dHandle.Offset(_cascade, GraphicManager::Instance().GetDsvDesciptorSize());
+}
+
+D3D12_VIEWPORT Light::GetViewPort()
+{
+	return shadowViewPort;
+}
+
+D3D12_RECT Light::GetScissorRect()
+{
+	return shadowScissorRect;
 }

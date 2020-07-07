@@ -108,6 +108,12 @@ void LightManager::UpdateNativeLight(int _id, SqLightData _data)
 	}
 }
 
+void LightManager::SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
+{
+	// currently onyl dir light needs 
+	dirLights[_nativeID].SetViewPortScissorRect(_viewPort, _scissorRect);
+}
+
 void LightManager::UploadLightBuffer(int _frameIdx)
 {
 	// per light upload

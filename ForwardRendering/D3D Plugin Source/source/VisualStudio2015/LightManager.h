@@ -28,6 +28,7 @@ public:
 
 	int AddNativeLight(int _instanceID, SqLightData _data);
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
+	void SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void UploadLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
 	Light *GetDirLights();
