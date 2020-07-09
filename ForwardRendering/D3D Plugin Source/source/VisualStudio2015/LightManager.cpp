@@ -2,7 +2,7 @@
 #include "GraphicManager.h"
 #include "ShaderManager.h"
 
-void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
+void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _opaqueShadows)
 {
 	maxDirLight = _numDirLight;
 	maxPointLight = _numPointLight;
@@ -34,6 +34,8 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 			shadowCutoutMat[i] = MaterialManager::Instance().CreateMaterialDepthOnly(shadowPassCutoff, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
 		}
 	}
+
+	CreateOpaqueShadow(_opaqueShadows);
 }
 
 void LightManager::InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw)
@@ -74,6 +76,9 @@ void LightManager::Release()
 		shadowOpaqueMat[i].Release();
 		shadowCutoutMat[i].Release();
 	}
+
+	opaqueShadowRTV.Reset();
+	opaqueShadowSRV.Reset();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -240,4 +245,47 @@ void LightManager::AddDirShadow(int _nativeID, int _numCascade, void** _shadowMa
 	}
 
 	dirLights[_nativeID].InitNativeShadows(_numCascade, _shadowMapRaw);
+}
+
+void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
+{
+	DXGI_FORMAT shadowFormat = DXGI_FORMAT_R16_FLOAT;
+	opaqueShadowSrc = (ID3D12Resource*)_opaqueShadows;
+
+	if (_opaqueShadows != nullptr)
+	{
+		// create RTV handle
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
+		rtvHeapDesc.NumDescriptors = 1;
+		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		rtvHeapDesc.NodeMask = 0;
+		LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(opaqueShadowRTV.GetAddressOf())));
+
+		// create RTV
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+		rtvDesc.Format = shadowFormat;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		rtvDesc.Texture2D.MipSlice = 0;
+		rtvDesc.Texture2D.PlaneSlice = 0;
+
+		GraphicManager::Instance().GetDevice()->CreateRenderTargetView((ID3D12Resource*)_opaqueShadows, &rtvDesc, opaqueShadowRTV->GetCPUDescriptorHandleForHeapStart());
+
+		// create SRV handle
+		D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
+		srvHeapDesc.NumDescriptors = 1;
+		srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		srvHeapDesc.NodeMask = 0;
+		LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(opaqueShadowSRV.GetAddressOf())));
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Format = shadowFormat;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = -1;
+
+		GraphicManager::Instance().GetDevice()->CreateShaderResourceView((ID3D12Resource*)_opaqueShadows, &srvDesc, opaqueShadowSRV->GetCPUDescriptorHandleForHeapStart());
+	}
 }

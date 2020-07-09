@@ -20,9 +20,9 @@ extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitializeSqGraphic(i
 	return s_CurrentAPI->CheckDevice();
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows)
 {
-	LightManager::Instance().Init(_numDirLight, _numPointLight, _numSpotLight);
+	LightManager::Instance().Init(_numDirLight, _numPointLight, _numSpotLight, _opaqueShadows);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API ReleaseSqGraphic()

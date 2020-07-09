@@ -69,6 +69,11 @@ public class SqLight : MonoBehaviour
     }
 
     /// <summary>
+    /// opaque shadows
+    /// </summary>
+    public static RenderTexture opaqueShadows;
+
+    /// <summary>
     /// shadow size
     /// </summary>
     [Header("Shadow size, note even cascade use this size!")]
@@ -136,6 +141,12 @@ public class SqLight : MonoBehaviour
                 shadowMaps[i].Release();
                 DestroyImmediate(shadowMaps[i]);
             }
+        }
+
+        if (opaqueShadows != null)
+        {
+            opaqueShadows.Release();
+            DestroyImmediate(opaqueShadows);
         }
     }
 

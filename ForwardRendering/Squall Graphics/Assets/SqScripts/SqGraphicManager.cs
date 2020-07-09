@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 /// <summary>
@@ -51,7 +52,7 @@ public class SqGraphicManager : MonoBehaviour
     static extern bool InitializeSqGraphic(int _numOfThreads);
 
     [DllImport("SquallGraphics")]
-    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight);
+    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _opaqueShadows);
 
     [DllImport("SquallGraphics")]
     static extern void ReleaseSqGraphic();
@@ -142,7 +143,7 @@ public class SqGraphicManager : MonoBehaviour
             return;
         }
 
-        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight);
+        InitLights();
 
         Debug.Log("[SqGraphicManager] Number of render threads: " + GetRenderThreadCount());
         guiStyle = new GUIStyle();
@@ -220,4 +221,33 @@ public class SqGraphicManager : MonoBehaviour
         }
     }
 #endif
+
+    void InitLights()
+    {
+        var objs = gameObject.scene.GetRootGameObjects();
+        bool hasShadowLight = false;
+
+        for (int i = 0; i < objs.Length && !hasShadowLight; i++)
+        {
+            Light[] lights = objs[i].GetComponentsInChildren<Light>();
+
+            foreach (var l in lights)
+            {
+                if (l.shadows != LightShadows.None)
+                {
+                    hasShadowLight = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasShadowLight)
+        {
+            SqLight.opaqueShadows = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.RHalf);
+            SqLight.opaqueShadows.name = "Opaque Shadows";
+            SqLight.opaqueShadows.Create();
+        }
+
+        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, SqLight.opaqueShadows.GetNativeTexturePtr());
+    }
 }

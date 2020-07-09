@@ -4,6 +4,8 @@
 #include "FrameResource.h"
 #include "UploadBuffer.h"
 #include "MaterialManager.h"
+#include <wrl.h>
+using namespace Microsoft::WRL;
 
 class LightManager
 {
@@ -22,7 +24,7 @@ public:
 	LightManager() {}
 	~LightManager() {}
 
-	void Init(int _numDirLight, int _numPointLight, int _numSpotLight);
+	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows);
 	void InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void Release();
 
@@ -46,6 +48,7 @@ private:
 	int AddPointLight(int _instanceID, SqLightData _data);
 	int AddSpotLight(int _instanceID, SqLightData _data);
 	void AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw);
+	void CreateOpaqueShadow(void *_opaqueShadows);
 
 	int maxDirLight;
 	int maxPointLight;
@@ -58,6 +61,9 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> dirLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> pointLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
+	ComPtr<ID3D12DescriptorHeap> opaqueShadowRTV;
+	ComPtr<ID3D12DescriptorHeap> opaqueShadowSRV;
+	ID3D12Resource* opaqueShadowSrc;
 
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];
