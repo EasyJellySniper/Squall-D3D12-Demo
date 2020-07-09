@@ -78,9 +78,9 @@ D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetDsvCPU()
 	return dsvHandle->GetCPUDescriptorHandleForHeapStart();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetSrvCPU()
+ID3D12DescriptorHeap* RenderTexture::GetSrv()
 {
-	return srvHandle->GetCPUDescriptorHandleForHeapStart();
+	return srvHandle.Get();
 }
 
 ID3D12Resource* RenderTexture::GetRtvSrc()

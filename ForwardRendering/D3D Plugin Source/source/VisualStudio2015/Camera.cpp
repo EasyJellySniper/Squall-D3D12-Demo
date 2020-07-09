@@ -12,6 +12,9 @@ bool Camera::Initialize(CameraData _cameraData)
 	numOfRenderTarget = 0;
 	msaaQuality = 0;
 
+	vector<ID3D12Resource*> renderTarget;
+	ID3D12Resource* depthTarget;
+
 	for (int i = 0; i < MAX_RENDER_TARGETS; i++)
 	{
 		renderTarget.push_back((ID3D12Resource*)cameraData.renderTarget[i]);
@@ -115,21 +118,31 @@ bool Camera::Initialize(CameraData _cameraData)
 		}
 	}
 
-	// render target is valid, we can create descriptors now
-	if (FAILED(CreateRtvDescriptorHeaps()))
+	for (int i = 0; i < numOfRenderTarget; i++)
 	{
-		LogMessage(L"[SqGraphic Error] SqCamera: Create Rtv Descriptor failed.");
-		return false;
+		cameraRT[i] = make_shared<RenderTexture>();
+		cameraRTMsaa[i] = make_shared<RenderTexture>();
+
+		cameraRT[i]->InitRTV(renderTarget[i], renderTarrgetDesc[i].Format);
+		if (cameraData.allowMSAA > 1)
+		{
+			cameraRTMsaa[i]->InitRTV(msaaTarget[i].Get(), renderTarrgetDesc[i].Format, true);
+		}
 	}
 
-	if (FAILED(CreateDsvDescriptorHeaps()))
+	// create depth, only 1st need depth
+	auto depthDesc = depthTarget->GetDesc();
+	depthTargetDesc = depthDesc;
+	depthTargetDesc.Format = GetDepthFormatFromTypeless(depthDesc.Format);
+
+	cameraRT[0]->InitDSV(depthTarget, depthTargetDesc.Format);
+	if (cameraData.allowMSAA > 1)
 	{
-		LogMessage(L"[SqGraphic Error] SqCamera: Create Dsv Descriptor failed.");
-		return false;
+		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.Get(), depthTargetDesc.Format, true);
+		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.Get(), GetShaderFormatFromTypeless(depthDesc.Format), true);
 	}
 
-	CreateRtv();
-	CreateDsv();
+	renderTarget.clear();
 
 	if (!CreatePipelineMaterial())
 	{
@@ -142,21 +155,20 @@ bool Camera::Initialize(CameraData _cameraData)
 
 void Camera::Release()
 {
-	rtvHandle.Reset();
-	msaaRtvHandle.Reset();
-	dsvHandle.Reset();
-	msaaDsvHandle.Reset();
-	depthSrvHandle.Reset();
-	msDepthSrvHandle.Reset();
-
 	for (size_t i = 0; i < msaaTarget.size(); i++)
 	{
 		msaaTarget[i].Reset();
 	}
 	msaaDepthTarget.Reset();
-
-	renderTarget.clear();
 	msaaTarget.clear();
+
+	for (int i = 0; i < numOfRenderTarget; i++)
+	{
+		cameraRT[i]->Release();
+		cameraRTMsaa[i]->Release();
+		cameraRT[i].reset();
+		cameraRTMsaa[i].reset();
+	}
 
 	for (auto& m : pipelineMaterials)
 	{
@@ -177,7 +189,7 @@ CameraData *Camera::GetCameraData()
 
 ID3D12Resource * Camera::GetRtvSrc(int _index)
 {
-	return renderTarget[_index];
+	return cameraRT[_index]->GetRtvSrc();
 }
 
 ID3D12Resource* Camera::GetDebugDepth()
@@ -195,29 +207,29 @@ ID3D12Resource * Camera::GetMsaaDsvSrc()
 	return msaaDepthTarget.Get();
 }
 
-ID3D12DescriptorHeap * Camera::GetRtv()
+D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetRtv(int _index)
 {
-	return rtvHandle.Get();
+	return cameraRT[_index]->GetRtvCPU();
 }
 
-ID3D12DescriptorHeap * Camera::GetMsaaRtv()
+D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaRtv(int _index)
 {
-	return msaaRtvHandle.Get();
+	return cameraRTMsaa[_index]->GetRtvCPU();
 }
 
-ID3D12DescriptorHeap * Camera::GetDsv()
+D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetDsv()
 {
-	return dsvHandle.Get();
+	return cameraRT[0]->GetDsvCPU();
 }
 
-ID3D12DescriptorHeap * Camera::GetMsaaDsv()
+D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
 {
-	return msaaDsvHandle.Get();
+	return cameraRTMsaa[0]->GetDsvCPU();
 }
 
-ID3D12DescriptorHeap* Camera::GetMsaaSrv()
+ID3D12DescriptorHeap* Camera::GetMsaaSrv(int _index)
 {
-	return msDepthSrvHandle.Get();
+	return cameraRTMsaa[_index]->GetSrv();
 }
 
 void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position)
@@ -326,7 +338,7 @@ RenderMode Camera::GetRenderMode()
 
 ID3D12Resource* Camera::GetCameraDepth()
 {
-	return depthTarget;
+	return cameraRT[0]->GetDsvSrc();
 }
 
 bool Camera::FrustumTest(BoundingBox _bound)
@@ -337,123 +349,6 @@ bool Camera::FrustumTest(BoundingBox _bound)
 Shader* Camera::GetFallbackShader()
 {
 	return wireFrameDebug;
-}
-
-HRESULT Camera::CreateRtvDescriptorHeaps()
-{
-	HRESULT hr = S_OK;
-
-	// create render target handle
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-	rtvHeapDesc.NumDescriptors = MAX_RENDER_TARGETS;
-	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	rtvHeapDesc.NodeMask = 0;
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(rtvHandle.GetAddressOf())), hr);
-
-	// create aa target handle if necessary
-	if (cameraData.allowMSAA > 1)
-	{
-		rtvHeapDesc.NumDescriptors = MAX_RENDER_TARGETS;
-		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(msaaRtvHandle.GetAddressOf())), hr);
-	}
-
-	return hr;
-}
-
-HRESULT Camera::CreateDsvDescriptorHeaps()
-{
-	HRESULT hr = S_OK;
-
-	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
-	dsvHeapDesc.NumDescriptors = 1;
-	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	dsvHeapDesc.NodeMask = 0;
-
-	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
-	srvHeapDesc.NumDescriptors = 1;
-	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	srvHeapDesc.NodeMask = 0;
-
-	// Common Depth
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHandle.GetAddressOf())), hr);
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(depthSrvHandle.GetAddressOf())), hr);
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;	// assume 32 bit depth
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = -1;
-
-	GraphicManager::Instance().GetDevice()->CreateShaderResourceView(depthTarget, &srvDesc, depthSrvHandle->GetCPUDescriptorHandleForHeapStart());
-
-	// MSAA Depth
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(msaaDsvHandle.GetAddressOf())), hr);
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(msDepthSrvHandle.GetAddressOf())), hr);
-
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;	// assume 32 bit depth
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
-
-	GraphicManager::Instance().GetDevice()->CreateShaderResourceView(msaaDepthTarget.Get(), &srvDesc, msDepthSrvHandle->GetCPUDescriptorHandleForHeapStart());
-
-	return hr;
-}
-
-void Camera::CreateRtv()
-{
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rHandle(rtvHandle->GetCPUDescriptorHandleForHeapStart());
-
-	for (int i = 0; i < MAX_RENDER_TARGETS; i++)
-	{
-		if (renderTarget[i] != nullptr)
-		{
-			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-			rtvDesc.Format = renderTarrgetDesc[i].Format;
-			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-			rtvDesc.Texture2D.MipSlice = 0;
-			rtvDesc.Texture2D.PlaneSlice = 0;
-
-			GraphicManager::Instance().GetDevice()->CreateRenderTargetView(renderTarget[i], &rtvDesc, rHandle);
-		}
-		rHandle.Offset(1, GraphicManager::Instance().GetRtvDesciptorSize());
-	}
-
-	if (cameraData.allowMSAA > 1)
-	{
-		CD3DX12_CPU_DESCRIPTOR_HANDLE aaHandle(msaaRtvHandle->GetCPUDescriptorHandleForHeapStart());
-		for (size_t i = 0; i < msaaTarget.size(); i++)
-		{
-			if (msaaTarget[i] != nullptr)
-			{
-				D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-				rtvDesc.Format = renderTarrgetDesc[i].Format;
-				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
-
-				GraphicManager::Instance().GetDevice()->CreateRenderTargetView(msaaTarget[i].Get(), &rtvDesc, aaHandle);
-			}
-			aaHandle.Offset(1, GraphicManager::Instance().GetRtvDesciptorSize());
-		}
-	}
-}
-
-void Camera::CreateDsv()
-{
-	D3D12_RESOURCE_DESC dsvRrcDesc = depthTarget->GetDesc();
-	depthTargetDesc = dsvRrcDesc;
-	depthTargetDesc.Format = GetDepthFormatFromTypeless(dsvRrcDesc.Format);
-	DXGI_FORMAT depthStencilFormat = depthTargetDesc.Format;
-
-	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-	depthStencilViewDesc.Format = depthStencilFormat;
-	depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	GraphicManager::Instance().GetDevice()->CreateDepthStencilView(depthTarget, &depthStencilViewDesc, dsvHandle->GetCPUDescriptorHandleForHeapStart());
-
-	depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
-	GraphicManager::Instance().GetDevice()->CreateDepthStencilView(msaaDepthTarget.Get(), &depthStencilViewDesc, msaaDsvHandle->GetCPUDescriptorHandleForHeapStart());
 }
 
 bool Camera::CreatePipelineMaterial()

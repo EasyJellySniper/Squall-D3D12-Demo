@@ -7,6 +7,7 @@
 #include <wrl.h>
 #include "Material.h" 
 #include "Shader.h"
+#include "RenderTexture.h"
 using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
@@ -48,11 +49,11 @@ public:
 	ID3D12Resource* GetDebugDepth();
 	ID3D12Resource *GetMsaaRtvSrc(int _index);
 	ID3D12Resource *GetMsaaDsvSrc();
-	ID3D12DescriptorHeap *GetRtv();
-	ID3D12DescriptorHeap *GetMsaaRtv();
-	ID3D12DescriptorHeap *GetDsv();
-	ID3D12DescriptorHeap *GetMsaaDsv();
-	ID3D12DescriptorHeap* GetMsaaSrv();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetRtv(int _index);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaRtv(int _index);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetDsv();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaDsv();
+	ID3D12DescriptorHeap* GetMsaaSrv(int _index);
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void SetRenderMode(int _mode);
@@ -76,11 +77,6 @@ public:
 
 private:
 	static const int MAX_RENDER_TARGETS = 8;
-
-	HRESULT CreateRtvDescriptorHeaps();
-	HRESULT CreateDsvDescriptorHeaps();
-	void CreateRtv();
-	void CreateDsv();
 	bool CreatePipelineMaterial();
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS CheckMsaaQuality(int _sampleCount, DXGI_FORMAT _format);
 
@@ -88,26 +84,22 @@ private:
 	RenderMode renderMode = RenderMode::None;
 
 	// render targets
-	vector<ID3D12Resource*> renderTarget;
 	vector<ComPtr<ID3D12Resource>> msaaTarget;
-	ID3D12Resource *depthTarget;
-	ID3D12Resource* debugDepth;
 	ComPtr<ID3D12Resource> msaaDepthTarget;
+	ID3D12Resource* debugDepth;
+
+	// rt desc cache
 	D3D12_RESOURCE_DESC renderTarrgetDesc[MAX_RENDER_TARGETS];
 	D3D12_RESOURCE_DESC depthTargetDesc;
+
+	// render texture
+	shared_ptr<RenderTexture> cameraRT[MAX_RENDER_TARGETS];
+	shared_ptr<RenderTexture> cameraRTMsaa[MAX_RENDER_TARGETS];
 
 	D3D12_CLEAR_VALUE optClearColor;
 	D3D12_CLEAR_VALUE optClearDepth;
 	int numOfRenderTarget;
 	int msaaQuality;
-
-	// rtv and dsv handles
-	ComPtr<ID3D12DescriptorHeap> rtvHandle;
-	ComPtr<ID3D12DescriptorHeap> msaaRtvHandle;
-	ComPtr<ID3D12DescriptorHeap> dsvHandle;
-	ComPtr<ID3D12DescriptorHeap> msaaDsvHandle;
-	ComPtr<ID3D12DescriptorHeap> depthSrvHandle;
-	ComPtr<ID3D12DescriptorHeap> msDepthSrvHandle;
 
 	// material
 	unordered_map<int, vector<Material>> pipelineMaterials;

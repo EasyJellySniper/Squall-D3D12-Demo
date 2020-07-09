@@ -214,10 +214,10 @@ void ForwardRenderingPath::ClearCamera(ID3D12GraphicsCommandList* _cmdList, Came
 		, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	// clear render target view and depth view (reversed-z)
-	_cmdList->ClearRenderTargetView((camData->allowMSAA > 1) ? _camera->GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : _camera->GetRtv()->GetCPUDescriptorHandleForHeapStart()
+	_cmdList->ClearRenderTargetView((camData->allowMSAA > 1) ? _camera->GetMsaaRtv(0) : _camera->GetRtv(0)
 		, camData->clearColor, 0, nullptr);
 
-	_cmdList->ClearDepthStencilView((camData->allowMSAA > 1) ? _camera->GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : _camera->GetDsv()->GetCPUDescriptorHandleForHeapStart()
+	_cmdList->ClearDepthStencilView((camData->allowMSAA > 1) ? _camera->GetMsaaDsv() : _camera->GetDsv()
 		, D3D12_CLEAR_FLAG_DEPTH
 		, 0.0f, 0, 0, nullptr);
 }
@@ -303,9 +303,9 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _frameIdx, int 
 
 	// bind
 	_cmdList->OMSetRenderTargets(1,
-		(camData->allowMSAA > 1) ? &_camera->GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera->GetRtv()->GetCPUDescriptorHandleForHeapStart(),
+		(camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(0) : &_camera->GetRtv(0),
 		true,
-		(camData->allowMSAA > 1) ? &_camera->GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera->GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		(camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv());
 
 	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
@@ -605,9 +605,9 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera, int _frameIdx)
 	// bind
 	CameraData* camData = _camera->GetCameraData();
 	_cmdList->OMSetRenderTargets(1,
-		(camData->allowMSAA > 1) ? &_camera->GetMsaaRtv()->GetCPUDescriptorHandleForHeapStart() : &_camera->GetRtv()->GetCPUDescriptorHandleForHeapStart(),
+		(camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(0) : &_camera->GetRtv(0),
 		true,
-		(camData->allowMSAA > 1) ? &_camera->GetMsaaDsv()->GetCPUDescriptorHandleForHeapStart() : &_camera->GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		(camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv());
 
 	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
@@ -726,10 +726,10 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 		// bind resolve depth pipeline
-		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera->GetMsaaSrv() };
+		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera->GetMsaaSrv(0) };
 		_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
-		_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera->GetDsv()->GetCPUDescriptorHandleForHeapStart());
+		_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera->GetDsv());
 		_cmdList->RSSetViewports(1, &_camera->GetViewPort());
 		_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
 		_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -737,7 +737,7 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 		_cmdList->SetPipelineState(_camera->GetPostMaterial()->GetPSO());
 		_cmdList->SetGraphicsRootSignature(_camera->GetPostMaterial()->GetRootSignature());
 		_cmdList->SetGraphicsRootConstantBufferView(0, _camera->GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
-		_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv(0)->GetGPUDescriptorHandleForHeapStart());
 		_cmdList->DrawInstanced(6, 1, 0, 0);
 
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));

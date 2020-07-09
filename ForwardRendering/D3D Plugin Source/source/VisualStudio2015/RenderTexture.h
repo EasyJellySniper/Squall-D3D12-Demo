@@ -14,7 +14,7 @@ public:
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtvCPU();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsvCPU();
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSrvCPU();
+	ID3D12DescriptorHeap* GetSrv();
 
 	ID3D12Resource* GetRtvSrc();
 	ID3D12Resource* GetDsvSrc();
