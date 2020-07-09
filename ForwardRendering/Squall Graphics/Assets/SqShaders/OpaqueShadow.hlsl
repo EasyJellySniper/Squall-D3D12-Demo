@@ -1,3 +1,7 @@
+#pragma sq_cbuffer SystemConstant
+#pragma sq_srv _SqDirLight
+
+#include "SqInput.hlsl"
 #pragma sq_vertex OpaqueShadowVS
 #pragma sq_pixel OpaqueShadowPS
 
@@ -18,7 +22,7 @@ static const float2 gTexCoords[6] =
 
 #pragma sq_srvStart
 // shadow map, up to 4 cascades
-Texture2D _ShadowMap[4] : register(t0, space1);
+Texture2D _ShadowMap[4] : register(t0);
 #pragma sq_srvEnd
 
 v2f OpaqueShadowVS(uint vid : SV_VertexID)
