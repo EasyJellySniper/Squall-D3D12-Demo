@@ -26,53 +26,13 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 		if (shadowMap[i] == nullptr)
 		{
 			LogMessage(L"[SqGraphic Error] Shadow map null.");
-		}
-	}
-
-	// create shadow dsv heap
-	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
-	dsvHeapDesc.NumDescriptors = numCascade;
-	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	dsvHeapDesc.NodeMask = 0;
-
-	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(shadowMapDSV.GetAddressOf())));
-
-	// create shadow srv heap
-	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
-	srvHeapDesc.NumDescriptors = numCascade;
-	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	srvHeapDesc.NodeMask = 0;
-
-	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(shadowMapSRV.GetAddressOf())));
-
-	// create dsv & srv
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dHandle(shadowMapDSV->GetCPUDescriptorHandleForHeapStart());
-	CD3DX12_CPU_DESCRIPTOR_HANDLE sHandle(shadowMapSRV->GetCPUDescriptorHandleForHeapStart());
-	for (int i = 0; i < numCascade; i++)
-	{
-		if (shadowMap[i] != nullptr)
-		{
-			D3D12_RESOURCE_DESC dsvRrcDesc = shadowMap[i]->GetDesc();
-
-			D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-			depthStencilViewDesc.Format = GetDepthFormatFromTypeless(dsvRrcDesc.Format);
-			depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-			GraphicManager::Instance().GetDevice()->CreateDepthStencilView(shadowMap[i], &depthStencilViewDesc, dHandle);
-
-			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srvDesc.Format = GetShaderFormatFromTypeless(dsvRrcDesc.Format);
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srvDesc.Texture2D.MostDetailedMip = 0;
-			srvDesc.Texture2D.MipLevels = -1;
-			GraphicManager::Instance().GetDevice()->CreateShaderResourceView(shadowMap[i], &srvDesc, sHandle);
+			continue;
 		}
 
-		// offset to next
-		dHandle.Offset(1, GraphicManager::Instance().GetDsvDesciptorSize());
-		sHandle.Offset(1, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+		D3D12_RESOURCE_DESC srcDesc = shadowMap[i]->GetDesc();
+		shadowRT[i] = make_shared<RenderTexture>();
+		shadowRT[i]->InitDSV(shadowMap[i], GetDepthFormatFromTypeless(srcDesc.Format));
+		shadowRT[i]->InitSRV(shadowMap[i], GetShaderFormatFromTypeless(srcDesc.Format));
 	}
 
 	hasShadow = true;
@@ -80,8 +40,12 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 
 void Light::Release()
 {
-	shadowMapDSV.Reset();
-	shadowMapSRV.Reset();
+	for (int i = 0; i < numCascade; i++)
+	{
+		shadowRT[i]->Release();
+		shadowRT[i].reset();
+	}
+
 	numCascade = 1;
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
@@ -158,8 +122,7 @@ ID3D12Resource* Light::GetShadowMapSrc(int _cascade)
 
 D3D12_CPU_DESCRIPTOR_HANDLE Light::GetShadowDsv(int _cascade)
 {
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dHandle(shadowMapDSV->GetCPUDescriptorHandleForHeapStart());
-	return dHandle.Offset(_cascade, GraphicManager::Instance().GetDsvDesciptorSize());
+	return shadowRT[_cascade]->GetDsvCPU();
 }
 
 D3D12_VIEWPORT Light::GetViewPort()

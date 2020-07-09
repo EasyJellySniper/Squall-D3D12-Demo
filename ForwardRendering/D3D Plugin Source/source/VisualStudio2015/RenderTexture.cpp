@@ -68,17 +68,17 @@ void RenderTexture::Release()
 	srvHandle.Reset();
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE RenderTexture::GetRtvGPU()
+D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetRtvCPU()
 {
-	return rtvHandle->GetGPUDescriptorHandleForHeapStart();
+	return rtvHandle->GetCPUDescriptorHandleForHeapStart();
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE RenderTexture::GetDsvGPU()
+D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetDsvCPU()
 {
-	return dsvHandle->GetGPUDescriptorHandleForHeapStart();
+	return dsvHandle->GetCPUDescriptorHandleForHeapStart();
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE RenderTexture::GetSrvGPU()
+D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetSrvCPU()
 {
-	return srvHandle->GetGPUDescriptorHandleForHeapStart();
+	return srvHandle->GetCPUDescriptorHandleForHeapStart();
 }

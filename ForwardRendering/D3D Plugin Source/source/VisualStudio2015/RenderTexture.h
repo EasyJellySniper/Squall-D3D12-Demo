@@ -12,9 +12,9 @@ public:
 	void InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msaa = false);
 	void Release();
 
-	D3D12_GPU_DESCRIPTOR_HANDLE GetRtvGPU();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetDsvGPU();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGPU();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetRtvCPU();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetDsvCPU();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSrvCPU();
 
 private:
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;
