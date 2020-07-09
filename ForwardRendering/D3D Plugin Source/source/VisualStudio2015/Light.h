@@ -43,7 +43,7 @@ public:
 	void SetShadowDirty(bool _dirty, int _frameIdx);
 	bool IsShadowDirty(int _frameIdx);
 	bool HasShadow();
-	ID3D12Resource* GetShadowMapSrc(int _cascade);
+	ID3D12Resource* GetShadowDsvSrc(int _cascade);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowDsv(int _cascade);
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
@@ -59,7 +59,6 @@ private:
 	SqLightData lightDataCPU;
 
 	int numCascade = 1;
-	ID3D12Resource* shadowMap[MAX_CASCADE_SHADOW];
 	shared_ptr<RenderTexture> shadowRT[MAX_CASCADE_SHADOW];
 	D3D12_VIEWPORT shadowViewPort;
 	D3D12_RECT shadowScissorRect;

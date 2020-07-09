@@ -19,6 +19,7 @@ void Light::Init(int _instanceID, SqLightData _data)
 void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 {
 	numCascade = _numCascade;
+	ID3D12Resource* shadowMap[MAX_CASCADE_SHADOW];
 
 	for (int i = 0; i < numCascade; i++)
 	{
@@ -110,14 +111,14 @@ bool Light::HasShadow()
 	return hasShadow;
 }
 
-ID3D12Resource* Light::GetShadowMapSrc(int _cascade)
+ID3D12Resource* Light::GetShadowDsvSrc(int _cascade)
 {
 	if (_cascade < 0 || _cascade >= MAX_CASCADE_SHADOW)
 	{
 		return nullptr;
 	}
 
-	return shadowMap[_cascade];
+	return shadowRT[_cascade]->GetDsvSrc();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Light::GetShadowDsv(int _cascade)
