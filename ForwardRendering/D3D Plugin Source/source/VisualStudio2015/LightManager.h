@@ -61,9 +61,7 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> dirLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> pointLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
-	ComPtr<ID3D12DescriptorHeap> opaqueShadowRTV;
-	ComPtr<ID3D12DescriptorHeap> opaqueShadowSRV;
-	ID3D12Resource* opaqueShadowSrc;
+	unique_ptr<RenderTexture> opaqueShadow;
 
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];
