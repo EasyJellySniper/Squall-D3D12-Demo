@@ -19,6 +19,8 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 	rootSignatureParam.clear();
 	keywordGroup.clear();
 	includeFile.clear();
+	cbufferList.clear();
+	srvList.clear();
 	parseSrv = false;
 	entryVS = "";
 	entryPS = "";
@@ -169,60 +171,91 @@ void ShaderManager::ParseShaderLine(wstring _input)
 		}
 		else if (ss == L"cbuffer")
 		{
-			// constant buffer view
-			CD3DX12_ROOT_PARAMETER p;
-			p.InitAsConstantBufferView(GetRegisterNumber(_input));
-			rootSignatureParam.push_back(p);
+			wstring cbName;
+			is >> cbName;
+
+			// only add used cbuffer
+			if (HasCbuffer(cbName))
+			{
+				// constant buffer view
+				CD3DX12_ROOT_PARAMETER p;
+				p.InitAsConstantBufferView(GetRegisterNumber(_input));
+				rootSignatureParam.push_back(p);
+			}
 		}
 		else if (ss == L"Texture2D")
 		{
 			if (parseSrv)
 			{
-				// static prevent stripped by compiler
-				static CD3DX12_DESCRIPTOR_RANGE texTable;
-				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+				wstring srvName;
+				is >> srvName;
 
-				// we will share texture table and dynamic indexing in shader
-				CD3DX12_ROOT_PARAMETER p;
-				p.InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
-				rootSignatureParam.push_back(p);
+				if (HasSrv(srvName))
+				{
+					// static prevent stripped by compiler
+					static CD3DX12_DESCRIPTOR_RANGE texTable;
+					texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+
+					// we will share texture table and dynamic indexing in shader
+					CD3DX12_ROOT_PARAMETER p;
+					p.InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
+					rootSignatureParam.push_back(p);
+				}
 			}
 		}
 		else if (ss == L"SamplerState")
 		{
 			if (parseSrv)
 			{
-				// static prevent stripped by compiler
-				static CD3DX12_DESCRIPTOR_RANGE samplerTable;
-				samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+				wstring srvName;
+				is >> srvName;
 
-				// we will share sampler table and dynamic indexing in shader
-				CD3DX12_ROOT_PARAMETER p;
-				p.InitAsDescriptorTable(1, &samplerTable, D3D12_SHADER_VISIBILITY_ALL);
-				rootSignatureParam.push_back(p);
+				if (HasSrv(srvName))
+				{
+					// static prevent stripped by compiler
+					static CD3DX12_DESCRIPTOR_RANGE samplerTable;
+					samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+
+					// we will share sampler table and dynamic indexing in shader
+					CD3DX12_ROOT_PARAMETER p;
+					p.InitAsDescriptorTable(1, &samplerTable, D3D12_SHADER_VISIBILITY_ALL);
+					rootSignatureParam.push_back(p);
+				}
 			}
 		}
 		else if (ss.find(L"Texture2DMS") != string::npos)
 		{
 			if (parseSrv)
 			{
-				// prevent stripped by compiler
-				static CD3DX12_DESCRIPTOR_RANGE texTable;
-				texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+				wstring srvName;
+				is >> srvName;
 
-				// multisample texture2d srv
-				CD3DX12_ROOT_PARAMETER p;
-				p.InitAsDescriptorTable(1, &texTable);
-				rootSignatureParam.push_back(p);
+				if (HasSrv(srvName))
+				{
+					// prevent stripped by compiler
+					static CD3DX12_DESCRIPTOR_RANGE texTable;
+					texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+
+					// multisample texture2d srv
+					CD3DX12_ROOT_PARAMETER p;
+					p.InitAsDescriptorTable(1, &texTable);
+					rootSignatureParam.push_back(p);
+				}
 			}
 		}
 		else if (ss.find(L"StructuredBuffer") != string::npos)
 		{
 			if (parseSrv)
 			{
-				CD3DX12_ROOT_PARAMETER p;
-				p.InitAsShaderResourceView(GetRegisterNumber(_input), GetSpaceNumber(_input));
-				rootSignatureParam.push_back(p);
+				wstring srvName;
+				is >> srvName;
+
+				if (HasSrv(srvName))
+				{
+					CD3DX12_ROOT_PARAMETER p;
+					p.InitAsShaderResourceView(GetRegisterNumber(_input), GetSpaceNumber(_input));
+					rootSignatureParam.push_back(p);
+				}
 			}
 		}
 		else if (ss == L"#pragma")
@@ -254,6 +287,19 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring ps;
 				is >> ps;
 				entryPS = WStringToAnsi(ps);
+			}
+			else if (ss == L"sq_cbuffer")
+			{
+				// add to cbuffer list
+				wstring cbName;
+				is >> cbName;
+				cbufferList.push_back(cbName);
+			}
+			else if (ss == L"sq_srv")
+			{
+				wstring srvName;
+				is >> srvName;
+				srvList.push_back(srvName);
 			}
 		}
 	}
@@ -398,4 +444,24 @@ int ShaderManager::GetNumDescriptor(wstring _input)
 	}
 
 	return stoi(num);
+}
+
+bool ShaderManager::HasCbuffer(wstring _name)
+{
+	if (find(cbufferList.begin(), cbufferList.end(), _name) != cbufferList.end() || cbufferList.size() == 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool ShaderManager::HasSrv(wstring _name)
+{
+	if (find(srvList.begin(), srvList.end(), _name) != srvList.end() || srvList.size() == 0)
+	{
+		return true;
+	}
+
+	return false;
 }

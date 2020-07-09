@@ -334,13 +334,13 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(1, _mat->GetMaterialConstantGPU(_frameIdx));
 
 	// setup descriptor table gpu
 	if (_queue >= RenderQueue::CutoffStart)
 	{
-		_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-		_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	}
 }
 
@@ -367,15 +367,14 @@ void ForwardRenderingPath::BindShadowObject(ID3D12GraphicsCommandList* _cmdList,
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(2, _light->GetLightConstantGPU(cascadeIndex, _frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(1, _light->GetLightConstantGPU(cascadeIndex, _frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
 
 	// setup descriptor table gpu
 	if (_queue >= RenderQueue::CutoffStart)
 	{
-		_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-		_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	}
 }
 

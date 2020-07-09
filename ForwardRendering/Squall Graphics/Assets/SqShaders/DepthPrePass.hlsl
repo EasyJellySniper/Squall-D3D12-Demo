@@ -1,4 +1,9 @@
-#include "SqForwardInclude.hlsl"
+#pragma sq_cbuffer ObjectConstant
+#pragma sq_cbuffer MaterialConstant
+#pragma sq_srv _TexTable[]
+#pragma sq_srv _SamplerTable[]
+
+#include "SqInput.hlsl"
 #pragma sq_vertex DepthPrePassVS
 #pragma sq_pixel DepthPrePassPS
 #pragma sq_keyword _CUTOFF_ON

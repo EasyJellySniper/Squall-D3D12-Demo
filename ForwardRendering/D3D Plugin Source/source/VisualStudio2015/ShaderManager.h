@@ -36,12 +36,16 @@ private:
 	int GetRegisterNumber(wstring _input);
 	int GetSpaceNumber(wstring _input);
 	int GetNumDescriptor(wstring _input);
+	bool HasCbuffer(wstring _name);
+	bool HasSrv(wstring _name);
 
 	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
 	vector<CD3DX12_ROOT_PARAMETER> rootSignatureParam;
 	vector<string> keywordGroup;
 	vector<wstring> includeFile;
+	vector<wstring> cbufferList;
+	vector<wstring> srvList;
 
 	bool parseSrv;
 	string entryVS;
