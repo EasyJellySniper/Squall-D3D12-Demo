@@ -812,7 +812,7 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	ID3D12DescriptorHeap* descriptorHeaps[] = { targetCam->GetDepthSrv(),_light->GetShadowSrv() };
-	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+	//_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// set target
 	_cmdList->OMSetRenderTargets(1, &LightManager::Instance().GetCollectShadowRtv(), true, nullptr);
@@ -825,8 +825,8 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	_cmdList->SetGraphicsRootSignature(LightManager::Instance().GetCollectShadow()->GetRootSignature());
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootShaderResourceView(1, LightManager::Instance().GetDirLightGPU(frameIndex, _id));
-	_cmdList->SetGraphicsRootDescriptorTable(2, targetCam->GetDepthSrv()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(3, _light->GetShadowSrv()->GetGPUDescriptorHandleForHeapStart());
+	//_cmdList->SetGraphicsRootDescriptorTable(2, targetCam->GetDepthSrv()->GetGPUDescriptorHandleForHeapStart());
+	//_cmdList->SetGraphicsRootDescriptorTable(3, _light->GetShadowSrv()->GetGPUDescriptorHandleForHeapStart());
 
 	_cmdList->DrawInstanced(6, 1, 0, 0);
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);

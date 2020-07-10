@@ -41,11 +41,14 @@ private:
 
 	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
-	vector<CD3DX12_ROOT_PARAMETER> rootSignatureParam;
+	CD3DX12_DESCRIPTOR_RANGE descriptorTable[32];
+	CD3DX12_ROOT_PARAMETER rootSignatureParam[32];
 	vector<string> keywordGroup;
 	vector<wstring> includeFile;
 	vector<wstring> cbufferList;
 	vector<wstring> srvList;
+	int numTable = 0;
+	int numRoot = 0;
 
 	bool parseSrv;
 	string entryVS;

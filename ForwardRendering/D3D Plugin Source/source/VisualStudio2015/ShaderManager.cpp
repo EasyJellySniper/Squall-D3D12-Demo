@@ -16,11 +16,13 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 	unique_ptr<Shader> newShader = make_unique<Shader>(_fileName);
 
 	// reset root signature for parsing
-	rootSignatureParam.clear();
 	keywordGroup.clear();
 	includeFile.clear();
 	cbufferList.clear();
 	srvList.clear();
+	numTable = 0;
+	numRoot = 0;
+
 	parseSrv = false;
 	entryVS = "";
 	entryPS = "";
@@ -64,8 +66,10 @@ void ShaderManager::Release()
 	}
 
 	shaders.clear();
-	rootSignatureParam.clear();
 	keywordGroup.clear();
+	includeFile.clear();
+	cbufferList.clear();
+	srvList.clear();
 }
 
 Shader *ShaderManager::FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro)
@@ -180,7 +184,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				// constant buffer view
 				CD3DX12_ROOT_PARAMETER p;
 				p.InitAsConstantBufferView(GetRegisterNumber(_input));
-				rootSignatureParam.push_back(p);
+				rootSignatureParam[numRoot++]= p;
 			}
 		}
 		else if (ss == L"Texture2D")
@@ -193,13 +197,13 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				if (HasSrv(srvName))
 				{
 					// static prevent stripped by compiler
-					static CD3DX12_DESCRIPTOR_RANGE texTable;
-					texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+					descriptorTable[numTable] = CD3DX12_DESCRIPTOR_RANGE();
+					descriptorTable[numTable].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 					// we will share texture table and dynamic indexing in shader
 					CD3DX12_ROOT_PARAMETER p;
-					p.InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_ALL);
-					rootSignatureParam.push_back(p);
+					p.InitAsDescriptorTable(1, &descriptorTable[numTable++]);
+					rootSignatureParam[numRoot++] = p;
 				}
 			}
 		}
@@ -213,13 +217,13 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				if (HasSrv(srvName))
 				{
 					// static prevent stripped by compiler
-					static CD3DX12_DESCRIPTOR_RANGE samplerTable;
-					samplerTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+					descriptorTable[numTable] = CD3DX12_DESCRIPTOR_RANGE();
+					descriptorTable[numTable].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 					// we will share sampler table and dynamic indexing in shader
 					CD3DX12_ROOT_PARAMETER p;
-					p.InitAsDescriptorTable(1, &samplerTable, D3D12_SHADER_VISIBILITY_ALL);
-					rootSignatureParam.push_back(p);
+					p.InitAsDescriptorTable(1, &descriptorTable[numTable++]);
+					rootSignatureParam[numRoot++] = p;
 				}
 			}
 		}
@@ -233,13 +237,13 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				if (HasSrv(srvName))
 				{
 					// prevent stripped by compiler
-					static CD3DX12_DESCRIPTOR_RANGE texTable;
-					texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
+					descriptorTable[numTable] = CD3DX12_DESCRIPTOR_RANGE();
+					descriptorTable[numTable].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GetNumDescriptor(_input), GetRegisterNumber(_input), GetSpaceNumber(_input));
 
 					// multisample texture2d srv
 					CD3DX12_ROOT_PARAMETER p;
-					p.InitAsDescriptorTable(1, &texTable);
-					rootSignatureParam.push_back(p);
+					p.InitAsDescriptorTable(1, &descriptorTable[numTable++]);
+					rootSignatureParam[numRoot++] = p;
 				}
 			}
 		}
@@ -254,7 +258,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				{
 					CD3DX12_ROOT_PARAMETER p;
 					p.InitAsShaderResourceView(GetRegisterNumber(_input), GetSpaceNumber(_input));
-					rootSignatureParam.push_back(p);
+					rootSignatureParam[numRoot++] = p;
 				}
 			}
 		}
@@ -307,7 +311,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 
 void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, bool _ignoreInputLayout)
 {
-	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc((UINT)rootSignatureParam.size(), rootSignatureParam.data(),
+	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc((UINT)numRoot, rootSignatureParam,
 		0, nullptr,
 		(!_ignoreInputLayout) ? D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT : D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
