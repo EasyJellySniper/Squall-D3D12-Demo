@@ -6,6 +6,7 @@ using namespace std;
 #include <locale>
 #include <codecvt>
 #include <dxgiformat.h>
+#include <algorithm>
 
 inline wstring AnsiToWString(const string& str)
 {
@@ -109,4 +110,14 @@ inline DXGI_FORMAT GetShaderFormatFromTypeless(DXGI_FORMAT _typelessFormat)
 	}
 
 	return srvFormat;
+}
+
+inline wstring RemoveChars(wstring _wstr, wstring _chars)
+{
+	for (int i = 0; i < (int)_chars.length(); i++)
+	{
+		_wstr.erase(remove(_wstr.begin(), _wstr.end(), _chars[i]), _wstr.end());
+	}
+
+	return _wstr;
 }

@@ -1,6 +1,6 @@
 #pragma sq_cbuffer SystemConstant
 #pragma sq_srv _SqDirLight
-#pragma sq_srv _ShadowMap[4]
+#pragma sq_srv _ShadowMap
 
 #include "SqInput.hlsl"
 #pragma sq_vertex CollectShadowVS

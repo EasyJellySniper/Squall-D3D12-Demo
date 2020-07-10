@@ -1,8 +1,8 @@
 #pragma sq_cbuffer ObjectConstant
 #pragma sq_cbuffer LightConstant
 #pragma sq_cbuffer MaterialConstant
-#pragma sq_srv _TexTable[]
-#pragma sq_srv _SamplerTable[]
+#pragma sq_srv _TexTable
+#pragma sq_srv _SamplerTable
 
 #include "SqInput.hlsl"
 #pragma sq_vertex ShadowPassVS

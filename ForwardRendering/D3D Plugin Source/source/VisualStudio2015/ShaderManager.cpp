@@ -448,6 +448,8 @@ int ShaderManager::GetNumDescriptor(wstring _input)
 
 bool ShaderManager::HasCbuffer(wstring _name)
 {
+	_name = RemoveChars(_name, L":");
+
 	if (find(cbufferList.begin(), cbufferList.end(), _name) != cbufferList.end() || cbufferList.size() == 0)
 	{
 		return true;
@@ -458,6 +460,29 @@ bool ShaderManager::HasCbuffer(wstring _name)
 
 bool ShaderManager::HasSrv(wstring _name)
 {
+	size_t regPos = _name.find(L"[");
+	if (regPos != string::npos)
+	{
+		wstring removeArrayLength = L"";
+		for (size_t i = regPos; i < _name.length(); i++)
+		{
+			if (iswdigit(_name[i]))
+			{
+				removeArrayLength += _name[i];
+			}
+
+			if (_name[i] == L']')
+			{
+				break;
+			}
+		}
+
+		// remove array length for compare
+		_name = RemoveChars(_name, removeArrayLength);
+	}
+
+	_name = RemoveChars(_name, L"[]:");
+
 	if (find(srvList.begin(), srvList.end(), _name) != srvList.end() || srvList.size() == 0)
 	{
 		return true;
