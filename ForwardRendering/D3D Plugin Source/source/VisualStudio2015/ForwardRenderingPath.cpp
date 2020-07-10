@@ -817,6 +817,11 @@ bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _rend
 		return false;
 	}
 
+	if (!r.cache->GetShadowVisible())
+	{
+		return false;
+	}
+
 	Mesh* m = r.cache->GetMesh();
 	if (m == nullptr)
 	{

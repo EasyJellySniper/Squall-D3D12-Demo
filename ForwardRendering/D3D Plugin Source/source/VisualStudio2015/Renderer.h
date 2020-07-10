@@ -14,6 +14,7 @@ public:
 	void UpdateObjectConstant(ObjectConstant _sc, int _frameIdx);
 	void UpdateBound(float _cx,float _cy, float _cz, float _ex, float _ey, float _ez);
 	void SetVisible(bool _visible);
+	void SetShadowVisible(bool _visible);
 	void SetActive(bool _active);
 	void SetWorld(XMFLOAT4X4 _world);
 	void SetInstanceID(int _id);
@@ -24,6 +25,7 @@ public:
 	Mesh *GetMesh();
 	BoundingBox GetBound();
 	bool GetVisible();
+	bool GetShadowVisible();
 	bool GetActive();
 	int GetInstanceID();
 	int GetNumMaterials();
@@ -38,6 +40,7 @@ private:
 	Mesh *mesh;
 	BoundingBox bound;
 	bool isVisible;
+	bool isShadowVisible;
 	bool isActive;
 	int instanceID = -1;
 
