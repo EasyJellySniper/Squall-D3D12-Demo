@@ -125,6 +125,12 @@ void LightManager::UpdateNativeShadow(int _nativeID, SqLightData _data)
 	}
 }
 
+void LightManager::SetShadowFrustum(int _nativeID, XMFLOAT4X4 _view, XMFLOAT4X4 _projCulling, int _cascade)
+{
+	// currently onyl dir light needs 
+	dirLights[_nativeID].SetShadowFrustum(_view, _projCulling, _cascade);
+}
+
 void LightManager::SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
 {
 	// currently onyl dir light needs 

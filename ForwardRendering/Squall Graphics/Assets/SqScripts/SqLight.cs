@@ -28,6 +28,9 @@ public class SqLight : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void SetShadowViewPortScissorRect(int _nativeID, ViewPort _viewPort, RawRect _rawRect);
 
+    [DllImport("SquallGraphics")]
+    static extern void SetShadowFrustum(int _nativeID, Matrix4x4 _view, Matrix4x4 _projCulling, int _cascade);
+
     [StructLayout(LayoutKind.Sequential)]
     struct SqLightData
     {
@@ -285,6 +288,8 @@ public class SqLight : MonoBehaviour
             // position
             shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist * 0.5f;
             lightData.shadowMatrix[i] = GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, true) * shadowCam.worldToCameraMatrix;
+
+            SetShadowFrustum(nativeID, shadowCam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, false), i);
         }
 
         lightData.numCascade = numCascade;

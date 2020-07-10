@@ -175,6 +175,8 @@ void ForwardRenderingPath::FrustumCulling(int _threadIndex)
 
 void ForwardRenderingPath::ShadowCulling(Light* _light, int _cascade)
 {
+	GRAPHIC_TIMER_START
+
 	auto renderers = RendererManager::Instance().GetRenderers();
 
 	for (int i = 0; i < renderers.size(); i++)
@@ -188,6 +190,8 @@ void ForwardRenderingPath::ShadowCulling(Light* _light, int _cascade)
 		bool shadowVisible = _light->FrustumTest(renderers[i]->GetBound(), _cascade);
 		renderers[i]->SetShadowVisible(shadowVisible);
 	}
+
+	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
 }
 
 void ForwardRenderingPath::BeginFrame(Camera* _camera)

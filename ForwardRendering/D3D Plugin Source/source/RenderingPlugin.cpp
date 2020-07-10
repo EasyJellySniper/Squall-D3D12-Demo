@@ -159,6 +159,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetShadowViewPortScis
 	LightManager::Instance().SetViewPortScissorRect(_nativeId, _viewPort, _scissorRect);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetShadowFrustum(int _id, XMFLOAT4X4 _view, XMFLOAT4X4 _projCulling, int _cascade)
+{
+	LightManager::Instance().SetShadowFrustum(_id, _view, _projCulling, _cascade);
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

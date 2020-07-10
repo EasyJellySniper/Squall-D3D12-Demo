@@ -34,3 +34,4 @@ EXPORTS
    UpdateNativeShadow
    InitNativeShadows
    SetShadowViewPortScissorRect
+   SetShadowFrustum

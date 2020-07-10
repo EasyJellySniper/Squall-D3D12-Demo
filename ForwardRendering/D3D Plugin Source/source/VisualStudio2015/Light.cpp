@@ -66,6 +66,24 @@ void Light::SetLightData(SqLightData _data, bool _forShadow)
 	}
 }
 
+void Light::SetShadowFrustum(XMFLOAT4X4 _view, XMFLOAT4X4 _projCulling, int _cascade)
+{
+	// fix view matrix for culling
+	XMFLOAT4X4 _viewFix = _view;
+	_viewFix._11 *= -1;
+	_viewFix._31 *= -1;
+	_viewFix._41 *= -1;
+
+	// update inverse view for culling
+	XMMATRIX view = XMLoadFloat4x4(&_viewFix);
+	XMMATRIX invViewMatrix = XMMatrixInverse(&XMMatrixDeterminant(view), view);
+
+	// update bounding frustum and convert to world space
+	BoundingFrustum frustum;
+	BoundingFrustum::CreateFromMatrix(frustum, XMLoadFloat4x4(&_projCulling));
+	frustum.Transform(shadowFrustum[_cascade], invViewMatrix);
+}
+
 void Light::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
 {
 	shadowViewPort = _viewPort;
@@ -150,5 +168,5 @@ D3D12_GPU_VIRTUAL_ADDRESS Light::GetLightConstantGPU(int _cascade, int _frameIdx
 
 bool Light::FrustumTest(BoundingBox _bound, int _cascade)
 {
-	return false;
+	return (shadowFrustum[_cascade].Contains(_bound) != DirectX::DISJOINT);
 }

@@ -36,6 +36,7 @@ public:
 	void InitNativeShadows(int _numCascade, void** _shadowMapRaw);
 	void Release();
 	void SetLightData(SqLightData _data, bool _forShadow = false);
+	void SetShadowFrustum(XMFLOAT4X4 _view, XMFLOAT4X4 _projCulling, int _cascade);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 
 	SqLightData *GetLightData();
@@ -67,6 +68,7 @@ private:
 	shared_ptr<RenderTexture> shadowRT;
 	D3D12_VIEWPORT shadowViewPort;
 	D3D12_RECT shadowScissorRect;
+	BoundingFrustum shadowFrustum[MAX_CASCADE_SHADOW];
 
 	shared_ptr<UploadBuffer<LightConstant>> lightConstant[MAX_FRAME_COUNT];
 };
