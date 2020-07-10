@@ -7,9 +7,9 @@ using namespace Microsoft::WRL;
 class RenderTexture
 {
 public:
-	void InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa = false);
-	void InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa = false);
-	void InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msaa = false);
+	void InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa = false, int _numRT = 1);
+	void InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa = false, int _numRT = 1);
+	void InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msaa = false, int _numRT = 1);
 	void Release();
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtvCPU();
