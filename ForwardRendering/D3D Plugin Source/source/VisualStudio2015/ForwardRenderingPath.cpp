@@ -279,7 +279,7 @@ void ForwardRenderingPath::ShadowWork()
 		}
 
 		// collect shadow
-		CollectShadow(&dirLights[i]);
+		CollectShadow(&dirLights[i], i);
 	}
 }
 
@@ -397,7 +397,7 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetDirLightResource(_frameIdx)->GetGPUVirtualAddress());
+	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetDirLightGPU(_frameIdx, 0));
 }
 
 void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _threadIndex)
@@ -763,8 +763,46 @@ void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, C
 	}
 }
 
-void ForwardRenderingPath::CollectShadow(Light* _light)
+void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 {
+	auto _cmdList = currFrameResource->preGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+
+	// collect shadow
+	SqLightData* sld = _light->GetLightData();
+
+	// transition to srv
+	for (int i = 0; i < sld->numCascade; i++)
+	{
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	}
+
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	ID3D12DescriptorHeap* descriptorHeaps[] = { _light->GetShadowSrv() };
+	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+
+	// set target
+	_cmdList->OMSetRenderTargets(1, &LightManager::Instance().GetCollectShadowRtv(), true, nullptr);
+	_cmdList->RSSetViewports(1, &targetCam->GetViewPort());
+	_cmdList->RSSetScissorRects(1, &targetCam->GetScissorRect());
+	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// set material
+	_cmdList->SetPipelineState(LightManager::Instance().GetCollectShadow()->GetPSO());
+	_cmdList->SetGraphicsRootSignature(LightManager::Instance().GetCollectShadow()->GetRootSignature());
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootShaderResourceView(1, LightManager::Instance().GetDirLightGPU(frameIndex, _id));
+	//_cmdList->SetGraphicsRootDescriptorTable(2, _light->GetShadowSrv()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->DrawInstanced(6, 1, 0, 0);
+
+	// transition to common
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
+	for (int i = 0; i < sld->numCascade; i++)
+	{
+		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
+	}
+
+	ExecuteCmdList(_cmdList);
 }
 
 bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers)

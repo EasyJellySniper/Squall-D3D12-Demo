@@ -71,7 +71,7 @@ public class SqLight : MonoBehaviour
     /// <summary>
     /// opaque shadows
     /// </summary>
-    public static RenderTexture opaqueShadows;
+    public static RenderTexture collectShadows;
 
     /// <summary>
     /// shadow size
@@ -89,6 +89,11 @@ public class SqLight : MonoBehaviour
     /// shadow map
     /// </summary>
     public RenderTexture[] shadowMaps;
+
+    /// <summary>
+    /// collect result
+    /// </summary>
+    public RenderTexture collectResult;
 
     SqLightData lightData;
     Light lightCache;
@@ -125,6 +130,8 @@ public class SqLight : MonoBehaviour
         {
             cascadeLast[i] = cascadeSetting[i];
         }
+
+        collectResult = collectShadows;
     }
 
     void OnDestroy()
@@ -143,10 +150,10 @@ public class SqLight : MonoBehaviour
             }
         }
 
-        if (opaqueShadows != null)
+        if (collectShadows != null)
         {
-            opaqueShadows.Release();
-            DestroyImmediate(opaqueShadows);
+            collectShadows.Release();
+            DestroyImmediate(collectShadows);
         }
     }
 

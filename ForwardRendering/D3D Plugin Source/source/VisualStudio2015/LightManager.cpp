@@ -78,10 +78,10 @@ void LightManager::Release()
 	}
 	collectShadowMat.Release();
 
-	if (opaqueShadow != nullptr)
+	if (collectShadow != nullptr)
 	{
-		opaqueShadow->Release();
-		opaqueShadow.reset();
+		collectShadow->Release();
+		collectShadow.reset();
 	}
 }
 
@@ -186,9 +186,25 @@ Material* LightManager::GetShadowCutout(int _cullMode)
 	return &shadowCutoutMat[_cullMode];
 }
 
-ID3D12Resource* LightManager::GetDirLightResource(int _frameIdx)
+Material* LightManager::GetCollectShadow()
 {
-	return dirLightData[_frameIdx]->Resource();
+	return &collectShadowMat;
+}
+
+ID3D12Resource* LightManager::GetCollectShadowSrc()
+{
+	return collectShadow->GetRtvSrc(0);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE LightManager::GetCollectShadowRtv()
+{
+	return collectShadow->GetRtvCPU(0);
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetDirLightGPU(int _frameIdx, int _offset)
+{
+	UINT lightSize = sizeof(SqLightData);
+	return dirLightData[_frameIdx]->Resource()->GetGPUVirtualAddress() + lightSize * _offset;
 }
 
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)
@@ -263,9 +279,9 @@ void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
 	auto desc = opaqueShadowSrc->GetDesc();
 	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format);
 
-	opaqueShadow = make_unique <RenderTexture>();
-	opaqueShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1);
-	opaqueShadow->InitSRV(&opaqueShadowSrc, shadowFormat, 1);
+	collectShadow = make_unique <RenderTexture>();
+	collectShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1);
+	collectShadow->InitSRV(&opaqueShadowSrc, shadowFormat, 1);
 
 	// create collect shadow material
 	Shader *collectShader = ShaderManager::Instance().CompileShader(L"OpaqueShadow.hlsl");

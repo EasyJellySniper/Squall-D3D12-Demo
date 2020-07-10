@@ -39,8 +39,11 @@ public:
 	int GetNumDirLights();
 	Material* GetShadowOpqaue(int _cullMode);
 	Material* GetShadowCutout(int _cullMode);
+	Material* GetCollectShadow();
 
-	ID3D12Resource* GetDirLightResource(int _frameIdx);
+	ID3D12Resource* GetCollectShadowSrc();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCollectShadowRtv();
+	D3D12_GPU_VIRTUAL_ADDRESS GetDirLightGPU(int _frameIdx, int _offset);
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
@@ -61,7 +64,7 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> dirLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> pointLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
-	unique_ptr<RenderTexture> opaqueShadow;
+	unique_ptr<RenderTexture> collectShadow;
 
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];

@@ -45,6 +45,8 @@ public:
 	bool HasShadow();
 	ID3D12Resource* GetShadowDsvSrc(int _cascade);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowDsv(int _cascade);
+	ID3D12DescriptorHeap* GetShadowSrv();
+
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
 

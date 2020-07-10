@@ -243,11 +243,11 @@ public class SqGraphicManager : MonoBehaviour
 
         if (hasShadowLight)
         {
-            SqLight.opaqueShadows = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.RHalf);
-            SqLight.opaqueShadows.name = "Opaque Shadows";
-            SqLight.opaqueShadows.Create();
+            SqLight.collectShadows = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.RHalf);
+            SqLight.collectShadows.name = "Opaque Shadows";
+            SqLight.collectShadows.Create();
         }
 
-        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, SqLight.opaqueShadows.GetNativeTexturePtr());
+        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, SqLight.collectShadows.GetNativeTexturePtr());
     }
 }

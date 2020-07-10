@@ -122,6 +122,11 @@ D3D12_CPU_DESCRIPTOR_HANDLE Light::GetShadowDsv(int _cascade)
 	return shadowRT->GetDsvCPU(_cascade);
 }
 
+ID3D12DescriptorHeap* Light::GetShadowSrv()
+{
+	return shadowRT->GetSrv();
+}
+
 D3D12_VIEWPORT Light::GetViewPort()
 {
 	return shadowViewPort;
