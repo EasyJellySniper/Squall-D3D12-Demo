@@ -38,7 +38,7 @@ Material MaterialManager::CreateMaterialDepthOnly(Shader* _shader, D3D12_FILL_MO
 	return result;
 }
 
-Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera* _camera, bool _enableDepth)
+Material MaterialManager::CreateMaterialPost(Shader* _shader, bool _enableDepth, int _numRT, DXGI_FORMAT* _rtDesc, DXGI_FORMAT _dsDesc)
 {
 	// create pso
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
@@ -62,15 +62,14 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, Camera* _camera, b
 	desc.InputLayout.pInputElementDescs = nullptr;
 	desc.InputLayout.NumElements = 0;
 	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	desc.NumRenderTargets = _camera->GetNumOfRT();
+	desc.NumRenderTargets = _numRT;
 
-	auto rtDesc = _camera->GetColorRTDesc();
-	for (int i = 0; i < _camera->GetNumOfRT(); i++)
+	for (int i = 0; i < _numRT; i++)
 	{
-		desc.RTVFormats[i] = rtDesc[i].Format;
+		desc.RTVFormats[i] = _rtDesc[i];
 	}
 
-	desc.DSVFormat = _camera->GetDepthDesc().Format;
+	desc.DSVFormat = _dsDesc;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 

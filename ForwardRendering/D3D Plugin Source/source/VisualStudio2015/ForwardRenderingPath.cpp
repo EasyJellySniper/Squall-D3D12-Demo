@@ -277,6 +277,9 @@ void ForwardRenderingPath::ShadowWork()
 			workerType = WorkerType::ShadowRendering;
 			WakeAndWaitWorker();
 		}
+
+		// collect shadow
+		CollectShadow(&dirLights[i]);
 	}
 }
 
@@ -758,6 +761,10 @@ void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, C
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON));
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
 	}
+}
+
+void ForwardRenderingPath::CollectShadow(Light* _light)
+{
 }
 
 bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers)

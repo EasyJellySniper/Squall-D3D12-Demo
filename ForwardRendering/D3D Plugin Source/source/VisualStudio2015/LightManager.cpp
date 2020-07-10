@@ -76,6 +76,7 @@ void LightManager::Release()
 		shadowOpaqueMat[i].Release();
 		shadowCutoutMat[i].Release();
 	}
+	collectShadowMat.Release();
 
 	if (opaqueShadow != nullptr)
 	{
@@ -252,15 +253,24 @@ void LightManager::AddDirShadow(int _nativeID, int _numCascade, void** _shadowMa
 
 void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
 {
-	ID3D12Resource *opaqueShadowSrc = (ID3D12Resource*)_opaqueShadows;
+	if (_opaqueShadows == nullptr)
+	{
+		return;
+	}
+
+	ID3D12Resource* opaqueShadowSrc = (ID3D12Resource*)_opaqueShadows;
 
 	auto desc = opaqueShadowSrc->GetDesc();
 	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format);
 
-	if (_opaqueShadows != nullptr)
+	opaqueShadow = make_unique <RenderTexture>();
+	opaqueShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1);
+	opaqueShadow->InitSRV(&opaqueShadowSrc, shadowFormat, 1);
+
+	// create collect shadow material
+	Shader *collectShader = ShaderManager::Instance().CompileShader(L"OpaqueShadow.hlsl");
+	if (collectShader != nullptr)
 	{
-		opaqueShadow = make_unique <RenderTexture>();
-		opaqueShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1);
-		opaqueShadow->InitSRV(&opaqueShadowSrc, shadowFormat, 1);
+		collectShadowMat = MaterialManager::Instance().CreateMaterialPost(collectShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
 }

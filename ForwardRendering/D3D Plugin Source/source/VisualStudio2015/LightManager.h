@@ -65,4 +65,5 @@ private:
 
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];
+	Material collectShadowMat;
 };

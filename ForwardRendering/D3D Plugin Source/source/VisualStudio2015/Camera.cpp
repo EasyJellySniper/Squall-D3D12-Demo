@@ -388,7 +388,7 @@ bool Camera::CreatePipelineMaterial()
 	Shader* resolveDepth = ShaderManager::Instance().CompileShader(L"ResolveDepth.hlsl", nullptr, true);
 	if (resolveDepth != nullptr)
 	{
-		resolveDepthMaterial = MaterialManager::Instance().CreateMaterialPost(resolveDepth, this, true);
+		resolveDepthMaterial = MaterialManager::Instance().CreateMaterialPost(resolveDepth, true, 0, nullptr, depthTargetDesc.Format);
 
 		struct RDConstants
 		{
