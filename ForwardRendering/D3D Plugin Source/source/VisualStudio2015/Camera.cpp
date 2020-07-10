@@ -38,8 +38,7 @@ bool Camera::Initialize(CameraData _cameraData)
 
 		// get target desc here
 		D3D12_RESOURCE_DESC srcDesc = renderTarget[i]->GetDesc();
-		renderTarrgetDesc[i] = srcDesc;
-		renderTarrgetDesc[i].Format = GetColorFormatFromTypeless(srcDesc.Format);
+		renderTarrgetDesc[i] = GetColorFormatFromTypeless(srcDesc.Format);
 
 		// create msaa target if necessary
 		if (cameraData.allowMSAA > 1)
@@ -59,7 +58,7 @@ bool Camera::Initialize(CameraData _cameraData)
 			{
 				optClearColor.Color[j] = cameraData.clearColor[j];
 			}
-			optClearColor.Format = renderTarrgetDesc[i].Format;
+			optClearColor.Format = renderTarrgetDesc[i];
 
 			LogIfFailed(GraphicManager::Instance().GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT)
 				, D3D12_HEAP_FLAG_NONE
@@ -75,7 +74,7 @@ bool Camera::Initialize(CameraData _cameraData)
 			else
 			{
 				LogMessage(L"[SqGraphic Error] SqCamera: MSAA Target creation failed.");
-				LogMessage((L"Format: " + to_wstring(renderTarrgetDesc[i].Format)).c_str());
+				LogMessage((L"Format: " + to_wstring(renderTarrgetDesc[i])).c_str());
 				return false;
 			}
 		}
@@ -123,22 +122,21 @@ bool Camera::Initialize(CameraData _cameraData)
 		cameraRT[i] = make_shared<RenderTexture>();
 		cameraRTMsaa[i] = make_shared<RenderTexture>();
 
-		cameraRT[i]->InitRTV(&renderTarget[i], renderTarrgetDesc[i].Format, 1);
+		cameraRT[i]->InitRTV(&renderTarget[i], renderTarrgetDesc[i], 1);
 		if (cameraData.allowMSAA > 1)
 		{
-			cameraRTMsaa[i]->InitRTV(msaaTarget[i].GetAddressOf(), renderTarrgetDesc[i].Format, 1, true);
+			cameraRTMsaa[i]->InitRTV(msaaTarget[i].GetAddressOf(), renderTarrgetDesc[i], 1, true);
 		}
 	}
 
 	// create depth, only 1st need depth
 	auto depthDesc = depthTarget->GetDesc();
-	depthTargetDesc = depthDesc;
-	depthTargetDesc.Format = GetDepthFormatFromTypeless(depthDesc.Format);
+	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
 
-	cameraRT[0]->InitDSV(&depthTarget, depthTargetDesc.Format, 1);
+	cameraRT[0]->InitDSV(&depthTarget, depthTargetDesc, 1);
 	if (cameraData.allowMSAA > 1)
 	{
-		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.GetAddressOf(), depthTargetDesc.Format, 1, true);
+		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.GetAddressOf(), depthTargetDesc, 1, true);
 		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.GetAddressOf(), GetShaderFormatFromTypeless(depthDesc.Format), 1, true);
 	}
 
@@ -304,31 +302,6 @@ Material* Camera::GetPostMaterial()
 	return &resolveDepthMaterial;
 }
 
-int Camera::GetNumOfRT()
-{
-	return numOfRenderTarget;
-}
-
-D3D12_RESOURCE_DESC* Camera::GetColorRTDesc()
-{
-	return renderTarrgetDesc;
-}
-
-D3D12_RESOURCE_DESC Camera::GetDepthDesc()
-{
-	return depthTargetDesc;
-}
-
-int Camera::GetMsaaCount()
-{
-	return cameraData.allowMSAA;
-}
-
-int Camera::GetMsaaQuailty()
-{
-	return msaaQuality;
-}
-
 RenderMode Camera::GetRenderMode()
 {
 	return renderMode;
@@ -349,6 +322,18 @@ Shader* Camera::GetFallbackShader()
 	return wireFrameDebug;
 }
 
+RenderTargetData Camera::GetRenderTargetData()
+{
+	RenderTargetData rtd;
+	rtd.numRT = numOfRenderTarget;
+	rtd.colorDesc = renderTarrgetDesc;
+	rtd.depthDesc = depthTargetDesc;
+	rtd.msaaCount = cameraData.allowMSAA;
+	rtd.msaaQuality = msaaQuality;
+
+	return rtd;
+}
+
 bool Camera::CreatePipelineMaterial()
 {
 	// init vector
@@ -356,12 +341,13 @@ bool Camera::CreatePipelineMaterial()
 	{
 		pipelineMaterials[i].resize(CullMode::NumCullMode);
 	}
+	auto rtd = GetRenderTargetData();
 
 	// create debug wire frame material
 	Shader* wireFrameShader = ShaderManager::Instance().CompileShader(L"DebugWireFrame.hlsl");
 	if (wireFrameShader != nullptr)
 	{
-		pipelineMaterials[MaterialType::DebugWireFrame][CullMode::Off] = MaterialManager::Instance().CreateMaterialFromShader(wireFrameShader, this, D3D12_FILL_MODE_WIREFRAME, D3D12_CULL_MODE_NONE);
+		pipelineMaterials[MaterialType::DebugWireFrame][CullMode::Off] = MaterialManager::Instance().CreateMaterialFromShader(wireFrameShader, rtd, D3D12_FILL_MODE_WIREFRAME, D3D12_CULL_MODE_NONE);
 		wireFrameDebug = wireFrameShader;
 	}
 
@@ -373,7 +359,7 @@ bool Camera::CreatePipelineMaterial()
 	{
 		for (int i = 0; i < CullMode::NumCullMode; i++)
 		{
-			pipelineMaterials[MaterialType::DepthPrePassOpaque][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassOpaque, this, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
+			pipelineMaterials[MaterialType::DepthPrePassOpaque][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassOpaque, rtd, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
 		}
 	}
 
@@ -381,14 +367,14 @@ bool Camera::CreatePipelineMaterial()
 	{
 		for (int i = 0; i < CullMode::NumCullMode; i++)
 		{
-			pipelineMaterials[MaterialType::DepthPrePassCutoff][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassCutoff, this, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
+			pipelineMaterials[MaterialType::DepthPrePassCutoff][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassCutoff, rtd, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
 		}
 	}
 
 	Shader* resolveDepth = ShaderManager::Instance().CompileShader(L"ResolveDepth.hlsl", nullptr, true);
 	if (resolveDepth != nullptr)
 	{
-		resolveDepthMaterial = MaterialManager::Instance().CreateMaterialPost(resolveDepth, true, 0, nullptr, depthTargetDesc.Format);
+		resolveDepthMaterial = MaterialManager::Instance().CreateMaterialPost(resolveDepth, true, 0, nullptr, depthTargetDesc);
 
 		struct RDConstants
 		{
@@ -396,7 +382,7 @@ bool Camera::CreatePipelineMaterial()
 			XMFLOAT3 _padding;
 		};
 		static RDConstants rConstants;
-		rConstants._msaaCount = GetMsaaCount();
+		rConstants._msaaCount = rtd.msaaCount;
 
 		resolveDepthMaterial.AddMaterialConstant(sizeof(RDConstants), &rConstants);
 	}

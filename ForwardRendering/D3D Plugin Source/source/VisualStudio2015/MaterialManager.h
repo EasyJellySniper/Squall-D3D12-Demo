@@ -22,7 +22,7 @@ public:
 
 	void Init();
 
-	Material CreateMaterialFromShader(Shader *_shader, Camera* _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode, 
+	Material CreateMaterialFromShader(Shader *_shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
 		int _srcBlend = 1, int _dstBlend = 0, D3D12_COMPARISON_FUNC _depthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL, bool _zWrite = true);
 
 	Material CreateMaterialDepthOnly(Shader* _shader, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
@@ -37,7 +37,7 @@ public:
 private:
 	static const int NUM_BLEND_MODE = 11;
 
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC CollectPsoDesc(Shader* _shader, Camera* _camera, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC CollectPsoDesc(Shader* _shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
 		int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC CollectPsoDepth(Shader* _shader, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,

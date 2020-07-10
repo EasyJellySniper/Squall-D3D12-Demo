@@ -24,6 +24,15 @@ struct CameraData
 	void *depthTarget;
 };
 
+struct RenderTargetData
+{
+	int numRT;
+	DXGI_FORMAT* colorDesc;
+	DXGI_FORMAT depthDesc;
+	int msaaCount;
+	int msaaQuality;
+};
+
 enum MaterialType
 {
 	DebugWireFrame = 0, DepthPrePassOpaque, DepthPrePassCutoff, EndSystemMaterial
@@ -66,14 +75,10 @@ public:
 	XMFLOAT3 GetPosition();
 	Material *GetPipelineMaterial(MaterialType _type, CullMode _cullMode);
 	Material* GetPostMaterial();
-	int GetNumOfRT();
-	D3D12_RESOURCE_DESC* GetColorRTDesc();
-	D3D12_RESOURCE_DESC GetDepthDesc();
-	int GetMsaaCount();
-	int GetMsaaQuailty();
 	RenderMode GetRenderMode();
 	bool FrustumTest(BoundingBox _bound);
 	Shader* GetFallbackShader();
+	RenderTargetData GetRenderTargetData();
 
 private:
 	static const int MAX_RENDER_TARGETS = 8;
@@ -89,8 +94,9 @@ private:
 	ID3D12Resource* debugDepth;
 
 	// rt desc cache
-	D3D12_RESOURCE_DESC renderTarrgetDesc[MAX_RENDER_TARGETS];
-	D3D12_RESOURCE_DESC depthTargetDesc;
+	DXGI_FORMAT renderTarrgetDesc[MAX_RENDER_TARGETS];
+	DXGI_FORMAT depthTargetDesc;
+	RenderTargetData rtData;
 
 	// render texture
 	shared_ptr<RenderTexture> cameraRT[MAX_RENDER_TARGETS];
