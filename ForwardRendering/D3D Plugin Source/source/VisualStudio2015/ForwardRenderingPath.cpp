@@ -47,8 +47,7 @@ void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 	UploadWork(_camera);
 
 	// pre pass work
-	workerType = WorkerType::PrePassRendering;
-	WakeAndWaitWorker();
+	PrePassWork(_camera);
 
 	// shadow work
 	ShadowWork();
@@ -271,6 +270,18 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 
 	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 	LightManager::Instance().UploadPerLightBuffer(frameIndex);
+}
+
+void ForwardRenderingPath::PrePassWork(Camera* _camera)
+{
+	workerType = WorkerType::PrePassRendering;
+	WakeAndWaitWorker();
+
+	// resolve depth for shadow mapping
+	auto _cmdList = currFrameResource->preGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+	ResolveDepthBuffer(_cmdList, _camera);
+	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::ShadowWork()
@@ -690,7 +701,6 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 	auto _cmdList = currFrameResource->postGfxList;
 
 	ResolveColorBuffer(_cmdList, _camera);
-	ResolveDepthBuffer(_cmdList, _camera);
 	CopyDebugDepth(_cmdList, _camera);
 
 #if defined(GRAPHICTIME)
