@@ -59,7 +59,7 @@ private:
 	SqLightData lightDataCPU;
 
 	int numCascade = 1;
-	shared_ptr<RenderTexture> shadowRT[MAX_CASCADE_SHADOW];
+	shared_ptr<RenderTexture> shadowRT;
 	D3D12_VIEWPORT shadowViewPort;
 	D3D12_RECT shadowScissorRect;
 

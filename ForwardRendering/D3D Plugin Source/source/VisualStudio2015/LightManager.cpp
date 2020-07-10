@@ -260,7 +260,7 @@ void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
 	if (_opaqueShadows != nullptr)
 	{
 		opaqueShadow = make_unique <RenderTexture>();
-		opaqueShadow->InitRTV(opaqueShadowSrc, shadowFormat);
-		opaqueShadow->InitSRV(opaqueShadowSrc, shadowFormat);
+		opaqueShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1);
+		opaqueShadow->InitSRV(&opaqueShadowSrc, shadowFormat, 1);
 	}
 }

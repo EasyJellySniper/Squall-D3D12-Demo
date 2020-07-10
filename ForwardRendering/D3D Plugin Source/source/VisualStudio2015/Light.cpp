@@ -29,24 +29,20 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 			LogMessage(L"[SqGraphic Error] Shadow map null.");
 			continue;
 		}
-
-		D3D12_RESOURCE_DESC srcDesc = shadowMap[i]->GetDesc();
-		shadowRT[i] = make_shared<RenderTexture>();
-		shadowRT[i]->InitDSV(shadowMap[i], GetDepthFormatFromTypeless(srcDesc.Format));
-		shadowRT[i]->InitSRV(shadowMap[i], GetShaderFormatFromTypeless(srcDesc.Format));
 	}
+
+	D3D12_RESOURCE_DESC srcDesc = shadowMap[0]->GetDesc();
+	shadowRT = make_shared<RenderTexture>();
+	shadowRT->InitDSV(shadowMap, GetDepthFormatFromTypeless(srcDesc.Format), numCascade);
+	shadowRT->InitSRV(shadowMap, GetShaderFormatFromTypeless(srcDesc.Format), numCascade);
 
 	hasShadow = true;
 }
 
 void Light::Release()
 {
-	for (int i = 0; i < numCascade; i++)
-	{
-		shadowRT[i]->Release();
-		shadowRT[i].reset();
-	}
-
+	shadowRT->Release();
+	shadowRT.reset();
 	numCascade = 1;
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
@@ -118,12 +114,12 @@ ID3D12Resource* Light::GetShadowDsvSrc(int _cascade)
 		return nullptr;
 	}
 
-	return shadowRT[_cascade]->GetDsvSrc();
+	return shadowRT->GetDsvSrc(_cascade);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Light::GetShadowDsv(int _cascade)
 {
-	return shadowRT[_cascade]->GetDsvCPU();
+	return shadowRT->GetDsvCPU(_cascade);
 }
 
 D3D12_VIEWPORT Light::GetViewPort()

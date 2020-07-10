@@ -12,12 +12,12 @@ bool Camera::Initialize(CameraData _cameraData)
 	numOfRenderTarget = 0;
 	msaaQuality = 0;
 
-	vector<ID3D12Resource*> renderTarget;
+	ID3D12Resource* renderTarget[MAX_RENDER_TARGETS];
 	ID3D12Resource* depthTarget;
 
 	for (int i = 0; i < MAX_RENDER_TARGETS; i++)
 	{
-		renderTarget.push_back((ID3D12Resource*)cameraData.renderTarget[i]);
+		renderTarget[i] = ((ID3D12Resource*)cameraData.renderTarget[i]);
 	}
 
 	for (int i = 0; i < MAX_RENDER_TARGETS; i++)
@@ -123,10 +123,10 @@ bool Camera::Initialize(CameraData _cameraData)
 		cameraRT[i] = make_shared<RenderTexture>();
 		cameraRTMsaa[i] = make_shared<RenderTexture>();
 
-		cameraRT[i]->InitRTV(renderTarget[i], renderTarrgetDesc[i].Format);
+		cameraRT[i]->InitRTV(&renderTarget[i], renderTarrgetDesc[i].Format, 1);
 		if (cameraData.allowMSAA > 1)
 		{
-			cameraRTMsaa[i]->InitRTV(msaaTarget[i].Get(), renderTarrgetDesc[i].Format, true);
+			cameraRTMsaa[i]->InitRTV(msaaTarget[i].GetAddressOf(), renderTarrgetDesc[i].Format, 1, true);
 		}
 	}
 
@@ -135,14 +135,12 @@ bool Camera::Initialize(CameraData _cameraData)
 	depthTargetDesc = depthDesc;
 	depthTargetDesc.Format = GetDepthFormatFromTypeless(depthDesc.Format);
 
-	cameraRT[0]->InitDSV(depthTarget, depthTargetDesc.Format);
+	cameraRT[0]->InitDSV(&depthTarget, depthTargetDesc.Format, 1);
 	if (cameraData.allowMSAA > 1)
 	{
-		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.Get(), depthTargetDesc.Format, true);
-		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.Get(), GetShaderFormatFromTypeless(depthDesc.Format), true);
+		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.GetAddressOf(), depthTargetDesc.Format, 1, true);
+		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.GetAddressOf(), GetShaderFormatFromTypeless(depthDesc.Format), 1, true);
 	}
-
-	renderTarget.clear();
 
 	if (!CreatePipelineMaterial())
 	{
@@ -189,7 +187,7 @@ CameraData *Camera::GetCameraData()
 
 ID3D12Resource * Camera::GetRtvSrc(int _index)
 {
-	return cameraRT[_index]->GetRtvSrc();
+	return cameraRT[_index]->GetRtvSrc(0);
 }
 
 ID3D12Resource* Camera::GetDebugDepth()
@@ -209,22 +207,22 @@ ID3D12Resource * Camera::GetMsaaDsvSrc()
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetRtv(int _index)
 {
-	return cameraRT[_index]->GetRtvCPU();
+	return cameraRT[_index]->GetRtvCPU(0);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaRtv(int _index)
 {
-	return cameraRTMsaa[_index]->GetRtvCPU();
+	return cameraRTMsaa[_index]->GetRtvCPU(0);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetDsv()
 {
-	return cameraRT[0]->GetDsvCPU();
+	return cameraRT[0]->GetDsvCPU(0);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
 {
-	return cameraRTMsaa[0]->GetDsvCPU();
+	return cameraRTMsaa[0]->GetDsvCPU(0);
 }
 
 ID3D12DescriptorHeap* Camera::GetMsaaSrv(int _index)
@@ -338,7 +336,7 @@ RenderMode Camera::GetRenderMode()
 
 ID3D12Resource* Camera::GetCameraDepth()
 {
-	return cameraRT[0]->GetDsvSrc();
+	return cameraRT[0]->GetDsvSrc(0);
 }
 
 bool Camera::FrustumTest(BoundingBox _bound)

@@ -1,9 +1,13 @@
 #include "RenderTexture.h"
 #include "GraphicManager.h"
 
-void RenderTexture::InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa, int _numRT)
+void RenderTexture::InitRTV(ID3D12Resource** _rtv, DXGI_FORMAT _format, int _numRT, bool _msaa)
 {
-	rtvSrc = _rtv;
+	rtvSrc = new ID3D12Resource*[_numRT];
+	for (int i = 0; i < _numRT; i++)
+	{
+		rtvSrc[i] = _rtv[i];
+	}
 
 	// create RTV handle
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
@@ -23,14 +27,18 @@ void RenderTexture::InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msa
 		rtvDesc.Texture2D.MipSlice = 0;
 		rtvDesc.Texture2D.PlaneSlice = 0;
 
-		GraphicManager::Instance().GetDevice()->CreateRenderTargetView(rtvSrc, &rtvDesc, rHandle);
+		GraphicManager::Instance().GetDevice()->CreateRenderTargetView(rtvSrc[i], &rtvDesc, rHandle);
 		rHandle.Offset(1, GraphicManager::Instance().GetRtvDesciptorSize());
 	}
 }
 
-void RenderTexture::InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa, int _numRT)
+void RenderTexture::InitDSV(ID3D12Resource** _dsv, DXGI_FORMAT _format, int _numRT, bool _msaa)
 {
-	dsvSrc = _dsv;
+	dsvSrc = new ID3D12Resource * [_numRT];
+	for (int i = 0; i < _numRT; i++)
+	{
+		dsvSrc[i] = _dsv[i];
+	}
 
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
 	dsvHeapDesc.NumDescriptors = _numRT;
@@ -47,14 +55,18 @@ void RenderTexture::InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msa
 		depthStencilViewDesc.Format = _format;
 		depthStencilViewDesc.ViewDimension = (_msaa) ? D3D12_DSV_DIMENSION_TEXTURE2DMS : D3D12_DSV_DIMENSION_TEXTURE2D;
 
-		GraphicManager::Instance().GetDevice()->CreateDepthStencilView(dsvSrc, &depthStencilViewDesc, dHandle);
+		GraphicManager::Instance().GetDevice()->CreateDepthStencilView(dsvSrc[i], &depthStencilViewDesc, dHandle);
 		dHandle.Offset(1, GraphicManager::Instance().GetDsvDesciptorSize());
 	}
 }
 
-void RenderTexture::InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msaa, int _numRT)
+void RenderTexture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bool _msaa)
 {
-	srvSrc = _srv;
+	srvSrc = new ID3D12Resource * [_numRT];
+	for (int i = 0; i < _numRT; i++)
+	{
+		srvSrc[i] = _srv[i];
+	}
 
 	// create SRV handle
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
@@ -75,26 +87,32 @@ void RenderTexture::InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msa
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = -1;
 
-		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(srvSrc, &srvDesc, sHandle);
+		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(srvSrc[i], &srvDesc, sHandle);
 		sHandle.Offset(1, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	}
 }
 
 void RenderTexture::Release()
 {
+	delete[]rtvSrc;
+	delete[]dsvSrc;
+	delete[]srvSrc;
+
 	rtvHandle.Reset();
 	dsvHandle.Reset();
 	srvHandle.Reset();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetRtvCPU()
+D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetRtvCPU(int _index)
 {
-	return rtvHandle->GetCPUDescriptorHandleForHeapStart();
+	CD3DX12_CPU_DESCRIPTOR_HANDLE handle(rtvHandle->GetCPUDescriptorHandleForHeapStart());
+	return handle.Offset(_index, GraphicManager::Instance().GetRtvDesciptorSize());
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetDsvCPU()
+D3D12_CPU_DESCRIPTOR_HANDLE RenderTexture::GetDsvCPU(int _index)
 {
-	return dsvHandle->GetCPUDescriptorHandleForHeapStart();
+	CD3DX12_CPU_DESCRIPTOR_HANDLE handle(dsvHandle->GetCPUDescriptorHandleForHeapStart());
+	return handle.Offset(_index, GraphicManager::Instance().GetDsvDesciptorSize());
 }
 
 ID3D12DescriptorHeap* RenderTexture::GetSrv()
@@ -102,17 +120,17 @@ ID3D12DescriptorHeap* RenderTexture::GetSrv()
 	return srvHandle.Get();
 }
 
-ID3D12Resource* RenderTexture::GetRtvSrc()
+ID3D12Resource* RenderTexture::GetRtvSrc(int _index)
 {
-	return rtvSrc;
+	return rtvSrc[_index];
 }
 
-ID3D12Resource* RenderTexture::GetDsvSrc()
+ID3D12Resource* RenderTexture::GetDsvSrc(int _index)
 {
-	return dsvSrc;
+	return dsvSrc[_index];
 }
 
-ID3D12Resource* RenderTexture::GetSrvSrc()
+ID3D12Resource* RenderTexture::GetSrvSrc(int _index)
 {
-	return srvSrc;
+	return srvSrc[_index];
 }
