@@ -62,6 +62,7 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaRtv(int _index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaDsv();
+	ID3D12DescriptorHeap* GetDepthSrv();
 	ID3D12DescriptorHeap* GetMsaaSrv(int _index);
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);

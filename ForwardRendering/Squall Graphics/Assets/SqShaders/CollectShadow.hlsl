@@ -1,5 +1,6 @@
 #pragma sq_cbuffer SystemConstant
 #pragma sq_srv _SqDirLight
+#pragma sq_srv _DepthMap
 #pragma sq_srv _ShadowMap
 
 #include "SqInput.hlsl"
@@ -22,8 +23,9 @@ static const float2 gTexCoords[6] =
 };
 
 #pragma sq_srvStart
+Texture2D _DepthMap : register(t0);
 // shadow map, up to 4 cascades
-Texture2D _ShadowMap[4] : register(t0);
+Texture2D _ShadowMap[4] : register(t1);
 #pragma sq_srvEnd
 
 v2f CollectShadowVS(uint vid : SV_VertexID)

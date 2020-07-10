@@ -134,6 +134,7 @@ bool Camera::Initialize(CameraData _cameraData)
 	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
 
 	cameraRT[0]->InitDSV(&depthTarget, depthTargetDesc, 1);
+	cameraRT[0]->InitSRV(&depthTarget, GetShaderFormatFromTypeless(depthDesc.Format), 1);
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.GetAddressOf(), depthTargetDesc, 1, true);
@@ -221,6 +222,11 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetDsv()
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
 {
 	return cameraRTMsaa[0]->GetDsvCPU(0);
+}
+
+ID3D12DescriptorHeap* Camera::GetDepthSrv()
+{
+	return cameraRT[0]->GetSrv();
 }
 
 ID3D12DescriptorHeap* Camera::GetMsaaSrv(int _index)
