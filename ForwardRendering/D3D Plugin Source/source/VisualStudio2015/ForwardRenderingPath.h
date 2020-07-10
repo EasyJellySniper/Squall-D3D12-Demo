@@ -43,6 +43,7 @@ public:
 private:
 	void WakeAndWaitWorker();
 	void FrustumCulling(int _threadIndex);
+	void ShadowCulling(Light* _light, int _cascade);
 	void BeginFrame(Camera* _camera);
 	void ClearCamera(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);

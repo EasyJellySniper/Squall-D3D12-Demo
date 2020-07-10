@@ -173,6 +173,23 @@ void ForwardRenderingPath::FrustumCulling(int _threadIndex)
 	}
 }
 
+void ForwardRenderingPath::ShadowCulling(Light* _light, int _cascade)
+{
+	auto renderers = RendererManager::Instance().GetRenderers();
+
+	for (int i = 0; i < renderers.size(); i++)
+	{
+		if (!renderers[i]->GetVisible())
+		{
+			// only culling visible renderer
+			continue;
+		}
+
+		bool shadowVisible = _light->FrustumTest(renderers[i]->GetBound(), _cascade);
+		renderers[i]->SetShadowVisible(shadowVisible);
+	}
+}
+
 void ForwardRenderingPath::BeginFrame(Camera* _camera)
 {
 	// get frame resource
@@ -271,6 +288,9 @@ void ForwardRenderingPath::ShadowWork()
 
 		for (int j = 0; j < sld->numCascade; j++)
 		{
+			// culling renderer
+			ShadowCulling(&dirLights[i], j);
+
 			// multi thread work
 			cascadeIndex = j;
 			currLight = &dirLights[i];
@@ -509,7 +529,7 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _frameIdx, int _thr
 		for (int i = start; i <= start + count; i++)
 		{
 			// valid renderer
-			if (!ValidRenderer(i, renderers))
+			if (!ValidRenderer(i, renderers) || !renderers[i].cache->GetShadowVisible())
 			{
 				continue;
 			}
@@ -813,11 +833,6 @@ bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _rend
 
 	auto const r = _renderers[_index];
 	if (!r.cache->GetVisible())
-	{
-		return false;
-	}
-
-	if (!r.cache->GetShadowVisible())
 	{
 		return false;
 	}

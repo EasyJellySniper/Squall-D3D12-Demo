@@ -147,3 +147,8 @@ D3D12_GPU_VIRTUAL_ADDRESS Light::GetLightConstantGPU(int _cascade, int _frameIdx
 	UINT lightConstantSize = CalcConstantBufferByteSize(sizeof(LightConstant));
 	return lightConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + lightConstantSize * _cascade;
 }
+
+bool Light::FrustumTest(BoundingBox _bound, int _cascade)
+{
+	return false;
+}

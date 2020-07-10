@@ -1,7 +1,9 @@
 #pragma once
 #include "stdafx.h"
 #include <DirectXMath.h>
+#include <DirectXCollision.h>
 using namespace DirectX;
+
 #include "UploadBuffer.h"
 #include "FrameResource.h"
 #include "RenderTexture.h"
@@ -43,15 +45,16 @@ public:
 	void SetShadowDirty(bool _dirty, int _frameIdx);
 	bool IsShadowDirty(int _frameIdx);
 	bool HasShadow();
+
 	ID3D12Resource* GetShadowDsvSrc(int _cascade);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowDsv(int _cascade);
 	ID3D12DescriptorHeap* GetShadowSrv();
-
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
 
 	void UploadLightConstant(LightConstant lc, int _cascade, int _frameIdx);
 	D3D12_GPU_VIRTUAL_ADDRESS GetLightConstantGPU(int _cascade, int _frameIdx);
+	bool FrustumTest(BoundingBox _bound, int _cascade);
 
 private:
 	bool isDirty[MAX_FRAME_COUNT];
