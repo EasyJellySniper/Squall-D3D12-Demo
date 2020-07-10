@@ -436,7 +436,6 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _th
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
-
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
@@ -483,7 +482,6 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera* _camera, int _frameIdx, int 
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
-
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
@@ -524,7 +522,6 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _frameIdx, int _thr
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
-
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
@@ -581,7 +578,6 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _frameIdx, int _t
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
-
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
@@ -646,7 +642,6 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera, int _frameIdx)
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
-
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
 		}
 	}
@@ -741,7 +736,9 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 		_cmdList->SetGraphicsRootSignature(_camera->GetPostMaterial()->GetRootSignature());
 		_cmdList->SetGraphicsRootConstantBufferView(0, _camera->GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
 		_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv(0)->GetGPUDescriptorHandleForHeapStart());
+
 		_cmdList->DrawInstanced(6, 1, 0, 0);
+		GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
 
 		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
 	}
@@ -793,7 +790,9 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootShaderResourceView(1, LightManager::Instance().GetDirLightGPU(frameIndex, _id));
 	_cmdList->SetGraphicsRootDescriptorTable(2, _light->GetShadowSrv()->GetGPUDescriptorHandleForHeapStart());
+
 	_cmdList->DrawInstanced(6, 1, 0, 0);
+	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
 
 	// transition to common
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
