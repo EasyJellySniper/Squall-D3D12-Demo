@@ -1,9 +1,10 @@
 #pragma sq_cbuffer SystemConstant
 #pragma sq_srv _SqDirLight
+#pragma sq_srv _ShadowMap[4]
 
 #include "SqInput.hlsl"
-#pragma sq_vertex OpaqueShadowVS
-#pragma sq_pixel OpaqueShadowPS
+#pragma sq_vertex CollectShadowVS
+#pragma sq_pixel CollectShadowPS
 
 struct v2f
 {
@@ -25,7 +26,7 @@ static const float2 gTexCoords[6] =
 Texture2D _ShadowMap[4] : register(t0);
 #pragma sq_srvEnd
 
-v2f OpaqueShadowVS(uint vid : SV_VertexID)
+v2f CollectShadowVS(uint vid : SV_VertexID)
 {
 	v2f o = (v2f)0;
 
@@ -36,7 +37,7 @@ v2f OpaqueShadowVS(uint vid : SV_VertexID)
 	return o;
 }
 
-float4 OpaqueShadowPS(v2f i) : SV_Target
+float4 CollectShadowPS(v2f i) : SV_Target
 {
     return 1.0f;
 }

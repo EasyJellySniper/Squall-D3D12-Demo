@@ -284,7 +284,7 @@ void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
 	collectShadow->InitSRV(&opaqueShadowSrc, shadowFormat, 1);
 
 	// create collect shadow material
-	Shader *collectShader = ShaderManager::Instance().CompileShader(L"OpaqueShadow.hlsl");
+	Shader *collectShader = ShaderManager::Instance().CompileShader(L"CollectShadow.hlsl");
 	if (collectShader != nullptr)
 	{
 		collectShadowMat = MaterialManager::Instance().CreateMaterialPost(collectShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
