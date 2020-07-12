@@ -24,17 +24,20 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	for (int i = 0; i < numCascade; i++)
 	{
 		shadowMap[i] = (ID3D12Resource*)_shadowMapRaw[i];
-		if (shadowMap[i] == nullptr)
-		{
-			LogMessage(L"[SqGraphic Error] Shadow map null.");
-			continue;
-		}
 	}
 
 	D3D12_RESOURCE_DESC srcDesc = shadowMap[0]->GetDesc();
 	shadowRT = make_shared<RenderTexture>();
 	shadowRT->InitDSV(shadowMap, GetDepthFormatFromTypeless(srcDesc.Format), numCascade);
-	shadowRT->InitSRV(shadowMap, GetShaderFormatFromTypeless(srcDesc.Format), numCascade);
+
+	ID3D12Resource* depthAndShadow[MAX_CASCADE_SHADOW + 1];
+	for (int i = 1; i < numCascade + 1; i++)
+	{
+		depthAndShadow[i] = shadowMap[i - 1];
+	}
+	depthAndShadow[0] = CameraManager::Instance().GetCamera()->GetCameraDepth();
+
+	shadowRT->InitSRV(depthAndShadow, GetShaderFormatFromTypeless(srcDesc.Format), numCascade + 1);
 
 	hasShadow = true;
 }
