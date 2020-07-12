@@ -35,6 +35,8 @@ cbuffer SystemConstant : register(b1)
 	float4x4 SQ_MATRIX_INV_V;
 	float4x4 SQ_MATRIX_INV_P;
 	float3 _CameraPos;
+	float _FarZ;
+	float _NearZ;
 	int _NumDirLight;
 	int _NumPointLight;
 	int _NumSpotLight;
@@ -77,5 +79,10 @@ StructuredBuffer<SqLight> _SqDirLight: register(t0, space1);
 //StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
 //StructuredBuffer<SqLight> _SqSpotLight: register(t2, space1);
 #pragma sq_srvEnd
+
+float3 DepthToWorldPos(float depth, float4 screenPos)
+{
+	return 0;
+}
 
 #endif

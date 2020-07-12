@@ -23,7 +23,7 @@ public:
 
 	bool AddCamera(CameraData _camData);
 	void RemoveCamera(int _instanceID);
-	void SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
+	void SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position, float _far, float _near);
 	void SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void Release();
 	Camera* GetCamera();

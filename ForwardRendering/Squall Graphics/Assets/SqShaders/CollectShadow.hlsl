@@ -9,6 +9,7 @@
 struct v2f
 {
 	float4 vertex : SV_POSITION;
+    float4 screenPos : TEXCOOED0;
 };
 
 static const float2 gTexCoords[6] =
@@ -33,11 +34,22 @@ v2f CollectShadowVS(uint vid : SV_VertexID)
     // convert uv to ndc space
     float2 uv = gTexCoords[vid];
     o.vertex = float4(uv.x * 2.0f - 1.0f, 1.0f - uv.y * 2.0f, 0, 1);
+    o.screenPos = float4(o.vertex.xy, 0, 1);
 
 	return o;
 }
 
 float4 CollectShadowPS(v2f i) : SV_Target
 {
+    float depth = _ShadowMap[0].Load(uint3(i.vertex.xy, 0)).r;
+    [branch]
+    if (depth == 0.0f)
+    {
+        // early jump out of fragment
+        return 1.0f;
+    }
+
+    float3 wpos = DepthToWorldPos(depth, i.screenPos);
+
     return 1.0f;
 }

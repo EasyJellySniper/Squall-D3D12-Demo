@@ -271,6 +271,8 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 	// calc invert view and invert proj
 	sc.sqMatrixInvView = _camera->GetInvView();
 	sc.sqMatrixInvProj = _camera->GetInvProj();
+	sc.farZ = _camera->GetFarZ();
+	sc.nearZ = _camera->GetNearZ();
 
 	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 	LightManager::Instance().UploadPerLightBuffer(frameIndex);

@@ -64,7 +64,7 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaDsv();
 	ID3D12DescriptorHeap* GetDepthSrv();
 	ID3D12DescriptorHeap* GetMsaaSrv(int _index);
-	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position);
+	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position, float _far, float _near);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void SetRenderMode(int _mode);
 	void CopyDepth(void *_dest);
@@ -76,6 +76,8 @@ public:
 	XMFLOAT4X4 GetInvView();
 	XMFLOAT4X4 GetInvProj();
 	XMFLOAT3 GetPosition();
+	float GetFarZ();
+	float GetNearZ();
 	Material *GetPipelineMaterial(MaterialType _type, CullMode _cullMode);
 	Material* GetPostMaterial();
 	RenderMode GetRenderMode();
@@ -121,6 +123,8 @@ private:
 	XMFLOAT4X4 invViewMatrix;
 	XMFLOAT4X4 invProjMatrix;
 	XMFLOAT3 position;
+	float farZ;
+	float nearZ;
 	BoundingFrustum camFrustum;
 
 	D3D12_VIEWPORT viewPort;

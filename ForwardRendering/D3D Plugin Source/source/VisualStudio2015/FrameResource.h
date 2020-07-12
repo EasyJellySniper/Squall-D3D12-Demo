@@ -31,6 +31,8 @@ struct SystemConstant
 	XMFLOAT4X4 sqMatrixInvView;
 	XMFLOAT4X4 sqMatrixInvProj;
 	XMFLOAT3 cameraPos;
+	float farZ;
+	float nearZ;
 	int numDirLight;
 	int numPointLight;
 	int numSpotLight;
