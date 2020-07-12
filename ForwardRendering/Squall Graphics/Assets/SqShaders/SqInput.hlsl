@@ -82,7 +82,16 @@ StructuredBuffer<SqLight> _SqDirLight: register(t0, space1);
 
 float3 DepthToWorldPos(float depth, float4 screenPos)
 {
-	return 0;
+	// calc vpos
+	float3 vpos = mul(SQ_MATRIX_INV_P, screenPos).xyz;
+	vpos.z *= -1;
+
+	// calc vray and wpos
+	float3 vray = float3(vpos.xy * (_FarZ / vpos.z), _FarZ);
+	vpos = vray * depth;
+	float3 wpos = mul(SQ_MATRIX_INV_V, float4(vpos, 1)).xyz;
+
+	return wpos;
 }
 
 #endif

@@ -68,6 +68,10 @@ inline DXGI_FORMAT GetColorFormatFromTypeless(DXGI_FORMAT _typelessFormat)
 	{
 		colorFormat = DXGI_FORMAT_R16_FLOAT;
 	}
+	else if (_typelessFormat == DXGI_FORMAT_R8G8B8A8_TYPELESS)
+	{
+		colorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	}
 	else
 	{
 		LogMessage(L"[SqGraphic Error] SqCamera: Unknown Render Target Format " + to_wstring(_typelessFormat) + L".");

@@ -51,5 +51,5 @@ float4 CollectShadowPS(v2f i) : SV_Target
 
     float3 wpos = DepthToWorldPos(depth, i.screenPos);
 
-    return 1.0f;
+    return float4(wpos, 1.0f);
 }
