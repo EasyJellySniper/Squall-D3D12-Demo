@@ -55,9 +55,10 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RemoveCamera(int _ins
 	CameraManager::Instance().RemoveCamera(_instanceID);
 } 
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position, float _far, float _near)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling
+	, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)
 {
-	CameraManager::Instance().SetViewProjMatrix(_instanceID, _view, _proj, _projCulling, _position, _far, _near);
+	CameraManager::Instance().SetViewProjMatrix(_instanceID, _view, _proj, _projCulling, _invView, _invProj, _position, _far, _near);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)

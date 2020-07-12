@@ -234,21 +234,16 @@ ID3D12DescriptorHeap* Camera::GetMsaaSrv(int _index)
 	return cameraRTMsaa[_index]->GetSrv();
 }
 
-void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT3 _position, float _far, float _near)
+void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)
 {
 	// data from unity is column major, while d3d matrix use row major
 	viewMatrix = _view;
 	projMatrix = _proj;
+	invViewMatrix = _invView;
+	invProjMatrix = _invProj;
 	position = _position;
 	farZ = _far;
 	nearZ = _near;
-
-	// calc invert
-	XMMATRIX v, p;
-	v = XMLoadFloat4x4(&viewMatrix);
-	p = XMLoadFloat4x4(&projMatrix);
-	XMStoreFloat4x4(&invViewMatrix, XMMatrixInverse(&XMMatrixDeterminant(v), v));
-	XMStoreFloat4x4(&invProjMatrix, XMMatrixInverse(&XMMatrixDeterminant(p), p));
 
 	// fix view matrix for culling
 	XMFLOAT4X4 _viewFix = _view;

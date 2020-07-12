@@ -15,7 +15,7 @@ public class SqCamera : MonoBehaviour
     static extern void RemoveCamera(int _instanceID);
 
     [DllImport("SquallGraphics")]
-    static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _view, Matrix4x4 _proj, Matrix4x4 _projCulling, Vector3 _position, float _far, float _near);
+    static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _view, Matrix4x4 _proj, Matrix4x4 _projCulling, Matrix4x4 _invView, Matrix4x4 _invProj, Vector3 _position, float _far, float _near);
 
 
     [DllImport("SquallGraphics")]
@@ -174,10 +174,16 @@ public class SqCamera : MonoBehaviour
         }
 
         // update VP matrix
+        Matrix4x4 projRendering = GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true);
+        Matrix4x4 projCulling = GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, false);
+        Matrix4x4 invView = attachedCam.worldToCameraMatrix.inverse;    // didn't be the same as CameraToWorldMatrix, this is bullshit lol
+
         SetViewProjMatrix(instanceID,
             attachedCam.worldToCameraMatrix,
-            GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, true),
-            GL.GetGPUProjectionMatrix(attachedCam.projectionMatrix, false),
+            projRendering,
+            projCulling,
+            invView,
+            projRendering.inverse,
             transform.position, attachedCam.farClipPlane, attachedCam.nearClipPlane);
 
         Rect viewRect = attachedCam.pixelRect;
