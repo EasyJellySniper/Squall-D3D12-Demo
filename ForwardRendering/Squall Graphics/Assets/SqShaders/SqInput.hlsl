@@ -32,6 +32,8 @@ cbuffer ObjectConstant : register(b0)
 
 cbuffer SystemConstant : register(b1)
 {
+	float4x4 SQ_MATRIX_INV_V;
+	float4x4 SQ_MATRIX_INV_P;
 	float3 _CameraPos;
 	int _NumDirLight;
 	int _NumPointLight;

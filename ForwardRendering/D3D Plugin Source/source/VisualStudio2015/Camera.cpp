@@ -241,6 +241,13 @@ void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCul
 	projMatrix = _proj;
 	position = _position;
 
+	// calc invert
+	XMMATRIX v, p;
+	v = XMLoadFloat4x4(&viewMatrix);
+	p = XMLoadFloat4x4(&projMatrix);
+	XMStoreFloat4x4(&invViewMatrix, XMMatrixInverse(&XMMatrixDeterminant(v), v));
+	XMStoreFloat4x4(&invProjMatrix, XMMatrixInverse(&XMMatrixDeterminant(p), p));
+
 	// fix view matrix for culling
 	XMFLOAT4X4 _viewFix = _view;
 	_viewFix._11 *= -1;
@@ -249,12 +256,12 @@ void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCul
 
 	// update inverse view for culling
 	XMMATRIX view = XMLoadFloat4x4(&_viewFix);
-	XMMATRIX invViewMatrix = XMMatrixInverse(&XMMatrixDeterminant(view), view);
+	XMMATRIX invViewCulling = XMMatrixInverse(&XMMatrixDeterminant(view), view);
 
 	// update bounding frustum and convert to world space
 	BoundingFrustum frustum;
 	BoundingFrustum::CreateFromMatrix(frustum, XMLoadFloat4x4(&_projCulling));
-	frustum.Transform(camFrustum, invViewMatrix);
+	frustum.Transform(camFrustum, invViewCulling);
 }
 
 void Camera::SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
@@ -283,14 +290,24 @@ D3D12_RECT Camera::GetScissorRect()
 	return scissorRect;
 }
 
-XMFLOAT4X4 Camera::GetViewMatrix()
+XMFLOAT4X4 Camera::GetView()
 {
 	return viewMatrix;
 }
 
-XMFLOAT4X4 Camera::GetProjMatrix()
+XMFLOAT4X4 Camera::GetProj()
 {
 	return projMatrix;
+}
+
+XMFLOAT4X4 Camera::GetInvView()
+{
+	return invViewMatrix;
+}
+
+XMFLOAT4X4 Camera::GetInvProj()
+{
+	return invProjMatrix;
 }
 
 XMFLOAT3 Camera::GetPosition()

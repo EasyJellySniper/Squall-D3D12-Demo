@@ -28,6 +28,8 @@ struct ObjectConstant
 
 struct SystemConstant
 {
+	XMFLOAT4X4 sqMatrixInvView;
+	XMFLOAT4X4 sqMatrixInvProj;
 	XMFLOAT3 cameraPos;
 	int numDirLight;
 	int numPointLight;

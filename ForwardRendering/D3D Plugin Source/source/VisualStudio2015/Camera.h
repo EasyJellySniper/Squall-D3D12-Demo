@@ -71,8 +71,10 @@ public:
 
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
-	XMFLOAT4X4 GetViewMatrix();
-	XMFLOAT4X4 GetProjMatrix();
+	XMFLOAT4X4 GetView();
+	XMFLOAT4X4 GetProj();
+	XMFLOAT4X4 GetInvView();
+	XMFLOAT4X4 GetInvProj();
 	XMFLOAT3 GetPosition();
 	Material *GetPipelineMaterial(MaterialType _type, CullMode _cullMode);
 	Material* GetPostMaterial();
@@ -116,6 +118,8 @@ private:
 	// matrix and view port
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projMatrix;
+	XMFLOAT4X4 invViewMatrix;
+	XMFLOAT4X4 invProjMatrix;
 	XMFLOAT3 position;
 	BoundingFrustum camFrustum;
 
