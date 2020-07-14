@@ -44,6 +44,7 @@ v2f CollectShadowVS(uint vid : SV_VertexID)
 float4 CollectShadowPS(v2f i) : SV_Target
 {
     float depth = _ShadowMap[0].Load(uint3(i.vertex.xy, 0)).r;
+
     [branch]
     if (depth == 0.0f)
     {
@@ -55,13 +56,17 @@ float4 CollectShadowPS(v2f i) : SV_Target
     uint cascade = _SqDirLight[0].numCascade;
     float atten = 1;
 
-    for (uint a = 0; a < cascade; a++)
+    for (uint a = 0; a < 1; a++)
     {
         float4 spos = mul(_SqDirLight[0].shadowMatrix[a], float4(wpos, 1));
-        spos.xyz /= spos.w;
-        spos.z += 0.0001f;  // bias
+        spos.xyz /= spos.w;                 // ndc space
+        spos.xy = spos.xy * 0.5f + 0.5f;    // [0,1]
+        spos.y = 1 - spos.y;                // need to flip shadow map
 
-        atten = min(_ShadowMap[a + 1].SampleCmpLevelZero(_ShadowSampler, spos.xy, spos.z).r, atten);
+        // bias to depth
+        spos.z += 0.001f;
+
+        atten = min(_ShadowMap[a + 1].SampleCmpLevelZero(_ShadowSampler, spos.xy, spos.z), atten);
     }
 
     return atten;
