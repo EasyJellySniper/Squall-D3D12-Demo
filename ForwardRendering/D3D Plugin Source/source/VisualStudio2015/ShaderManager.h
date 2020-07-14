@@ -36,8 +36,8 @@ private:
 	int GetRegisterNumber(wstring _input);
 	int GetSpaceNumber(wstring _input);
 	int GetNumDescriptor(wstring _input);
-	bool HasCbuffer(wstring _name);
-	bool HasSrv(wstring _name);
+	int HasCbuffer(wstring _name);
+	int HasSrv(wstring _name);
 
 	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
@@ -45,8 +45,8 @@ private:
 	CD3DX12_ROOT_PARAMETER rootSignatureParam[32];
 	vector<string> keywordGroup;
 	vector<wstring> includeFile;
-	vector<wstring> cbufferList;
-	vector<wstring> srvList;
+	vector<wstring> rootSignList;
+
 	int numTable = 0;
 	int numRoot = 0;
 

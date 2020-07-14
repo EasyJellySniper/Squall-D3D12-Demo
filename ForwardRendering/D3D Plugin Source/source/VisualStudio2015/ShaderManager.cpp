@@ -18,8 +18,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 	// reset root signature for parsing
 	keywordGroup.clear();
 	includeFile.clear();
-	cbufferList.clear();
-	srvList.clear();
+	rootSignList.clear();
 	numTable = 0;
 	numRoot = 0;
 
@@ -68,8 +67,7 @@ void ShaderManager::Release()
 	shaders.clear();
 	keywordGroup.clear();
 	includeFile.clear();
-	cbufferList.clear();
-	srvList.clear();
+	rootSignList.clear();
 }
 
 Shader *ShaderManager::FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro)
@@ -179,12 +177,13 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			is >> cbName;
 
 			// only add used cbuffer
-			if (HasCbuffer(cbName))
+			int rootNum = HasCbuffer(cbName);
+			if (rootNum != -1)
 			{
 				// constant buffer view
 				CD3DX12_ROOT_PARAMETER p;
 				p.InitAsConstantBufferView(GetRegisterNumber(_input));
-				rootSignatureParam[numRoot++]= p;
+				rootSignatureParam[rootNum] = p;
 			}
 		}
 		else if (ss == L"Texture2D")
@@ -194,7 +193,8 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring srvName;
 				is >> srvName;
 
-				if (HasSrv(srvName))
+				int rootNum = HasSrv(srvName);
+				if (rootNum != -1)
 				{
 					// static prevent stripped by compiler
 					descriptorTable[numTable] = CD3DX12_DESCRIPTOR_RANGE();
@@ -203,7 +203,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 					// we will share texture table and dynamic indexing in shader
 					CD3DX12_ROOT_PARAMETER p;
 					p.InitAsDescriptorTable(1, &descriptorTable[numTable++]);
-					rootSignatureParam[numRoot++] = p;
+					rootSignatureParam[rootNum] = p;
 				}
 			}
 		}
@@ -214,7 +214,8 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring srvName;
 				is >> srvName;
 
-				if (HasSrv(srvName))
+				int rootNum = HasSrv(srvName);
+				if (rootNum != -1)
 				{
 					// static prevent stripped by compiler
 					descriptorTable[numTable] = CD3DX12_DESCRIPTOR_RANGE();
@@ -223,7 +224,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 					// we will share sampler table and dynamic indexing in shader
 					CD3DX12_ROOT_PARAMETER p;
 					p.InitAsDescriptorTable(1, &descriptorTable[numTable++]);
-					rootSignatureParam[numRoot++] = p;
+					rootSignatureParam[rootNum] = p;
 				}
 			}
 		}
@@ -234,7 +235,8 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring srvName;
 				is >> srvName;
 
-				if (HasSrv(srvName))
+				int rootNum = HasSrv(srvName);
+				if (rootNum != -1)
 				{
 					// prevent stripped by compiler
 					descriptorTable[numTable] = CD3DX12_DESCRIPTOR_RANGE();
@@ -243,7 +245,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 					// multisample texture2d srv
 					CD3DX12_ROOT_PARAMETER p;
 					p.InitAsDescriptorTable(1, &descriptorTable[numTable++]);
-					rootSignatureParam[numRoot++] = p;
+					rootSignatureParam[rootNum] = p;
 				}
 			}
 		}
@@ -254,11 +256,12 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring srvName;
 				is >> srvName;
 
-				if (HasSrv(srvName))
+				int rootNum = HasSrv(srvName);
+				if (rootNum != -1)
 				{
 					CD3DX12_ROOT_PARAMETER p;
 					p.InitAsShaderResourceView(GetRegisterNumber(_input), GetSpaceNumber(_input));
-					rootSignatureParam[numRoot++] = p;
+					rootSignatureParam[rootNum] = p;
 				}
 			}
 		}
@@ -297,13 +300,13 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				// add to cbuffer list
 				wstring cbName;
 				is >> cbName;
-				cbufferList.push_back(cbName);
+				rootSignList.push_back(cbName);
 			}
 			else if (ss == L"sq_srv")
 			{
 				wstring srvName;
 				is >> srvName;
-				srvList.push_back(srvName);
+				rootSignList.push_back(srvName);
 			}
 		}
 	}
@@ -311,7 +314,8 @@ void ShaderManager::ParseShaderLine(wstring _input)
 
 void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, bool _ignoreInputLayout)
 {
-	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc((UINT)numRoot, rootSignatureParam,
+	UINT rootSize = (rootSignList.size() == 0) ? numRoot : (UINT)rootSignList.size();
+	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(rootSize, rootSignatureParam,
 		0, nullptr,
 		(!_ignoreInputLayout) ? D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT : D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
@@ -450,20 +454,33 @@ int ShaderManager::GetNumDescriptor(wstring _input)
 	return stoi(num);
 }
 
-bool ShaderManager::HasCbuffer(wstring _name)
+int ShaderManager::HasCbuffer(wstring _name)
 {
-	_name = RemoveChars(_name, L":");
-
-	if (find(cbufferList.begin(), cbufferList.end(), _name) != cbufferList.end() || cbufferList.size() == 0)
+	if (rootSignList.size() == 0)
 	{
-		return true;
+		return numRoot++;
 	}
 
-	return false;
+	_name = RemoveChars(_name, L":");
+
+	for (int i = 0; i < (int)rootSignList.size(); i++)
+	{
+		if (rootSignList[i] == _name)
+		{
+			return i;
+		}
+	}
+
+	return -1;
 }
 
-bool ShaderManager::HasSrv(wstring _name)
+int ShaderManager::HasSrv(wstring _name)
 {
+	if (rootSignList.size() == 0)
+	{
+		return numRoot++;
+	}
+
 	size_t regPos = _name.find(L"[");
 	if (regPos != string::npos)
 	{
@@ -487,10 +504,13 @@ bool ShaderManager::HasSrv(wstring _name)
 
 	_name = RemoveChars(_name, L"[]:");
 
-	if (find(srvList.begin(), srvList.end(), _name) != srvList.end() || srvList.size() == 0)
+	for (int i = 0; i < (int)rootSignList.size(); i++)
 	{
-		return true;
+		if (rootSignList[i] == _name)
+		{
+			return i;
+		}
 	}
 
-	return false;
+	return -1;
 }
