@@ -219,7 +219,7 @@ public class SqCamera : MonoBehaviour
 
     void CreateRenderTarget()
     {
-        renderTarget = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR);
+        renderTarget = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
         renderTarget.name = name + " Target";
         renderTarget.antiAliasing = 1;
         renderTarget.bindTextureMS = false;
@@ -227,7 +227,7 @@ public class SqCamera : MonoBehaviour
         // actually create so that we have native resources
         renderTarget.Create();
 
-        debugDepth = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.Depth);
+        debugDepth = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
         debugDepth.name = "Debug Depth";
         debugDepth.Create();
     }

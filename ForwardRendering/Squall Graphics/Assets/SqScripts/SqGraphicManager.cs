@@ -243,7 +243,7 @@ public class SqGraphicManager : MonoBehaviour
 
         if (hasShadowLight)
         {
-            SqLight.collectShadows = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
+            SqLight.collectShadows = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             SqLight.collectShadows.name = "Opaque Shadows";
             SqLight.collectShadows.Create();
         }

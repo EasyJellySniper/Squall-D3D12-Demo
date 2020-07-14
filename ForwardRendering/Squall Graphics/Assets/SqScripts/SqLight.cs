@@ -203,7 +203,7 @@ public class SqLight : MonoBehaviour
             cascadeLast = new float[cascadeSetting.Length];
             for (int i = 0; i < shadowMaps.Length; i++)
             {
-                shadowMaps[i] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth);
+                shadowMaps[i] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
                 shadowMaps[i].name = name + "_ShadowMap " + i;
                 shadowMaps[i].Create();
                 cascadeLast[i] = cascadeSetting[i];
@@ -213,7 +213,7 @@ public class SqLight : MonoBehaviour
         {
             // otherwise create normal shadow maps
             shadowMaps = new RenderTexture[1];
-            shadowMaps[0] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth);
+            shadowMaps[0] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
             shadowMaps[0].name = name + "_ShadowMap";
             shadowMaps[0].Create();
         }
