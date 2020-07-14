@@ -1,6 +1,7 @@
 #include "LightManager.h"
 #include "GraphicManager.h"
 #include "ShaderManager.h"
+#include "TextureManager.h"
 
 void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _opaqueShadows)
 {
@@ -197,6 +198,11 @@ Material* LightManager::GetCollectShadow()
 	return &collectShadowMat;
 }
 
+int LightManager::GetShadowSampler()
+{
+	return shadowSampler;
+}
+
 ID3D12Resource* LightManager::GetCollectShadowSrc()
 {
 	return collectShadow->GetRtvSrc(0);
@@ -295,4 +301,7 @@ void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
 	{
 		collectShadowMat = MaterialManager::Instance().CreateMaterialPost(collectShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
+
+	// create shadow sampler
+	shadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true);
 }

@@ -1,4 +1,5 @@
 #pragma sq_cbuffer SystemConstant
+#pragma sq_srv _SamplerTable
 #pragma sq_srv _SqDirLight
 #pragma sq_srv _ShadowMap
 

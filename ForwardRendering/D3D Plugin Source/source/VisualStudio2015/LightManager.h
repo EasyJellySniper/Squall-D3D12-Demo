@@ -41,6 +41,7 @@ public:
 	Material* GetShadowOpqaue(int _cullMode);
 	Material* GetShadowCutout(int _cullMode);
 	Material* GetCollectShadow();
+	int GetShadowSampler();
 
 	ID3D12Resource* GetCollectShadowSrc();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCollectShadowRtv();
@@ -57,6 +58,7 @@ private:
 	int maxDirLight;
 	int maxPointLight;
 	int maxSpotLight;
+	int shadowSampler;
 
 	vector<Light> dirLights;
 	vector<Light> pointLights;
