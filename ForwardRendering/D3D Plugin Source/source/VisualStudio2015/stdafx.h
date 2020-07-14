@@ -57,7 +57,7 @@ inline void LogMessage(wstring _str)
 }
 #endif
 
-inline DXGI_FORMAT GetColorFormatFromTypeless(DXGI_FORMAT _typelessFormat)
+inline DXGI_FORMAT GetColorFormatFromTypeless(DXGI_FORMAT _typelessFormat, bool _logicBuffer = false)
 {
 	DXGI_FORMAT colorFormat = DXGI_FORMAT_UNKNOWN;
 	if (_typelessFormat == DXGI_FORMAT_R16G16B16A16_TYPELESS)
@@ -71,6 +71,10 @@ inline DXGI_FORMAT GetColorFormatFromTypeless(DXGI_FORMAT _typelessFormat)
 	else if (_typelessFormat == DXGI_FORMAT_R8G8B8A8_TYPELESS)
 	{
 		colorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	}
+	else if (_typelessFormat == DXGI_FORMAT_R32G32B32A32_TYPELESS)
+	{
+		colorFormat = (_logicBuffer) ? DXGI_FORMAT_R32G32B32A32_SINT : DXGI_FORMAT_R32G32B32A32_FLOAT;
 	}
 	else
 	{
