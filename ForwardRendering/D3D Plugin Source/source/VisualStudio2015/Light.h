@@ -21,12 +21,11 @@ struct SqLightData
 	XMFLOAT4X4 shadowMatrix[MAX_CASCADE_SHADOW];
 	XMFLOAT4 color;
 	XMFLOAT4 worldPos;
+	float cascadeDist[MAX_CASCADE_SHADOW];
 	int type;
 	float intensity;
 	int numCascade;
-
-	// padding for 16-bytes alignment
-	float padding;
+	float padding;		// padding for 16-bytes alignment
 };
 
 class Light

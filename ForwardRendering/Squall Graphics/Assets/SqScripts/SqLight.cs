@@ -51,6 +51,12 @@ public class SqLight : MonoBehaviour
         public Vector4 worldPos;
 
         /// <summary>
+        /// cascade dist
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] cascadeDist;
+
+        /// <summary>
         /// type
         /// </summary>
         public int type;
@@ -165,6 +171,7 @@ public class SqLight : MonoBehaviour
         lightCache = GetComponent<Light>();
         lightData = new SqLightData();
         lightData.shadowMatrix = new Matrix4x4[4];
+        lightData.cascadeDist = new float[4];
         lightData.color = lightCache.color.linear;
         lightData.type = (int)lightCache.type;
         lightData.intensity = lightCache.intensity;
@@ -288,6 +295,7 @@ public class SqLight : MonoBehaviour
             // position
             shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist * 0.5f;
             lightData.shadowMatrix[i] = GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, true) * shadowCam.worldToCameraMatrix;
+            lightData.cascadeDist[i] = dist;
 
             SetShadowFrustum(nativeID, shadowCam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, false), i);
         }

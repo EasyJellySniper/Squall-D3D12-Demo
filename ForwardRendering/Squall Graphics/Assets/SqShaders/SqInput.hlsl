@@ -15,9 +15,8 @@ struct SqLight
 	// up to 4 cascade
 	float4x4 shadowMatrix[4];
 	float4 color;
-
-	// as position for spot/point light, as dir for directional light
-	float4 world;
+	float4 world;		// as position for spot/point light, as dir for directional light
+	float cascadeDist[4];
 	int type;
 	float intensity;
 	int numCascade;
