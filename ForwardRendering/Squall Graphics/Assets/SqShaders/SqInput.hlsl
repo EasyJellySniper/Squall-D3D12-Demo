@@ -20,7 +20,7 @@ struct SqLight
 	int type;
 	float intensity;
 	int numCascade;
-	float padding;
+	float shadowBias;
 };
 
 cbuffer ObjectConstant : register(b0)

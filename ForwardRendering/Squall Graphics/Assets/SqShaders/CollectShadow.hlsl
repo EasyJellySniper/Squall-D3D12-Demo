@@ -53,18 +53,25 @@ float4 CollectShadowPS(v2f i) : SV_Target
     }
 
     float3 wpos = DepthToWorldPos(depth, i.screenPos);
-    uint cascade = _SqDirLight[0].numCascade;
+    float distToCam = length(wpos - _CameraPos);
+
+    SqLight light = _SqDirLight[0];
+    uint cascade = light.numCascade;
     float atten = 1;
 
-    for (uint a = 0; a < 1; a++)
+    for (uint a = 0; a < cascade; a++)
     {
-        float4 spos = mul(_SqDirLight[0].shadowMatrix[a], float4(wpos, 1));
+        [branch]
+        if (distToCam > light.cascadeDist[a])
+            continue;
+
+        float4 spos = mul(light.shadowMatrix[a], float4(wpos, 1));
         spos.xyz /= spos.w;                 // ndc space
         spos.xy = spos.xy * 0.5f + 0.5f;    // [0,1]
         spos.y = 1 - spos.y;                // need to flip shadow map
 
         // bias to depth
-        spos.z += 0.001f;
+        spos.z += light.shadowBias / 1000.0f;
 
         atten = min(_ShadowMap[a + 1].SampleCmpLevelZero(_ShadowSampler, spos.xy, spos.z), atten);
     }

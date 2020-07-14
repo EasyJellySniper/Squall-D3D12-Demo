@@ -74,7 +74,7 @@ public class SqLight : MonoBehaviour
         /// <summary>
         /// padding
         /// </summary>
-        public float padding;
+        public float shadowBias;
     }
 
     /// <summary>
@@ -175,6 +175,7 @@ public class SqLight : MonoBehaviour
         lightData.color = lightCache.color.linear;
         lightData.type = (int)lightCache.type;
         lightData.intensity = lightCache.intensity;
+        lightData.shadowBias = lightCache.shadowBias;
 
         if (lightCache.type == LightType.Directional)
         {
@@ -320,6 +321,7 @@ public class SqLight : MonoBehaviour
 
             lightData.color = lightCache.color.linear;
             lightData.intensity = lightCache.intensity;
+            lightData.shadowBias = lightCache.shadowBias;
 
             UpdateNativeLight(nativeID, lightData);
             transform.hasChanged = false;
@@ -334,6 +336,11 @@ public class SqLight : MonoBehaviour
         }
 
         if (Vector4.SqrMagnitude(lightData.color - (Vector4)lightCache.color.linear) > 0.1)
+        {
+            return true;
+        }
+
+        if (lightData.shadowBias != lightCache.shadowBias)
         {
             return true;
         }
