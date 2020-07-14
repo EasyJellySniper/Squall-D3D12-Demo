@@ -91,6 +91,7 @@ public class SqMeshRenderer : MonoBehaviour
             int dstBlend = (mats[i].HasProperty("_DstBlend")) ? (int)mats[i].GetFloat("_DstBlend") : 0;
             bool isCutOff = (mats[i].renderQueue <= (int)RenderQueue.GeometryLast) && (mats[i].renderQueue >= 2226);
             bool isShadowCutoff = (mats[i].renderQueue >= 2226);
+            bool isTransparent = (mats[i].renderQueue > (int)RenderQueue.GeometryLast);
 
             List<string> macro = new List<string>();
 
@@ -102,6 +103,11 @@ public class SqMeshRenderer : MonoBehaviour
             if (isShadowCutoff)
             {
                 macro.Add("_SHADOW_CUTOFF_ON");
+            }
+
+            if(isTransparent)
+            {
+                macro.Add("_TRANSPARENT_ON");
             }
 
             SqMaterial.Instance.AddTexKeyword(mats[i], ref macro, "_SpecGlossMap", "_SPEC_GLOSS_MAP");

@@ -1,5 +1,6 @@
 #include "SqForwardInclude.hlsl"
 #include "SqLight.hlsl"
+
 #pragma sq_vertex ForwardPassVS
 #pragma sq_pixel ForwardPassPS
 #pragma sq_keyword _CUTOFF_ON
@@ -8,6 +9,7 @@
 #pragma sq_keyword _NORMAL_MAP
 #pragma sq_keyword _DETAIL_MAP
 #pragma sq_keyword _DETAIL_NORMAL_MAP
+#pragma sq_keyword _TRANSPARENT_ON
 
 struct v2f
 {
@@ -66,7 +68,13 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// GI
 
 	// BRDF
-	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos);
+#if defined(_TRANSPARENT_ON)
+	float atten = 1;
+#else
+	float atten = _TexTable[_CollectShadowIndex].Load(uint3(i.vertex.xy, 0)).r;
+#endif
+
+	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten);
 
 	// emission
 	float3 emission = GetEmission(i.tex.xy);

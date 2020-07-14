@@ -25,7 +25,7 @@ float BlinnPhong(float m, float ndotH)
 
 //   BRDF = Fresnel & Blinn Phong
 //   I = BRDF * NdotL
-float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular)
+float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular, float atten)
 {
 	float roughness = 1 - smoothness;
 	float3 viewDir = -normalize(worldPos - _CameraPos);
@@ -35,7 +35,7 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 
 	for (uint i = 0; i < numLight; i++)
 	{
-		float3 lightColor = light[i].color.rgb * light[i].intensity;
+		float3 lightColor = light[i].color.rgb * light[i].intensity * atten;
 		float3 lightDir = -LightDir(light[i], worldPos);
 		float3 halfDir = (viewDir + lightDir) / (length(viewDir + lightDir) + 0.00001f);	// safe normalize
 
@@ -50,10 +50,10 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 	return col;
 }
 
-float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos)
+float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float atten)
 {
 	float3 dirSpecular = 0;
-	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, smoothness, dirSpecular);
+	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, smoothness, dirSpecular, atten);
 
 	return diffColor * dirDiffuse + dirSpecular;
 }
