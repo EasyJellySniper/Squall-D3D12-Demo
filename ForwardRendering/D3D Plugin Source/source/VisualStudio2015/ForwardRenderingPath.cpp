@@ -257,6 +257,10 @@ void ForwardRenderingPath::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 			_cmdList->ClearDepthStencilView(dirLights[i].GetShadowDsv(j), D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
 		}
 	}
+
+	// clear target
+	FLOAT c[] = { 1,1,1,1 };
+	_cmdList->ClearRenderTargetView(LightManager::Instance().GetCollectShadowRtv(), c, 0, nullptr);
 }
 
 void ForwardRenderingPath::UploadWork(Camera *_camera)
