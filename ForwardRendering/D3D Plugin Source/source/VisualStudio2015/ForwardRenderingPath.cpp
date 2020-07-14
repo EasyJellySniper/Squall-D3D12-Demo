@@ -273,7 +273,6 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 	sc.sqMatrixInvProj = _camera->GetInvProj();
 	sc.farZ = _camera->GetFarZ();
 	sc.nearZ = _camera->GetNearZ();
-	sc.shadowSampler = LightManager::Instance().GetShadowSampler();
 
 	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 	LightManager::Instance().UploadPerLightBuffer(frameIndex);
@@ -818,7 +817,7 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	ID3D12DescriptorHeap* descriptorHeaps[] = { _light->GetShadowSrv() , TextureManager::Instance().GetSamplerHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { _light->GetShadowSrv() , LightManager::Instance().GetShadowSampler() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// set target
@@ -833,7 +832,7 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootShaderResourceView(1, LightManager::Instance().GetDirLightGPU(frameIndex, _id));
 	_cmdList->SetGraphicsRootDescriptorTable(2, _light->GetShadowSrv()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(3, LightManager::Instance().GetShadowSampler()->GetGPUDescriptorHandleForHeapStart());
 
 	_cmdList->DrawInstanced(6, 1, 0, 0);
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);

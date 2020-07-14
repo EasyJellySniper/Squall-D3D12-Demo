@@ -207,7 +207,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				}
 			}
 		}
-		else if (ss == L"SamplerState")
+		else if (ss == L"SamplerState" || ss == L"SamplerComparisonState")
 		{
 			if (parseSrv)
 			{

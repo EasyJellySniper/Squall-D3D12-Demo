@@ -168,7 +168,7 @@ void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)
 	samplerDesc.AddressV = Sampler::UnityWrapModeToNative(_sampler.GetWrapV());
 	samplerDesc.AddressW = Sampler::UnityWrapModeToNative(_sampler.GetWrapW());
 	samplerDesc.MipLODBias = 0;
-	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;	// reverse-z
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
 

@@ -1,7 +1,7 @@
 #pragma sq_cbuffer SystemConstant
 #pragma sq_srv _SqDirLight
 #pragma sq_srv _ShadowMap
-#pragma sq_srv _SamplerTable
+#pragma sq_srv _ShadowSampler
 
 #include "SqInput.hlsl"
 #pragma sq_vertex CollectShadowVS
@@ -26,6 +26,7 @@ static const float2 gTexCoords[6] =
 #pragma sq_srvStart
 // shadow map, up to 4 cascades, 1st entry is camera's depth
 Texture2D _ShadowMap[5] : register(t0);
+SamplerComparisonState _ShadowSampler : register(s0);
 #pragma sq_srvEnd
 
 v2f CollectShadowVS(uint vid : SV_VertexID)
@@ -51,6 +52,17 @@ float4 CollectShadowPS(v2f i) : SV_Target
     }
 
     float3 wpos = DepthToWorldPos(depth, i.screenPos);
+    uint cascade = _SqDirLight[0].numCascade;
+    float atten = 1;
 
-    return float4(wpos, 1.0f);
+    for (uint a = 0; a < cascade; a++)
+    {
+        float4 spos = mul(_SqDirLight[0].shadowMatrix[a], float4(wpos, 1));
+        spos.xyz /= spos.w;
+        spos.z += 0.0001f;  // bias
+
+        atten = min(_ShadowMap[a + 1].SampleCmpLevelZero(_ShadowSampler, spos.xy, spos.z).r, atten);
+    }
+
+    return atten;
 }

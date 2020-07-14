@@ -36,7 +36,6 @@ struct SystemConstant
 	int numDirLight;
 	int numPointLight;
 	int numSpotLight;
-	int shadowSampler;
 };
 
 struct LightConstant

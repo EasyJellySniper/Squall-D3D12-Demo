@@ -4,6 +4,7 @@
 #include "FrameResource.h"
 #include "UploadBuffer.h"
 #include "MaterialManager.h"
+#include "Sampler.h"
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
@@ -41,7 +42,7 @@ public:
 	Material* GetShadowOpqaue(int _cullMode);
 	Material* GetShadowCutout(int _cullMode);
 	Material* GetCollectShadow();
-	int GetShadowSampler();
+	ID3D12DescriptorHeap* GetShadowSampler();
 
 	ID3D12Resource* GetCollectShadowSrc();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCollectShadowRtv();
@@ -58,7 +59,6 @@ private:
 	int maxDirLight;
 	int maxPointLight;
 	int maxSpotLight;
-	int shadowSampler;
 
 	vector<Light> dirLights;
 	vector<Light> pointLights;
@@ -72,4 +72,5 @@ private:
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];
 	Material collectShadowMat;
+	Sampler shadowSampler;
 };

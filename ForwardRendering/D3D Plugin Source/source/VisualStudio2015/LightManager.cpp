@@ -84,6 +84,8 @@ void LightManager::Release()
 		collectShadow->Release();
 		collectShadow.reset();
 	}
+
+	shadowSampler.Release();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -198,9 +200,9 @@ Material* LightManager::GetCollectShadow()
 	return &collectShadowMat;
 }
 
-int LightManager::GetShadowSampler()
+ID3D12DescriptorHeap* LightManager::GetShadowSampler()
 {
-	return shadowSampler;
+	return shadowSampler.GetSamplerHeap();
 }
 
 ID3D12Resource* LightManager::GetCollectShadowSrc()
@@ -302,6 +304,5 @@ void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
 		collectShadowMat = MaterialManager::Instance().CreateMaterialPost(collectShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
 
-	// create shadow sampler
-	shadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true);
+	shadowSampler.CreateSamplerHeap(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true);
 }
