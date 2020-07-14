@@ -57,19 +57,19 @@ int TextureManager::AddNativeTexture(int _texId, void* _texData)
 	return nativeId;
 }
 
-int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel)
+int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare)
 {
 	// check duplicate add
 	for (size_t i = 0; i < samplers.size(); i++)
 	{
-		if (samplers[i].IsSameSampler(_wrapU, _wrapV, _wrapW, _anisoLevel))
+		if (samplers[i].IsSameSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare))
 		{
 			return (int)i;
 		}
 	}
 
 	Sampler s;
-	s.CreateSampler(_wrapU, _wrapV, _wrapW, _anisoLevel);
+	s.CreateSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare);
 	samplers.push_back(s);
 
 	int nativeId = (int)samplers.size() - 1;
@@ -160,7 +160,9 @@ void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)
 	sTexture.ptr += _index * samplerDescriptorSize;
 
 	D3D12_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;	// force to use anisotropic
+
+	// force to use anisotropic unless it is compare sampler
+	samplerDesc.Filter = (_sampler.IsCompareSampler()) ? D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT : D3D12_FILTER_ANISOTROPIC;
 	samplerDesc.MaxAnisotropy = _sampler.GetAnisoLevel();
 	samplerDesc.AddressU = Sampler::UnityWrapModeToNative(_sampler.GetWrapU());
 	samplerDesc.AddressV = Sampler::UnityWrapModeToNative(_sampler.GetWrapV());
@@ -172,7 +174,7 @@ void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)
 
 	for (int i = 0; i < 4; i++)
 	{
-		samplerDesc.BorderColor[i] = 0;
+		samplerDesc.BorderColor[i] = 1;
 	}
 
 	GraphicManager::Instance().GetDevice()->CreateSampler(&samplerDesc, sTexture);

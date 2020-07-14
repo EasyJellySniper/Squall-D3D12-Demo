@@ -27,7 +27,7 @@ public:
 	void Init(ID3D12Device* _device);
 	void Release();
 	int AddNativeTexture(int _texId, void* _texData);
-	int AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel);
+	int AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, bool _isCompare = false);
 	ID3D12DescriptorHeap* GetTexHeap();
 	ID3D12DescriptorHeap* GetSamplerHeap();
 
