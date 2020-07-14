@@ -3,7 +3,7 @@
 #include "ShaderManager.h"
 #include "TextureManager.h"
 
-void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _opaqueShadows)
+void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _opaqueShadows, int _opaqueShadowID)
 {
 	maxDirLight = _numDirLight;
 	maxPointLight = _numPointLight;
@@ -36,7 +36,7 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 		}
 	}
 
-	CreateOpaqueShadow(_opaqueShadows);
+	CreateOpaqueShadow(_opaqueShadowID, _opaqueShadows);
 }
 
 void LightManager::InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw)
@@ -205,6 +205,11 @@ ID3D12DescriptorHeap* LightManager::GetShadowSampler()
 	return shadowSampler.GetSamplerHeap();
 }
 
+int LightManager::GetShadowIndex()
+{
+	return collectShadowID;
+}
+
 ID3D12Resource* LightManager::GetCollectShadowSrc()
 {
 	return collectShadow->GetRtvSrc(0);
@@ -281,7 +286,7 @@ void LightManager::AddDirShadow(int _nativeID, int _numCascade, void** _shadowMa
 	dirLights[_nativeID].InitNativeShadows(_numCascade, _shadowMapRaw);
 }
 
-void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
+void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 {
 	if (_opaqueShadows == nullptr)
 	{
@@ -295,7 +300,9 @@ void LightManager::CreateOpaqueShadow(void* _opaqueShadows)
 
 	collectShadow = make_unique <RenderTexture>();
 	collectShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1);
-	collectShadow->InitSRV(&opaqueShadowSrc, shadowFormat, 1);
+	
+	// register to texture manager
+	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, true);
 
 	// create collect shadow material
 	Shader *collectShader = ShaderManager::Instance().CompileShader(L"CollectShadow.hlsl");

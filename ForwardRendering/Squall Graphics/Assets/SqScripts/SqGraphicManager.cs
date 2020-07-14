@@ -52,7 +52,7 @@ public class SqGraphicManager : MonoBehaviour
     static extern bool InitializeSqGraphic(int _numOfThreads);
 
     [DllImport("SquallGraphics")]
-    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _opaqueShadows);
+    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, int _instance);
 
     [DllImport("SquallGraphics")]
     static extern void ReleaseSqGraphic();
@@ -248,6 +248,6 @@ public class SqGraphicManager : MonoBehaviour
             SqLight.collectShadows.Create();
         }
 
-        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, SqLight.collectShadows.GetNativeTexturePtr());
+        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, SqLight.collectShadows.GetNativeTexturePtr(), SqLight.collectShadows.GetInstanceID());
     }
 }

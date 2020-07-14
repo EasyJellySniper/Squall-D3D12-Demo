@@ -277,6 +277,7 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 	sc.sqMatrixInvProj = _camera->GetInvProj();
 	sc.farZ = _camera->GetFarZ();
 	sc.nearZ = _camera->GetNearZ();
+	sc.collectShadowIndex = LightManager::Instance().GetShadowIndex();
 
 	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 	LightManager::Instance().UploadPerLightBuffer(frameIndex);

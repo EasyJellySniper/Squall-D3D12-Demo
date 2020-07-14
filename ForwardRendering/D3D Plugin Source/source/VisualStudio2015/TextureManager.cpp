@@ -31,7 +31,7 @@ void TextureManager::Release()
 	samplers.clear();
 }
 
-int TextureManager::AddNativeTexture(int _texId, void* _texData)
+int TextureManager::AddNativeTexture(int _texId, void* _texData, bool _typeless)
 {
 	// check duplicate add
 	for (size_t i = 0; i < textures.size(); i++)
@@ -47,6 +47,10 @@ int TextureManager::AddNativeTexture(int _texId, void* _texData)
 	t.SetResource((ID3D12Resource*)_texData);
 
 	D3D12_RESOURCE_DESC desc = t.GetResource()->GetDesc();
+	if (_typeless)
+	{
+		desc.Format = GetColorFormatFromTypeless(desc.Format);
+	}
 	t.SetFormat(desc.Format);
 
 	textures.push_back(t);

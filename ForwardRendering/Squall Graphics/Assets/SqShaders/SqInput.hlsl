@@ -39,6 +39,7 @@ cbuffer SystemConstant : register(b1)
 	int _NumDirLight;
 	int _NumPointLight;
 	int _NumSpotLight;
+	int _CollectShadowIndex;
 };
 
 cbuffer LightConstant : register(b2)

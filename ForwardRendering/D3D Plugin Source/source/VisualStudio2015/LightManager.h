@@ -25,7 +25,7 @@ public:
 	LightManager() {}
 	~LightManager() {}
 
-	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows);
+	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, int _opaqueShadowID);
 	void InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void Release();
 
@@ -43,6 +43,7 @@ public:
 	Material* GetShadowCutout(int _cullMode);
 	Material* GetCollectShadow();
 	ID3D12DescriptorHeap* GetShadowSampler();
+	int GetShadowIndex();
 
 	ID3D12Resource* GetCollectShadowSrc();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCollectShadowRtv();
@@ -54,7 +55,7 @@ private:
 	int AddPointLight(int _instanceID, SqLightData _data);
 	int AddSpotLight(int _instanceID, SqLightData _data);
 	void AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw);
-	void CreateOpaqueShadow(void *_opaqueShadows);
+	void CreateOpaqueShadow(int _instanceID, void *_opaqueShadows);
 
 	int maxDirLight;
 	int maxPointLight;
@@ -73,4 +74,5 @@ private:
 	Material shadowCutoutMat[CullMode::NumCullMode];
 	Material collectShadowMat;
 	Sampler shadowSampler;
+	int collectShadowID;
 };
