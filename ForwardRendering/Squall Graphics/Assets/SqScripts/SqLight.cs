@@ -95,6 +95,11 @@ public class SqLight : MonoBehaviour
     public float shadowBias = 0.003f;
 
     /// <summary>
+    /// shadow distance
+    /// </summary>
+    public float shadowDistance = 500;
+
+    /// <summary>
     /// cascade setting
     /// </summary>
     [Header("Cascade setting")]
@@ -282,7 +287,7 @@ public class SqLight : MonoBehaviour
 
         for (int i = 0; i < numCascade; i++)
         {
-            float dist = mainCam.farClipPlane * ((cascadeSetting.Length == 0) ? 1f : cascadeSetting[i]);
+            float dist = shadowDistance * ((cascadeSetting.Length == 0) ? 1f : cascadeSetting[i]);
             shadowCam.nearClipPlane = lightCache.shadowNearPlane;
             shadowCam.farClipPlane = dist;
             shadowCam.orthographicSize = dist;
