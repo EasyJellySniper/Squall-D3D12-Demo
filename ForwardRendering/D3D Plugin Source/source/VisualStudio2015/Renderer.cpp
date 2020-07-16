@@ -90,6 +90,21 @@ void Renderer::AddMaterialProp(int _matId, UINT _byteSize, void* _data)
 	materials[_matId]->AddMaterialConstant(_byteSize, _data);
 }
 
+void Renderer::CalcDistanceToCamera(Camera* _camera)
+{
+	XMFLOAT3 camPos = _camera->GetPosition();
+
+	// calc min distance to cam
+	XMVECTOR c = XMLoadFloat3(&bound.Center);
+	XMVECTOR e = XMLoadFloat3(&bound.Extents);
+	XMVECTOR eye = XMLoadFloat3(&camPos);
+
+	XMVECTOR min = c - e;
+	XMVECTOR max = c + e;
+
+	sqrDistanceToCam = min(XMVector3LengthSq(min - eye).m128_f32[0], XMVector3LengthSq(max - eye).m128_f32[0]);
+}
+
 XMFLOAT4X4 Renderer::GetWorld()
 {
 	return world;
@@ -153,4 +168,9 @@ Material* const Renderer::GetMaterial(int _index)
 D3D12_GPU_VIRTUAL_ADDRESS Renderer::GetObjectConstantGPU(int _frameIdx)
 {
 	return rendererConstant[_frameIdx]->Resource()->GetGPUVirtualAddress();
+}
+
+float Renderer::GetSqrDistanceToCam()
+{
+	return sqrDistanceToCam;
 }

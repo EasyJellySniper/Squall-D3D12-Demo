@@ -5,6 +5,7 @@
 #include <DirectXCollision.h>
 using namespace DirectX;
 #include "Material.h"
+#include "Camera.h"
 
 class Renderer
 {
@@ -21,6 +22,7 @@ public:
 	void SetInstanceID(int _id);
 	void AddMaterial(Material *_material);
 	void AddMaterialProp(int _matId, UINT _byteSize, void* _data);
+	void CalcDistanceToCamera(Camera *_camera);
 
 	XMFLOAT4X4 GetWorld();
 	Mesh *GetMesh();
@@ -34,6 +36,7 @@ public:
 	const vector<Material*> GetMaterials();
 	Material* const GetMaterial(int _index);
 	D3D12_GPU_VIRTUAL_ADDRESS GetObjectConstantGPU(int _frameIdx);
+	float GetSqrDistanceToCam();
 
 private:
 	ObjectConstant currentObjConst;
@@ -49,4 +52,5 @@ private:
 
 	vector<Material*> materials;
 	XMFLOAT4X4 world;
+	float sqrDistanceToCam;
 };

@@ -120,7 +120,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
 				BindShadowState(currLight, cascadeIndex, _threadIndex);
-				DrawShadowPass(currLight, frameIndex, _threadIndex);
+				DrawShadowPass(currLight, cascadeIndex, frameIndex, _threadIndex);
 			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
@@ -543,7 +543,7 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera* _camera, int _frameIdx, int 
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawShadowPass(Light* _light, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _frameIdx, int _threadIndex)
 {
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
@@ -553,14 +553,23 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _frameIdx, int _thr
 
 	// loop render-queue
 	auto renderers = RendererManager::Instance().GetRenderers();
-
 	int count = (int)renderers.size() / numWorkerThreads + 1;
 	int start = _threadIndex * count;
+
+	float cascadeSqrDist = (_cascade > 0) ? _light->GetLightData()->cascadeDist[_cascade - 1] : 0;
+	cascadeSqrDist *= cascadeSqrDist;
 
 	for (int i = start; i <= start + count; i++)
 	{
 		// valid renderer
 		if (i >= renderers.size() || !renderers[i]->GetShadowVisible())
+		{
+			continue;
+		}
+
+		// prevent duplicate cascade rendering
+		float sqrDistToCam = renderers[i]->GetSqrDistanceToCam();
+		if (sqrDistToCam < cascadeSqrDist)
 		{
 			continue;
 		}

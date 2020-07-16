@@ -46,19 +46,20 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 	XMFLOAT3 camPos = _camera->GetPosition();
 	auto mat = _renderer->GetMaterials();
 
+	// calc z distance to camera
+	auto bound = _renderer->GetBound();
+	float minZ = bound.Center.z - bound.Extents.z;
+	float maxZ = bound.Center.z + bound.Extents.z;
+	float zDist = min(abs(minZ - camPos.z), abs(maxZ - camPos.z));
+
 	for (int i = 0; i < _renderer->GetNumMaterials(); i++)
 	{
 		QueueRenderer qr;
 		qr.cache = _renderer;
 		qr.submeshIndex = i;
-		
-		// calc z distance to camera
-		auto bound = _renderer->GetBound();
-		float minZ = bound.Center.z - bound.Extents.z;
-		float maxZ = bound.Center.z + bound.Extents.z;
 
 		// get min z distance to camera
-		qr.zDistanceToCam = min(abs(minZ - camPos.z), abs(maxZ - camPos.z));
+		qr.zDistanceToCam = zDist;
 		
 		queuedRenderers[mat[i]->GetRenderQueue()].push_back(qr);
 	}
@@ -172,6 +173,8 @@ void RendererManager::SortWork(Camera* _camera)
 
 	for (int i = 0; i < (int)renderers.size(); i++)
 	{
+		renderers[i]->CalcDistanceToCamera(_camera);
+
 		if (renderers[i]->GetVisible())
 		{
 			AddToQueueRenderer(renderers[i].get(), _camera);
