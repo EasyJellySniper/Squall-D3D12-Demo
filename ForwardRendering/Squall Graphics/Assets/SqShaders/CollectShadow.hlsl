@@ -71,7 +71,7 @@ float4 CollectShadowPS(v2f i) : SV_Target
         spos.y = 1 - spos.y;                // need to flip shadow map
 
         // bias to depth
-        spos.z += light.shadowBias / 1000.0f;
+        spos.z += light.world.w;
 
         atten = min(_ShadowMap[a + 1].SampleCmpLevelZero(_ShadowSampler, spos.xy, spos.z), atten);
     }

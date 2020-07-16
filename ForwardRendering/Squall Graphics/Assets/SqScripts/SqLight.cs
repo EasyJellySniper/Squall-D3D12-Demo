@@ -74,7 +74,7 @@ public class SqLight : MonoBehaviour
         /// <summary>
         /// padding
         /// </summary>
-        public float shadowBias;
+        public float padding;
     }
 
     /// <summary>
@@ -87,6 +87,12 @@ public class SqLight : MonoBehaviour
     /// </summary>
     [Header("Shadow size, note even cascade use this size!")]
     public ShadowSize shadowSize = ShadowSize.S4096;
+
+    /// <summary>
+    /// shadow bias
+    /// </summary>
+    [Range(0.001f, 0.01f)]
+    public float shadowBias = 0.003f;
 
     /// <summary>
     /// cascade setting
@@ -172,20 +178,8 @@ public class SqLight : MonoBehaviour
         lightData = new SqLightData();
         lightData.shadowMatrix = new Matrix4x4[4];
         lightData.cascadeDist = new float[4];
-        lightData.color = lightCache.color.linear;
-        lightData.type = (int)lightCache.type;
-        lightData.intensity = lightCache.intensity;
-        lightData.shadowBias = lightCache.shadowBias;
 
-        if (lightCache.type == LightType.Directional)
-        {
-            lightData.worldPos = transform.forward;
-        }
-        else
-        {
-            lightData.worldPos = transform.position;
-        }
-
+        SetupLightData();
         nativeID = AddNativeLight(lightCache.GetInstanceID(), lightData);
     }
 
@@ -306,22 +300,29 @@ public class SqLight : MonoBehaviour
         UpdateNativeShadow(nativeID, lightData);
     }
 
+    void SetupLightData()
+    {
+        if (lightCache.type == LightType.Directional)
+        {
+            lightData.worldPos = transform.forward;
+        }
+        else
+        {
+            lightData.worldPos = transform.position;
+        }
+
+        lightData.type = (int)lightCache.type;
+        lightData.color = lightCache.color.linear;
+        lightData.color.w = lightCache.shadowStrength;
+        lightData.intensity = lightCache.intensity;
+        lightData.worldPos.w = shadowBias;
+    }
+
     void UpdateNativeLight()
     {
         if (transform.hasChanged || LightChanged() || CascadeChanged())
         {
-            if (lightCache.type == LightType.Directional)
-            {
-                lightData.worldPos = transform.forward;
-            }
-            else
-            {
-                lightData.worldPos = transform.position;
-            }
-
-            lightData.color = lightCache.color.linear;
-            lightData.intensity = lightCache.intensity;
-            lightData.shadowBias = lightCache.shadowBias;
+            SetupLightData();
 
             UpdateNativeLight(nativeID, lightData);
             transform.hasChanged = false;
@@ -340,7 +341,12 @@ public class SqLight : MonoBehaviour
             return true;
         }
 
-        if (lightData.shadowBias != lightCache.shadowBias)
+        if (lightData.worldPos.w != shadowBias)
+        {
+            return true;
+        }
+
+        if (lightData.color.w != lightCache.shadowStrength)
         {
             return true;
         }
