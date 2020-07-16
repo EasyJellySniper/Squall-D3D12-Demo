@@ -552,30 +552,34 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _frameIdx, int _thr
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// loop render-queue
-	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
-	for (auto const& qr : queueRenderers)
+	auto renderers = RendererManager::Instance().GetRenderers();
+
+	int count = (int)renderers.size() / numWorkerThreads + 1;
+	int start = _threadIndex * count;
+
+	for (int i = start; i <= start + count; i++)
 	{
-		auto renderers = qr.second;
-		int count = (int)renderers.size() / numWorkerThreads + 1;
-		int start = _threadIndex * count;
-
-		for (int i = start; i <= start + count; i++)
+		// valid renderer
+		if (i >= renderers.size() || !renderers[i]->GetShadowVisible())
 		{
-			// valid renderer
-			if (!ValidRenderer(i, renderers, true) || !renderers[i].cache->GetShadowVisible())
+			continue;
+		}
+
+		auto const r = renderers[i];
+		Mesh* m = r->GetMesh();
+
+		if (m != nullptr)
+		{
+			for (int j = 0; j < r->GetNumMaterials(); j++)
 			{
-				continue;
+				// choose pipeline material according to renderqueue
+				Material* const objMat = r->GetMaterial(j);
+				BindShadowObject(_cmdList, _light, objMat->GetRenderQueue(), r.get(), objMat, m, _frameIdx);
+
+				// draw mesh
+				DrawSubmesh(_cmdList, m, j);
+				GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 			}
-			auto const r = renderers[i];
-			Mesh* m = r.cache->GetMesh();
-
-			// choose pipeline material according to renderqueue
-			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
-			BindShadowObject(_cmdList, _light, qr.first, r.cache, objMat, m, _frameIdx);
-
-			// draw mesh
-			DrawSubmesh(_cmdList, m, r.submeshIndex);
-			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
 
@@ -860,7 +864,7 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	ExecuteCmdList(_cmdList);
 }
 
-bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers, bool _ignoreVisible)
+bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers)
 {
 	if (_index >= (int)_renderers.size())
 	{
@@ -869,12 +873,9 @@ bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _rend
 
 	auto const r = _renderers[_index];
 
-	if (!_ignoreVisible)
+	if (!r.cache->GetVisible())
 	{
-		if (!r.cache->GetVisible())
-		{
-			return false;
-		}
+		return false;
 	}
 
 	Mesh* m = r.cache->GetMesh();

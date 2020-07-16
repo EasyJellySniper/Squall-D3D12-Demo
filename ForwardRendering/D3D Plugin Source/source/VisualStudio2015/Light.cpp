@@ -8,8 +8,8 @@ void Light::Init(int _instanceID, SqLightData _data)
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
-		isDirty[i] = false;
-		isShadowDirty[i] = false;
+		isDirty[i] = true;
+		isShadowDirty[i] = true;
 		lightConstant[i] = make_shared<UploadBuffer<LightConstant>>(GraphicManager::Instance().GetDevice(), MAX_CASCADE_SHADOW, true);
 	}
 

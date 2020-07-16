@@ -99,7 +99,7 @@ void RendererManager::UploadObjectConstant(Camera* _camera, int _frameIdx, int _
 		}
 
 		auto r = renderers[i];
-		if (!r->GetVisible())
+		if (!r->GetVisible() && !r->IsDirty(_frameIdx))
 		{
 			continue;
 		}

@@ -68,7 +68,7 @@ private:
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
 	void CollectShadow(Light* _light, int _id);
-	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers, bool _ignoreVisible = false);
+	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers);
 	void ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList);
 
 	Camera* targetCam;

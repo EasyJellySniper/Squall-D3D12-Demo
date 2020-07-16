@@ -6,6 +6,7 @@ void Renderer::Init(int _meshID)
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		rendererConstant[i] = make_unique<UploadBuffer<ObjectConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
+		isDirty[i] = true;
 	}
 
 	mesh = MeshManager::Instance().GetMesh(_meshID);
@@ -29,6 +30,7 @@ void Renderer::UpdateObjectConstant(ObjectConstant _sc, int _frameIdx)
 {
 	currentObjConst = _sc;
 	rendererConstant[_frameIdx]->CopyData(0, currentObjConst);
+	isDirty[_frameIdx] = false;
 }
 
 void Renderer::UpdateBound(float _cx, float _cy, float _cz, float _ex, float _ey, float _ez)
@@ -53,9 +55,19 @@ void Renderer::SetActive(bool _active)
 	isActive = _active;
 }
 
+void Renderer::SetDirty(int _frameIdx)
+{
+	isDirty[_frameIdx] = true;
+}
+
 void Renderer::SetWorld(XMFLOAT4X4 _world)
 {
 	world = _world;
+
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		SetDirty(i);
+	}
 }
 
 void Renderer::SetInstanceID(int _id)
@@ -106,6 +118,11 @@ bool Renderer::GetShadowVisible()
 bool Renderer::GetActive()
 {
 	return isActive;
+}
+
+bool Renderer::IsDirty(int _frameIdx)
+{
+	return isDirty[_frameIdx];
 }
 
 int Renderer::GetInstanceID()

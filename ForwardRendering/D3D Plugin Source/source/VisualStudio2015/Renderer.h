@@ -16,6 +16,7 @@ public:
 	void SetVisible(bool _visible);
 	void SetShadowVisible(bool _visible);
 	void SetActive(bool _active);
+	void SetDirty(int _frameIdx);
 	void SetWorld(XMFLOAT4X4 _world);
 	void SetInstanceID(int _id);
 	void AddMaterial(Material *_material);
@@ -27,6 +28,7 @@ public:
 	bool GetVisible();
 	bool GetShadowVisible();
 	bool GetActive();
+	bool IsDirty(int _frameIdx);
 	int GetInstanceID();
 	int GetNumMaterials();
 	const vector<Material*> GetMaterials();
@@ -42,6 +44,7 @@ private:
 	bool isVisible;
 	bool isShadowVisible;
 	bool isActive;
+	bool isDirty[MAX_FRAME_COUNT];
 	int instanceID = -1;
 
 	vector<Material*> materials;
