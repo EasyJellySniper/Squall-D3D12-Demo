@@ -111,6 +111,10 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
 		}
+		else if (workerType == WorkerType::ShadowCulling)
+		{
+			ShadowCulling(currLight, cascadeIndex, _threadIndex);
+		}
 		else if (workerType == WorkerType::ShadowRendering)
 		{
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
@@ -172,17 +176,18 @@ void ForwardRenderingPath::FrustumCulling(int _threadIndex)
 	}
 }
 
-void ForwardRenderingPath::ShadowCulling(Light* _light, int _cascade)
+void ForwardRenderingPath::ShadowCulling(Light* _light, int _cascade, int _threadIndex)
 {
 	GRAPHIC_TIMER_START
 
 	auto renderers = RendererManager::Instance().GetRenderers();
+	int count = (int)renderers.size() / numWorkerThreads + 1;
+	int start = _threadIndex * count;
 
-	for (int i = 0; i < renderers.size(); i++)
+	for (int i = start; i <= start + count; i++)
 	{
-		if (!renderers[i]->GetVisible())
+		if (i >= (int)renderers.size())
 		{
-			// only culling visible renderer
 			continue;
 		}
 
@@ -314,12 +319,14 @@ void ForwardRenderingPath::ShadowWork()
 
 		for (int j = 0; j < sld->numCascade; j++)
 		{
-			// culling renderer
-			ShadowCulling(&dirLights[i], j);
-
-			// multi thread work
 			cascadeIndex = j;
 			currLight = &dirLights[i];
+
+			// culling renderer
+			workerType = WorkerType::ShadowCulling;
+			WakeAndWaitWorker();
+
+			// multi thread work
 			workerType = WorkerType::ShadowRendering;
 			WakeAndWaitWorker();
 		}
@@ -555,7 +562,7 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _frameIdx, int _thr
 		for (int i = start; i <= start + count; i++)
 		{
 			// valid renderer
-			if (!ValidRenderer(i, renderers) || !renderers[i].cache->GetShadowVisible())
+			if (!ValidRenderer(i, renderers, true) || !renderers[i].cache->GetShadowVisible())
 			{
 				continue;
 			}
@@ -853,7 +860,7 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	ExecuteCmdList(_cmdList);
 }
 
-bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers)
+bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers, bool _ignoreVisible)
 {
 	if (_index >= (int)_renderers.size())
 	{
@@ -861,9 +868,13 @@ bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _rend
 	}
 
 	auto const r = _renderers[_index];
-	if (!r.cache->GetVisible())
+
+	if (!_ignoreVisible)
 	{
-		return false;
+		if (!r.cache->GetVisible())
+		{
+			return false;
+		}
 	}
 
 	Mesh* m = r.cache->GetMesh();

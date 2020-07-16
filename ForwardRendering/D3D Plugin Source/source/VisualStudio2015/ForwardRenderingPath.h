@@ -13,6 +13,7 @@ enum WorkerType
 	Culling = 0,
 	Upload,
 	PrePassRendering,
+	ShadowCulling,
 	ShadowRendering,
 	OpaqueRendering,
 	CutoffRendering,
@@ -43,7 +44,7 @@ public:
 private:
 	void WakeAndWaitWorker();
 	void FrustumCulling(int _threadIndex);
-	void ShadowCulling(Light* _light, int _cascade);
+	void ShadowCulling(Light* _light, int _cascade, int _threadIndex);
 	void BeginFrame(Camera* _camera);
 	void ClearCamera(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
@@ -67,7 +68,7 @@ private:
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
 	void CollectShadow(Light* _light, int _id);
-	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers);
+	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers, bool _ignoreVisible = false);
 	void ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList);
 
 	Camera* targetCam;
