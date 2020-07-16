@@ -73,7 +73,9 @@ float4 CollectShadowPS(v2f i) : SV_Target
         // bias to depth
         spos.z += light.world.w;
 
-        atten = min(_ShadowMap[a + 1].SampleCmpLevelZero(_ShadowSampler, spos.xy, spos.z), atten);
+        float shadow = _ShadowMap[a + 1].SampleCmpLevelZero(_ShadowSampler, spos.xy, spos.z);
+        shadow = lerp(1, shadow, light.color.a);
+        atten = min(shadow, atten);
     }
 
     return atten;

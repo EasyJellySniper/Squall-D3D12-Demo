@@ -35,7 +35,7 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 
 	for (uint i = 0; i < numLight; i++)
 	{
-		float3 lightColor = light[i].color.rgb * light[i].intensity * lerp(1, atten, light[i].color.a);
+		float3 lightColor = light[i].color.rgb * light[i].intensity * atten;
 		float3 lightDir = -LightDir(light[i], worldPos);
 		float3 halfDir = (viewDir + lightDir) / (length(viewDir + lightDir) + 0.00001f);	// safe normalize
 
