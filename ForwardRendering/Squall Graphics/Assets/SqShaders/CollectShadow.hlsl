@@ -149,6 +149,10 @@ float4 CollectShadowPS(v2f i) : SV_Target
 
         float texelSize = 1.0f / light.shadowSize;
         float shadow = 1;
+
+        // calc weight
+        float casDistPrev = light.cascadeDist[a - 1];
+        float weight = lerp(1, saturate(distToCam - casDistPrev), a > 0);
         
         [branch]
         if (_PCFIndex == 0)
@@ -158,7 +162,7 @@ float4 CollectShadowPS(v2f i) : SV_Target
         else if(_PCFIndex == 2)
             shadow = ShadowPCF7x7(a + 1, spos, texelSize);
 
-        shadow = lerp(1, shadow, light.color.a);
+        shadow = lerp(1, lerp(1, shadow, weight), light.color.a);
         atten = min(shadow, atten);
     }
 

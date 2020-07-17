@@ -289,11 +289,11 @@ public class SqLight : MonoBehaviour
         {
             float dist = shadowDistance * ((cascadeSetting.Length == 0) ? 1f : cascadeSetting[i]);
             shadowCam.nearClipPlane = lightCache.shadowNearPlane;
-            shadowCam.farClipPlane = dist;
+            shadowCam.farClipPlane = dist * 2;
             shadowCam.orthographicSize = dist;
 
             // position
-            shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist * 0.5f;
+            shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist;
             lightData.shadowMatrix[i] = GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, true) * shadowCam.worldToCameraMatrix;
             lightData.cascadeDist[i] = dist;
 
