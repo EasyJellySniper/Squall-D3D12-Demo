@@ -173,7 +173,7 @@ void RendererManager::SortWork(Camera* _camera)
 
 	for (int i = 0; i < (int)renderers.size(); i++)
 	{
-		renderers[i]->CalcDistanceToCamera(_camera);
+		//renderers[i]->CalcDistanceToCamera(_camera);
 
 		if (renderers[i]->GetVisible())
 		{

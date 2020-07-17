@@ -555,14 +555,10 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _fram
 	int count = (int)renderers.size() / numWorkerThreads + 1;
 	int start = _threadIndex * count;
 
-	// cascade dist
-	SqLightData* sld = _light->GetLightData();
-	float sqrCascadeDist = sld->cascadeDist[_cascade] * sld->cascadeDist[_cascade];
-
 	for (int i = start; i <= start + count; i++)
 	{
 		// valid renderer
-		if (i >= renderers.size() || !renderers[i]->GetShadowVisible() || renderers[i]->GetSqrDistanceToCam() > sqrCascadeDist)
+		if (i >= renderers.size() || !renderers[i]->GetShadowVisible())
 		{
 			continue;
 		}
