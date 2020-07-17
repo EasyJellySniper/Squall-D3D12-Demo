@@ -37,7 +37,7 @@ void Sampler::CreateSamplerHeap(TextureWrapMode _wrapU, TextureWrapMode _wrapV, 
 	D3D12_SAMPLER_DESC samplerDesc = {};
 
 	// force to use anisotropic unless it is compare sampler
-	samplerDesc.Filter = (isCompare) ? D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT : D3D12_FILTER_ANISOTROPIC;
+	samplerDesc.Filter = (isCompare) ? D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D12_FILTER_ANISOTROPIC;
 	samplerDesc.MaxAnisotropy = _anisoLevel;
 	samplerDesc.AddressU = UnityWrapModeToNative(_wrapU);
 	samplerDesc.AddressV = UnityWrapModeToNative(_wrapV);

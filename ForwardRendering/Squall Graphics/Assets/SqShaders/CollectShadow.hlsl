@@ -41,6 +41,30 @@ v2f CollectShadowVS(uint vid : SV_VertexID)
 	return o;
 }
 
+// 3x3 pcf 4-taps
+float ShadowPCF3x3(uint cascade, float4 coord, float texelSize)
+{
+    // shift to pixel center
+    float dx = texelSize;
+    float hdx = texelSize * 0.5f;
+
+    const float2 offsets[4] =
+    {
+        float2(-dx,  -dx), float2(dx,  -dx),
+        float2(-dx,  +dx), float2(dx,  +dx)
+    };
+
+    float shadow = 0.0f;
+
+    [unroll]
+    for (uint i = 0; i < 4; i++)
+    {
+        shadow += _ShadowMap[cascade].SampleCmpLevelZero(_ShadowSampler, coord.xy + offsets[i] + float2(hdx, hdx), coord.z);
+    }
+
+    return shadow * 0.25f;
+}
+
 float4 CollectShadowPS(v2f i) : SV_Target
 {
     float depth = _ShadowMap[0].Load(uint3(i.vertex.xy, 0)).r;
@@ -73,7 +97,8 @@ float4 CollectShadowPS(v2f i) : SV_Target
         // bias to depth
         spos.z += light.world.w;
 
-        float shadow = _ShadowMap[a + 1].SampleCmpLevelZero(_ShadowSampler, spos.xy, spos.z);
+        float shadow = ShadowPCF3x3(a + 1, spos, 1.0f / light.shadowSize);
+
         shadow = lerp(1, shadow, light.color.a);
         atten = min(shadow, atten);
     }

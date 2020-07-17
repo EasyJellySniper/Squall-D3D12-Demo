@@ -74,7 +74,7 @@ public class SqLight : MonoBehaviour
         /// <summary>
         /// padding
         /// </summary>
-        public float padding;
+        public float shadowSize;
     }
 
     /// <summary>
@@ -321,6 +321,7 @@ public class SqLight : MonoBehaviour
         lightData.color.w = lightCache.shadowStrength;
         lightData.intensity = lightCache.intensity;
         lightData.worldPos.w = shadowBias;
+        lightData.shadowSize = shadowMapSize[(int)shadowSize];
     }
 
     void UpdateNativeLight()
