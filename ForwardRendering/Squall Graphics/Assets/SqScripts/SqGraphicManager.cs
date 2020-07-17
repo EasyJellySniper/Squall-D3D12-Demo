@@ -12,7 +12,7 @@ public class SqGraphicManager : MonoBehaviour
     /// </summary>
     public enum PCFKernel
     {
-        PCF3x3 = 0, PCF5x5, PCF7x7
+        PCF3x3 = 0, PCF4x4, PCF5x5
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -115,7 +115,7 @@ public class SqGraphicManager : MonoBehaviour
     /// <summary>
     /// pcf kernel
     /// </summary>
-    public PCFKernel pcfKernal = PCFKernel.PCF5x5;
+    public PCFKernel pcfKernal = PCFKernel.PCF4x4;
 
     /// <summary>
     /// print timer info
