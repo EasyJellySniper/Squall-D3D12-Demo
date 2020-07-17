@@ -40,6 +40,7 @@ cbuffer SystemConstant : register(b1)
 	int _NumPointLight;
 	int _NumSpotLight;
 	int _CollectShadowIndex;
+	int _PCFIndex;
 };
 
 cbuffer LightConstant : register(b2)

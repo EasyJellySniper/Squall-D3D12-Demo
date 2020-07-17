@@ -147,7 +147,15 @@ float4 CollectShadowPS(v2f i) : SV_Target
 
         float texelSize = 1.0f / light.shadowSize;
 
-        float shadow = ShadowPCF7x7(a + 1, spos, texelSize);
+        float shadow = 1;
+        
+        [branch]
+        if (_PCFIndex == 0)
+            shadow = ShadowPCF3x3(a + 1, spos, texelSize);
+        else if(_PCFIndex == 1)
+            shadow = ShadowPCF5x5(a + 1, spos, texelSize);
+        else if(_PCFIndex == 2)
+            shadow = ShadowPCF7x7(a + 1, spos, texelSize);
 
         shadow = lerp(1, shadow, light.color.a);
         atten = min(shadow, atten);

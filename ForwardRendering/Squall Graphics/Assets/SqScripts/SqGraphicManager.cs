@@ -7,6 +7,14 @@ using UnityEngine;
 /// </summary>
 public class SqGraphicManager : MonoBehaviour
 {
+    /// <summary>
+    /// pcf kernel
+    /// </summary>
+    public enum PCFKernel
+    {
+        PCF3x3 = 0, PCF5x5, PCF7x7
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     struct GameTime
     {
@@ -69,6 +77,9 @@ public class SqGraphicManager : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern GameTime GetGameTime();
 
+    [DllImport("SquallGraphics")]
+    static extern void SetPCFKernel(int _kernel);
+
     /// <summary>
     /// instance
     /// </summary>
@@ -102,6 +113,11 @@ public class SqGraphicManager : MonoBehaviour
     public int maxSpotLight = 32;
 
     /// <summary>
+    /// pcf kernel
+    /// </summary>
+    public PCFKernel pcfKernal = PCFKernel.PCF5x5;
+
+    /// <summary>
     /// print timer info
     /// </summary>
     public bool printTimerInfo = false;
@@ -116,6 +132,7 @@ public class SqGraphicManager : MonoBehaviour
     float gameTimeUpdate = 0f;
     GUIStyle guiStyle;
     Texture2D guiBg;
+    PCFKernel lastPCF;
 
     void Awake()
     {
@@ -174,6 +191,7 @@ public class SqGraphicManager : MonoBehaviour
             return;
         }
 
+        SetPCF();
         UpdateSqGraphic();
         RenderSqGraphic();
         gameTimeUpdate += Time.deltaTime;
@@ -249,5 +267,16 @@ public class SqGraphicManager : MonoBehaviour
         }
 
         InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, SqLight.collectShadows.GetNativeTexturePtr(), SqLight.collectShadows.GetInstanceID());
+        SetPCF();
+    }
+
+    void SetPCF()
+    {
+        if (lastPCF != pcfKernal)
+        {
+            SetPCFKernel((int)pcfKernal);
+        }
+
+        lastPCF = pcfKernal;
     }
 }

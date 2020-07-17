@@ -173,6 +173,13 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.numDirLight = (int)dirLights.size();
 	_sc.numPointLight = 0;
 	_sc.numSpotLight = 0;
+	_sc.collectShadowIndex = collectShadowID;
+	_sc.pcfIndex = pcfKernel;
+}
+
+void LightManager::SetPCFKernel(int _kernel)
+{
+	pcfKernel = _kernel;
 }
 
 Light* LightManager::GetDirLights()

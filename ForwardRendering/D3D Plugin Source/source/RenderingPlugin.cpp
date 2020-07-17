@@ -165,6 +165,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetShadowFrustum(int 
 	LightManager::Instance().SetShadowFrustum(_id, _view, _projCulling, _cascade);
 }
 
+extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetPCFKernel(int _kernel)
+{
+	LightManager::Instance().SetPCFKernel(_kernel);
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

@@ -35,3 +35,4 @@ EXPORTS
    InitNativeShadows
    SetShadowViewPortScissorRect
    SetShadowFrustum
+   SetPCFKernel

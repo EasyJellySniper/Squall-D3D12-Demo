@@ -36,6 +36,7 @@ public:
 	void SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void UploadPerLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
+	void SetPCFKernel(int _kernel);
 
 	Light *GetDirLights();
 	int GetNumDirLights();
@@ -75,4 +76,5 @@ private:
 	Material collectShadowMat;
 	Sampler shadowSampler;
 	int collectShadowID;
+	int pcfKernel;
 };
