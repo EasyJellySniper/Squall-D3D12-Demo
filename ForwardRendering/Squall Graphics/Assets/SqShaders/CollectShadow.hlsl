@@ -135,18 +135,19 @@ float4 CollectShadowPS(v2f i) : SV_Target
 
     for (uint a = 0; a < cascade; a++)
     {
-        [branch]
-        if (distToCam > light.cascadeDist[a])
-            continue;
-
         float4 spos = mul(light.shadowMatrix[a], float4(wpos, 1));
         spos.xyz /= spos.w;                 // ndc space
         spos.xy = spos.xy * 0.5f + 0.5f;    // [0,1]
         spos.y = 1 - spos.y;                // need to flip shadow map
         spos.z += light.world.w;            // bias to depth
 
-        float texelSize = 1.0f / light.shadowSize;
+        // test invalid shadow
+        float shadowTest = _ShadowMap[a + 1].Load(uint3(spos.xy * light.shadowSize, 0)).r;
+        [branch]
+        if (shadowTest == 0.0f)
+            continue;
 
+        float texelSize = 1.0f / light.shadowSize;
         float shadow = 1;
         
         [branch]
