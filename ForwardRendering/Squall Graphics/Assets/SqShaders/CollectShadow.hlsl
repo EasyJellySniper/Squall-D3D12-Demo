@@ -44,7 +44,7 @@ v2f CollectShadowVS(uint vid : SV_VertexID)
 // 3x3 pcf 4-taps
 float ShadowPCF3x3(uint cascade, float4 coord, float texelSize)
 {
-    // shift to pixel center
+    // texel
     float dx = texelSize;
     float hdx = texelSize * 0.5f;
 
@@ -63,6 +63,56 @@ float ShadowPCF3x3(uint cascade, float4 coord, float texelSize)
     }
 
     return shadow * 0.25f;
+}
+
+// 5x5 pcf 9-taps
+float ShadowPCF5x5(uint cascade, float4 coord, float texelSize)
+{
+    // texel 
+    float dx = texelSize;
+    float hdx = texelSize * 0.5f;
+
+    const float2 offsets[9] =
+    {
+        float2(-dx-hdx,  -dx-hdx), float2(0,  -dx-hdx), float2(dx+hdx,  -dx-hdx),
+        float2(-dx-hdx,  0),       float2(0,  0),       float2(dx+hdx,  0),
+        float2(-dx-hdx,  +dx+hdx), float2(0,  +dx+hdx), float2(dx+hdx,  +dx+hdx)
+    };
+
+    float shadow = 0.0f;
+
+    [unroll]
+    for (uint i = 0; i < 9; i++)
+    {
+        shadow += _ShadowMap[cascade].SampleCmpLevelZero(_ShadowSampler, coord.xy + offsets[i] + float2(hdx, hdx), coord.z);
+    }
+
+    return shadow * 0.1111f;
+}
+
+// 7x7 pcf 16-taps
+float ShadowPCF7x7(uint cascade, float4 coord, float texelSize)
+{
+    // texel 
+    float hdx = texelSize * 0.5f;
+
+    const float2 offsets[16] =
+    {
+        float2(-5*hdx, -5*hdx), float2(-hdx,  -5*hdx), float2(3*hdx,  -5*hdx), float2(7*hdx,  -5*hdx),
+        float2(-7*hdx, hdx),    float2(-3*hdx,  hdx),  float2(hdx,  hdx),      float2(5*hdx, hdx),
+        float2(-5*hdx, 3*hdx),  float2(-hdx,  3*hdx),  float2(3*hdx, 3*hdx),   float2(7*hdx, 3*hdx),
+        float2(-7*hdx, 7*hdx),  float2(-3*hdx, 7*hdx), float2(hdx, 7*hdx),     float2(5*hdx, 7*hdx)
+    };
+
+    float shadow = 0.0f;
+
+    [unroll]
+    for(uint i = 0; i < 16; i++)
+    {
+        shadow += _ShadowMap[cascade].SampleCmpLevelZero(_ShadowSampler, coord.xy + offsets[i] + float2(hdx, hdx), coord.z);
+    }
+
+    return shadow * 0.0625f;
 }
 
 float4 CollectShadowPS(v2f i) : SV_Target
@@ -93,11 +143,11 @@ float4 CollectShadowPS(v2f i) : SV_Target
         spos.xyz /= spos.w;                 // ndc space
         spos.xy = spos.xy * 0.5f + 0.5f;    // [0,1]
         spos.y = 1 - spos.y;                // need to flip shadow map
+        spos.z += light.world.w;            // bias to depth
 
-        // bias to depth
-        spos.z += light.world.w;
+        float texelSize = 1.0f / light.shadowSize;
 
-        float shadow = ShadowPCF3x3(a + 1, spos, 1.0f / light.shadowSize);
+        float shadow = ShadowPCF7x7(a + 1, spos, texelSize);
 
         shadow = lerp(1, shadow, light.color.a);
         atten = min(shadow, atten);
