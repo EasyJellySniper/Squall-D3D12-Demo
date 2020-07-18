@@ -76,6 +76,10 @@ inline DXGI_FORMAT GetColorFormatFromTypeless(DXGI_FORMAT _typelessFormat, bool 
 	{
 		colorFormat = (_logicBuffer) ? DXGI_FORMAT_R32G32B32A32_SINT : DXGI_FORMAT_R32G32B32A32_FLOAT;
 	}
+	else if (_typelessFormat == DXGI_FORMAT_R32G8X24_TYPELESS)
+	{
+		colorFormat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+	}
 	else
 	{
 		LogMessage(L"[SqGraphic Error] SqCamera: Unknown Render Target Format " + to_wstring(_typelessFormat) + L".");
@@ -100,24 +104,6 @@ inline DXGI_FORMAT GetDepthFormatFromTypeless(DXGI_FORMAT _typelessFormat)
 	}
 
 	return depthStencilFormat;
-}
-
-inline DXGI_FORMAT GetShaderFormatFromTypeless(DXGI_FORMAT _typelessFormat)
-{
-	DXGI_FORMAT srvFormat = DXGI_FORMAT_UNKNOWN;
-
-	// need to choose depth buffer according to input
-	if (_typelessFormat == DXGI_FORMAT_R32G8X24_TYPELESS)
-	{
-		// 32 bit depth buffer
-		srvFormat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-	}
-	else
-	{
-		LogMessage(L"[SqGraphic Error] SqCamera: Unknown Shader Target Format " + to_wstring(_typelessFormat) + L".");
-	}
-
-	return srvFormat;
 }
 
 inline wstring RemoveChars(wstring _wstr, wstring _chars)

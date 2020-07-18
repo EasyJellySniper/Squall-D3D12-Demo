@@ -37,7 +37,7 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	}
 	depthAndShadow[0] = CameraManager::Instance().GetCamera()->GetCameraDepth();
 
-	shadowRT->InitSRV(depthAndShadow, GetShaderFormatFromTypeless(srcDesc.Format), numCascade + 1);
+	shadowRT->InitSRV(depthAndShadow, GetColorFormatFromTypeless(srcDesc.Format), numCascade + 1);
 
 	hasShadow = true;
 }

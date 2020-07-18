@@ -134,11 +134,11 @@ bool Camera::Initialize(CameraData _cameraData)
 	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
 
 	cameraRT[0]->InitDSV(&depthTarget, depthTargetDesc, 1);
-	cameraRT[0]->InitSRV(&depthTarget, GetShaderFormatFromTypeless(depthDesc.Format), 1);
+	cameraRT[0]->InitSRV(&depthTarget, GetColorFormatFromTypeless(depthDesc.Format), 1);
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.GetAddressOf(), depthTargetDesc, 1, true);
-		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.GetAddressOf(), GetShaderFormatFromTypeless(depthDesc.Format), 1, true);
+		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.GetAddressOf(), GetColorFormatFromTypeless(depthDesc.Format), 1, true);
 	}
 
 	if (!CreatePipelineMaterial())

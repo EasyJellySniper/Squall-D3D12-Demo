@@ -86,6 +86,7 @@ void LightManager::Release()
 	}
 
 	shadowSampler.Release();
+	skyboxTex.Release();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -192,7 +193,9 @@ void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as)
 
 void LightManager::SetSkybox(void* _skybox)
 {
-	skyboxSrc = (ID3D12Resource*)_skybox;
+	auto skyboxSrc = (ID3D12Resource*)_skybox;
+	auto desc = skyboxSrc->GetDesc();
+	skyboxTex.InitSRV(&skyboxSrc, GetColorFormatFromTypeless(desc.Format), 1, false);
 }
 
 Light* LightManager::GetDirLights()

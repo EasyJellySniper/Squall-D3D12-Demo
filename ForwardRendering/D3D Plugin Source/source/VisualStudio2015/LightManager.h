@@ -76,7 +76,7 @@ private:
 
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
-	ID3D12Resource* skyboxSrc;
+	Texture skyboxTex;
 
 	// shadow material
 	Material shadowOpaqueMat[CullMode::NumCullMode];
