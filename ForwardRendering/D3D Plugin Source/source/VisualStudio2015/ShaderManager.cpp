@@ -186,7 +186,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				rootSignatureParam[rootNum] = p;
 			}
 		}
-		else if (ss == L"Texture2D")
+		else if (ss == L"Texture2D" || ss == L"TextureCube")
 		{
 			if (parseSrv)
 			{
