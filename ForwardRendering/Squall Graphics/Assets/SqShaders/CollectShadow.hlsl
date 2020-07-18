@@ -137,6 +137,10 @@ float4 CollectShadowPS(v2f i) : SV_Target
 
     for (uint a = 0; a < cascade; a++)
     {
+        [branch]
+        if (distToCam > light.cascadeDist[a])
+            continue;
+
         float4 spos = mul(light.shadowMatrix[a], float4(wpos, 1));
         spos.xyz /= spos.w;                 // ndc space
         spos.xy = spos.xy * 0.5f + 0.5f;    // [0,1]
@@ -154,7 +158,7 @@ float4 CollectShadowPS(v2f i) : SV_Target
 
         // calc weight
         float casDistPrev = light.cascadeDist[a - 1];
-        float weight = lerp(1, saturate(distToCam - casDistPrev), a > 0);
+        float weight = lerp(1, saturate(distToCam - casDistPrev + 10), a > 0);
         
         [branch]
         if (_PCFIndex == 0)

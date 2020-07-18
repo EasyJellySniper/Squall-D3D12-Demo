@@ -50,7 +50,7 @@ void Sampler::CreateSamplerHeap(TextureWrapMode _wrapU, TextureWrapMode _wrapV, 
 
 	for (int i = 0; i < 4; i++)
 	{
-		samplerDesc.BorderColor[i] = 1;
+		samplerDesc.BorderColor[i] = 0;
 	}
 
 	GraphicManager::Instance().GetDevice()->CreateSampler(&samplerDesc, samplerHeap->GetCPUDescriptorHandleForHeapStart());
