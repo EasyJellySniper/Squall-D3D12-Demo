@@ -80,6 +80,7 @@ private:
 	Texture skyboxTex;
 	Sampler skyboxSampler;
 	int skyMeshId;
+	Material skyboxMat;
 
 	// shadow material
 	Material shadowOpaqueMat[CullMode::NumCullMode];

@@ -277,7 +277,11 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 	sc.cameraPos = _camera->GetPosition();
 	LightManager::Instance().FillSystemConstant(sc);
 
-	// calc invert view and invert proj
+	// calc invert view and invert proj and view proj
+	XMFLOAT4X4 view = _camera->GetView();
+	XMFLOAT4X4 proj = _camera->GetProj();
+	XMStoreFloat4x4(&sc.sqMatrixViewProj, XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
+
 	sc.sqMatrixInvView = _camera->GetInvView();
 	sc.sqMatrixInvProj = _camera->GetInvProj();
 	sc.farZ = _camera->GetFarZ();

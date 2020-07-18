@@ -28,6 +28,7 @@ struct ObjectConstant
 
 struct SystemConstant
 {
+	XMFLOAT4X4 sqMatrixViewProj;
 	XMFLOAT4X4 sqMatrixInvView;
 	XMFLOAT4X4 sqMatrixInvProj;
 	XMFLOAT4 ambientGround;

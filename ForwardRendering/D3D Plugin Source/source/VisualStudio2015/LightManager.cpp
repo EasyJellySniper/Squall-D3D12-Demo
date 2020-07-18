@@ -87,6 +87,7 @@ void LightManager::Release()
 
 	shadowSampler.Release();
 	skyboxTex.Release();
+	skyboxMat.Release();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)

@@ -31,6 +31,7 @@ cbuffer ObjectConstant : register(b0)
 
 cbuffer SystemConstant : register(b1)
 {
+	float4x4 SQ_MATRIX_VP;
 	float4x4 SQ_MATRIX_INV_V;
 	float4x4 SQ_MATRIX_INV_P;
 	float4 ambientGround;
