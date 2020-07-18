@@ -199,6 +199,13 @@ void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMo
 	skyboxTex.InitSRV(&skyboxSrc, desc.Format, 1, false);
 	skyboxSampler.CreateSamplerHeap(wrapU, wrapV, wrapW, _anisoLevel);
 	skyMeshId = _skyMesh;
+
+	Shader* skyShader = ShaderManager::Instance().CompileShader(L"Skybox.hlsl");
+	if (skyShader != nullptr)
+	{
+		auto rtd = CameraManager::Instance().GetCamera()->GetRenderTargetData();
+		skyboxMat = MaterialManager::Instance().CreateMaterialFromShader(skyShader, rtd, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, 1, 0, D3D12_COMPARISON_FUNC_GREATER_EQUAL, false);
+	}
 }
 
 Light* LightManager::GetDirLights()
