@@ -38,7 +38,7 @@ public:
 	void FillSystemConstant(SystemConstant& _sc);
 	void SetPCFKernel(int _kernel);
 	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as);
-	void SetSkybox(void *_skybox);
+	void SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel);
 
 	Light *GetDirLights();
 	int GetNumDirLights();
@@ -77,6 +77,7 @@ private:
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
 	Texture skyboxTex;
+	Sampler skyboxSampler;
 
 	// shadow material
 	Material shadowOpaqueMat[CullMode::NumCullMode];

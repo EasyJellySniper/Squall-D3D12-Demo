@@ -17,9 +17,9 @@ public:
 	void SetFormat(DXGI_FORMAT _format);
 	DXGI_FORMAT GetFormat();
 
-	void InitRTV(ID3D12Resource** _rtv, DXGI_FORMAT _format, int _numRT, bool _msaa = false);
-	void InitDSV(ID3D12Resource** _dsv, DXGI_FORMAT _format, int _numRT, bool _msaa = false);
-	void InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bool _msaa = false);
+	void InitRTV(ID3D12Resource** _rtv, DXGI_FORMAT _format, int _numRT, bool _msaa);
+	void InitDSV(ID3D12Resource** _dsv, DXGI_FORMAT _format, int _numRT, bool _msaa);
+	void InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bool _msaa, bool _isCube = false);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtvCPU(int _index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsvCPU(int _index);

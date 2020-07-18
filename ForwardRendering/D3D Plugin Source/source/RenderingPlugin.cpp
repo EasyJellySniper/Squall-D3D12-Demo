@@ -175,9 +175,9 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetAmbientLight(XMFLO
 	LightManager::Instance().SetAmbientLight(_ag, _as);
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetSkybox(void *_skybox)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel)
 {
-	LightManager::Instance().SetSkybox(_skybox);
+	LightManager::Instance().SetSkybox(_skybox, wrapU, wrapV, wrapW, _anisoLevel);
 }
 
 // --------------------------------------------------------------------------

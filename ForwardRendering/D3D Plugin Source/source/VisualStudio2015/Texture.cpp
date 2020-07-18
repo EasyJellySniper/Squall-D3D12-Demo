@@ -147,7 +147,7 @@ void Texture::InitDSV(ID3D12Resource** _dsv, DXGI_FORMAT _format, int _numRT, bo
 	}
 }
 
-void Texture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bool _msaa)
+void Texture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bool _msaa, bool _isCube)
 {
 	srvSrc = new ID3D12Resource * [_numRT];
 	for (int i = 0; i < _numRT; i++)
@@ -171,6 +171,7 @@ void Texture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bo
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Format = _format;
 		srvDesc.ViewDimension = (_msaa) ? D3D12_SRV_DIMENSION_TEXTURE2DMS : D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.ViewDimension = (_isCube) ? D3D12_SRV_DIMENSION_TEXTURECUBE : srvDesc.ViewDimension;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = -1;
 

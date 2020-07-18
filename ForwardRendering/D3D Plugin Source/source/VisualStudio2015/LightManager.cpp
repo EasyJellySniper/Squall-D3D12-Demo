@@ -191,11 +191,12 @@ void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as)
 	ambientSky = _as;
 }
 
-void LightManager::SetSkybox(void* _skybox)
+void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel)
 {
 	auto skyboxSrc = (ID3D12Resource*)_skybox;
 	auto desc = skyboxSrc->GetDesc();
-	skyboxTex.InitSRV(&skyboxSrc, GetColorFormatFromTypeless(desc.Format), 1, false);
+	skyboxTex.InitSRV(&skyboxSrc, desc.Format, 1, false);
+	skyboxSampler.CreateSamplerHeap(wrapU, wrapV, wrapW, _anisoLevel);
 }
 
 Light* LightManager::GetDirLights()
@@ -322,7 +323,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format, true);
 
 	collectShadow = make_unique <RenderTexture>();
-	collectShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1);
+	collectShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1, false);
 	
 	// register to texture manager
 	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, true);

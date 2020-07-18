@@ -27,12 +27,12 @@ public class SqSkybox : MonoBehaviour
     static extern void SetAmbientLight(Vector4 _ag, Vector4 _as);
 
     [DllImport("SquallGraphics")]
-    static extern void SetSkybox(IntPtr _skybox);
+    static extern void SetSkybox(IntPtr _skybox, TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);
 
     void Start()
     {
         SetAmbientLight(ambientGround, ambientSky);
-        SetSkybox(skybox.GetNativeTexturePtr());
+        SetSkybox(skybox.GetNativeTexturePtr(), skybox.wrapModeU, skybox.wrapModeV, skybox.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
     }
 
 #if UNITY_EDITOR
