@@ -705,6 +705,11 @@ void ForwardRenderingPath::DrawCutoutPass(Camera* _camera, int _frameIdx, int _t
 
 void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera, int _frameIdx)
 {
+	if (!LightManager::Instance().GetSkyboxRenderer()->GetActive())
+	{
+		return;
+	}
+
 	// reset cmdlist
 	auto _cmdList = currFrameResource->preGfxList;
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
