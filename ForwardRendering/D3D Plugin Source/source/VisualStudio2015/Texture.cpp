@@ -175,6 +175,13 @@ void Texture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bo
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = -1;
 
+		if (_isCube)
+		{
+			srvDesc.TextureCube.MipLevels = -1;
+			srvDesc.TextureCube.MostDetailedMip = 0;
+			srvDesc.TextureCube.ResourceMinLODClamp = 0;
+		}
+
 		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(srvSrc[i], &srvDesc, sHandle);
 		sHandle.Offset(1, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	}
