@@ -37,3 +37,4 @@ EXPORTS
    SetShadowFrustum
    SetPCFKernel
    SetAmbientLight
+   SetSkybox

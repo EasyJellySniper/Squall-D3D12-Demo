@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 // sq sky box
@@ -17,12 +18,21 @@ public class SqSkybox : MonoBehaviour
     [ColorUsage(true, true)]
     public Color ambientSky = new Color(135 / 255f, 206 / 255f, 235 / 255f);
 
+    /// <summary>
+    /// skybox
+    /// </summary>
+    public Cubemap skybox;
+
     [DllImport("SquallGraphics")]
     static extern void SetAmbientLight(Vector4 _ag, Vector4 _as);
+
+    [DllImport("SquallGraphics")]
+    static extern void SetSkybox(IntPtr _skybox);
 
     void Start()
     {
         SetAmbientLight(ambientGround, ambientSky);
+        SetSkybox(skybox.GetNativeTexturePtr());
     }
 
 #if UNITY_EDITOR

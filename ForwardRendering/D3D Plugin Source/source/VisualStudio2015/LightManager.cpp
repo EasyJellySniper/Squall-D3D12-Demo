@@ -190,6 +190,11 @@ void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as)
 	ambientSky = _as;
 }
 
+void LightManager::SetSkybox(void* _skybox)
+{
+	skyboxSrc = (ID3D12Resource*)_skybox;
+}
+
 Light* LightManager::GetDirLights()
 {
 	return dirLights.data();

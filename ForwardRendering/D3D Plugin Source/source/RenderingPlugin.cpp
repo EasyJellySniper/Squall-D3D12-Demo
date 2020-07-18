@@ -175,6 +175,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetAmbientLight(XMFLO
 	LightManager::Instance().SetAmbientLight(_ag, _as);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetSkybox(void *_skybox)
+{
+	LightManager::Instance().SetSkybox(_skybox);
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

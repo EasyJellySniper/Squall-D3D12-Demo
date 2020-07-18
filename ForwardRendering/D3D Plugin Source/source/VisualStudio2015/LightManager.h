@@ -38,6 +38,7 @@ public:
 	void FillSystemConstant(SystemConstant& _sc);
 	void SetPCFKernel(int _kernel);
 	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as);
+	void SetSkybox(void *_skybox);
 
 	Light *GetDirLights();
 	int GetNumDirLights();
@@ -59,6 +60,7 @@ private:
 	void AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void CreateOpaqueShadow(int _instanceID, void *_opaqueShadows);
 
+	// light data
 	int maxDirLight;
 	int maxPointLight;
 	int maxSpotLight;
@@ -74,6 +76,9 @@ private:
 
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
+	ID3D12Resource* skyboxSrc;
+
+	// shadow material
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];
 	Material collectShadowMat;
