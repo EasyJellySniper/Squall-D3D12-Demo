@@ -40,6 +40,7 @@ public:
 	void SetPCFKernel(int _kernel);
 	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as);
 	void SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMeshId);
+	void SetSkyWorld(XMFLOAT4X4 _world);
 
 	Light *GetDirLights();
 	int GetNumDirLights();
@@ -57,6 +58,7 @@ public:
 	Material* GetSkyboxMat();
 	ID3D12DescriptorHeap* GetSkyboxTex();
 	ID3D12DescriptorHeap* GetSkyboxSampler();
+	int GetSkyMeshID();
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);

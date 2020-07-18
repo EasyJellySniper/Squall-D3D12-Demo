@@ -173,7 +173,11 @@ void LightManager::UploadPerLightBuffer(int _frameIdx)
 	// upload skybox constant
 	ObjectConstant oc;
 	oc.sqMatrixWorld = skyboxRenderer.GetWorld();
-	skyboxRenderer.UpdateObjectConstant(oc, _frameIdx);
+
+	if (skyboxRenderer.IsDirty(_frameIdx))
+	{
+		skyboxRenderer.UpdateObjectConstant(oc, _frameIdx);
+	}
 }
 
 void LightManager::FillSystemConstant(SystemConstant& _sc)
@@ -213,6 +217,11 @@ void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMo
 		skyboxMat = MaterialManager::Instance().CreateMaterialFromShader(skyShader, rtd, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, 1, 0, D3D12_COMPARISON_FUNC_GREATER_EQUAL, false);
 		skyboxRenderer.Init(_skyMesh);
 	}
+}
+
+void LightManager::SetSkyWorld(XMFLOAT4X4 _world)
+{
+	skyboxRenderer.SetWorld(_world);
 }
 
 Light* LightManager::GetDirLights()
@@ -284,6 +293,11 @@ ID3D12DescriptorHeap* LightManager::GetSkyboxTex()
 ID3D12DescriptorHeap* LightManager::GetSkyboxSampler()
 {
 	return skyboxSampler.GetSamplerHeap();
+}
+
+int LightManager::GetSkyMeshID()
+{
+	return skyMeshId;
 }
 
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)

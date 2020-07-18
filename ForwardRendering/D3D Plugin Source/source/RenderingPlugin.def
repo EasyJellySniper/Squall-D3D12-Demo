@@ -38,3 +38,4 @@ EXPORTS
    SetPCFKernel
    SetAmbientLight
    SetSkybox
+   SetSkyboxWorld

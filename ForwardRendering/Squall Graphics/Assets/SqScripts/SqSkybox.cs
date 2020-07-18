@@ -30,10 +30,14 @@ public class SqSkybox : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void SetSkybox(IntPtr _skybox, TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel, int _meshId);
 
+    [DllImport("SquallGraphics")]
+    static extern void SetSkyboxWorld(Matrix4x4 _world);
+
     void Start()
     {
         SetAmbientLight(ambientGround, ambientSky);
         SetSkybox(skybox.GetNativeTexturePtr(), skybox.wrapModeU, skybox.wrapModeV, skybox.wrapModeW, SqGraphicManager.instance.globalAnisoLevel, GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
+        transform.hasChanged = true;
     }
 
 #if UNITY_EDITOR
@@ -42,4 +46,13 @@ public class SqSkybox : MonoBehaviour
         SetAmbientLight(ambientGround, ambientSky);
     }
 #endif
+
+    void Update()
+    {
+        if (transform.hasChanged)
+        {
+            SetSkyboxWorld(transform.localToWorldMatrix);
+            transform.hasChanged = false;
+        }
+    }
 }

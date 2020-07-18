@@ -722,11 +722,20 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera, int _frameIdx)
 
 	// bind root signature
 	auto skyMat = LightManager::Instance().GetSkyboxMat();
+	_cmdList->SetPipelineState(skyMat->GetPSO());
 	_cmdList->SetGraphicsRootSignature(skyMat->GetRootSignature());
 	_cmdList->SetGraphicsRootConstantBufferView(0, LightManager::Instance().GetSkyboxRenderer()->GetObjectConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootDescriptorTable(2, LightManager::Instance().GetSkyboxTex()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(3, LightManager::Instance().GetSkyboxSampler()->GetGPUDescriptorHandleForHeapStart());
+
+	// bind mesh and draw
+	Mesh* m = MeshManager::Instance().GetMesh(LightManager::Instance().GetSkyMeshID());
+	_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
+	_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
+
+	DrawSubmesh(_cmdList, m, 0);
+	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
 
 	// execute
 	ExecuteCmdList(_cmdList);

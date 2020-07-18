@@ -29,8 +29,10 @@ v2f SkyboxVS(VertexInput v)
 	float4 wpos = mul(SQ_MATRIX_WORLD, float4(v.vertex, 1.0f));
 	wpos.xyz += _CameraPos;
 
-	// always on far plane
-	o.vertex = mul(SQ_MATRIX_VP, wpos).xyww;
+	o.vertex = mul(SQ_MATRIX_VP, wpos);
+
+	// always on far plane (reverse-z)
+	o.vertex.z = 0;
 
 	return o;
 }

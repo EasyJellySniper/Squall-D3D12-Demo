@@ -180,6 +180,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetSkybox(void *_skyb
 	LightManager::Instance().SetSkybox(_skybox, wrapU, wrapV, wrapW, _anisoLevel, _meshId);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetSkyboxWorld(XMFLOAT4X4 _world)
+{
+	LightManager::Instance().SetSkyWorld(_world);
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 
