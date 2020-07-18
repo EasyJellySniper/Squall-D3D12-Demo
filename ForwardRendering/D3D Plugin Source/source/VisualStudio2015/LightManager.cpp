@@ -191,12 +191,13 @@ void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as)
 	ambientSky = _as;
 }
 
-void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel)
+void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)
 {
 	auto skyboxSrc = (ID3D12Resource*)_skybox;
 	auto desc = skyboxSrc->GetDesc();
 	skyboxTex.InitSRV(&skyboxSrc, desc.Format, 1, false);
 	skyboxSampler.CreateSamplerHeap(wrapU, wrapV, wrapW, _anisoLevel);
+	skyMeshId = _skyMesh;
 }
 
 Light* LightManager::GetDirLights()

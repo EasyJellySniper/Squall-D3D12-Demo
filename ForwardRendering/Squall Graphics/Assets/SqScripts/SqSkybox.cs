@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 
 // sq sky box
+[RequireComponent(typeof(SqMeshFilter))]
 public class SqSkybox : MonoBehaviour
 {
     /// <summary>
@@ -27,12 +28,12 @@ public class SqSkybox : MonoBehaviour
     static extern void SetAmbientLight(Vector4 _ag, Vector4 _as);
 
     [DllImport("SquallGraphics")]
-    static extern void SetSkybox(IntPtr _skybox, TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);
+    static extern void SetSkybox(IntPtr _skybox, TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel, int _meshId);
 
     void Start()
     {
         SetAmbientLight(ambientGround, ambientSky);
-        SetSkybox(skybox.GetNativeTexturePtr(), skybox.wrapModeU, skybox.wrapModeV, skybox.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+        SetSkybox(skybox.GetNativeTexturePtr(), skybox.wrapModeU, skybox.wrapModeV, skybox.wrapModeW, SqGraphicManager.instance.globalAnisoLevel, GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
     }
 
 #if UNITY_EDITOR

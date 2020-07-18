@@ -38,7 +38,7 @@ public:
 	void FillSystemConstant(SystemConstant& _sc);
 	void SetPCFKernel(int _kernel);
 	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as);
-	void SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel);
+	void SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMeshId);
 
 	Light *GetDirLights();
 	int GetNumDirLights();
@@ -74,10 +74,12 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
 	unique_ptr<RenderTexture> collectShadow;
 
+	// gi 
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
 	Texture skyboxTex;
 	Sampler skyboxSampler;
+	int skyMeshId;
 
 	// shadow material
 	Material shadowOpaqueMat[CullMode::NumCullMode];
