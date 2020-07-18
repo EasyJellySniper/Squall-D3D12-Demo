@@ -57,7 +57,8 @@ private:
 	void BindShadowObject(ID3D12GraphicsCommandList* _cmdList, Light* _light, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh, int _frameIdx);
 	void DrawWireFrame(Camera* _camera, int _frameIdx, int _threadIndex);
-	void DrawPrepassDepth(Camera* _camera, int _frameIdx, int _threadIndex);
+	void DrawOpaqueDepth(Camera* _camera, int _frameIdx, int _threadIndex);
+	void DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _frameIdx);
 	void DrawShadowPass(Light* _light, int _cascade, int _frameIdx, int _threadIndex);
 	void DrawOpaquePass(Camera* _camera, int _frameIdx, int _threadIndex, bool _cutout = false);
 	void DrawCutoutPass(Camera* _camera, int _frameIdx, int _threadIndex);

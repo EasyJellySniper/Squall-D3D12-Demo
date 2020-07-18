@@ -68,11 +68,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// GI
 
 	// BRDF
-#if defined(_TRANSPARENT_ON)
-	float atten = 1;
-#else
 	float atten = _TexTable[_CollectShadowIndex].Load(uint3(i.vertex.xy, 0)).r;
-#endif
 
 	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten);
 

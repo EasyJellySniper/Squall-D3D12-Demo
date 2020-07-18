@@ -101,12 +101,12 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 
 			if (targetCam->GetRenderMode() == RenderMode::Depth)
 			{
-				DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
+				DrawOpaqueDepth(targetCam, frameIndex, _threadIndex);
 			}
 
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
-				DrawPrepassDepth(targetCam, frameIndex, _threadIndex);
+				DrawOpaqueDepth(targetCam, frameIndex, _threadIndex);
 			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
@@ -296,6 +296,10 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 	auto _cmdList = currFrameResource->preGfxList;
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
 	ResolveDepthBuffer(_cmdList, _camera);
+
+	// draw transparent depth, useful for shadow mapping or light culling
+	DrawTransparentDepth(_cmdList, _camera, frameIndex);
+
 	ExecuteCmdList(_cmdList);
 }
 
@@ -374,7 +378,7 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 	{
 		pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassOpaque, _mat->GetCullMode());
 	}
-	else if (_queue >= RenderQueue::CutoffStart && _queue <= RenderQueue::OpaqueLast)
+	else if (_queue >= RenderQueue::CutoffStart)
 	{
 		pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassCutoff, _mat->GetCullMode());
 	}
@@ -496,7 +500,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _th
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawPrepassDepth(Camera* _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _frameIdx, int _threadIndex)
 {
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
@@ -540,6 +544,54 @@ void ForwardRenderingPath::DrawPrepassDepth(Camera* _camera, int _frameIdx, int 
 
 	// close command list and execute
 	ExecuteCmdList(_cmdList);
+}
+
+void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _frameIdx)
+{
+	// om set target
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_camera->GetDsv());
+	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
+	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
+
+	// bind descriptor heap, only need to set once, changing descriptor heap isn't good
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	// loop render-queue
+	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
+	for (auto const& qr : queueRenderers)
+	{
+		auto renderers = qr.second;
+
+		// don't draw opaue
+		if (qr.first <= RenderQueue::OpaqueLast)
+		{
+			continue;
+		}
+
+		for (int i = 0; i < renderers.size(); i++)
+		{
+			// valid renderer
+			if (!ValidRenderer(i, renderers))
+			{
+				continue;
+			}
+			auto const r = renderers[i];
+			Mesh* m = r.cache->GetMesh();
+
+			// choose pipeline material according to renderqueue
+			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m, _frameIdx);
+
+			// draw mesh
+			DrawSubmesh(_cmdList, m, r.submeshIndex);
+			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
+		}
+	}
+
+	// finish rendering
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
 }
 
 void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _frameIdx, int _threadIndex)
