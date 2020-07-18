@@ -36,6 +36,7 @@ struct SystemConstant
 	XMFLOAT3 cameraPos;
 	float farZ;
 	float nearZ;
+	float skyIntensity;
 	int numDirLight;
 	int numPointLight;
 	int numSpotLight;

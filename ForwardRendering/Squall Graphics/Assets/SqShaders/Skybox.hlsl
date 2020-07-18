@@ -39,5 +39,5 @@ v2f SkyboxVS(VertexInput v)
 
 float4 SkyboxPS(v2f i) : SV_Target
 {
-	return _SkyCube.Sample(_SkySampler, i.lpos);
+	return _SkyCube.Sample(_SkySampler, i.lpos) * _SkyIntensity;
 }

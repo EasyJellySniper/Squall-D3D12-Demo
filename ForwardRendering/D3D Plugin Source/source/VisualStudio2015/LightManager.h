@@ -38,7 +38,7 @@ public:
 	void UploadPerLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
 	void SetPCFKernel(int _kernel);
-	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as);
+	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity);
 	void SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMeshId);
 	void SetSkyWorld(XMFLOAT4X4 _world);
 
@@ -90,6 +90,7 @@ private:
 	int skyMeshId;
 	Material skyboxMat;
 	Renderer skyboxRenderer;
+	float skyIntensity;
 
 	// shadow material
 	Material shadowOpaqueMat[CullMode::NumCullMode];

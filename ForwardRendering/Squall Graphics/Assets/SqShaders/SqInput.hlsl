@@ -39,6 +39,7 @@ cbuffer SystemConstant : register(b1)
 	float3 _CameraPos;
 	float _FarZ;
 	float _NearZ;
+	float _SkyIntensity;
 	int _NumDirLight;
 	int _NumPointLight;
 	int _NumSpotLight;

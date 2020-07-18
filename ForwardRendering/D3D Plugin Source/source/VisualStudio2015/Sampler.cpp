@@ -22,7 +22,7 @@ void Sampler::CreateSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, Text
 	isCompare = _isCompare;
 }
 
-void Sampler::CreateSamplerHeap(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare)
+void Sampler::CreateSamplerHeap(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare, bool _isCube)
 {
 	// record variable
 	CreateSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare);
@@ -38,6 +38,7 @@ void Sampler::CreateSamplerHeap(TextureWrapMode _wrapU, TextureWrapMode _wrapV, 
 
 	// force to use anisotropic unless it is compare sampler
 	samplerDesc.Filter = (isCompare) ? D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D12_FILTER_ANISOTROPIC;
+	samplerDesc.Filter = (_isCube) ? D3D12_FILTER_MIN_MAG_MIP_LINEAR : samplerDesc.Filter;
 	samplerDesc.MaxAnisotropy = _anisoLevel;
 	samplerDesc.AddressU = UnityWrapModeToNative(_wrapU);
 	samplerDesc.AddressV = UnityWrapModeToNative(_wrapV);

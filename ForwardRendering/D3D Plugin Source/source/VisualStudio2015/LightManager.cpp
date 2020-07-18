@@ -189,6 +189,7 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.pcfIndex = pcfKernel;
 	_sc.ambientGround = ambientGround;
 	_sc.ambientSky = ambientSky;
+	_sc.skyIntensity = skyIntensity;
 }
 
 void LightManager::SetPCFKernel(int _kernel)
@@ -196,18 +197,19 @@ void LightManager::SetPCFKernel(int _kernel)
 	pcfKernel = _kernel;
 }
 
-void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as)
+void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity)
 {
 	ambientGround = _ag;
 	ambientSky = _as;
+	skyIntensity = _skyIntensity;
 }
 
 void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)
 {
 	auto skyboxSrc = (ID3D12Resource*)_skybox;
 	auto desc = skyboxSrc->GetDesc();
-	skyboxTex.InitSRV(&skyboxSrc, desc.Format, 1, false);
-	skyboxSampler.CreateSamplerHeap(wrapU, wrapV, wrapW, _anisoLevel);
+	skyboxTex.InitSRV(&skyboxSrc, desc.Format, 1, false, true);
+	skyboxSampler.CreateSamplerHeap(wrapU, wrapV, wrapW, _anisoLevel, true);
 	skyMeshId = _skyMesh;
 
 	Shader* skyShader = ShaderManager::Instance().CompileShader(L"Skybox.hlsl");
