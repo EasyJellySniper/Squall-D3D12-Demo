@@ -5,6 +5,7 @@
 #include "UploadBuffer.h"
 #include "MaterialManager.h"
 #include "Sampler.h"
+#include "Renderer.h"
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
@@ -52,6 +53,11 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCollectShadowRtv();
 	D3D12_GPU_VIRTUAL_ADDRESS GetDirLightGPU(int _frameIdx, int _offset);
 
+	Renderer* GetSkyboxRenderer();
+	Material* GetSkyboxMat();
+	ID3D12DescriptorHeap* GetSkyboxTex();
+	ID3D12DescriptorHeap* GetSkyboxSampler();
+
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
 	int AddDirLight(int _instanceID, SqLightData _data);
@@ -81,6 +87,7 @@ private:
 	Sampler skyboxSampler;
 	int skyMeshId;
 	Material skyboxMat;
+	Renderer skyboxRenderer;
 
 	// shadow material
 	Material shadowOpaqueMat[CullMode::NumCullMode];

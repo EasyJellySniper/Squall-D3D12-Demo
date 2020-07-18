@@ -63,6 +63,7 @@ void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 	// transparent pass, this can only be rendered with 1 thread for correct order
 	if (_camera->GetRenderMode() == RenderMode::ForwardPass)
 	{
+		DrawSkyboxPass(_camera, _frameIdx);
 		DrawTransparentPass(_camera, _frameIdx);
 	}
 
@@ -700,6 +701,35 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _frameIdx, int _t
 void ForwardRenderingPath::DrawCutoutPass(Camera* _camera, int _frameIdx, int _threadIndex)
 {
 	DrawOpaquePass(_camera, _frameIdx, _threadIndex, true);
+}
+
+void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera, int _frameIdx)
+{
+	// reset cmdlist
+	auto _cmdList = currFrameResource->preGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+
+	// bind descriptor
+	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetSkyboxTex(),LightManager::Instance().GetSkyboxSampler() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	// bind target
+	CameraData* camData = _camera->GetCameraData();
+	_cmdList->OMSetRenderTargets(1, (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(0) : &_camera->GetRtv(0), true, (camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv());
+	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
+	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
+	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// bind root signature
+	auto skyMat = LightManager::Instance().GetSkyboxMat();
+	_cmdList->SetGraphicsRootSignature(skyMat->GetRootSignature());
+	_cmdList->SetGraphicsRootConstantBufferView(0, LightManager::Instance().GetSkyboxRenderer()->GetObjectConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootDescriptorTable(2, LightManager::Instance().GetSkyboxTex()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(3, LightManager::Instance().GetSkyboxSampler()->GetGPUDescriptorHandleForHeapStart());
+
+	// execute
+	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::DrawTransparentPass(Camera* _camera, int _frameIdx)

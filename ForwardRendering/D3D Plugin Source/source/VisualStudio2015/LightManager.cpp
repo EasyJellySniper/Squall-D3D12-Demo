@@ -88,6 +88,7 @@ void LightManager::Release()
 	shadowSampler.Release();
 	skyboxTex.Release();
 	skyboxMat.Release();
+	skyboxRenderer.Release();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -168,6 +169,11 @@ void LightManager::UploadPerLightBuffer(int _frameIdx)
 			dirLights[i].SetShadowDirty(false, _frameIdx);
 		}
 	}
+
+	// upload skybox constant
+	ObjectConstant oc;
+	oc.sqMatrixWorld = skyboxRenderer.GetWorld();
+	skyboxRenderer.UpdateObjectConstant(oc, _frameIdx);
 }
 
 void LightManager::FillSystemConstant(SystemConstant& _sc)
@@ -205,6 +211,7 @@ void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMo
 	{
 		auto rtd = CameraManager::Instance().GetCamera()->GetRenderTargetData();
 		skyboxMat = MaterialManager::Instance().CreateMaterialFromShader(skyShader, rtd, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, 1, 0, D3D12_COMPARISON_FUNC_GREATER_EQUAL, false);
+		skyboxRenderer.Init(_skyMesh);
 	}
 }
 
@@ -257,6 +264,26 @@ D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetDirLightGPU(int _frameIdx, int _offse
 {
 	UINT lightSize = sizeof(SqLightData);
 	return dirLightData[_frameIdx]->Resource()->GetGPUVirtualAddress() + lightSize * _offset;
+}
+
+Renderer* LightManager::GetSkyboxRenderer()
+{
+	return &skyboxRenderer;
+}
+
+Material* LightManager::GetSkyboxMat()
+{
+	return &skyboxMat;
+}
+
+ID3D12DescriptorHeap* LightManager::GetSkyboxTex()
+{
+	return skyboxTex.GetSrv();
+}
+
+ID3D12DescriptorHeap* LightManager::GetSkyboxSampler()
+{
+	return skyboxSampler.GetSamplerHeap();
 }
 
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)
