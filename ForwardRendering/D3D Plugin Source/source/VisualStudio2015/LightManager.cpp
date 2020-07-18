@@ -182,6 +182,12 @@ void LightManager::SetPCFKernel(int _kernel)
 	pcfKernel = _kernel;
 }
 
+void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as)
+{
+	ambientGround = _ag;
+	ambientSky = _as;
+}
+
 Light* LightManager::GetDirLights()
 {
 	return dirLights.data();

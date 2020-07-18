@@ -30,6 +30,8 @@ struct SystemConstant
 {
 	XMFLOAT4X4 sqMatrixInvView;
 	XMFLOAT4X4 sqMatrixInvProj;
+	XMFLOAT4 ambientGround;
+	XMFLOAT4 ambientSky;
 	XMFLOAT3 cameraPos;
 	float farZ;
 	float nearZ;

@@ -33,6 +33,8 @@ cbuffer SystemConstant : register(b1)
 {
 	float4x4 SQ_MATRIX_INV_V;
 	float4x4 SQ_MATRIX_INV_P;
+	float4 ambientGround;
+	float4 ambientSky;
 	float3 _CameraPos;
 	float _FarZ;
 	float _NearZ;

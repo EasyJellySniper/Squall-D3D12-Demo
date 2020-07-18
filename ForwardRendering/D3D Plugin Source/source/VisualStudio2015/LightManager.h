@@ -37,6 +37,7 @@ public:
 	void UploadPerLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
 	void SetPCFKernel(int _kernel);
+	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as);
 
 	Light *GetDirLights();
 	int GetNumDirLights();
@@ -71,6 +72,8 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
 	unique_ptr<RenderTexture> collectShadow;
 
+	XMFLOAT4 ambientGround;
+	XMFLOAT4 ambientSky;
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];
 	Material collectShadowMat;
