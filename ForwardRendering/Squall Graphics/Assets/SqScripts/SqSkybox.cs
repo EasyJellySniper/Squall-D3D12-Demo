@@ -8,11 +8,13 @@ public class SqSkybox : MonoBehaviour
     /// ambient ground
     /// </summary>
     [Header("Hemisphere Ambient Settings")]
+    [ColorUsage(true, true)]
     public Color ambientGround = Color.gray / 5;
 
     /// <summary>
     /// ambient sky
     /// </summary>
+    [ColorUsage(true, true)]
     public Color ambientSky = new Color(135 / 255f, 206 / 255f, 235 / 255f);
 
     [DllImport("SquallGraphics")]

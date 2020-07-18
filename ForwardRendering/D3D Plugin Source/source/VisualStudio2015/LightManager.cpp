@@ -175,6 +175,8 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.numSpotLight = 0;
 	_sc.collectShadowIndex = collectShadowID;
 	_sc.pcfIndex = pcfKernel;
+	_sc.ambientGround = ambientGround;
+	_sc.ambientSky = ambientSky;
 }
 
 void LightManager::SetPCFKernel(int _kernel)

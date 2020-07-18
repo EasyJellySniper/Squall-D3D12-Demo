@@ -2,6 +2,11 @@
 #define SQLIGHT
 #include "SqInput.hlsl"
 
+struct SqGI
+{
+	float3 indirectDiffuse;
+};
+
 float3 LightDir(SqLight light, float3 worldPos)
 {
 	return lerp(normalize(worldPos - light.world.xyz), light.world.xyz, light.type == 1);
@@ -50,12 +55,24 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 	return col;
 }
 
-float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float atten)
+float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float atten, SqGI gi)
 {
 	float3 dirSpecular = 0;
 	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, smoothness, dirSpecular, atten);
 
-	return diffColor * dirDiffuse + dirSpecular;
+	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular;
+}
+
+SqGI CalcGI(float3 normal, float occlusion)
+{
+	SqGI gi = (SqGI)0;
+
+	// hemi sphere sky light
+	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
+	gi.indirectDiffuse = ambientGround.rgb + up * ambientSky.rgb;
+	gi.indirectDiffuse *= occlusion;
+
+	return gi;
 }
 
 #endif

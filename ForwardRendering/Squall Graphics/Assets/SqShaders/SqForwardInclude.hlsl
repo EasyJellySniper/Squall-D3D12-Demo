@@ -77,7 +77,7 @@ float3 GetBumpNormal(float2 uv, float2 detailUV, float3 normal, float3x3 tbn = 0
 
 float GetOcclusion(float2 uv)
 {
-	float o = _TexTable[_OcclusionIndex].Sample(_SamplerTable[_SamplerIndex], uv).g;
+	float o = lerp(1, _TexTable[_OcclusionIndex].Sample(_SamplerTable[_SamplerIndex], uv).g, _OcclusionIndex > 0);
 	return lerp(1, o, _OcclusionStrength);
 }
 

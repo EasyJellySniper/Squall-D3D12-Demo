@@ -66,11 +66,12 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	float occlusion = GetOcclusion(i.tex.xy);
 
 	// GI
+	SqGI gi = CalcGI(bumpNormal, occlusion);
 
 	// BRDF
 	float atten = _TexTable[_CollectShadowIndex].Load(uint3(i.vertex.xy, 0)).r;
 
-	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten);
+	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten, gi);
 
 	// emission
 	float3 emission = GetEmission(i.tex.xy);
