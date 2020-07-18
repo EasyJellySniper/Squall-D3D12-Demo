@@ -64,6 +64,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="ForwardRenderingPath.cpp" />
+    <ClCompile Include="GameTimerManager.cpp" />
     <ClCompile Include="GraphicManager.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightManager.cpp" />

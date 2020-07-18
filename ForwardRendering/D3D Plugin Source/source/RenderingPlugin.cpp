@@ -71,11 +71,6 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetWorldMatrix(int _i
 	RendererManager::Instance().SetWorldMatrix(_instanceID, _world);
 }
 
-extern "C" GameTime UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetGameTime()
-{
-	return GraphicManager::Instance().GetGameTime();
-}
-
 extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMesh(int _instanceID, MeshData _MeshData)
 {
 	return MeshManager::Instance().AddMesh(_instanceID, _MeshData);

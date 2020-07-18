@@ -81,6 +81,7 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
+    <ClCompile Include="GameTimerManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLEW">

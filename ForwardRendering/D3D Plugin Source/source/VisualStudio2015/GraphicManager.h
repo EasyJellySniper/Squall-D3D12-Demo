@@ -57,7 +57,6 @@ public:
 	UINT GetDsvDesciptorSize();
 	UINT GetCbvSrvUavDesciptorSize();
 	FrameResource *GetFrameResource();
-	GameTime GetGameTime();
 	UINT64 GetGpuFreq();
 	void WaitBeginWorkerThread(int _index);
 	void SetBeginWorkerThreadEvent();

@@ -14,6 +14,7 @@
 #include "VisualStudio2015/RendererManager.h"
 #include "VisualStudio2015/TextureManager.h"
 #include "VisualStudio2015/LightManager.h"
+#include "VisualStudio2015/GameTimerManager.h"
 #include "Unity/IUnityGraphicsD3D12.h"
 
 class RenderAPI_D3D12 : public RenderAPI
@@ -78,6 +79,14 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	RendererManager::Instance().Init();
 	MaterialManager::Instance().Init();
 	TextureManager::Instance().Init(mainDevice);
+
+#if defined(GRAPHICTIME)
+	AllocConsole();
+	HWND handle = GetConsoleWindow();
+	HMENU hMenu = GetSystemMenu(handle, false);
+	DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
+	freopen("CONOUT$", "w", stdout);
+#endif
 }
 
 void RenderAPI_D3D12::ReleaseResources()
@@ -90,6 +99,11 @@ void RenderAPI_D3D12::ReleaseResources()
 	RendererManager::Instance().Release();
 	TextureManager::Instance().Release();
 	LightManager::Instance().Release();
+
+#if defined(GRAPHICTIME)
+	fclose(stdout);
+	FreeConsole();
+#endif
 }
 
 int RenderAPI_D3D12::GetRenderThreadCount()
@@ -105,6 +119,10 @@ void RenderAPI_D3D12::OnUpdate()
 void RenderAPI_D3D12::OnRender()
 {
 	GraphicManager::Instance().Render();
+
+#if defined(GRAPHICTIME)
+	GameTimerManager::Instance().PrintGameTime();
+#endif
 }
 
 void RenderAPI_D3D12::ProcessDeviceEvent(UnityGfxDeviceEventType type, IUnityInterfaces* interfaces)

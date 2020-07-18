@@ -1,6 +1,8 @@
 #pragma once
 #include "GameTime.h"
 #include "FrameResource.h"
+#include <chrono>
+using namespace std;
 
 struct GameTime
 {
@@ -31,7 +33,11 @@ public:
 		return instance;
 	}
 
+	void PrintGameTime();
+
 #if defined(GRAPHICTIME)
 	GameTime gameTime;
+	chrono::steady_clock::time_point lastTime;
+	double profileTime = 0.0;
 #endif
 };

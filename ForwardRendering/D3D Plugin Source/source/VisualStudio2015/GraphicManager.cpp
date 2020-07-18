@@ -399,14 +399,6 @@ FrameResource* GraphicManager::GetFrameResource()
 	return &frameResource;
 }
 
-GameTime GraphicManager::GetGameTime()
-{
-#if defined(GRAPHICTIME)
-	return GameTimerManager::Instance().gameTime;
-#endif
-	return GameTime();
-}
-
 UINT64 GraphicManager::GetGpuFreq()
 {
 	return gpuFreq;
