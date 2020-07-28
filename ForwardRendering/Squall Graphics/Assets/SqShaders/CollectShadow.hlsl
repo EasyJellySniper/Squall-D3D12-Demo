@@ -1,11 +1,12 @@
-#pragma sq_cbuffer SystemConstant
-#pragma sq_srv _SqDirLight
-#pragma sq_srv _ShadowMap
-#pragma sq_srv _ShadowSampler
+#define CollectShadowRS "CBV(b1)," \
+"SRV(t0, space = 1)," \
+"DescriptorTable(SRV(t0, numDescriptors=5))," \
+"DescriptorTable(Sampler(s0))"
 
 #include "SqInput.hlsl"
 #pragma sq_vertex CollectShadowVS
 #pragma sq_pixel CollectShadowPS
+#pragma sq_rootsig CollectShadowRS
 
 struct v2f
 {
@@ -23,11 +24,9 @@ static const float2 gTexCoords[6] =
     float2(1.0f, 1.0f)
 };
 
-#pragma sq_srvStart
 // shadow map, up to 4 cascades, 1st entry is camera's depth
 Texture2D _ShadowMap[5] : register(t0);
 SamplerComparisonState _ShadowSampler : register(s0);
-#pragma sq_srvEnd
 
 v2f CollectShadowVS(uint vid : SV_VertexID)
 {
@@ -117,6 +116,7 @@ float ShadowPCF5x5(uint cascade, float4 coord, float texelSize)
     return shadow * 0.04f;
 }
 
+[RootSignature(CollectShadowRS)]
 float4 CollectShadowPS(v2f i) : SV_Target
 {
     float depth = _ShadowMap[0].Load(uint3(i.vertex.xy, 0)).r;

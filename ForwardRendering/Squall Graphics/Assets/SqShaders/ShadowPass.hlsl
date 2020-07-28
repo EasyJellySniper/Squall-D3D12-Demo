@@ -1,12 +1,14 @@
-#pragma sq_cbuffer ObjectConstant
-#pragma sq_cbuffer LightConstant
-#pragma sq_cbuffer MaterialConstant
-#pragma sq_srv _TexTable
-#pragma sq_srv _SamplerTable
+#define ShadowPassRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
+"CBV(b0)," \
+"CBV(b2)," \
+"CBV(b3)," \
+"DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
+"DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
 
 #include "SqInput.hlsl"
 #pragma sq_vertex ShadowPassVS
 #pragma sq_pixel ShadowPassPS
+#pragma sq_rootsig ShadowPassRS
 #pragma sq_keyword _SHADOW_CUTOFF_ON
 
 struct v2f
@@ -15,6 +17,7 @@ struct v2f
 	float2 uv1 : TEXCOORD0;
 };
 
+[RootSignature(ShadowPassRS)]
 v2f ShadowPassVS(VertexInput i)
 {
 	v2f o = (v2f)0;
@@ -28,6 +31,7 @@ v2f ShadowPassVS(VertexInput i)
 	return o;
 }
 
+[RootSignature(ShadowPassRS)]
 void ShadowPassPS(v2f i)
 {
 #ifdef _SHADOW_CUTOFF_ON

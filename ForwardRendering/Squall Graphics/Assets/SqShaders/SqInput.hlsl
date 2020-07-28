@@ -76,14 +76,13 @@ cbuffer MaterialConstant : register(b3)
 	int _DetailNormalIndex;
 };
 
-#pragma sq_srvStart
+
 // need /enable_unbounded_descriptor_tables when compiling
 Texture2D _TexTable[] : register(t0);
 SamplerState _SamplerTable[] : register(s0);
 StructuredBuffer<SqLight> _SqDirLight: register(t0, space1);
 //StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
 //StructuredBuffer<SqLight> _SqSpotLight: register(t2, space1);
-#pragma sq_srvEnd
 
 float3 DepthToWorldPos(float depth, float4 screenPos)
 {

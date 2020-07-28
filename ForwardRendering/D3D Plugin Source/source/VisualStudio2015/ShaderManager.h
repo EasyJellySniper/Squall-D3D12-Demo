@@ -31,29 +31,18 @@ private:
 	ID3DBlob *CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *macro, string _entry, string _target);
 	void CollectShaderData(wstring _fileName);
 	void ParseShaderLine(wstring _input);
-	void BuildRootSignature(unique_ptr<Shader>& _shader, bool _ignoreInputLayout);
+	void BuildRootSignature(unique_ptr<Shader>& _shader, ID3DBlob *_compiledRS);
 	bool ValidShader(Shader *_shader);
-	int GetRegisterNumber(wstring _input);
-	int GetSpaceNumber(wstring _input);
-	int GetNumDescriptor(wstring _input);
-	int HasCbuffer(wstring _name);
-	int HasSrv(wstring _name);
 
 	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
-	CD3DX12_DESCRIPTOR_RANGE descriptorTable[32];
-	CD3DX12_ROOT_PARAMETER rootSignatureParam[32];
 	vector<string> keywordGroup;
 	vector<wstring> includeFile;
-	vector<wstring> rootSignList;
 
-	int numTable = 0;
-	int numRoot = 0;
-
-	bool parseSrv;
 	string entryVS;
 	string entryPS;
 	string entryHS;
 	string entryDS;
 	string entryGS;
+	string entryRS;
 };

@@ -1,11 +1,13 @@
-#pragma sq_cbuffer ObjectConstant
-#pragma sq_cbuffer MaterialConstant
-#pragma sq_srv _TexTable
-#pragma sq_srv _SamplerTable
+#define DepthPrePassRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
+"CBV(b0)," \
+"CBV(b3)," \
+"DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
+"DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
 
 #include "SqInput.hlsl"
 #pragma sq_vertex DepthPrePassVS
 #pragma sq_pixel DepthPrePassPS
+#pragma sq_rootsig DepthPrePassRS
 #pragma sq_keyword _CUTOFF_ON
 
 struct v2f
@@ -14,6 +16,7 @@ struct v2f
 	float2 uv1 : TEXCOORD0;
 };
 
+[RootSignature(DepthPrePassRS)]
 v2f DepthPrePassVS(VertexInput i)
 {
 	v2f o = (v2f)0;
@@ -23,6 +26,7 @@ v2f DepthPrePassVS(VertexInput i)
 	return o;
 }
 
+[RootSignature(DepthPrePassRS)]
 void DepthPrePassPS(v2f i)
 {
 #ifdef _CUTOFF_ON

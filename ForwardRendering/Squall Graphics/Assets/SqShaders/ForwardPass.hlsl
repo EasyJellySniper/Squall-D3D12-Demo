@@ -1,8 +1,19 @@
+#define ForwardPassRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
+"CBV(b0)," \
+"CBV(b1)," \
+"CBV(b2)," \
+"CBV(b3)," \
+"DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
+"DescriptorTable(Sampler(s0, numDescriptors=unbounded))," \
+"SRV(t0, space=1)"
+
 #include "SqForwardInclude.hlsl"
 #include "SqLight.hlsl"
 
 #pragma sq_vertex ForwardPassVS
 #pragma sq_pixel ForwardPassPS
+#pragma sq_rootsig ForwardPassRS
+
 #pragma sq_keyword _CUTOFF_ON
 #pragma sq_keyword _SPEC_GLOSS_MAP
 #pragma sq_keyword _EMISSION
@@ -22,6 +33,7 @@ struct v2f
 #endif
 };
 
+[RootSignature(ForwardPassRS)]
 v2f ForwardPassVS(VertexInput i)
 {
 	v2f o = (v2f)0;
@@ -43,6 +55,7 @@ v2f ForwardPassVS(VertexInput i)
 	return o;
 }
 
+[RootSignature(ForwardPassRS)]
 float4 ForwardPassPS(v2f i) : SV_Target
 {
 	// diffuse

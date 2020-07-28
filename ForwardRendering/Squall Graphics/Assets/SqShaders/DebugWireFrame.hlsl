@@ -1,7 +1,10 @@
-#pragma sq_cbuffer ObjectConstant
+#define WireFrameRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
+						 "CBV(b0)"
+
 #include "SqInput.hlsl"
 #pragma sq_vertex WireFrameVS
 #pragma sq_pixel WireFramePS
+#pragma sq_rootsig WireFrameRS
 
 struct v2f
 {
@@ -9,6 +12,7 @@ struct v2f
 	float4 wpos : TEXCOORD0;
 };
 
+[RootSignature(WireFrameRS)]
 v2f WireFrameVS(VertexInput i)
 {
 	v2f o = (v2f)0;

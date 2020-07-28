@@ -1,5 +1,9 @@
+#define ResolveDepthRS "CBV(b0)," \
+"DescriptorTable(SRV(t0, numDescriptors=1, space=1))" 
+
 #pragma sq_vertex ResolveDepthVS
 #pragma sq_pixel ResolveDepthPS
+#pragma sq_rootsig ResolveDepthRS
 
 struct v2f
 {
@@ -22,9 +26,7 @@ cbuffer RDConstants : register(b0)
     float3 _Padding;
 };
 
-#pragma sq_srvStart
 Texture2DMS<float> _MsaaDepth : register(t0, space1);
-#pragma sq_srvEnd
 
 v2f ResolveDepthVS(uint vid : SV_VertexID)
 {
@@ -37,6 +39,7 @@ v2f ResolveDepthVS(uint vid : SV_VertexID)
 	return o;
 }
 
+[RootSignature(ResolveDepthRS)]
 void ResolveDepthPS(v2f i, out float oDepth : SV_Depth)
 {
     float result = 0.0f;

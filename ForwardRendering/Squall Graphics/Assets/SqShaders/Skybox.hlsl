@@ -1,11 +1,13 @@
-#pragma sq_cbuffer ObjectConstant
-#pragma sq_cbuffer SystemConstant
-#pragma sq_srv _SkyCube
-#pragma sq_srv _SkySampler
+#define SkyboxRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
+"CBV(b0)," \
+"CBV(b1)," \
+"DescriptorTable(SRV(t0, numDescriptors=1))," \
+"DescriptorTable(Sampler(s0, numDescriptors=1))" \
 
 #include "SqInput.hlsl"
 #pragma sq_vertex SkyboxVS
 #pragma sq_pixel SkyboxPS
+#pragma sq_rootsig SkyboxRS
 
 struct v2f
 {
@@ -13,11 +15,10 @@ struct v2f
 	float3 lpos : TEXCOORD0;
 };
 
-#pragma sq_srvStart
 TextureCube _SkyCube : register(t0);
 SamplerState _SkySampler : register(s0);
-#pragma sq_srvEnd
 
+[RootSignature(SkyboxRS)]
 v2f SkyboxVS(VertexInput v)
 {
 	v2f o = (v2f)0;
@@ -37,6 +38,7 @@ v2f SkyboxVS(VertexInput v)
 	return o;
 }
 
+[RootSignature(SkyboxRS)]
 float4 SkyboxPS(v2f i) : SV_Target
 {
 	return _SkyCube.Sample(_SkySampler, i.lpos) * _SkyIntensity;
