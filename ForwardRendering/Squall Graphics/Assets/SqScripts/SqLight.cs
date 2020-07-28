@@ -192,11 +192,13 @@ public class SqLight : MonoBehaviour
     {
         if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional)
         {
+            enabled = false;
             return;
         }
 
         if (cascadeSetting.Length > 4)
         {
+            enabled = false;
             Debug.LogError("Max cascade is 4");
             return;
         }

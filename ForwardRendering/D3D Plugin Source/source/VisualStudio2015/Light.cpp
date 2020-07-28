@@ -44,7 +44,10 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 
 void Light::Release()
 {
-	shadowRT->Release();
+	if (shadowRT != nullptr)
+	{
+		shadowRT->Release();
+	}
 	shadowRT.reset();
 	numCascade = 1;
 
