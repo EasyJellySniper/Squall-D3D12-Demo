@@ -2,8 +2,10 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <vector>
+#include <wrl.h>
 using namespace DirectX;
 using namespace std;
+using namespace Microsoft::WRL;
 
 struct SubMesh
 {
@@ -35,6 +37,7 @@ public:
 	SubMesh GetSubMesh(int _index);
 
 private:
+	void CreateBottomAccelerationStructure();
 	MeshData meshData;
 
 	vector<SubMesh> submeshes;
@@ -44,4 +47,7 @@ private:
 
 	vector<D3D12_VERTEX_BUFFER_VIEW> vbv;
 	D3D12_INDEX_BUFFER_VIEW ibv;
+
+	ComPtr<ID3D12Resource> scratchBottom;
+	ComPtr<ID3D12Resource> bottomLevelAS;
 };

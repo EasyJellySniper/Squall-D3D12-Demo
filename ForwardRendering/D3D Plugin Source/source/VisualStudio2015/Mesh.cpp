@@ -63,6 +63,7 @@ bool Mesh::Initialize(MeshData _mesh)
 		return false;
 	}
 
+	CreateBottomAccelerationStructure();
 	return true;
 }
 
@@ -71,6 +72,8 @@ void Mesh::Release()
 	submeshes.clear();
 	vertexBuffer.clear();
 	vbv.clear();
+	scratchBottom.Reset();
+	bottomLevelAS.Reset();
 }
 
 D3D12_VERTEX_BUFFER_VIEW Mesh::GetVertexBufferView()
@@ -96,4 +99,42 @@ SubMesh Mesh::GetSubMesh(int _index)
 	}
 
 	return submeshes[_index];
+}
+
+void Mesh::CreateBottomAccelerationStructure()
+{
+	// create geometry desc
+	D3D12_RAYTRACING_GEOMETRY_FLAGS geometryFlags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+	D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
+
+	geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+	geometryDesc.Triangles.IndexBuffer = indexBuffer->GetGPUVirtualAddress();
+	geometryDesc.Triangles.IndexCount = meshData.indexSizeInBytes / ((meshData.indexFormat == 0) ? 2 : 4);
+	geometryDesc.Triangles.IndexFormat = (meshData.indexFormat == 0) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+	geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;		// we only need position (float3)
+	geometryDesc.Triangles.VertexCount = meshData.vertexSizeInBytes[0] / meshData.vertexStrideInBytes[0];
+	geometryDesc.Triangles.VertexBuffer.StartAddress = vertexBuffer[0]->GetGPUVirtualAddress();
+	geometryDesc.Triangles.VertexBuffer.StrideInBytes = meshData.vertexStrideInBytes[0];
+	geometryDesc.Flags = geometryFlags;
+
+	// create bottom level AS desc
+	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
+	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
+
+	bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+	bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+	bottomLevelInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+	bottomLevelInputs.NumDescs = 1;
+	bottomLevelInputs.pGeometryDescs = &geometryDesc;
+
+	// require pre build info
+	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottomLevelPrebuildInfo = {};
+	GraphicManager::Instance().GetDxrDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
+	if (bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes == 0)
+	{
+		LogMessage(L"[SqGraphic Error]: Create Acc Struct Failed.");
+		return;
+	}
+
+
 }

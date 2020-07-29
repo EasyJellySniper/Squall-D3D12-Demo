@@ -57,6 +57,15 @@ inline void LogMessage(wstring _str)
 }
 #endif
 
+#ifndef LogIfFalse
+#define LogIfFalse(x, y) \
+{ \
+  wstring msg = y; \
+  if(x == false) \
+	LogMessage((L"[SqGraphic Error]: " + msg).c_str()); \
+}
+#endif
+
 inline DXGI_FORMAT GetColorFormatFromTypeless(DXGI_FORMAT _typelessFormat, bool _logicBuffer = false)
 {
 	DXGI_FORMAT colorFormat = DXGI_FORMAT_UNKNOWN;

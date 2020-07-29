@@ -364,6 +364,11 @@ ID3D12Device * GraphicManager::GetDevice()
 	return mainDevice;
 }
 
+ID3D12Device5* GraphicManager::GetDxrDevice()
+{
+	return rayTracingDevice.Get();
+}
+
 ID3D12QueryHeap * GraphicManager::GetGpuTimeQuery()
 {
 	return gpuTimeQuery.Get();
