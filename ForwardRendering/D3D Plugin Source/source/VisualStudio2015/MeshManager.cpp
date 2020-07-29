@@ -25,7 +25,7 @@ bool MeshManager::AddMesh(int _instanceID, MeshData _mesh)
 	bool init = m.Initialize(_mesh);
 	if (init)
 	{
-		meshes[_instanceID] = m;
+		meshes[_instanceID] = std::move(m);
 	}
 
 	return init;

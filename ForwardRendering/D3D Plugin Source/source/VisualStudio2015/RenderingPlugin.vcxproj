@@ -33,6 +33,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="DefaultBuffer.h" />
     <ClInclude Include="ForwardRenderingPath.h" />
     <ClInclude Include="FrameResource.h" />
     <ClInclude Include="GameTime.h" />

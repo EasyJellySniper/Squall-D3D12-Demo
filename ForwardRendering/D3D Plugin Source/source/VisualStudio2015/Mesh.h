@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <wrl.h>
+#include "DefaultBuffer.h"
 using namespace DirectX;
 using namespace std;
 using namespace Microsoft::WRL;
@@ -48,6 +49,6 @@ private:
 	vector<D3D12_VERTEX_BUFFER_VIEW> vbv;
 	D3D12_INDEX_BUFFER_VIEW ibv;
 
-	ComPtr<ID3D12Resource> scratchBottom;
-	ComPtr<ID3D12Resource> bottomLevelAS;
+	unique_ptr<DefaultBuffer> scratchBottom;
+	unique_ptr<DefaultBuffer> bottomLevelAS;
 };

@@ -72,8 +72,8 @@ void Mesh::Release()
 	submeshes.clear();
 	vertexBuffer.clear();
 	vbv.clear();
-	scratchBottom.Reset();
-	bottomLevelAS.Reset();
+	scratchBottom.reset();
+	bottomLevelAS.reset();
 }
 
 D3D12_VERTEX_BUFFER_VIEW Mesh::GetVertexBufferView()
@@ -136,5 +136,6 @@ void Mesh::CreateBottomAccelerationStructure()
 		return;
 	}
 
-
+	scratchBottom = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), bottomLevelPrebuildInfo.ScratchDataSizeInBytes, true, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	bottomLevelAS = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, true, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
 }
