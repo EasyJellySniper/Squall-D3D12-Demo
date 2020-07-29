@@ -42,6 +42,7 @@ public:
 	~GraphicManager() {}
 
 	bool Initialize(ID3D12Device* _device, int _numOfThreads);
+	void InitRayTracingInterface();
 	void Release();
 	int GetThreadCount();
 	void Update();
@@ -85,6 +86,8 @@ private:
 	ComPtr<ID3D12GraphicsCommandList> postGfxList[MAX_FRAME_COUNT];
 	ComPtr<ID3D12CommandAllocator> workerGfxAllocator[MAX_WORKER_THREAD_COUNT][MAX_FRAME_COUNT];	// allow multiple-thread gfx
 	ComPtr<ID3D12GraphicsCommandList> workerGfxList[MAX_WORKER_THREAD_COUNT][MAX_FRAME_COUNT];
+	ComPtr<ID3D12Device5> rayTracingDevice;
+	ComPtr<ID3D12GraphicsCommandList5> rayTracingCmd;
 
 	// for gpu time measure
 	ComPtr<ID3D12QueryHeap> gpuTimeQuery;

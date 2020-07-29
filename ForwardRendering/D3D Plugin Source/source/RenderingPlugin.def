@@ -8,6 +8,7 @@ EXPORTS
    UnityPluginUnload
    GetRenderEventFunc
    InitializeSqGraphic
+   InitRayTracingInterface
    InitSqLight
    ReleaseSqGraphic
    GetRenderThreadCount

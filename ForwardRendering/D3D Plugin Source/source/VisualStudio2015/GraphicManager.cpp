@@ -38,6 +38,12 @@ bool GraphicManager::Initialize(ID3D12Device* _device, int _numOfThreads)
 	return initSucceed;
 }
 
+void GraphicManager::InitRayTracingInterface()
+{
+	LogIfFailedWithoutHR(mainDevice->QueryInterface(IID_PPV_ARGS(&rayTracingDevice)));
+	LogIfFailedWithoutHR(preGfxList[0]->QueryInterface(IID_PPV_ARGS(&rayTracingCmd)));
+}
+
 void GraphicManager::Release()
 {
 	WaitForGPU();
@@ -78,6 +84,8 @@ void GraphicManager::Release()
 	gpuTimeQuery.Reset();
 	gpuTimeResult.Reset();
 
+	rayTracingCmd.Reset();
+	rayTracingDevice.Reset();
 	mainDevice = nullptr;
 }
 
