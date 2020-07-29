@@ -6,6 +6,12 @@
 #include "d3dx12.h"
 using namespace std;
 
+struct RootSignatureCache
+{
+	string rsName;
+	ComPtr<ID3D12RootSignature> rootSignature;
+};
+
 class ShaderManager
 {
 public:
@@ -31,13 +37,14 @@ private:
 	ID3DBlob *CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *macro, string _entry, string _target);
 	void CollectShaderData(wstring _fileName);
 	void ParseShaderLine(wstring _input);
-	void BuildRootSignature(unique_ptr<Shader>& _shader, ID3DBlob *_compiledRS);
+	void BuildRootSignature(unique_ptr<Shader>& _shader, wstring _fileName);
 	bool ValidShader(Shader *_shader);
 
 	const wstring shaderPath = L"Assets//SqShaders//";
 	vector<unique_ptr<Shader>> shaders;
 	vector<string> keywordGroup;
 	vector<wstring> includeFile;
+	vector<RootSignatureCache> rsCache;
 
 	string entryVS;
 	string entryPS;

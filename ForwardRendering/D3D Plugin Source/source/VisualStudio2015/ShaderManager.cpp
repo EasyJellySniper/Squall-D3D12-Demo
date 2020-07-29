@@ -35,7 +35,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 	newShader->SetHS(CompileFromFile(shaderPath + _fileName, macro, entryHS, "hs_5_1"));
 	newShader->SetDS(CompileFromFile(shaderPath + _fileName, macro, entryDS, "ds_5_1"));
 	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"));
-	BuildRootSignature(newShader, CompileFromFile(shaderPath + _fileName, macro, entryRS, "rootsig_1_0"));
+	BuildRootSignature(newShader, _fileName);
 
 	if (ValidShader(newShader.get()))
 	{
@@ -59,7 +59,13 @@ void ShaderManager::Release()
 		shaders[i].get()->Release();
 	}
 
+	for (size_t i = 0; i < rsCache.size(); i++)
+	{
+		rsCache[i].rootSignature.Reset();
+	}
+
 	shaders.clear();
+	rsCache.clear();
 	keywordGroup.clear();
 	includeFile.clear();
 }
@@ -197,21 +203,43 @@ void ShaderManager::ParseShaderLine(wstring _input)
 	}
 }
 
-void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, ID3DBlob* _compiledRS)
+void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, wstring _fileName)
 {
+	for (size_t i = 0; i < rsCache.size(); i++)
+	{
+		if (rsCache[i].rsName == entryRS)
+		{
+			// set root signature
+			_shader->SetRS(rsCache[i].rootSignature.Get());
+			return;
+		}
+	}
+
+	// compile rs
+	ID3DBlob* _compiledRS = CompileFromFile(shaderPath + _fileName, nullptr, entryRS, "rootsig_1_0");
+	if (_compiledRS == nullptr)
+	{
+		return;
+	}
+
+	RootSignatureCache rsc;
+	rsc.rsName = entryRS;
+
 	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateRootSignature(
 		0,
 		_compiledRS->GetBufferPointer(),
 		_compiledRS->GetBufferSize(),
-		IID_PPV_ARGS(_shader->GetRootSignatureRef().GetAddressOf())));
+		IID_PPV_ARGS(rsc.rootSignature.GetAddressOf())));
 
 	_compiledRS->Release();
+	rsCache.push_back(rsc);
+	_shader->SetRS(rsCache[rsCache.size() - 1].rootSignature.Get());
 }
 
 bool ShaderManager::ValidShader(Shader *_shader)
 {
 	// a valid shader has at least one vertex shader and one pixel shader
-	if (_shader->GetVS() != nullptr && _shader->GetPS() != nullptr && _shader->GetRootSignatureRef() != nullptr)
+	if (_shader->GetVS() != nullptr && _shader->GetPS() != nullptr && _shader->GetRS() != nullptr)
 	{
 		return true;
 	}

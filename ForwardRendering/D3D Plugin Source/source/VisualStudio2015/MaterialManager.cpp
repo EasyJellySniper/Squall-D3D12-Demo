@@ -44,7 +44,7 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, bool _enableDepth,
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
 
-	desc.pRootSignature = _shader->GetRootSignatureRef().Get();
+	desc.pRootSignature = _shader->GetRS();
 	desc.VS.BytecodeLength = _shader->GetVS()->GetBufferSize();
 	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetVS()->GetBufferPointer());
 	desc.PS.BytecodeLength = _shader->GetPS()->GetBufferSize();
@@ -161,7 +161,7 @@ D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shad
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
 
-	desc.pRootSignature = _shader->GetRootSignatureRef().Get();
+	desc.pRootSignature = _shader->GetRS();
 	desc.VS.BytecodeLength = _shader->GetVS()->GetBufferSize();
 	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetVS()->GetBufferPointer());
 	desc.PS.BytecodeLength = _shader->GetPS()->GetBufferSize();
@@ -211,7 +211,7 @@ D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDepth(Shader* _sha
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
 
-	desc.pRootSignature = _shader->GetRootSignatureRef().Get();
+	desc.pRootSignature = _shader->GetRS();
 	desc.VS.BytecodeLength = _shader->GetVS()->GetBufferSize();
 	desc.VS.pShaderBytecode = reinterpret_cast<BYTE*>(_shader->GetVS()->GetBufferPointer());
 	desc.PS.BytecodeLength = _shader->GetPS()->GetBufferSize();

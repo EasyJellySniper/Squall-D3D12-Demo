@@ -19,26 +19,29 @@ public:
 	void SetDS(ComPtr<ID3DBlob> _input);
 	void SetHS(ComPtr<ID3DBlob> _input);
 	void SetGS(ComPtr<ID3DBlob> _input);
+	void SetRS(ID3D12RootSignature* _rs);
 	void CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro);
 
-	ComPtr<ID3D12RootSignature> &GetRootSignatureRef();
 	ComPtr<ID3DBlob> GetVS();
 	ComPtr<ID3DBlob> GetPS();
 	ComPtr<ID3DBlob> GetDS();
 	ComPtr<ID3DBlob> GetHS();
 	ComPtr<ID3DBlob> GetGS();
+	ID3D12RootSignature* GetRS();
 	bool IsSameKeyword(D3D_SHADER_MACRO *macro);
 
 private:
 	int CalcKeywordUsage(D3D_SHADER_MACRO* macro);
 
 	static const int MAX_KEYWORD = 32;
-	ComPtr<ID3D12RootSignature> rootSignature;
 	ComPtr<ID3DBlob> vertexShader;
 	ComPtr<ID3DBlob> pixelShader;
 	ComPtr<ID3DBlob> domainShader;
 	ComPtr<ID3DBlob> hullShader;
 	ComPtr<ID3DBlob> geometryShader;
+
+	// rs will created by Shader Manager
+	ID3D12RootSignature* rootSignature;
 
 	wstring name = L"";
 	int keywordUsage = 0;	// support up to 32 keywords per shader
