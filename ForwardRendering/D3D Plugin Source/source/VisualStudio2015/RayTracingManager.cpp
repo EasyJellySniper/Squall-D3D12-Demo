@@ -65,6 +65,7 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 		instanceDescs[i] = {};
 		instanceDescs[i].InstanceMask = 1;
 		instanceDescs[i].AccelerationStructure = r->GetMesh()->GetBottomAS()->GetGPUVirtualAddress();
+		instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE;	// unity use CCW
 		XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDescs[i].Transform), XMLoadFloat4x4(&r->GetWorld()));
 
 		i++;
