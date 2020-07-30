@@ -52,4 +52,7 @@ private:
 	string entryDS;
 	string entryGS;
 	string entryRS;
+	string entryRayGen;
+	string entryClosest;
+	string entryMiss;
 };

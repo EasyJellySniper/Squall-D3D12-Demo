@@ -24,6 +24,9 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 	entryDS = "";
 	entryGS = "";
 	entryRS = "";
+	entryRayGen = "";
+	entryClosest = "";
+	entryMiss = "";
 
 	// collect data
 	CollectShaderData(_fileName);
@@ -35,6 +38,12 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro,
 	newShader->SetHS(CompileFromFile(shaderPath + _fileName, macro, entryHS, "hs_5_1"));
 	newShader->SetDS(CompileFromFile(shaderPath + _fileName, macro, entryDS, "ds_5_1"));
 	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"));
+
+	// compile ray tracing shader (if we have)
+	newShader->SetRayGen(CompileFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3"));
+	newShader->SetClosestHit(CompileFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3"));
+	newShader->SetMiss(CompileFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3"));
+
 	BuildRootSignature(newShader, _fileName);
 
 	if (ValidShader(newShader.get()))
@@ -199,12 +208,35 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				is >> rs;
 				entryRS = WStringToAnsi(rs);
 			}
+			else if (ss == L"sq_raygen")
+			{
+				wstring rg;
+				is >> rg;
+				entryRayGen = WStringToAnsi(rg);
+			}
+			else if (ss == L"sq_closest")
+			{
+				wstring cs;
+				is >> cs;
+				entryClosest = WStringToAnsi(cs);
+			}
+			else if (ss == L"sq_miss")
+			{
+				wstring ms;
+				is >> ms;
+				entryMiss = WStringToAnsi(ms);
+			}
 		}
 	}
 }
 
 void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, wstring _fileName)
 {
+	if (entryRS == "")
+	{
+		return;
+	}
+
 	for (size_t i = 0; i < rsCache.size(); i++)
 	{
 		if (rsCache[i].rsName == entryRS)
