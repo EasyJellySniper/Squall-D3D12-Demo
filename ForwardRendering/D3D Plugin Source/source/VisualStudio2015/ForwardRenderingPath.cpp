@@ -229,15 +229,17 @@ void ForwardRenderingPath::ClearCamera(ID3D12GraphicsCommandList* _cmdList, Came
 {
 	CameraData* camData = _camera->GetCameraData();
 
-	// transition resource state to render target
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
+	// transition render buffer
+	D3D12_RESOURCE_BARRIER clearBarrier[2];
+	clearBarrier[0] = CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
 		, D3D12_RESOURCE_STATE_COMMON
-		, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-	// transition to depth write
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaDsvSrc() : _camera->GetCameraDepth()
+	clearBarrier[1] = CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaDsvSrc() : _camera->GetCameraDepth()
 		, D3D12_RESOURCE_STATE_COMMON
-		, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+		, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	_cmdList->ResourceBarrier(2, clearBarrier);
 
 	// clear render target view and depth view (reversed-z)
 	_cmdList->ClearRenderTargetView((camData->allowMSAA > 1) ? _camera->GetMsaaRtv(0) : _camera->GetRtv(0)
@@ -847,18 +849,31 @@ void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdLis
 {
 	CameraData* camData = _camera->GetCameraData();
 
-	// transition resource to resolve or common
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
+	// barrier
+	D3D12_RESOURCE_BARRIER resolveColor[2];
+	resolveColor[0] = CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
 		, D3D12_RESOURCE_STATE_RENDER_TARGET
-		, (camData->allowMSAA > 1) ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_COMMON));
+		, (camData->allowMSAA > 1) ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_COMMON);
+
+	resolveColor[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+
+	// barrier
+	D3D12_RESOURCE_BARRIER finishResolve[2];
+	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
+	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+
 
 	// resolve to non-AA target if MSAA enabled
 	if (camData->allowMSAA > 1)
 	{
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+		_cmdList->ResourceBarrier(2, resolveColor);
 		_cmdList->ResolveSubresource(_camera->GetRtvSrc(0), 0, _camera->GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(2, finishResolve);
+	}
+	else
+	{
+		// transition resource to resolve or common
+		_cmdList->ResourceBarrier(1, resolveColor);
 	}
 }
 
@@ -867,15 +882,23 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 	CameraData* camData = _camera->GetCameraData();
 	bool useMsaa = (camData->allowMSAA > 1);
 
-	// transition to common or srv 
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaDsvSrc() : _camera->GetCameraDepth()
+	// barrier
+	D3D12_RESOURCE_BARRIER resolveDepth[2];
+	resolveDepth[0] = CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaDsvSrc() : _camera->GetCameraDepth()
 		, D3D12_RESOURCE_STATE_DEPTH_WRITE
-		, (useMsaa) ? D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE : D3D12_RESOURCE_STATE_COMMON));
+		, (useMsaa) ? D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE : D3D12_RESOURCE_STATE_COMMON);
+
+	resolveDepth[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	// barrier
+	D3D12_RESOURCE_BARRIER finishResolve[2];
+	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
+	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON);
 
 	if (useMsaa)
 	{
 		// prepare to resolve
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+		_cmdList->ResourceBarrier(2, resolveDepth);
 
 		// bind resolve depth pipeline
 		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera->GetMsaaSrv(0) };
@@ -894,24 +917,32 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 		_cmdList->DrawInstanced(6, 1, 0, 0);
 		GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
 
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(2, finishResolve);
+	}
+	else
+	{
+		_cmdList->ResourceBarrier(1, resolveDepth);
 	}
 }
 
 void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
+	CameraData* camData = _camera->GetCameraData();
+	bool useMsaa = (camData->allowMSAA > 1);
+
+	// barrier
+	D3D12_RESOURCE_BARRIER copyDepth[2] = { CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE)
+	, CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST) };
+
+	D3D12_RESOURCE_BARRIER finishCopy[2] = { CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON)
+		, CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON) };
+
 	// copy to debug depth
 	if (_camera->GetRenderMode() == RenderMode::Depth)
 	{
-		CameraData* camData = _camera->GetCameraData();
-		bool useMsaa = (camData->allowMSAA > 1);
-
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+		_cmdList->ResourceBarrier(2, copyDepth);
 		_cmdList->CopyResource(_camera->GetDebugDepth(), _camera->GetCameraDepth());
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON));
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
+		_cmdList->ResourceBarrier(2, finishCopy);
 	}
 }
 
@@ -923,14 +954,16 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	// collect shadow
 	SqLightData* sld = _light->GetLightData();
 
-	// transition to srv
-	for (int i = 0; i < sld->numCascade; i++)
-	{
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	}
+	D3D12_RESOURCE_BARRIER collect[6];
 
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	for (int i = 2; i < sld->numCascade + 2; i++)
+	{
+		collect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	}
+	_cmdList->ResourceBarrier(2 + sld->numCascade, collect);
+
 	ID3D12DescriptorHeap* descriptorHeaps[] = { _light->GetShadowSrv() , LightManager::Instance().GetShadowSampler() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
@@ -952,12 +985,14 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
 
 	// transition to common
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
-	for (int i = 0; i < sld->numCascade; i++)
+	D3D12_RESOURCE_BARRIER finishCollect[6];
+	finishCollect[0] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+	finishCollect[1] = CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
+	for (int i = 2; i < sld->numCascade + 2; i++)
 	{
-		_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
+		finishCollect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
 	}
+	_cmdList->ResourceBarrier(2 + sld->numCascade, finishCollect);
 
 	ExecuteCmdList(_cmdList);
 }
