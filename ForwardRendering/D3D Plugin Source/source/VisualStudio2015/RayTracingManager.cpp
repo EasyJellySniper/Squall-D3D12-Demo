@@ -23,6 +23,11 @@ void RayTracingManager::InitRayTracingInstance()
 
 	GraphicManager::Instance().ExecuteCreationList();
 	GraphicManager::Instance().WaitForGPU();
+
+	// release temporary resources
+	scratchTop.reset();
+	rayTracingInstance.reset();
+	MeshManager::Instance().ReleaseScratch();
 }
 
 void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
@@ -64,4 +69,17 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 
 		i++;
 	}
+
+	// create upload buffer
+	UINT bufferSize = static_cast<UINT>(instanceDescs.size() * sizeof(instanceDescs[0]));
+	rayTracingInstance = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), (UINT)renderers.size(), false, bufferSize);
+	rayTracingInstance->CopyData(0, instanceDescs.data());
+
+	// fill descs
+	topLevelBuildDesc.DestAccelerationStructureData = topLevelAS->Resource()->GetGPUVirtualAddress();
+	topLevelInputs.InstanceDescs = rayTracingInstance->Resource()->GetGPUVirtualAddress();
+	topLevelBuildDesc.ScratchAccelerationStructureData = scratchTop->Resource()->GetGPUVirtualAddress();
+
+	// Build acceleration structure.
+	_dxrList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
 }

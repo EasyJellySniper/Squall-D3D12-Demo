@@ -51,6 +51,14 @@ void MeshManager::CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* 
 	}
 }
 
+void MeshManager::ReleaseScratch()
+{
+	for (auto& m : meshes)
+	{
+		m.second.ReleaseScratch();
+	}
+}
+
 Mesh * MeshManager::GetMesh(int _instanceID)
 {
 	if (meshes.find(_instanceID) != meshes.end())

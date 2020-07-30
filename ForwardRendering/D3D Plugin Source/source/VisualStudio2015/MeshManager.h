@@ -27,6 +27,7 @@ public:
 	bool AddMesh(int _instanceID, MeshData _mesh);
 	void Release();
 	void CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
+	void ReleaseScratch();
 
 	Mesh *GetMesh(int _instanceID);
 	D3D12_INPUT_ELEMENT_DESC* GetDefaultInputLayout();

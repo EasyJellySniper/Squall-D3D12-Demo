@@ -75,6 +75,11 @@ void Mesh::Release()
 	bottomLevelAS.reset();
 }
 
+void Mesh::ReleaseScratch()
+{
+	scratchBottom.reset();
+}
+
 D3D12_VERTEX_BUFFER_VIEW Mesh::GetVertexBufferView()
 {
 	if (vbv.size() == 0)

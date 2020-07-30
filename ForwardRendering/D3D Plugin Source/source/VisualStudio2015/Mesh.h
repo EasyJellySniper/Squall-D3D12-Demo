@@ -33,6 +33,8 @@ class Mesh
 public:
 	bool Initialize(MeshData _mesh);
 	void Release();
+	void ReleaseScratch();
+
 	D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
 	SubMesh GetSubMesh(int _index);
