@@ -28,7 +28,7 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayTracingInterfa
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayTracingInstance()
 {
-	RayTracingManager::Instance().BuildMeshRayTracing();
+	RayTracingManager::Instance().InitRayTracingInstance();
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, int _texId)

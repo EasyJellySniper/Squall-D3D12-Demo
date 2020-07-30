@@ -23,7 +23,7 @@ public:
 	~RayTracingManager() {}
 
 	void Release();
-	void BuildMeshRayTracing();
+	void InitRayTracingInstance();
 
 private:
 	void CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);

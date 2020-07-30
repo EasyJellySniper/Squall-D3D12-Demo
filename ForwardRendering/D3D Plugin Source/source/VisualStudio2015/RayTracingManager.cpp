@@ -10,7 +10,7 @@ void RayTracingManager::Release()
 	rayTracingInstance.reset();
 }
 
-void RayTracingManager::BuildMeshRayTracing()
+void RayTracingManager::InitRayTracingInstance()
 {
 	GraphicManager::Instance().ResetCreationList();
 	auto dxrCmd = GraphicManager::Instance().GetDxrList();
