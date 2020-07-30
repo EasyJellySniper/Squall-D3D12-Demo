@@ -12,6 +12,9 @@ void Shader::Release()
 	domainShader.Reset();
 	hullShader.Reset();
 	geometryShader.Reset();
+	rayGenShader.Reset();
+	closestHitShader.Reset();
+	missShader.Reset();
 
 	for (int i = 0; i < MAX_KEYWORD; i++)
 	{
@@ -47,6 +50,21 @@ void Shader::SetDS(ComPtr<ID3DBlob> _input)
 void Shader::SetGS(ComPtr<ID3DBlob> _input)
 {
 	geometryShader = _input;
+}
+
+void Shader::SetRayGen(ComPtr<ID3DBlob> _input)
+{
+	rayGenShader = _input;
+}
+
+void Shader::SetClosestHit(ComPtr<ID3DBlob> _input)
+{
+	closestHitShader = _input;
+}
+
+void Shader::SetMiss(ComPtr<ID3DBlob> _input)
+{
+	missShader = _input;
 }
 
 void Shader::SetRS(ID3D12RootSignature* _rs)
@@ -101,6 +119,21 @@ ComPtr<ID3DBlob> Shader::GetHS()
 ComPtr<ID3DBlob> Shader::GetGS()
 {
 	return geometryShader;
+}
+
+ComPtr<ID3DBlob> Shader::GetRayGen()
+{
+	return rayGenShader;
+}
+
+ComPtr<ID3DBlob> Shader::GetClosestHit()
+{
+	return closestHitShader;
+}
+
+ComPtr<ID3DBlob> Shader::GetMiss()
+{
+	return missShader;
 }
 
 ID3D12RootSignature* Shader::GetRS()

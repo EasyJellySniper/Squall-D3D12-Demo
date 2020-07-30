@@ -19,6 +19,9 @@ public:
 	void SetDS(ComPtr<ID3DBlob> _input);
 	void SetHS(ComPtr<ID3DBlob> _input);
 	void SetGS(ComPtr<ID3DBlob> _input);
+	void SetRayGen(ComPtr<ID3DBlob> _input);
+	void SetClosestHit(ComPtr<ID3DBlob> _input);
+	void SetMiss(ComPtr<ID3DBlob> _input);
 	void SetRS(ID3D12RootSignature* _rs);
 	void CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro);
 
@@ -27,6 +30,9 @@ public:
 	ComPtr<ID3DBlob> GetDS();
 	ComPtr<ID3DBlob> GetHS();
 	ComPtr<ID3DBlob> GetGS();
+	ComPtr<ID3DBlob> GetRayGen();
+	ComPtr<ID3DBlob> GetClosestHit();
+	ComPtr<ID3DBlob> GetMiss();
 	ID3D12RootSignature* GetRS();
 	bool IsSameKeyword(D3D_SHADER_MACRO *macro);
 
@@ -39,6 +45,9 @@ private:
 	ComPtr<ID3DBlob> domainShader;
 	ComPtr<ID3DBlob> hullShader;
 	ComPtr<ID3DBlob> geometryShader;
+	ComPtr<ID3DBlob> rayGenShader;
+	ComPtr<ID3DBlob> closestHitShader;
+	ComPtr<ID3DBlob> missShader;
 
 	// rs will created by Shader Manager
 	ID3D12RootSignature* rootSignature;
