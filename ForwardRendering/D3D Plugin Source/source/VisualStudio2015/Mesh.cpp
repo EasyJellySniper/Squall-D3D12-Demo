@@ -131,7 +131,7 @@ void Mesh::CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrLis
 	GraphicManager::Instance().GetDxrDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
 	if (bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes == 0)
 	{
-		LogMessage(L"[SqGraphic Error]: Create Acc Struct Failed.");
+		LogMessage(L"[SqGraphic Error]: Create Bottom Acc Struct Failed.");
 		return;
 	}
 
@@ -141,4 +141,9 @@ void Mesh::CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrLis
 	bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelAS->Resource()->GetGPUVirtualAddress();
 
 	_dxrList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
+}
+
+ID3D12Resource* Mesh::GetBottomAS()
+{
+	return bottomLevelAS->Resource();
 }

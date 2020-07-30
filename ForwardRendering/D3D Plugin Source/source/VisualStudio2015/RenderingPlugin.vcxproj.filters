@@ -56,6 +56,7 @@
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="DefaultBuffer.h" />
+    <ClInclude Include="RayTracingManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\RenderAPI.cpp" />
@@ -83,6 +84,7 @@
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="GameTimerManager.cpp" />
+    <ClCompile Include="RayTracingManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLEW">

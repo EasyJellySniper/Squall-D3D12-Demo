@@ -38,9 +38,17 @@ void MeshManager::Release()
 	{
 		m.second.Release();
 	}
-	meshes.clear();
 
+	meshes.clear();
 	defaultInputLayout.clear();
+}
+
+void MeshManager::CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
+{
+	for (auto& m : meshes)
+	{
+		m.second.CreateBottomAccelerationStructure(_dxrList);
+	}
 }
 
 Mesh * MeshManager::GetMesh(int _instanceID)
@@ -61,16 +69,4 @@ D3D12_INPUT_ELEMENT_DESC* MeshManager::GetDefaultInputLayout()
 UINT MeshManager::GetDefaultInputLayoutSize()
 {
 	return (UINT)defaultInputLayout.size();
-}
-
-void MeshManager::BuildMeshRayTracing()
-{
-	GraphicManager::Instance().ResetCreationList();
-	auto dxrCmd = GraphicManager::Instance().GetDxrList();
-	for (auto& m : meshes)
-	{
-		m.second.CreateBottomAccelerationStructure(dxrCmd);
-	}
-	GraphicManager::Instance().ExecuteCreationList();
-	GraphicManager::Instance().WaitForGPU();
 }

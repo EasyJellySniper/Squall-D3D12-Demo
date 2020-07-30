@@ -15,6 +15,7 @@
 #include "VisualStudio2015/TextureManager.h"
 #include "VisualStudio2015/LightManager.h"
 #include "VisualStudio2015/GameTimerManager.h"
+#include "VisualStudio2015/RayTracingManager.h"
 #include "Unity/IUnityGraphicsD3D12.h"
 
 class RenderAPI_D3D12 : public RenderAPI
@@ -99,6 +100,7 @@ void RenderAPI_D3D12::ReleaseResources()
 	RendererManager::Instance().Release();
 	TextureManager::Instance().Release();
 	LightManager::Instance().Release();
+	RayTracingManager::Instance().Release();
 
 #if defined(GRAPHICTIME)
 	fclose(stdout);

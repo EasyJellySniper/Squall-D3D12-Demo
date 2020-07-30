@@ -3,6 +3,7 @@
 #include <unordered_map>
 using namespace std;
 #include "Mesh.h"
+#include "DefaultBuffer.h"
 #include <d3d12.h>
 
 class MeshManager
@@ -25,12 +26,11 @@ public:
 	void Init();
 	bool AddMesh(int _instanceID, MeshData _mesh);
 	void Release();
-	Mesh *GetMesh(int _instanceID);
+	void CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
 
+	Mesh *GetMesh(int _instanceID);
 	D3D12_INPUT_ELEMENT_DESC* GetDefaultInputLayout();
 	UINT GetDefaultInputLayoutSize();
-
-	void BuildMeshRayTracing();
 
 private:
 	unordered_map<int, Mesh> meshes;

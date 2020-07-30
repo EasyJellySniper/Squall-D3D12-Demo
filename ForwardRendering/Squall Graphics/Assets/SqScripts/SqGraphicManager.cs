@@ -19,12 +19,6 @@ public class SqGraphicManager : MonoBehaviour
     static extern bool InitializeSqGraphic(int _numOfThreads);
 
     [DllImport("SquallGraphics")]
-    static extern void InitRayTracingInterface();
-
-    [DllImport("SquallGraphics")]
-    static extern void InitRayTracingMesh();
-
-    [DllImport("SquallGraphics")]
     static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, int _instance);
 
     [DllImport("SquallGraphics")]
@@ -113,15 +107,9 @@ public class SqGraphicManager : MonoBehaviour
             return;
         }
 
-        InitRayTracingInterface();
         InitLights();
 
         Debug.Log("[SqGraphicManager] Number of render threads: " + GetRenderThreadCount());
-    }
-
-    void Start()
-    {
-        InitRayTracingMesh();
     }
 
     void OnApplicationQuit()

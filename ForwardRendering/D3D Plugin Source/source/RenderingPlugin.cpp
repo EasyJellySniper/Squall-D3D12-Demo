@@ -9,6 +9,7 @@
 #include "VisualStudio2015/RendererManager.h"
 #include "VisualStudio2015/TextureManager.h"
 #include "VisualStudio2015/LightManager.h"
+#include "VisualStudio2015/RayTracingManager.h"
 
 #include <assert.h>
 
@@ -25,9 +26,9 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayTracingInterfa
 	GraphicManager::Instance().InitRayTracingInterface();
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayTracingMesh()
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayTracingInstance()
 {
-	MeshManager::Instance().BuildMeshRayTracing();
+	RayTracingManager::Instance().BuildMeshRayTracing();
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, int _texId)
