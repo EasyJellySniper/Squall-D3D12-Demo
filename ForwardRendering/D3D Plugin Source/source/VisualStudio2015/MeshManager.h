@@ -30,6 +30,8 @@ public:
 	D3D12_INPUT_ELEMENT_DESC* GetDefaultInputLayout();
 	UINT GetDefaultInputLayoutSize();
 
+	void BuildMeshRayTracing();
+
 private:
 	unordered_map<int, Mesh> meshes;
 	vector<D3D12_INPUT_ELEMENT_DESC> defaultInputLayout;

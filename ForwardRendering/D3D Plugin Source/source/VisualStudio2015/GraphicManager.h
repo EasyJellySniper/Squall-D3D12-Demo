@@ -50,9 +50,12 @@ public:
 	void RenderThread();
 	void WaitForRenderThread();
 	void WaitForGPU();
+	void ResetCreationList();
+	void ExecuteCreationList();
 	void ExecuteCommandList(int _listCount, ID3D12CommandList **_cmdList);
 	ID3D12Device *GetDevice();
 	ID3D12Device5* GetDxrDevice();
+	ID3D12GraphicsCommandList5* GetDxrList();
 	ID3D12QueryHeap *GetGpuTimeQuery();
 	ID3D12Resource *GetGpuTimeResult();
 	UINT GetRtvDesciptorSize();

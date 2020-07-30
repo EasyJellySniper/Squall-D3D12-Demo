@@ -36,6 +36,11 @@ public:
 	DefaultBuffer(const DefaultBuffer& rhs) = delete;
 	DefaultBuffer& operator=(const DefaultBuffer& rhs) = delete;
 
+	ID3D12Resource* Resource()
+	{
+		return defaultBuffer.Get();
+	}
+
 private:
 	ComPtr<ID3D12Resource> defaultBuffer;
 };

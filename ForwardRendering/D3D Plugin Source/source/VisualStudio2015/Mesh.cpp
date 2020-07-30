@@ -63,7 +63,6 @@ bool Mesh::Initialize(MeshData _mesh)
 		return false;
 	}
 
-	CreateBottomAccelerationStructure();
 	return true;
 }
 
@@ -101,7 +100,7 @@ SubMesh Mesh::GetSubMesh(int _index)
 	return submeshes[_index];
 }
 
-void Mesh::CreateBottomAccelerationStructure()
+void Mesh::CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	// create geometry desc
 	D3D12_RAYTRACING_GEOMETRY_FLAGS geometryFlags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
@@ -138,4 +137,8 @@ void Mesh::CreateBottomAccelerationStructure()
 
 	scratchBottom = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), bottomLevelPrebuildInfo.ScratchDataSizeInBytes, true, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	bottomLevelAS = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, true, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+	bottomLevelBuildDesc.ScratchAccelerationStructureData = scratchBottom->Resource()->GetGPUVirtualAddress();
+	bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelAS->Resource()->GetGPUVirtualAddress();
+
+	_dxrList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
 }

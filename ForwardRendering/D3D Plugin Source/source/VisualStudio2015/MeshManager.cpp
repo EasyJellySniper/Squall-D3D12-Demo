@@ -1,4 +1,5 @@
 #include "MeshManager.h"
+#include "GraphicManager.h"
 
 void MeshManager::Init()
 {
@@ -60,4 +61,16 @@ D3D12_INPUT_ELEMENT_DESC* MeshManager::GetDefaultInputLayout()
 UINT MeshManager::GetDefaultInputLayoutSize()
 {
 	return (UINT)defaultInputLayout.size();
+}
+
+void MeshManager::BuildMeshRayTracing()
+{
+	GraphicManager::Instance().ResetCreationList();
+	auto dxrCmd = GraphicManager::Instance().GetDxrList();
+	for (auto& m : meshes)
+	{
+		m.second.CreateBottomAccelerationStructure(dxrCmd);
+	}
+	GraphicManager::Instance().ExecuteCreationList();
+	GraphicManager::Instance().WaitForGPU();
 }

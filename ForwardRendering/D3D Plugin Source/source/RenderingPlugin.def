@@ -9,6 +9,7 @@ EXPORTS
    GetRenderEventFunc
    InitializeSqGraphic
    InitRayTracingInterface
+   InitRayTracingMesh
    InitSqLight
    ReleaseSqGraphic
    GetRenderThreadCount

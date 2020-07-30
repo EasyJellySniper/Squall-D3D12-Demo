@@ -331,6 +331,20 @@ void GraphicManager::WaitForGPU()
 	}
 }
 
+void GraphicManager::ResetCreationList()
+{
+	// use pre gfx 0 as creation list
+	LogIfFailedWithoutHR(preGfxAllocator[0]->Reset());
+	LogIfFailedWithoutHR(preGfxList[0]->Reset(preGfxAllocator[0].Get(), nullptr));
+}
+
+void GraphicManager::ExecuteCreationList()
+{
+	LogIfFailedWithoutHR(preGfxList[0]->Close());
+	ID3D12CommandList* cmd[] = { preGfxList[0].Get() };
+	ExecuteCommandList(1, cmd);
+}
+
 void GraphicManager::ExecuteCommandList(int _listCount, ID3D12CommandList** _cmdList)
 {
 	mainGraphicQueue->ExecuteCommandLists(_listCount, _cmdList);
@@ -367,6 +381,11 @@ ID3D12Device * GraphicManager::GetDevice()
 ID3D12Device5* GraphicManager::GetDxrDevice()
 {
 	return rayTracingDevice.Get();
+}
+
+ID3D12GraphicsCommandList5* GraphicManager::GetDxrList()
+{
+	return rayTracingCmd.Get();
 }
 
 ID3D12QueryHeap * GraphicManager::GetGpuTimeQuery()
