@@ -85,7 +85,7 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 
 	// setup DXIL library
 	auto lib = rayPsoDesc.CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
-	D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE((void*)_shader->GetDxcBlob()->GetBufferPointer(), _shader->GetDxcBlob()->GetBufferSize());
+	D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE(_shader->GetDxcBlob()->GetBufferPointer(), _shader->GetDxcBlob()->GetBufferSize());
 	lib->SetDXILLibrary(&libdxil);
 
 	// defined in HLSL
