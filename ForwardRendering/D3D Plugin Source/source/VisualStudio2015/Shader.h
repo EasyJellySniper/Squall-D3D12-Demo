@@ -20,11 +20,14 @@ public:
 	void SetDS(ComPtr<ID3DBlob> _input, string _entry);
 	void SetHS(ComPtr<ID3DBlob> _input, string _entry);
 	void SetGS(ComPtr<ID3DBlob> _input, string _entry);
-	void SetRayGen(ComPtr<IDxcBlob> _input, string _entry);
-	void SetClosestHit(ComPtr<IDxcBlob> _input, string _entry);
-	void SetMiss(ComPtr<IDxcBlob> _input, string _entry);
+	void SetRayGen(ComPtr<IDxcBlob> _input, wstring _entry);
+	void SetClosestHit(ComPtr<IDxcBlob> _input, wstring _entry);
+	void SetMiss(ComPtr<IDxcBlob> _input, wstring _entry);
+	void SetDxcBlob(ComPtr<IDxcBlobEncoding> _input);
 	void SetRS(ID3D12RootSignature* _rs);
 	void CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro);
+	void SetHitGroupName(wstring _hitGroup);
+	void SetPayloadSize(UINT _size);
 
 	ComPtr<ID3DBlob> GetVS();
 	ComPtr<ID3DBlob> GetPS();
@@ -35,11 +38,15 @@ public:
 	ComPtr<IDxcBlob> GetClosestHit();
 	ComPtr<IDxcBlob> GetMiss();
 	ID3D12RootSignature* GetRS();
+	IDxcBlobEncoding* GetDxcBlob();
+
 	bool IsSameKeyword(D3D_SHADER_MACRO *macro);
 
-	string GetRayGenName();
-	string GetClosestName();
-	string GetMissName();
+	wstring GetRayGenName();
+	wstring GetClosestName();
+	wstring GetMissName();
+	wstring GetHitGroup();
+	UINT GetPayloadSize();
 
 private:
 	int CalcKeywordUsage(D3D_SHADER_MACRO* macro);
@@ -53,6 +60,7 @@ private:
 	ComPtr<IDxcBlob> rayGenShader;
 	ComPtr<IDxcBlob> closestHitShader;
 	ComPtr<IDxcBlob> missShader;
+	ComPtr<IDxcBlobEncoding> dxcBlob;
 
 	string entryVS;
 	string entryPS;
@@ -60,9 +68,11 @@ private:
 	string entryDS;
 	string entryGS;
 	string entryRS;
-	string entryRayGen;
-	string entryClosest;
-	string entryMiss;
+	wstring entryRayGen;
+	wstring entryClosest;
+	wstring entryMiss;
+	wstring entryHitGroup;
+	UINT payloadSize = 0;
 
 	// rs will created by Shader Manager
 	ID3D12RootSignature* rootSignature;

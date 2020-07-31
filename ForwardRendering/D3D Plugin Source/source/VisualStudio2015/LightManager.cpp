@@ -90,6 +90,7 @@ void LightManager::Release()
 	skyboxTex.Release();
 	skyboxMat.Release();
 	skyboxRenderer.Release();
+	rtShadowMat.Release();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -393,9 +394,9 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 
 void LightManager::CreateRayTracingShadow()
 {
-	rtShadowShader = ShaderManager::Instance().CompileShader(L"RayTracingShadow.hlsl", nullptr);
+	Shader* rtShadowShader = ShaderManager::Instance().CompileShader(L"RayTracingShadow.hlsl", nullptr);
 	if (rtShadowShader != nullptr)
 	{
-
+		rtShadowMat = MaterialManager::Instance().CreateRayTracingMat(rtShadowShader);
 	}
 }

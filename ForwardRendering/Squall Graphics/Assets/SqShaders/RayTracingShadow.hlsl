@@ -1,10 +1,19 @@
 #pragma sq_raygen RTShadowRayGen
 #pragma sq_closesthit RTShadowClosestHit
 #pragma sq_miss RTShadowMiss
+#pragma sq_hitgroup RTShadowGroup
+#pragma sq_payloadsize 4
+
+TriangleHitGroup RTShadowGroup =
+{
+    "",                     // AnyHit
+    "RTShadowClosestHit",   // ClosestHit
+};
 
 struct RayPayload
 {
     float atten;
+    float3 padding;
 };
 
 [shader("raygeneration")]

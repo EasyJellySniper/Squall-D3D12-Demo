@@ -29,9 +29,10 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	entryDS = "";
 	entryGS = "";
 	entryRS = "";
-	entryRayGen = "";
-	entryClosest = "";
-	entryMiss = "";
+	entryRayGen = L"";
+	entryClosest = L"";
+	entryMiss = L"";
+	entryHitGroup = L"";
 
 	// collect data
 	CollectShaderData(_fileName);
@@ -45,9 +46,17 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"), entryGS);
 
 	// compile ray tracing shader (if we have)
-	newShader->SetRayGen(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3"), entryRayGen);
-	newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3"), entryClosest);
-	newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3"), entryMiss);
+	if (dxcLibrary != nullptr)
+	{
+		ComPtr<IDxcBlobEncoding> dxcBlob = nullptr;
+		LogIfFailedWithoutHR(dxcLibrary->CreateBlobFromFile((shaderPath + _fileName).c_str(), nullptr, dxcBlob.GetAddressOf()));
+
+		newShader->SetRayGen(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3", dxcBlob.Get()), entryRayGen);
+		newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3", dxcBlob.Get()), entryClosest);
+		newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3", dxcBlob.Get()), entryMiss);
+		newShader->SetDxcBlob(dxcBlob);
+		newShader->SetPayloadSize(sizeof(float) * payloadSize);
+	}
 	
 	// build rs
 	BuildRootSignature(newShader, _fileName);
@@ -122,9 +131,9 @@ ID3DBlob* ShaderManager::CompileFromFile(wstring _fileName, D3D_SHADER_MACRO* ma
 	return shaderBlob;
 }
 
-IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO* macro, string _entry, string _target)
+IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO* macro, wstring _entry, string _target, IDxcBlobEncoding *_dxcBlob)
 {
-	if (_entry == "")
+	if (_entry == L"")
 	{
 		return nullptr;
 	}
@@ -132,14 +141,11 @@ IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO*
 	// here is the ray tracing shader section
 	if (dxcCompiler != nullptr)
 	{
-		IDxcBlobEncoding* src;
-		LogIfFailedWithoutHR(dxcLibrary->CreateBlobFromFile(_fileName.c_str(), nullptr, &src));
-
 		IDxcOperationResult* result;
-		LPCWSTR entryW = AnsiToWString(_entry).c_str();
+		LPCWSTR entryW = (_entry).c_str();
 		LPCWSTR targetW = AnsiToWString(_target).c_str();
 
-		HRESULT hr = dxcCompiler->Compile(src, entryW, entryW, targetW, nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
+		HRESULT hr = dxcCompiler->Compile(_dxcBlob, entryW, entryW, targetW, nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
 		if (FAILED(hr))
 		{
 			ComPtr<IDxcBlobEncoding> printBlob, printBlobUtf8;
@@ -155,8 +161,6 @@ IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO*
 
 		IDxcBlob* pCode;
 		LogIfFailedWithoutHR(result->GetResult(&pCode));
-
-		src->Release();
 		result->Release();
 
 		return pCode;
@@ -265,19 +269,35 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			{
 				wstring rg;
 				is >> rg;
-				entryRayGen = WStringToAnsi(rg);
+				entryRayGen = rg;
 			}
 			else if (ss == L"sq_closesthit")
 			{
 				wstring cs;
 				is >> cs;
-				entryClosest = WStringToAnsi(cs);
+				entryClosest = cs;
 			}
 			else if (ss == L"sq_miss")
 			{
 				wstring ms;
 				is >> ms;
-				entryMiss = WStringToAnsi(ms);
+				entryMiss = ms;
+			}
+			else if (ss == L"sq_hitgroup")
+			{
+				wstring hg;
+				is >> hg;
+
+				// remove = follow by hit group name
+				hg = RemoveChars(hg, L"=");
+				entryHitGroup = hg;
+			}
+			else if (ss == L"sq_payloadsize")
+			{
+				wstring ps;
+				is >> ps;
+
+				payloadSize = stoi(ps);
 			}
 		}
 	}

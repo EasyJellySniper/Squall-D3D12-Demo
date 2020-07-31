@@ -102,5 +102,5 @@ private:
 	int pcfKernel;
 
 	// ray tracing material
-	Shader* rtShadowShader;
+	Material rtShadowMat;
 };

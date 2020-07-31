@@ -37,7 +37,7 @@ public:
 
 private:
 	ID3DBlob *CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *macro, string _entry, string _target);
-	IDxcBlob *CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO* macro, string _entry, string _target);
+	IDxcBlob *CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO* macro, wstring _entry, string _target, IDxcBlobEncoding *_dxcBlob);
 	void CollectShaderData(wstring _fileName);
 	void ParseShaderLine(wstring _input);
 	void BuildRootSignature(unique_ptr<Shader>& _shader, wstring _fileName);
@@ -55,9 +55,11 @@ private:
 	string entryDS;
 	string entryGS;
 	string entryRS;
-	string entryRayGen;
-	string entryClosest;
-	string entryMiss;
+	wstring entryRayGen;
+	wstring entryClosest;
+	wstring entryMiss;
+	wstring entryHitGroup;
+	int payloadSize;
 
 	// ray tracing compiler
 	ComPtr<IDxcCompiler> dxcCompiler = nullptr;

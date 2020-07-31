@@ -15,6 +15,7 @@ void Shader::Release()
 	rayGenShader.Reset();
 	closestHitShader.Reset();
 	missShader.Reset();
+	dxcBlob.Reset();
 
 	for (int i = 0; i < MAX_KEYWORD; i++)
 	{
@@ -57,22 +58,27 @@ void Shader::SetGS(ComPtr<ID3DBlob> _input, string _entry)
 	entryGS = _entry;
 }
 
-void Shader::SetRayGen(ComPtr<IDxcBlob> _input, string _entry)
+void Shader::SetRayGen(ComPtr<IDxcBlob> _input, wstring _entry)
 {
 	rayGenShader = _input;
 	entryRayGen = _entry;
 }
 
-void Shader::SetClosestHit(ComPtr<IDxcBlob> _input, string _entry)
+void Shader::SetClosestHit(ComPtr<IDxcBlob> _input, wstring _entry)
 {
 	closestHitShader = _input;
 	entryClosest = _entry;
 }
 
-void Shader::SetMiss(ComPtr<IDxcBlob> _input, string _entry)
+void Shader::SetMiss(ComPtr<IDxcBlob> _input, wstring _entry)
 {
 	missShader = _input;
 	entryMiss = _entry;
+}
+
+void Shader::SetDxcBlob(ComPtr<IDxcBlobEncoding> _input)
+{
+	dxcBlob = _input;
 }
 
 void Shader::SetRS(ID3D12RootSignature* _rs)
@@ -102,6 +108,16 @@ void Shader::CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro
 	{
 		keywordUsage = 0;
 	}
+}
+
+void Shader::SetHitGroupName(wstring _hitGroup)
+{
+	entryHitGroup = _hitGroup;
+}
+
+void Shader::SetPayloadSize(UINT _size)
+{
+	payloadSize = _size;
 }
 
 ComPtr<ID3DBlob> Shader::GetVS()
@@ -149,6 +165,11 @@ ID3D12RootSignature* Shader::GetRS()
 	return rootSignature;
 }
 
+IDxcBlobEncoding* Shader::GetDxcBlob()
+{
+	return dxcBlob.Get();
+}
+
 bool Shader::IsSameKeyword(D3D_SHADER_MACRO* macro)
 {
 	if (macro == nullptr)
@@ -171,19 +192,29 @@ bool Shader::IsSameKeyword(D3D_SHADER_MACRO* macro)
 	return false;
 }
 
-string Shader::GetRayGenName()
+wstring Shader::GetRayGenName()
 {
 	return entryRayGen;
 }
 
-string Shader::GetClosestName()
+wstring Shader::GetClosestName()
 {
 	return entryClosest;
 }
 
-string Shader::GetMissName()
+wstring Shader::GetMissName()
 {
 	return entryMiss;
+}
+
+wstring Shader::GetHitGroup()
+{
+	return entryHitGroup;
+}
+
+UINT Shader::GetPayloadSize()
+{
+	return payloadSize;
 }
 
 int Shader::CalcKeywordUsage(D3D_SHADER_MACRO* macro)
