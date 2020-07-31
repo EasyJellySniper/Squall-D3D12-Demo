@@ -21,11 +21,6 @@ extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitializeSqGraphic(i
 	return s_CurrentAPI->CheckDevice();
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayTracingInterface()
-{
-	GraphicManager::Instance().InitRayTracingInterface();
-}
-
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayTracingInstance()
 {
 	RayTracingManager::Instance().InitRayTracingInstance();

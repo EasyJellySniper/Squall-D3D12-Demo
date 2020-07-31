@@ -35,6 +35,7 @@ bool GraphicManager::Initialize(ID3D12Device* _device, int _numOfThreads)
 		systemConstantGPU[i] = make_unique<UploadBuffer<SystemConstant>>(_device, 1, true);
 	}
     
+	InitRayTracingInterface();
 	return initSucceed;
 }
 
