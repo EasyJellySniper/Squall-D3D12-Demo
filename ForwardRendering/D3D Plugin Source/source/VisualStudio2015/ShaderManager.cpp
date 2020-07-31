@@ -38,16 +38,16 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	newShader->CollectAllKeyword(keywordGroup, macro);
 
 	// actually compile shader
-	newShader->SetVS(CompileFromFile(shaderPath + _fileName, macro, entryVS, "vs_5_1"));
-	newShader->SetPS(CompileFromFile(shaderPath + _fileName, macro, entryPS, "ps_5_1"));
-	newShader->SetHS(CompileFromFile(shaderPath + _fileName, macro, entryHS, "hs_5_1"));
-	newShader->SetDS(CompileFromFile(shaderPath + _fileName, macro, entryDS, "ds_5_1"));
-	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"));
+	newShader->SetVS(CompileFromFile(shaderPath + _fileName, macro, entryVS, "vs_5_1"), entryVS);
+	newShader->SetPS(CompileFromFile(shaderPath + _fileName, macro, entryPS, "ps_5_1"), entryPS);
+	newShader->SetHS(CompileFromFile(shaderPath + _fileName, macro, entryHS, "hs_5_1"), entryHS);
+	newShader->SetDS(CompileFromFile(shaderPath + _fileName, macro, entryDS, "ds_5_1"), entryDS);
+	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"), entryGS);
 
 	// compile ray tracing shader (if we have)
-	newShader->SetRayGen(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3"));
-	newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3"));
-	newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3"));
+	newShader->SetRayGen(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3"), entryRayGen);
+	newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3"), entryClosest);
+	newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3"), entryMiss);
 	
 	// build rs
 	BuildRootSignature(newShader, _fileName);

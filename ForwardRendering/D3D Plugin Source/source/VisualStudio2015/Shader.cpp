@@ -27,44 +27,52 @@ wstring Shader::GetName()
 	return name;
 }
 
-void Shader::SetVS(ComPtr<ID3DBlob> _input)
+void Shader::SetVS(ComPtr<ID3DBlob> _input, string _entry)
 {
 	vertexShader = _input;
+	entryVS = _entry;
 }
 
-void Shader::SetPS(ComPtr<ID3DBlob> _input)
+void Shader::SetPS(ComPtr<ID3DBlob> _input, string _entry)
 {
 	pixelShader = _input;
+	entryPS = _entry;
 }
 
-void Shader::SetHS(ComPtr<ID3DBlob> _input)
+void Shader::SetHS(ComPtr<ID3DBlob> _input, string _entry)
 {
 	hullShader = _input;
+	entryHS = _entry;
 }
 
-void Shader::SetDS(ComPtr<ID3DBlob> _input)
+void Shader::SetDS(ComPtr<ID3DBlob> _input, string _entry)
 {
 	domainShader = _input;
+	entryDS = _entry;
 }
 
-void Shader::SetGS(ComPtr<ID3DBlob> _input)
+void Shader::SetGS(ComPtr<ID3DBlob> _input, string _entry)
 {
 	geometryShader = _input;
+	entryGS = _entry;
 }
 
-void Shader::SetRayGen(ComPtr<IDxcBlob> _input)
+void Shader::SetRayGen(ComPtr<IDxcBlob> _input, string _entry)
 {
 	rayGenShader = _input;
+	entryRayGen = _entry;
 }
 
-void Shader::SetClosestHit(ComPtr<IDxcBlob> _input)
+void Shader::SetClosestHit(ComPtr<IDxcBlob> _input, string _entry)
 {
 	closestHitShader = _input;
+	entryClosest = _entry;
 }
 
-void Shader::SetMiss(ComPtr<IDxcBlob> _input)
+void Shader::SetMiss(ComPtr<IDxcBlob> _input, string _entry)
 {
 	missShader = _input;
+	entryMiss = _entry;
 }
 
 void Shader::SetRS(ID3D12RootSignature* _rs)
@@ -161,6 +169,21 @@ bool Shader::IsSameKeyword(D3D_SHADER_MACRO* macro)
 	}
 
 	return false;
+}
+
+string Shader::GetRayGenName()
+{
+	return entryRayGen;
+}
+
+string Shader::GetClosestName()
+{
+	return entryClosest;
+}
+
+string Shader::GetMissName()
+{
+	return entryMiss;
 }
 
 int Shader::CalcKeywordUsage(D3D_SHADER_MACRO* macro)
