@@ -1,9 +1,14 @@
 #include "ShaderManager.h"
 #include <d3dcompiler.h>
-#pragma comment(lib,"d3d12.lib")
-#pragma comment(lib,"d3dcompiler.lib")
 #include "GraphicManager.h"
 #include <sstream>
+
+void ShaderManager::Init()
+{
+	LogIfFailedWithoutHR(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(dxcCompiler.GetAddressOf())));
+	LogIfFailedWithoutHR(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(dxcLibrary.GetAddressOf())));
+	LogIfFailedWithoutHR(dxcLibrary->CreateIncludeHandler(dxcIncluder.GetAddressOf()));
+}
 
 Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 {
@@ -40,10 +45,11 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"));
 
 	// compile ray tracing shader (if we have)
-	newShader->SetRayGen(CompileFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3"));
-	newShader->SetClosestHit(CompileFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3"));
-	newShader->SetMiss(CompileFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3"));
-
+	//newShader->SetRayGen(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3"));
+	//newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3"));
+	//newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3"));
+	
+	// build rs
 	BuildRootSignature(newShader, _fileName);
 
 	if (ValidShader(newShader.get()))
@@ -77,6 +83,10 @@ void ShaderManager::Release()
 	rsCache.clear();
 	keywordGroup.clear();
 	includeFile.clear();
+
+	dxcCompiler.Reset();
+	dxcLibrary.Reset();
+	dxcIncluder.Reset();
 }
 
 Shader *ShaderManager::FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro)
@@ -92,15 +102,15 @@ Shader *ShaderManager::FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro)
 	return nullptr;
 }
 
-ID3DBlob *ShaderManager::CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *macro, string _entry, string _target)
+ID3DBlob* ShaderManager::CompileFromFile(wstring _fileName, D3D_SHADER_MACRO* macro, string _entry, string _target)
 {
 	if (_entry == "")
 	{
 		return nullptr;
 	}
 
-	ID3DBlob *shaderBlob;
-	ID3DBlob *errorMsg;
+	ID3DBlob* shaderBlob;
+	ID3DBlob* errorMsg;
 	HRESULT hr = D3DCompileFromFile(_fileName.c_str(), macro, D3D_COMPILE_STANDARD_FILE_INCLUDE, _entry.c_str(), _target.c_str(), D3DCOMPILE_ENABLE_UNBOUNDED_DESCRIPTOR_TABLES, 0, &shaderBlob, &errorMsg);
 
 	if (FAILED(hr))
@@ -110,6 +120,42 @@ ID3DBlob *ShaderManager::CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *ma
 	}
 
 	return shaderBlob;
+}
+
+IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO* macro, string _entry, string _target)
+{
+	if (_entry == "")
+	{
+		return nullptr;
+	}
+
+	// here is the ray tracing shader section
+	if (dxcCompiler != nullptr)
+	{
+		IDxcBlobEncoding* src;
+		LogIfFailedWithoutHR(dxcLibrary->CreateBlobFromFile(_fileName.c_str(), nullptr, &src));
+
+		IDxcOperationResult* result;
+		LPCWSTR entryW = AnsiToWString(_entry).c_str();
+		LPCWSTR targetW = AnsiToWString(_target).c_str();
+
+		HRESULT hr = dxcCompiler->Compile(src, entryW, entryW, targetW, nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
+		if (FAILED(hr))
+		{
+			ID3DBlob** errorMsg = nullptr;
+			result->GetErrorBuffer((IDxcBlobEncoding**)errorMsg);
+			string msg = (char*)errorMsg[0]->GetBufferPointer();
+			LogMessage(L"[SqGraphic Error] " + AnsiToWString(msg));
+		}
+
+		src->Release();
+
+		IDxcBlob* pCode;
+		LogIfFailedWithoutHR(result->GetResult(&pCode));
+		return pCode;
+	}
+
+	return nullptr;
 }
 
 void ShaderManager::CollectShaderData(wstring _fileName)

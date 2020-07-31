@@ -80,6 +80,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	RendererManager::Instance().Init();
 	MaterialManager::Instance().Init();
 	TextureManager::Instance().Init(mainDevice);
+	ShaderManager::Instance().Init();
 
 #if defined(GRAPHICTIME)
 	AllocConsole();

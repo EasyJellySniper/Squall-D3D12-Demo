@@ -52,17 +52,17 @@ void Shader::SetGS(ComPtr<ID3DBlob> _input)
 	geometryShader = _input;
 }
 
-void Shader::SetRayGen(ComPtr<ID3DBlob> _input)
+void Shader::SetRayGen(ComPtr<IDxcBlob> _input)
 {
 	rayGenShader = _input;
 }
 
-void Shader::SetClosestHit(ComPtr<ID3DBlob> _input)
+void Shader::SetClosestHit(ComPtr<IDxcBlob> _input)
 {
 	closestHitShader = _input;
 }
 
-void Shader::SetMiss(ComPtr<ID3DBlob> _input)
+void Shader::SetMiss(ComPtr<IDxcBlob> _input)
 {
 	missShader = _input;
 }
@@ -121,17 +121,17 @@ ComPtr<ID3DBlob> Shader::GetGS()
 	return geometryShader;
 }
 
-ComPtr<ID3DBlob> Shader::GetRayGen()
+ComPtr<IDxcBlob> Shader::GetRayGen()
 {
 	return rayGenShader;
 }
 
-ComPtr<ID3DBlob> Shader::GetClosestHit()
+ComPtr<IDxcBlob> Shader::GetClosestHit()
 {
 	return closestHitShader;
 }
 
-ComPtr<ID3DBlob> Shader::GetMiss()
+ComPtr<IDxcBlob> Shader::GetMiss()
 {
 	return missShader;
 }

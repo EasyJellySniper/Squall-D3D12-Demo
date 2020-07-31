@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include <dxcapi.h>
 #include "d3dx12.h"
 using namespace std;
 
@@ -26,6 +27,7 @@ public:
 		return instance;
 	}
 
+	void Init();
 	ShaderManager() {}
 	~ShaderManager() {}
 
@@ -35,6 +37,7 @@ public:
 
 private:
 	ID3DBlob *CompileFromFile(wstring _fileName, D3D_SHADER_MACRO *macro, string _entry, string _target);
+	IDxcBlob *CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO* macro, string _entry, string _target);
 	void CollectShaderData(wstring _fileName);
 	void ParseShaderLine(wstring _input);
 	void BuildRootSignature(unique_ptr<Shader>& _shader, wstring _fileName);
@@ -55,4 +58,9 @@ private:
 	string entryRayGen;
 	string entryClosest;
 	string entryMiss;
+
+	// ray tracing compiler
+	ComPtr<IDxcCompiler> dxcCompiler = nullptr;
+	ComPtr<IDxcLibrary> dxcLibrary = nullptr;
+	ComPtr<IDxcIncludeHandler> dxcIncluder = nullptr;
 };
