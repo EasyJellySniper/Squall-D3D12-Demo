@@ -56,6 +56,8 @@ public:
 
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
+	CD3DX12_STATE_OBJECT_DESC dxcPsoDesc;
+
 	ComPtr<ID3D12PipelineState> pso;
 	ComPtr<ID3D12StateObject> dxcPso;
 	shared_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];

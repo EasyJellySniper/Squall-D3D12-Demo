@@ -7,8 +7,10 @@ bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 
 	psoDesc = _desc;
 	pso.Reset();
+
 	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&pso)), hr);
 	validMaterial = SUCCEEDED(hr);
+
 	isDirty = true;
 
 	return validMaterial;
@@ -17,6 +19,10 @@ bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 void Material::CreateDxcPso(CD3DX12_STATE_OBJECT_DESC _desc)
 {
 	HRESULT hr = S_OK;
+
+	dxcPsoDesc = _desc;
+	dxcPso.Reset();
+
 	LogIfFailed(GraphicManager::Instance().GetDxrDevice()->CreateStateObject(_desc, IID_PPV_ARGS(&dxcPso)), hr);
 	validMaterial = SUCCEEDED(hr);
 }
