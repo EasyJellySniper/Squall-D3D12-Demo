@@ -40,7 +40,7 @@ class Material
 {
 public:
 	bool CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc);
-	void CreateDxcPso(CD3DX12_STATE_OBJECT_DESC _desc);
+	void CreateDxcPso(ComPtr<ID3D12StateObject> _pso);
 	void AddMaterialConstant(UINT _byteSize, void* _data);
 	void Release();
 	void SetRenderQueue(int _queue);

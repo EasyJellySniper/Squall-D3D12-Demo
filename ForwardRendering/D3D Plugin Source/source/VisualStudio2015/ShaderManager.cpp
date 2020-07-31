@@ -51,11 +51,12 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	if (dxcLibrary != nullptr)
 	{
 		ComPtr<IDxcBlobEncoding> dxcBlob = nullptr;
-		LogIfFailedWithoutHR(dxcLibrary->CreateBlobFromFile((shaderPath + _fileName).c_str(), nullptr, dxcBlob.GetAddressOf()));
+		uint32_t codePage = CP_UTF8;
+		LogIfFailedWithoutHR(dxcLibrary->CreateBlobFromFile((shaderPath + _fileName).c_str(), &codePage, dxcBlob.GetAddressOf()));
 
-		newShader->SetRayGen(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3", dxcBlob.Get()), entryRayGen);
-		newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3", dxcBlob.Get()), entryClosest);
-		newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3", dxcBlob.Get()), entryMiss);
+		newShader->SetRayGen(CompileDxcFromFile(_fileName, nullptr, entryRayGen, "lib_6_3", dxcBlob.Get()), entryRayGen);
+		newShader->SetClosestHit(CompileDxcFromFile(_fileName, nullptr, entryClosest, "lib_6_3", dxcBlob.Get()), entryClosest);
+		newShader->SetMiss(CompileDxcFromFile(_fileName, nullptr, entryMiss, "lib_6_3", dxcBlob.Get()), entryMiss);
 		newShader->SetDxcBlob(dxcBlob);
 		newShader->SetHitGroupName(entryHitGroup);
 		newShader->SetRtConfig(rtShaderConfig, rtPipelineConfig);
@@ -148,7 +149,7 @@ IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO*
 		LPCWSTR entryW = (_entry).c_str();
 		LPCWSTR targetW = AnsiToWString(_target).c_str();
 
-		HRESULT hr = dxcCompiler->Compile(_dxcBlob, entryW, entryW, targetW, nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
+		HRESULT hr = dxcCompiler->Compile(_dxcBlob, _fileName.c_str(), entryW, targetW, nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
 		if (FAILED(hr))
 		{
 			ComPtr<IDxcBlobEncoding> printBlob, printBlobUtf8;

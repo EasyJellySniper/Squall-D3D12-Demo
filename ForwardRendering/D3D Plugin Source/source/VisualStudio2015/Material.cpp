@@ -16,15 +16,11 @@ bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 	return validMaterial;
 }
 
-void Material::CreateDxcPso(CD3DX12_STATE_OBJECT_DESC _desc)
+void Material::CreateDxcPso(ComPtr<ID3D12StateObject> _pso)
 {
-	HRESULT hr = S_OK;
+	dxcPso = _pso;
 
-	dxcPsoDesc = _desc;
-	dxcPso.Reset();
-
-	LogIfFailed(GraphicManager::Instance().GetDxrDevice()->CreateStateObject(_desc, IID_PPV_ARGS(&dxcPso)), hr);
-	validMaterial = SUCCEEDED(hr);
+	validMaterial = (dxcPso != nullptr);
 }
 
 void Material::AddMaterialConstant(UINT _byteSize, void* _data)

@@ -3,6 +3,7 @@
 #include "MeshManager.h"
 #include "ShaderManager.h"
 #include "CameraManager.h"
+#include "GraphicManager.h"
 
 void MaterialManager::Init()
 {
@@ -84,7 +85,8 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 
 	// setup DXIL library
 	auto lib = rayPsoDesc.CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
-	lib->SetDXILLibrary((D3D12_SHADER_BYTECODE*)_shader->GetDxcBlob()->GetBufferPointer());
+	D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE((void*)_shader->GetDxcBlob()->GetBufferPointer(), _shader->GetDxcBlob()->GetBufferSize());
+	lib->SetDXILLibrary(&libdxil);
 
 	// defined in HLSL
 	lib->DefineExport(_shader->GetRayGenName().c_str());
@@ -94,8 +96,12 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 	lib->DefineExport(_shader->GetRtShaderConfig().c_str());
 	lib->DefineExport(_shader->GetRtPipelineConfig().c_str());
 
+	HRESULT hr = S_OK;
+	ComPtr<ID3D12StateObject> dxcPso;
+	LogIfFailed(GraphicManager::Instance().GetDxrDevice()->CreateStateObject(rayPsoDesc, IID_PPV_ARGS(&dxcPso)), hr);
+
 	Material result;
-	result.CreateDxcPso(rayPsoDesc);
+	result.CreateDxcPso(dxcPso);
 	return result;
 }
 
