@@ -299,12 +299,16 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			{
 				wstring rtsc;
 				is >> rtsc;
+
+				rtsc = RemoveChars(rtsc, L"=");
 				rtShaderConfig = rtsc;
 			}
 			else if (ss == L"sq_rtpipelineconfig")
 			{
 				wstring rtpc;
 				is >> rtpc;
+
+				rtpc = RemoveChars(rtpc, L"=");
 				rtPipelineConfig = rtpc;
 			}
 		}
@@ -358,7 +362,8 @@ bool ShaderManager::ValidShader(Shader *_shader)
 	}
 
 	// or it is a ray tracing shader
-	if (_shader->GetRayGen() != nullptr && _shader->GetClosestHit() != nullptr && _shader->GetMiss() != nullptr)
+	if (_shader->GetRayGen() != nullptr && _shader->GetClosestHit() != nullptr && _shader->GetMiss() != nullptr
+		&& _shader->GetHitGroup() != L"" && _shader->GetRtShaderConfig() != L"" && _shader->GetRtPipelineConfig() != L"")
 	{
 		return true;
 	}
