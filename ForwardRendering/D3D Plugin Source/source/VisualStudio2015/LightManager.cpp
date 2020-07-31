@@ -37,6 +37,7 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 	}
 
 	CreateOpaqueShadow(_opaqueShadowID, _opaqueShadows);
+	CreateRayTracingShadow();
 }
 
 void LightManager::InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw)
@@ -388,4 +389,13 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	}
 
 	shadowSampler.CreateSamplerHeap(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true);
+}
+
+void LightManager::CreateRayTracingShadow()
+{
+	rtShadowShader = ShaderManager::Instance().CompileShader(L"RayTracingShadow.hlsl", nullptr);
+	if (rtShadowShader != nullptr)
+	{
+
+	}
 }

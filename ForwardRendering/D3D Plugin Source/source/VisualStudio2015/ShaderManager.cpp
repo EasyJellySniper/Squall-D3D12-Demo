@@ -5,7 +5,7 @@
 #include "GraphicManager.h"
 #include <sstream>
 
-Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro, bool _ignoreInputLayout)
+Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 {
 	Shader* targetShader = FindShader(_fileName, macro);
 	if (targetShader != nullptr)
@@ -272,6 +272,12 @@ bool ShaderManager::ValidShader(Shader *_shader)
 {
 	// a valid shader has at least one vertex shader and one pixel shader
 	if (_shader->GetVS() != nullptr && _shader->GetPS() != nullptr && _shader->GetRS() != nullptr)
+	{
+		return true;
+	}
+
+	// or it is a ray tracing shader
+	if (_shader->GetRayGen() != nullptr && _shader->GetClosestHit() != nullptr && _shader->GetMiss() != nullptr)
 	{
 		return true;
 	}

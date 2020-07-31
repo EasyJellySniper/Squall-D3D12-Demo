@@ -29,7 +29,7 @@ public:
 	ShaderManager() {}
 	~ShaderManager() {}
 
-	Shader *CompileShader(wstring _fileName, D3D_SHADER_MACRO *macro = nullptr, bool _ignoreInputLayout = false);
+	Shader *CompileShader(wstring _fileName, D3D_SHADER_MACRO *macro = nullptr);
 	Shader *FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro = nullptr);
 	void Release();
 

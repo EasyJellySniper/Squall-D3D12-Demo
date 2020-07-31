@@ -67,6 +67,7 @@ private:
 	int AddSpotLight(int _instanceID, SqLightData _data);
 	void AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void CreateOpaqueShadow(int _instanceID, void *_opaqueShadows);
+	void CreateRayTracingShadow();
 
 	// light data
 	int maxDirLight;
@@ -99,4 +100,7 @@ private:
 	Sampler shadowSampler;
 	int collectShadowID;
 	int pcfKernel;
+
+	// ray tracing material
+	Shader* rtShadowShader;
 };
