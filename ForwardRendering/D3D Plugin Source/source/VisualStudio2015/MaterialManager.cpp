@@ -85,16 +85,17 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 
 	// setup DXIL library
 	auto lib = rayPsoDesc.CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
-	D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE(_shader->GetDxcBlob()->GetBufferPointer(), _shader->GetDxcBlob()->GetBufferSize());
+	D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE(_shader->GetRTS()->GetBufferPointer(), _shader->GetRTS()->GetBufferSize());
 	lib->SetDXILLibrary(&libdxil);
 
 	// defined in HLSL
-	lib->DefineExport(_shader->GetRayGenName().c_str());
-	lib->DefineExport(_shader->GetClosestName().c_str());
-	lib->DefineExport(_shader->GetMissName().c_str());
-	lib->DefineExport(_shader->GetHitGroup().c_str());
-	lib->DefineExport(_shader->GetRtShaderConfig().c_str());
-	lib->DefineExport(_shader->GetRtPipelineConfig().c_str());
+	RayTracingShaderEntry rtse = _shader->GetRTSEntry();
+	lib->DefineExport(rtse.entryRayGen.c_str());
+	lib->DefineExport(rtse.entryClosest.c_str());
+	lib->DefineExport(rtse.entryMiss.c_str());
+	lib->DefineExport(rtse.entryHitGroup.c_str());
+	lib->DefineExport(rtse.rtShaderConfig.c_str());
+	lib->DefineExport(rtse.rtPipelineConfig.c_str());
 
 	HRESULT hr = S_OK;
 	ComPtr<ID3D12StateObject> dxcPso;

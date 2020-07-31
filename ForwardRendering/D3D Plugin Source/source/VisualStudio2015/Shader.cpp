@@ -12,10 +12,7 @@ void Shader::Release()
 	domainShader.Reset();
 	hullShader.Reset();
 	geometryShader.Reset();
-	rayGenShader.Reset();
-	closestHitShader.Reset();
-	missShader.Reset();
-	dxcBlob.Reset();
+	raytracingShader.Reset();
 
 	for (int i = 0; i < MAX_KEYWORD; i++)
 	{
@@ -58,27 +55,10 @@ void Shader::SetGS(ComPtr<ID3DBlob> _input, string _entry)
 	entryGS = _entry;
 }
 
-void Shader::SetRayGen(ComPtr<IDxcBlob> _input, wstring _entry)
+void Shader::SetRTS(ComPtr<IDxcBlob> _input, RayTracingShaderEntry _rtsEntry)
 {
-	rayGenShader = _input;
-	entryRayGen = _entry;
-}
-
-void Shader::SetClosestHit(ComPtr<IDxcBlob> _input, wstring _entry)
-{
-	closestHitShader = _input;
-	entryClosest = _entry;
-}
-
-void Shader::SetMiss(ComPtr<IDxcBlob> _input, wstring _entry)
-{
-	missShader = _input;
-	entryMiss = _entry;
-}
-
-void Shader::SetDxcBlob(ComPtr<IDxcBlobEncoding> _input)
-{
-	dxcBlob = _input;
+	raytracingShader = _input;
+	entryRayTracing = _rtsEntry;
 }
 
 void Shader::SetRS(ID3D12RootSignature* _rs)
@@ -110,17 +90,6 @@ void Shader::CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro
 	}
 }
 
-void Shader::SetHitGroupName(wstring _hitGroup)
-{
-	entryHitGroup = _hitGroup;
-}
-
-void Shader::SetRtConfig(wstring _shaderConfig, wstring _pipelineConfig)
-{
-	rtShaderConfig = _shaderConfig;
-	rtPipelineConfig = _pipelineConfig;
-}
-
 ComPtr<ID3DBlob> Shader::GetVS()
 {
 	return vertexShader;
@@ -146,29 +115,14 @@ ComPtr<ID3DBlob> Shader::GetGS()
 	return geometryShader;
 }
 
-ComPtr<IDxcBlob> Shader::GetRayGen()
-{
-	return rayGenShader;
-}
-
-ComPtr<IDxcBlob> Shader::GetClosestHit()
-{
-	return closestHitShader;
-}
-
-ComPtr<IDxcBlob> Shader::GetMiss()
-{
-	return missShader;
-}
-
 ID3D12RootSignature* Shader::GetRS()
 {
 	return rootSignature;
 }
 
-IDxcBlobEncoding* Shader::GetDxcBlob()
+IDxcBlob* Shader::GetRTS()
 {
-	return dxcBlob.Get();
+	return raytracingShader.Get();
 }
 
 bool Shader::IsSameKeyword(D3D_SHADER_MACRO* macro)
@@ -193,34 +147,9 @@ bool Shader::IsSameKeyword(D3D_SHADER_MACRO* macro)
 	return false;
 }
 
-wstring Shader::GetRayGenName()
+RayTracingShaderEntry Shader::GetRTSEntry()
 {
-	return entryRayGen;
-}
-
-wstring Shader::GetClosestName()
-{
-	return entryClosest;
-}
-
-wstring Shader::GetMissName()
-{
-	return entryMiss;
-}
-
-wstring Shader::GetHitGroup()
-{
-	return entryHitGroup;
-}
-
-wstring Shader::GetRtShaderConfig()
-{
-	return rtShaderConfig;
-}
-
-wstring Shader::GetRtPipelineConfig()
-{
-	return rtPipelineConfig;
+	return entryRayTracing;
 }
 
 int Shader::CalcKeywordUsage(D3D_SHADER_MACRO* macro)

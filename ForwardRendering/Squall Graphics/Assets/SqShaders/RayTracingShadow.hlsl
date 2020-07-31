@@ -8,8 +8,7 @@
 TriangleHitGroup RTShadowGroup =
 {
     "",                     // AnyHit
-    "RTShadowClosestHit",   // ClosestHit
-    ""  // intersection
+    "RTShadowClosestHit"   // ClosestHit
 };
 
 RaytracingShaderConfig RTShadowConfig =

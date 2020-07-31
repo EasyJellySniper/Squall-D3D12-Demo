@@ -7,6 +7,27 @@ using namespace Microsoft::WRL;
 #include <unordered_map>
 #include <dxcapi.h>
 
+struct RayTracingShaderEntry
+{
+public:
+	bool Valid()
+	{
+		return (entryRayGen != L"" 
+			&& entryClosest != L"" 
+			&& entryMiss != L""
+			&& entryHitGroup != L""
+			&& rtShaderConfig != L""
+			&& rtPipelineConfig != L"");
+	}
+
+	wstring entryRayGen;
+	wstring entryClosest;
+	wstring entryMiss;
+	wstring entryHitGroup;
+	wstring rtShaderConfig;
+	wstring rtPipelineConfig;
+};
+
 class Shader
 {
 public:
@@ -20,34 +41,20 @@ public:
 	void SetDS(ComPtr<ID3DBlob> _input, string _entry);
 	void SetHS(ComPtr<ID3DBlob> _input, string _entry);
 	void SetGS(ComPtr<ID3DBlob> _input, string _entry);
-	void SetRayGen(ComPtr<IDxcBlob> _input, wstring _entry);
-	void SetClosestHit(ComPtr<IDxcBlob> _input, wstring _entry);
-	void SetMiss(ComPtr<IDxcBlob> _input, wstring _entry);
-	void SetDxcBlob(ComPtr<IDxcBlobEncoding> _input);
+	void SetRTS(ComPtr<IDxcBlob> _input, RayTracingShaderEntry _rtsEntry);
 	void SetRS(ID3D12RootSignature* _rs);
 	void CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro);
-	void SetHitGroupName(wstring _hitGroup);
-	void SetRtConfig(wstring _shaderConfig, wstring _pipelineConfig);
 
 	ComPtr<ID3DBlob> GetVS();
 	ComPtr<ID3DBlob> GetPS();
 	ComPtr<ID3DBlob> GetDS();
 	ComPtr<ID3DBlob> GetHS();
 	ComPtr<ID3DBlob> GetGS();
-	ComPtr<IDxcBlob> GetRayGen();
-	ComPtr<IDxcBlob> GetClosestHit();
-	ComPtr<IDxcBlob> GetMiss();
 	ID3D12RootSignature* GetRS();
-	IDxcBlobEncoding* GetDxcBlob();
+	IDxcBlob* GetRTS();
 
 	bool IsSameKeyword(D3D_SHADER_MACRO *macro);
-
-	wstring GetRayGenName();
-	wstring GetClosestName();
-	wstring GetMissName();
-	wstring GetHitGroup();
-	wstring GetRtShaderConfig();
-	wstring GetRtPipelineConfig();
+	RayTracingShaderEntry GetRTSEntry();
 
 private:
 	int CalcKeywordUsage(D3D_SHADER_MACRO* macro);
@@ -58,10 +65,7 @@ private:
 	ComPtr<ID3DBlob> domainShader;
 	ComPtr<ID3DBlob> hullShader;
 	ComPtr<ID3DBlob> geometryShader;
-	ComPtr<IDxcBlob> rayGenShader;
-	ComPtr<IDxcBlob> closestHitShader;
-	ComPtr<IDxcBlob> missShader;
-	ComPtr<IDxcBlobEncoding> dxcBlob;
+	ComPtr<IDxcBlob> raytracingShader;
 
 	string entryVS;
 	string entryPS;
@@ -69,12 +73,7 @@ private:
 	string entryDS;
 	string entryGS;
 	string entryRS;
-	wstring entryRayGen;
-	wstring entryClosest;
-	wstring entryMiss;
-	wstring entryHitGroup;
-	wstring rtShaderConfig;
-	wstring rtPipelineConfig;
+	RayTracingShaderEntry entryRayTracing;
 
 	// rs will created by Shader Manager
 	ID3D12RootSignature* rootSignature;

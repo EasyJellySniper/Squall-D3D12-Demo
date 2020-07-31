@@ -50,16 +50,18 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	// compile ray tracing shader (if we have)
 	if (dxcLibrary != nullptr)
 	{
-		ComPtr<IDxcBlobEncoding> dxcBlob = nullptr;
-		uint32_t codePage = CP_UTF8;
-		LogIfFailedWithoutHR(dxcLibrary->CreateBlobFromFile((shaderPath + _fileName).c_str(), &codePage, dxcBlob.GetAddressOf()));
+		RayTracingShaderEntry rtse;
+		rtse.entryRayGen = entryRayGen;
+		rtse.entryHitGroup = entryHitGroup;
+		rtse.entryClosest = entryClosest;
+		rtse.entryMiss = entryMiss;
+		rtse.rtShaderConfig = rtShaderConfig;
+		rtse.rtPipelineConfig = rtPipelineConfig;
 
-		newShader->SetRayGen(CompileDxcFromFile(_fileName, nullptr, entryRayGen, "lib_6_3", dxcBlob.Get()), entryRayGen);
-		newShader->SetClosestHit(CompileDxcFromFile(_fileName, nullptr, entryClosest, "lib_6_3", dxcBlob.Get()), entryClosest);
-		newShader->SetMiss(CompileDxcFromFile(_fileName, nullptr, entryMiss, "lib_6_3", dxcBlob.Get()), entryMiss);
-		newShader->SetDxcBlob(dxcBlob);
-		newShader->SetHitGroupName(entryHitGroup);
-		newShader->SetRtConfig(rtShaderConfig, rtPipelineConfig);
+		if (rtse.Valid())
+		{
+			newShader->SetRTS(CompileDxcFromFile(_fileName, nullptr), rtse);
+		}
 	}
 	
 	// build rs
@@ -135,9 +137,12 @@ ID3DBlob* ShaderManager::CompileFromFile(wstring _fileName, D3D_SHADER_MACRO* ma
 	return shaderBlob;
 }
 
-IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO* macro, wstring _entry, string _target, IDxcBlobEncoding *_dxcBlob)
+IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO* macro)
 {
-	if (_entry == L"")
+	ComPtr<IDxcBlobEncoding> dxcBlob = nullptr;
+	LogIfFailedWithoutHR(dxcLibrary->CreateBlobFromFile((shaderPath + _fileName).c_str(), nullptr, dxcBlob.GetAddressOf()));
+
+	if (dxcBlob == nullptr)
 	{
 		return nullptr;
 	}
@@ -146,27 +151,30 @@ IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO*
 	if (dxcCompiler != nullptr)
 	{
 		IDxcOperationResult* result;
-		LPCWSTR entryW = (_entry).c_str();
-		LPCWSTR targetW = AnsiToWString(_target).c_str();
 
-		HRESULT hr = dxcCompiler->Compile(_dxcBlob, _fileName.c_str(), entryW, targetW, nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
+		HRESULT hr = dxcCompiler->Compile(dxcBlob.Get(), _fileName.c_str(), L"", L"lib_6_3", nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
 		if (FAILED(hr))
 		{
-			ComPtr<IDxcBlobEncoding> printBlob, printBlobUtf8;
-			LogIfFailedWithoutHR(result->GetErrorBuffer(&printBlob));
-			dxcLibrary->GetBlobAsUtf8(printBlob.Get(), printBlobUtf8.GetAddressOf());
+			ComPtr<IDxcBlobEncoding> printBlob;
+			LogIfFailedWithoutHR(result->GetErrorBuffer(printBlob.GetAddressOf()));
 
-			string msg = (char*)printBlobUtf8->GetBufferPointer();
-			LogMessage(L"[SqGraphic Error] " + AnsiToWString(msg));
+			// Convert error blob to a string
+			std::vector<char> infoLog(printBlob->GetBufferSize() + 1);
+			memcpy(infoLog.data(), printBlob->GetBufferPointer(), printBlob->GetBufferSize());
+			infoLog[printBlob->GetBufferSize()] = 0;
+
+			std::string errorMsg = "Shader Compiler Error:\n";
+			errorMsg.append(infoLog.data());
+			LogMessage(AnsiToWString(errorMsg));
 
 			printBlob.Reset();
-			printBlobUtf8.Reset();
 		}
 
 		IDxcBlob* pCode;
 		LogIfFailedWithoutHR(result->GetResult(&pCode));
 		result->Release();
 
+		LogMessage(_fileName + L" DXR Shader OK");
 		return pCode;
 	}
 
@@ -363,8 +371,8 @@ bool ShaderManager::ValidShader(Shader *_shader)
 	}
 
 	// or it is a ray tracing shader
-	if (_shader->GetRayGen() != nullptr && _shader->GetClosestHit() != nullptr && _shader->GetMiss() != nullptr
-		&& _shader->GetHitGroup() != L"" && _shader->GetRtShaderConfig() != L"" && _shader->GetRtPipelineConfig() != L"")
+	RayTracingShaderEntry rtse = _shader->GetRTSEntry();
+	if (_shader->GetRTS() != nullptr)
 	{
 		return true;
 	}
