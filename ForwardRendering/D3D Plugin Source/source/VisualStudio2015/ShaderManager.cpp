@@ -45,9 +45,9 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"));
 
 	// compile ray tracing shader (if we have)
-	//newShader->SetRayGen(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3"));
-	//newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3"));
-	//newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3"));
+	newShader->SetRayGen(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryRayGen, "lib_6_3"));
+	newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3"));
+	newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3"));
 	
 	// build rs
 	BuildRootSignature(newShader, _fileName);
@@ -142,16 +142,23 @@ IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO*
 		HRESULT hr = dxcCompiler->Compile(src, entryW, entryW, targetW, nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
 		if (FAILED(hr))
 		{
-			ID3DBlob** errorMsg = nullptr;
-			result->GetErrorBuffer((IDxcBlobEncoding**)errorMsg);
-			string msg = (char*)errorMsg[0]->GetBufferPointer();
-			LogMessage(L"[SqGraphic Error] " + AnsiToWString(msg));
-		}
+			ComPtr<IDxcBlobEncoding> printBlob, printBlobUtf8;
+			LogIfFailedWithoutHR(result->GetErrorBuffer(&printBlob));
+			dxcLibrary->GetBlobAsUtf8(printBlob.Get(), printBlobUtf8.GetAddressOf());
 
-		src->Release();
+			string msg = (char*)printBlobUtf8->GetBufferPointer();
+			LogMessage(L"[SqGraphic Error] " + AnsiToWString(msg));
+
+			printBlob.Reset();
+			printBlobUtf8.Reset();
+		}
 
 		IDxcBlob* pCode;
 		LogIfFailedWithoutHR(result->GetResult(&pCode));
+
+		src->Release();
+		result->Release();
+
 		return pCode;
 	}
 
@@ -260,7 +267,7 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				is >> rg;
 				entryRayGen = WStringToAnsi(rg);
 			}
-			else if (ss == L"sq_closest")
+			else if (ss == L"sq_closesthit")
 			{
 				wstring cs;
 				is >> cs;
