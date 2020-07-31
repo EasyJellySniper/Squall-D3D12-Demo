@@ -14,6 +14,13 @@ bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 	return validMaterial;
 }
 
+void Material::CreateDxcPso(CD3DX12_STATE_OBJECT_DESC _desc)
+{
+	HRESULT hr = S_OK;
+	LogIfFailed(GraphicManager::Instance().GetDxrDevice()->CreateStateObject(_desc, IID_PPV_ARGS(&dxcPso)), hr);
+	validMaterial = SUCCEEDED(hr);
+}
+
 void Material::AddMaterialConstant(UINT _byteSize, void* _data)
 {
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
@@ -26,6 +33,7 @@ void Material::AddMaterialConstant(UINT _byteSize, void* _data)
 void Material::Release()
 {
 	pso.Reset();
+	dxcPso.Reset();
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		materialConstant[i].reset();

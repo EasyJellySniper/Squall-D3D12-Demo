@@ -59,7 +59,8 @@ private:
 	wstring entryClosest;
 	wstring entryMiss;
 	wstring entryHitGroup;
-	int payloadSize;
+	wstring rtShaderConfig;
+	wstring rtPipelineConfig;
 
 	// ray tracing compiler
 	ComPtr<IDxcCompiler> dxcCompiler = nullptr;

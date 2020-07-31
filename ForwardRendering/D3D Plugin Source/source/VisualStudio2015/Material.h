@@ -40,6 +40,7 @@ class Material
 {
 public:
 	bool CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc);
+	void CreateDxcPso(CD3DX12_STATE_OBJECT_DESC _desc);
 	void AddMaterialConstant(UINT _byteSize, void* _data);
 	void Release();
 	void SetRenderQueue(int _queue);
@@ -56,6 +57,7 @@ public:
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ComPtr<ID3D12PipelineState> pso;
+	ComPtr<ID3D12StateObject> dxcPso;
 	shared_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];
 
 	int renderQueue = 2000;

@@ -115,9 +115,10 @@ void Shader::SetHitGroupName(wstring _hitGroup)
 	entryHitGroup = _hitGroup;
 }
 
-void Shader::SetPayloadSize(UINT _size)
+void Shader::SetRtConfig(wstring _shaderConfig, wstring _pipelineConfig)
 {
-	payloadSize = _size;
+	rtShaderConfig = _shaderConfig;
+	rtPipelineConfig = _pipelineConfig;
 }
 
 ComPtr<ID3DBlob> Shader::GetVS()
@@ -212,9 +213,14 @@ wstring Shader::GetHitGroup()
 	return entryHitGroup;
 }
 
-UINT Shader::GetPayloadSize()
+wstring Shader::GetRtShaderConfig()
 {
-	return payloadSize;
+	return rtShaderConfig;
+}
+
+wstring Shader::GetRtPipelineConfig()
+{
+	return rtPipelineConfig;
 }
 
 int Shader::CalcKeywordUsage(D3D_SHADER_MACRO* macro)

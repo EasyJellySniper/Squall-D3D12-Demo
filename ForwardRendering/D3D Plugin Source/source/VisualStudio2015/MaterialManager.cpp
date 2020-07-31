@@ -81,30 +81,22 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, bool _enableDepth,
 Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 {
 	CD3DX12_STATE_OBJECT_DESC rayPsoDesc{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
-	wstring rayGenName = (_shader->GetRayGenName());
-	wstring closestName = (_shader->GetClosestName());
-	wstring missName = (_shader->GetMissName());
 
 	// setup DXIL library
 	auto lib = rayPsoDesc.CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
 	lib->SetDXILLibrary((D3D12_SHADER_BYTECODE*)_shader->GetDxcBlob()->GetBufferPointer());
-	lib->DefineExport(rayGenName.c_str());
-	lib->DefineExport(closestName.c_str());
-	lib->DefineExport(missName.c_str());
 
-	// set hit group
-	auto hitGroup = rayPsoDesc.CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
-	hitGroup->SetClosestHitShaderImport(closestName.c_str());
-	hitGroup->SetHitGroupExport(_shader->GetHitGroup().c_str());
-	hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES);
+	// defined in HLSL
+	lib->DefineExport(_shader->GetRayGenName().c_str());
+	lib->DefineExport(_shader->GetClosestName().c_str());
+	lib->DefineExport(_shader->GetMissName().c_str());
+	lib->DefineExport(_shader->GetHitGroup().c_str());
+	lib->DefineExport(_shader->GetRtShaderConfig().c_str());
+	lib->DefineExport(_shader->GetRtPipelineConfig().c_str());
 
-	// shader config
-	auto shaderConfig = rayPsoDesc.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
-	UINT payloadSize = _shader->GetPayloadSize();
-	UINT attributeSize = sizeof(XMFLOAT2);  // float2 barycentrics for build in triangle attr
-	shaderConfig->Config(payloadSize, attributeSize);
-
-	return Material();
+	Material result;
+	result.CreateDxcPso(rayPsoDesc);
+	return result;
 }
 
 Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend, char* _nativeShader, int _numMacro, char** _macro)

@@ -27,7 +27,7 @@ public:
 	void SetRS(ID3D12RootSignature* _rs);
 	void CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro);
 	void SetHitGroupName(wstring _hitGroup);
-	void SetPayloadSize(UINT _size);
+	void SetRtConfig(wstring _shaderConfig, wstring _pipelineConfig);
 
 	ComPtr<ID3DBlob> GetVS();
 	ComPtr<ID3DBlob> GetPS();
@@ -46,7 +46,8 @@ public:
 	wstring GetClosestName();
 	wstring GetMissName();
 	wstring GetHitGroup();
-	UINT GetPayloadSize();
+	wstring GetRtShaderConfig();
+	wstring GetRtPipelineConfig();
 
 private:
 	int CalcKeywordUsage(D3D_SHADER_MACRO* macro);
@@ -72,7 +73,8 @@ private:
 	wstring entryClosest;
 	wstring entryMiss;
 	wstring entryHitGroup;
-	UINT payloadSize = 0;
+	wstring rtShaderConfig;
+	wstring rtPipelineConfig;
 
 	// rs will created by Shader Manager
 	ID3D12RootSignature* rootSignature;

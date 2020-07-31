@@ -33,6 +33,8 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	entryClosest = L"";
 	entryMiss = L"";
 	entryHitGroup = L"";
+	rtShaderConfig = L"";
+	rtPipelineConfig = L"";
 
 	// collect data
 	CollectShaderData(_fileName);
@@ -55,7 +57,8 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 		newShader->SetClosestHit(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryClosest, "lib_6_3", dxcBlob.Get()), entryClosest);
 		newShader->SetMiss(CompileDxcFromFile(shaderPath + _fileName, nullptr, entryMiss, "lib_6_3", dxcBlob.Get()), entryMiss);
 		newShader->SetDxcBlob(dxcBlob);
-		newShader->SetPayloadSize(sizeof(float) * payloadSize);
+		newShader->SetHitGroupName(entryHitGroup);
+		newShader->SetRtConfig(rtShaderConfig, rtPipelineConfig);
 	}
 	
 	// build rs
@@ -292,12 +295,17 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				hg = RemoveChars(hg, L"=");
 				entryHitGroup = hg;
 			}
-			else if (ss == L"sq_payloadsize")
+			else if (ss == L"sq_rtshaderconfig")
 			{
-				wstring ps;
-				is >> ps;
-
-				payloadSize = stoi(ps);
+				wstring rtsc;
+				is >> rtsc;
+				rtShaderConfig = rtsc;
+			}
+			else if (ss == L"sq_rtpipelineconfig")
+			{
+				wstring rtpc;
+				is >> rtpc;
+				rtPipelineConfig = rtpc;
 			}
 		}
 	}

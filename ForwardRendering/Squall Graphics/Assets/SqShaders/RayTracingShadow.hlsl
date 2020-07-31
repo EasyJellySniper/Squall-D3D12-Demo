@@ -2,12 +2,24 @@
 #pragma sq_closesthit RTShadowClosestHit
 #pragma sq_miss RTShadowMiss
 #pragma sq_hitgroup RTShadowGroup
-#pragma sq_payloadsize 4
+#pragma sq_rtshaderconfig RTShadowConfig
+#pragma sq_rtpipelineconfig RTShadowPipelineConfig
 
 TriangleHitGroup RTShadowGroup =
 {
     "",                     // AnyHit
     "RTShadowClosestHit",   // ClosestHit
+};
+
+RaytracingShaderConfig RTShadowConfig =
+{
+    16, // max payload size - 4float
+    8   // max attribute size - 2float
+};
+
+RaytracingPipelineConfig RTShadowPipelineConfig =
+{
+    1 // max trace recursion depth
 };
 
 struct RayPayload
