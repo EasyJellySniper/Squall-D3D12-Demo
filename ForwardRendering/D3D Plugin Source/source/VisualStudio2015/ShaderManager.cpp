@@ -66,19 +66,18 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 			if (newShader->GetRTS() != nullptr)
 			{
 				// build root signature from dxc blob directly!
-				ComPtr<ID3D12RootSignature> rayRS;
+				
+				RootSignatureCache rsc;
+				rsc.rsName = WStringToAnsi(rtRootSig);
+
 				LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateRootSignature(
 					0,
 					newShader->GetRTS()->GetBufferPointer(),
 					newShader->GetRTS()->GetBufferSize(),
-					IID_PPV_ARGS(rayRS.GetAddressOf())));
-				
-				RootSignatureCache rsc;
-				rsc.rsName = WStringToAnsi(rtRootSig);
-				rsc.rootSignature = rayRS;
-				newShader->SetRS(rayRS.Get());
+					IID_PPV_ARGS(rsc.rootSignature.GetAddressOf())));
 
 				rsCache.push_back(rsc);
+				newShader->SetRS(rsc.rootSignature.Get());
 			}
 		}
 	}

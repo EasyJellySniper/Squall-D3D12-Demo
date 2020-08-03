@@ -43,6 +43,8 @@ void Material::CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader* _shader)
 		rayGenShaderTable->CopyData(0, rayGenShaderIdentifier);
 		missShaderTable->CopyData(0, missShaderIdentifier);
 		hitGroupTable->CopyData(0, hitGroupShaderIdentifier);
+
+		psoDesc.pRootSignature = _shader->GetRS();
 	}
 }
 
