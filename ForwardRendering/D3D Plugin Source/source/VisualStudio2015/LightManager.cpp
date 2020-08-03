@@ -91,6 +91,7 @@ void LightManager::Release()
 	skyboxMat.Release();
 	skyboxRenderer.Release();
 	rtShadowMat.Release();
+	rayTracingShadow.reset();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -390,6 +391,9 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	}
 
 	shadowSampler.CreateSamplerHeap(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true);
+
+	// create ray tracing shadow uav
+	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), true, shadowFormat, desc.Width, desc.Height);
 }
 
 void LightManager::CreateRayTracingShadow()

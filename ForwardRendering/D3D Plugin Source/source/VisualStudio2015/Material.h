@@ -61,6 +61,9 @@ private:
 	ComPtr<ID3D12PipelineState> pso;
 	ComPtr<ID3D12StateObject> dxcPso;
 	shared_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];
+	shared_ptr<UploadBufferAny> rayGenShaderTable;
+	shared_ptr<UploadBufferAny> closestShaderTable;
+	shared_ptr<UploadBufferAny> missShaderTable;
 
 	int renderQueue = 2000;
 	CullMode cullMode = CullMode::Off;

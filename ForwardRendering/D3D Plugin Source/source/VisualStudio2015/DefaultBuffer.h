@@ -8,6 +8,8 @@ using namespace Microsoft::WRL;
 class DefaultBuffer
 {
 public:
+
+	// entry for buffer
 	DefaultBuffer(ID3D12Device *_device, UINT64 _bufferSize, bool _isUAV, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON)
 	{
 		auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
@@ -23,6 +25,27 @@ public:
 			&uploadHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
 			&bufferDesc,
+			_states,
+			nullptr,
+			IID_PPV_ARGS(defaultBuffer.GetAddressOf())));
+	}
+
+	// entry for texture
+	DefaultBuffer(ID3D12Device* _device, bool _isUAV, DXGI_FORMAT _format, UINT64 _width, UINT _height, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON)
+	{
+		auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
+		if (_isUAV)
+		{
+			flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+		}
+
+		auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(_format, _width, _height, 1, 0, 1, 0, flags);
+
+		LogIfFailedWithoutHR(_device->CreateCommittedResource(
+			&uploadHeapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&texDesc,
 			_states,
 			nullptr,
 			IID_PPV_ARGS(defaultBuffer.GetAddressOf())));

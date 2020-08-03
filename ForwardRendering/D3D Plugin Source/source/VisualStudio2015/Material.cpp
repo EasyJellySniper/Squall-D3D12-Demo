@@ -19,8 +19,18 @@ bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 void Material::CreateDxcPso(ComPtr<ID3D12StateObject> _pso)
 {
 	dxcPso = _pso;
-
 	validMaterial = (dxcPso != nullptr);
+
+	if (validMaterial)
+	{
+		// create shader table here
+		ID3D12Device* device = GraphicManager::Instance().GetDevice();
+		UINT shaderIdentifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+
+		rayGenShaderTable = make_shared<UploadBufferAny>(device, 1, false, shaderIdentifierSize);
+		closestShaderTable = make_shared<UploadBufferAny>(device, 1, false, shaderIdentifierSize);
+		missShaderTable = make_shared<UploadBufferAny>(device, 1, false, shaderIdentifierSize);
+	}
 }
 
 void Material::AddMaterialConstant(UINT _byteSize, void* _data)
@@ -40,6 +50,10 @@ void Material::Release()
 	{
 		materialConstant[i].reset();
 	}
+
+	rayGenShaderTable.reset();
+	closestShaderTable.reset();
+	missShaderTable.reset();
 }
 
 void Material::SetRenderQueue(int _queue)
