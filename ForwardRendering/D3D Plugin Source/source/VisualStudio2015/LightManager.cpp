@@ -92,6 +92,7 @@ void LightManager::Release()
 	skyboxRenderer.Release();
 	rtShadowMat.Release();
 	rayTracingShadow.reset();
+	rayTracingTex.Release();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -254,6 +255,16 @@ Material* LightManager::GetCollectShadow()
 	return &collectShadowMat;
 }
 
+Material* LightManager::GetRayShadow()
+{
+	return &rtShadowMat;
+}
+
+ID3D12DescriptorHeap* LightManager::GetRayShadowUAV()
+{
+	return rayTracingTex.GetUav();
+}
+
 ID3D12DescriptorHeap* LightManager::GetShadowSampler()
 {
 	return shadowSampler.GetSamplerHeap();
@@ -394,6 +405,9 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 
 	// create ray tracing shadow uav
 	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), true, shadowFormat, desc.Width, desc.Height);
+
+	ID3D12Resource* rtShadowSrc = rayTracingShadow->Resource();
+	rayTracingTex.InitUAV(&rtShadowSrc, shadowFormat, 1);
 }
 
 void LightManager::CreateRayTracingShadow()

@@ -47,6 +47,8 @@ public:
 	Material* GetShadowOpqaue(int _cullMode);
 	Material* GetShadowCutout(int _cullMode);
 	Material* GetCollectShadow();
+	Material* GetRayShadow();
+	ID3D12DescriptorHeap* GetRayShadowUAV();
 	ID3D12DescriptorHeap* GetShadowSampler();
 	int GetShadowIndex();
 
@@ -83,6 +85,7 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
 	unique_ptr<RenderTexture> collectShadow;
 	unique_ptr<DefaultBuffer> rayTracingShadow;
+	Texture rayTracingTex;
 
 	// gi 
 	XMFLOAT4 ambientGround;

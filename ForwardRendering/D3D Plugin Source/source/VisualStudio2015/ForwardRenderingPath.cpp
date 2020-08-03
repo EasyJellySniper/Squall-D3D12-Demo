@@ -4,6 +4,7 @@
 #include "ShaderManager.h"
 #include "TextureManager.h"
 #include "LightManager.h"
+#include "RayTracingManager.h"
 #include "stdafx.h"
 #include "d3dx12.h"
 #include <algorithm>
@@ -354,6 +355,31 @@ void ForwardRenderingPath::ShadowWork()
 
 void ForwardRenderingPath::RayTracingShadow(Light* _light)
 {
+	// use pre gfx list
+	auto _cmdList = currFrameResource->preGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+
+	// bind root signature
+	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetRayShadowUAV(), _light->GetShadowSrv() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	auto mat = LightManager::Instance().GetRayShadow();
+	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
+	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRayShadowUAV()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(1, _light->GetShadowSrv()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(4, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
+
+	// prepare dispatch
+	Camera* c = CameraManager::Instance().GetCamera();
+	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)c->GetViewPort().Width, (UINT)c->GetViewPort().Height);
+
+	// dispatch rays
+	auto dxrCmd = GraphicManager::Instance().GetDxrList();
+	dxrCmd->DispatchRays(&dispatchDesc);
+
+	ExecuteCmdList(_cmdList);
 }
 
 void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _threadIndex)

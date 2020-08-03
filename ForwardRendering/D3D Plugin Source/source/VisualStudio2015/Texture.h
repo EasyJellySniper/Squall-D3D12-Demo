@@ -20,10 +20,12 @@ public:
 	void InitRTV(ID3D12Resource** _rtv, DXGI_FORMAT _format, int _numRT, bool _msaa);
 	void InitDSV(ID3D12Resource** _dsv, DXGI_FORMAT _format, int _numRT, bool _msaa);
 	void InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bool _msaa, bool _isCube = false);
+	void InitUAV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtvCPU(int _index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsvCPU(int _index);
 	ID3D12DescriptorHeap* GetSrv();
+	ID3D12DescriptorHeap* GetUav();
 
 	ID3D12Resource* GetRtvSrc(int _index);
 	ID3D12Resource* GetDsvSrc(int _index);
@@ -39,8 +41,10 @@ protected:
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;
 	ComPtr<ID3D12DescriptorHeap> dsvHandle;
 	ComPtr<ID3D12DescriptorHeap> srvHandle;
+	ComPtr<ID3D12DescriptorHeap> uavHandle;
 
 	ID3D12Resource** rtvSrc;
 	ID3D12Resource** dsvSrc;
 	ID3D12Resource** srvSrc;
+	ID3D12Resource** uavSrc;
 };

@@ -31,9 +31,16 @@ void Texture::Release()
 		srvSrc = nullptr;
 	}
 
+	if (uavSrc != nullptr)
+	{
+		delete[]uavSrc;
+		uavSrc = nullptr;
+	}
+
 	rtvHandle.Reset();
 	dsvHandle.Reset();
 	srvHandle.Reset();
+	uavHandle.Reset();
 }
 
 void Texture::SetResource(ID3D12Resource* _data)
@@ -71,6 +78,11 @@ D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetDsvCPU(int _index)
 ID3D12DescriptorHeap* Texture::GetSrv()
 {
 	return srvHandle.Get();
+}
+
+ID3D12DescriptorHeap* Texture::GetUav()
+{
+	return uavHandle.Get();
 }
 
 ID3D12Resource* Texture::GetRtvSrc(int _index)
@@ -185,4 +197,22 @@ void Texture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bo
 		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(srvSrc[i], &srvDesc, sHandle);
 		sHandle.Offset(1, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	}
+}
+
+void Texture::InitUAV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT)
+{
+	uavSrc = new ID3D12Resource * [_numRT];
+	for (int i = 0; i < _numRT; i++)
+	{
+		uavSrc[i] = _srv[i];
+	}
+
+	// create UAV handle
+	D3D12_DESCRIPTOR_HEAP_DESC uavHeapDesc;
+	uavHeapDesc.NumDescriptors = _numRT;
+	uavHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	uavHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	uavHeapDesc.NodeMask = 0;
+
+	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&uavHeapDesc, IID_PPV_ARGS(uavHandle.GetAddressOf())));
 }

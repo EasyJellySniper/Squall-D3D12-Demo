@@ -5,6 +5,7 @@ using namespace Microsoft::WRL;
 #include "stdafx.h"
 #include "UploadBuffer.h"
 #include "FrameResource.h"
+#include "Shader.h"
 
 enum RenderQueue
 {
@@ -40,7 +41,7 @@ class Material
 {
 public:
 	bool CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc);
-	void CreateDxcPso(ComPtr<ID3D12StateObject> _pso);
+	void CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader *_shader);
 	void AddMaterialConstant(UINT _byteSize, void* _data);
 	void Release();
 	void SetRenderQueue(int _queue);
@@ -48,11 +49,13 @@ public:
 	void SetBlendMode(int _srcBlend, int _dstBlend);
 
 	ID3D12PipelineState* GetPSO();
+	ID3D12StateObject* GetDxcPSO();
 	ID3D12RootSignature* GetRootSignature();
 	int GetRenderQueue();
 	CullMode GetCullMode();
 	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _index);
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC GetPsoDesc();
+	D3D12_DISPATCH_RAYS_DESC GetDispatchRayDesc(UINT _width, UINT _height);
 
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
@@ -62,8 +65,8 @@ private:
 	ComPtr<ID3D12StateObject> dxcPso;
 	shared_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];
 	shared_ptr<UploadBufferAny> rayGenShaderTable;
-	shared_ptr<UploadBufferAny> closestShaderTable;
 	shared_ptr<UploadBufferAny> missShaderTable;
+	shared_ptr<UploadBufferAny> hitGroupTable;
 
 	int renderQueue = 2000;
 	CullMode cullMode = CullMode::Off;

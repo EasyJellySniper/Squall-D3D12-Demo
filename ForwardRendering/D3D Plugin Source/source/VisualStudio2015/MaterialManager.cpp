@@ -103,7 +103,7 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 	LogIfFailed(GraphicManager::Instance().GetDxrDevice()->CreateStateObject(rayPsoDesc, IID_PPV_ARGS(&dxcPso)), hr);
 
 	Material result;
-	result.CreateDxcPso(dxcPso);
+	result.CreateDxcPso(dxcPso, _shader);
 	return result;
 }
 

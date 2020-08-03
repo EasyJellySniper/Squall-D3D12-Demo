@@ -24,6 +24,7 @@ public:
 
 	void Release();
 	void InitRayTracingInstance();
+	ID3D12Resource* GetTopLevelAS();
 
 private:
 	void CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);

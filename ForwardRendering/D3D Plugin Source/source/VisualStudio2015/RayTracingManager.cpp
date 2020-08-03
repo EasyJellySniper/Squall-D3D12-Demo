@@ -30,6 +30,11 @@ void RayTracingManager::InitRayTracingInstance()
 	MeshManager::Instance().ReleaseScratch();
 }
 
+ID3D12Resource* RayTracingManager::GetTopLevelAS()
+{
+	return topLevelAS->Resource();
+}
+
 void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
