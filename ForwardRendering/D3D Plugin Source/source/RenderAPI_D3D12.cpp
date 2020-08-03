@@ -88,6 +88,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	HMENU hMenu = GetSystemMenu(handle, false);
 	DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
 	freopen("CONOUT$", "w", stdout);
+	ShowWindow(GetConsoleWindow(), SW_MINIMIZE);
 #endif
 }
 
