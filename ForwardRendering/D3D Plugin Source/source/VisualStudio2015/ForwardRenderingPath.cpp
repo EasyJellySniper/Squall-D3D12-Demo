@@ -366,7 +366,7 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetRayShadowHeap() };
 	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
-	auto mat = LightManager::Instance().GetRayShadow();
+	Material *mat = LightManager::Instance().GetRayShadow();
 	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
 
 	CD3DX12_GPU_DESCRIPTOR_HANDLE hRayTracing = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart());

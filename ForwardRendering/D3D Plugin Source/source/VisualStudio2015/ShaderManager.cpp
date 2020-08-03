@@ -321,7 +321,6 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				is >> hg;
 
 				// remove = follow by hit group name
-				hg = RemoveChars(hg, L"=");
 				entryHitGroup = hg;
 			}
 			else if (ss == L"sq_rtshaderconfig")
@@ -329,7 +328,6 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring rtsc;
 				is >> rtsc;
 
-				rtsc = RemoveChars(rtsc, L"=");
 				rtShaderConfig = rtsc;
 			}
 			else if (ss == L"sq_rtpipelineconfig")
@@ -337,7 +335,6 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring rtpc;
 				is >> rtpc;
 
-				rtpc = RemoveChars(rtpc, L"=");
 				rtPipelineConfig = rtpc;
 			}
 			else if (ss == L"sq_rayrootsig")
@@ -345,7 +342,6 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring rrs;
 				is >> rrs;
 
-				rrs = RemoveChars(rrs, L"=");
 				rtRootSig = rrs;
 			}
 		}

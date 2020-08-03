@@ -404,7 +404,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	shadowSampler.CreateSamplerHeap(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true);
 
 	// create ray tracing shadow uav
-	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), true, shadowFormat, desc.Width, desc.Height);
+	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), true, shadowFormat, desc.Width, desc.Height, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// create ray tracing texture
 	Camera* c = CameraManager::Instance().GetCamera();
