@@ -234,7 +234,8 @@ void ShaderManager::ParseShaderLine(wstring _input)
 			is >> includeName;
 
 			// remove "" of include name
-			includeName.erase(std::remove(includeName.begin(), includeName.end(), '"'), includeName.end());
+			includeName = RemoveChars(includeName, L"\"");
+			includeName = RemoveString(includeName, L"Assets/SqShaders/");
 
 			bool duplicateInclude = false;
 			for (int i = 0; i < includeFile.size(); i++)

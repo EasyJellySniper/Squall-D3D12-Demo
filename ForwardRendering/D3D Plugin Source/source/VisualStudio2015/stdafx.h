@@ -124,3 +124,14 @@ inline wstring RemoveChars(wstring _wstr, wstring _chars)
 
 	return _wstr;
 }
+
+inline wstring RemoveString(wstring _wstr, wstring _str)
+{
+	size_t spos = _wstr.find(_str);
+	if (spos != wstring::npos)
+	{
+		_wstr.erase(_wstr.begin() + spos, _wstr.begin() + spos + _str.length());
+	}
+
+	return _wstr;
+}
