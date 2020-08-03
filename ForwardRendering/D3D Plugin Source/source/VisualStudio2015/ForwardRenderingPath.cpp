@@ -375,7 +375,6 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
 	_cmdList->SetComputeRootDescriptorTable(0, hRayTracing);
 	_cmdList->SetComputeRootDescriptorTable(1, hDepth);
-
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, LightManager::Instance().GetDirLightGPU(frameIndex, 0));

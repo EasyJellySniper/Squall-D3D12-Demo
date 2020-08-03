@@ -386,7 +386,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	ID3D12Resource* opaqueShadowSrc = (ID3D12Resource*)_opaqueShadows;
 
 	auto desc = opaqueShadowSrc->GetDesc();
-	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format, true);
+	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format);
 
 	collectShadow = make_unique <RenderTexture>();
 	collectShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1, false);
