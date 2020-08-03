@@ -349,7 +349,10 @@ void ForwardRenderingPath::ShadowWork()
 	// ray tracing shadow
 	for (int i = 0; i < numDirLights; i++)
 	{
-		RayTracingShadow(&dirLights[i]);
+		if (!dirLights[i].HasShadow())
+		{
+			RayTracingShadow(&dirLights[i]);
+		}
 	}
 }
 
@@ -360,13 +363,18 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
 
 	// bind root signature
-	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetRayShadowUAV(), _light->GetShadowSrv() };
-	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetRayShadowHeap() };
+	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
 	auto mat = LightManager::Instance().GetRayShadow();
+	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
+	CD3DX12_GPU_DESCRIPTOR_HANDLE uHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart());
+
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
-	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRayShadowUAV()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(1, _light->GetShadowSrv()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(0, uHandle);
+	uHandle.Offset(1, cbvSrvUavSize);
+	_cmdList->SetComputeRootDescriptorTable(1, uHandle);
+
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, LightManager::Instance().GetDirLightGPU(frameIndex, 0));

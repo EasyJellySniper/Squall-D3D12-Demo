@@ -48,7 +48,7 @@ public:
 	Material* GetShadowCutout(int _cullMode);
 	Material* GetCollectShadow();
 	Material* GetRayShadow();
-	ID3D12DescriptorHeap* GetRayShadowUAV();
+	ID3D12DescriptorHeap* GetRayShadowHeap();
 	ID3D12DescriptorHeap* GetShadowSampler();
 	int GetShadowIndex();
 

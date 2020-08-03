@@ -80,11 +80,6 @@ ID3D12DescriptorHeap* Texture::GetSrv()
 	return srvHandle.Get();
 }
 
-ID3D12DescriptorHeap* Texture::GetUav()
-{
-	return uavHandle.Get();
-}
-
 ID3D12Resource* Texture::GetRtvSrc(int _index)
 {
 	return rtvSrc[_index];
@@ -199,20 +194,47 @@ void Texture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bo
 	}
 }
 
-void Texture::InitUAV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT)
+void Texture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT* _format, bool* _uavList, int _numRT)
 {
-	uavSrc = new ID3D12Resource * [_numRT];
+	srvSrc = new ID3D12Resource * [_numRT];
 	for (int i = 0; i < _numRT; i++)
 	{
-		uavSrc[i] = _srv[i];
+		srvSrc[i] = _srv[i];
 	}
 
-	// create UAV handle
-	D3D12_DESCRIPTOR_HEAP_DESC uavHeapDesc;
-	uavHeapDesc.NumDescriptors = _numRT;
-	uavHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	uavHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	uavHeapDesc.NodeMask = 0;
+	// create SRV handle
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc;
+	srvHeapDesc.NumDescriptors = _numRT;
+	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	srvHeapDesc.NodeMask = 0;
+	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(srvHandle.GetAddressOf())));
 
-	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&uavHeapDesc, IID_PPV_ARGS(uavHandle.GetAddressOf())));
+	// create srv/uav
+	CD3DX12_CPU_DESCRIPTOR_HANDLE sHandle(srvHandle->GetCPUDescriptorHandleForHeapStart());
+	for (int i = 0; i < _numRT; i++)
+	{
+		if (!_uavList[i])
+		{
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Format = _format[i];
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MostDetailedMip = 0;
+			srvDesc.Texture2D.MipLevels = -1;
+
+			GraphicManager::Instance().GetDevice()->CreateShaderResourceView(srvSrc[i], &srvDesc, sHandle);
+		}
+		else
+		{
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+			uavDesc.Texture2D.MipSlice = 0;
+			uavDesc.Texture2D.PlaneSlice = 0;
+
+			GraphicManager::Instance().GetDevice()->CreateUnorderedAccessView(srvSrc[i], nullptr, &uavDesc, sHandle);
+		}
+
+		sHandle.Offset(1, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	}
 }

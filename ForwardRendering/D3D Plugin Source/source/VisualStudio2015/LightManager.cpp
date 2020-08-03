@@ -260,9 +260,9 @@ Material* LightManager::GetRayShadow()
 	return &rtShadowMat;
 }
 
-ID3D12DescriptorHeap* LightManager::GetRayShadowUAV()
+ID3D12DescriptorHeap* LightManager::GetRayShadowHeap()
 {
-	return rayTracingTex.GetUav();
+	return rayTracingTex.GetSrv();
 }
 
 ID3D12DescriptorHeap* LightManager::GetShadowSampler()
@@ -406,8 +406,13 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	// create ray tracing shadow uav
 	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), true, shadowFormat, desc.Width, desc.Height);
 
-	ID3D12Resource* rtShadowSrc = rayTracingShadow->Resource();
-	rayTracingTex.InitUAV(&rtShadowSrc, shadowFormat, 1);
+	// create ray tracing texture
+	Camera* c = CameraManager::Instance().GetCamera();
+
+	ID3D12Resource* rtHeapSrc[] = { rayTracingShadow->Resource(), c->GetCameraDepth() };
+	DXGI_FORMAT rtHeapFormat[] = { shadowFormat , GetColorFormatFromTypeless(c->GetCameraDepth()->GetDesc().Format) };
+	bool rtHeapUav[] = { true, false };
+	rayTracingTex.InitSRV(rtHeapSrc, rtHeapFormat, rtHeapUav, 2);
 }
 
 void LightManager::CreateRayTracingShadow()

@@ -78,11 +78,6 @@ public class SqLight : MonoBehaviour
     }
 
     /// <summary>
-    /// opaque shadows
-    /// </summary>
-    public static RenderTexture collectShadows;
-
-    /// <summary>
     /// ray tracing shadow?
     /// </summary>
     public bool rayTracingShadow = false;
@@ -114,12 +109,6 @@ public class SqLight : MonoBehaviour
     /// shadow map
     /// </summary>
     public RenderTexture[] shadowMaps;
-
-    /// <summary>
-    /// collect result
-    /// </summary>
-    [Space()]
-    public RenderTexture collectResult;
 
     SqLightData lightData;
     Light lightCache;
@@ -157,8 +146,6 @@ public class SqLight : MonoBehaviour
         {
             cascadeLast[i] = cascadeSetting[i];
         }
-
-        collectResult = collectShadows;
     }
 
     void OnDestroy()
@@ -175,12 +162,6 @@ public class SqLight : MonoBehaviour
                 shadowMaps[i].Release();
                 DestroyImmediate(shadowMaps[i]);
             }
-        }
-
-        if (collectShadows != null)
-        {
-            collectShadows.Release();
-            DestroyImmediate(collectShadows);
         }
     }
 
