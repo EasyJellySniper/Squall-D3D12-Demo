@@ -51,6 +51,7 @@ private:
 	void UploadWork(Camera* _camera);
 	void PrePassWork(Camera* _camera);
 	void ShadowWork();
+	void RayTracingShadow(Light* _light);
 	void BindShadowState(Light *_light, int _cascade, int _threadIndex);
 	void BindForwardState(Camera* _camera, int _frameIdx, int _threadIndex);
 	void BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx);

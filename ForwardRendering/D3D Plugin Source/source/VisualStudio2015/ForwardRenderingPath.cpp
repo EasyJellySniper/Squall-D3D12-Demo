@@ -344,6 +344,16 @@ void ForwardRenderingPath::ShadowWork()
 		// collect shadow
 		CollectShadow(&dirLights[i], i);
 	}
+
+	// ray tracing shadow
+	for (int i = 0; i < numDirLights; i++)
+	{
+		RayTracingShadow(&dirLights[i]);
+	}
+}
+
+void ForwardRenderingPath::RayTracingShadow(Light* _light)
+{
 }
 
 void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _threadIndex)

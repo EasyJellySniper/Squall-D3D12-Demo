@@ -63,6 +63,23 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 		if (rtse.Valid())
 		{
 			newShader->SetRTS(CompileDxcFromFile(_fileName, nullptr), rtse);
+			if (newShader->GetRTS() != nullptr)
+			{
+				// build root signature from dxc blob directly!
+				ComPtr<ID3D12RootSignature> rayRS;
+				LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateRootSignature(
+					0,
+					newShader->GetRTS()->GetBufferPointer(),
+					newShader->GetRTS()->GetBufferSize(),
+					IID_PPV_ARGS(rayRS.GetAddressOf())));
+				
+				RootSignatureCache rsc;
+				rsc.rsName = WStringToAnsi(rtRootSig);
+				rsc.rootSignature = rayRS;
+				newShader->SetRS(rayRS.Get());
+
+				rsCache.push_back(rsc);
+			}
 		}
 	}
 	
@@ -370,7 +387,7 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, wstring _fil
 
 	_compiledRS->Release();
 	rsCache.push_back(rsc);
-	_shader->SetRS(rsCache[rsCache.size() - 1].rootSignature.Get());
+	_shader->SetRS(rsc.rootSignature.Get());
 }
 
 bool ShaderManager::ValidShader(Shader *_shader)
