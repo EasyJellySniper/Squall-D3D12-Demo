@@ -35,6 +35,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	entryHitGroup = L"";
 	rtShaderConfig = L"";
 	rtPipelineConfig = L"";
+	rtRootSig = L"";
 
 	// collect data
 	CollectShaderData(_fileName);
@@ -51,6 +52,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	if (dxcLibrary != nullptr)
 	{
 		RayTracingShaderEntry rtse;
+		rtse.rtRootSignature = rtRootSig;
 		rtse.entryRayGen = entryRayGen;
 		rtse.entryHitGroup = entryHitGroup;
 		rtse.entryClosest = entryClosest;
@@ -101,7 +103,6 @@ void ShaderManager::Release()
 
 	dxcCompiler.Reset();
 	dxcLibrary.Reset();
-	dxcIncluder.Reset();
 }
 
 Shader *ShaderManager::FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro)
@@ -150,9 +151,11 @@ IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO*
 	// here is the ray tracing shader section
 	if (dxcCompiler != nullptr)
 	{
-		IDxcOperationResult* result;
+		ComPtr<IDxcOperationResult> result;
+		LogIfFailedWithoutHR(dxcCompiler->Compile(dxcBlob.Get(), _fileName.c_str(), L"", L"lib_6_3", nullptr, 0, nullptr, 0, dxcIncluder.Get(), result.GetAddressOf()));
 
-		HRESULT hr = dxcCompiler->Compile(dxcBlob.Get(), _fileName.c_str(), L"", L"lib_6_3", nullptr, 0, nullptr, 0, dxcIncluder.Get(), &result);
+		HRESULT hr = S_OK;
+		LogIfFailedWithoutHR(result->GetStatus(&hr));
 		if (FAILED(hr))
 		{
 			ComPtr<IDxcBlobEncoding> printBlob;
@@ -163,17 +166,16 @@ IDxcBlob* ShaderManager::CompileDxcFromFile(wstring _fileName, D3D_SHADER_MACRO*
 			memcpy(infoLog.data(), printBlob->GetBufferPointer(), printBlob->GetBufferSize());
 			infoLog[printBlob->GetBufferSize()] = 0;
 
-			std::string errorMsg = "Shader Compiler Error:\n";
+			std::string errorMsg = "[SqGraphic Error] :\n";
 			errorMsg.append(infoLog.data());
 			LogMessage(AnsiToWString(errorMsg));
 
 			printBlob.Reset();
+			return nullptr;
 		}
 
 		IDxcBlob* pCode;
 		LogIfFailedWithoutHR(result->GetResult(&pCode));
-		result->Release();
-
 		LogMessage(_fileName + L" DXR Shader OK");
 		return pCode;
 	}
@@ -319,6 +321,14 @@ void ShaderManager::ParseShaderLine(wstring _input)
 
 				rtpc = RemoveChars(rtpc, L"=");
 				rtPipelineConfig = rtpc;
+			}
+			else if (ss == L"sq_rayrootsig")
+			{
+				wstring rrs;
+				is >> rrs;
+
+				rrs = RemoveChars(rrs, L"=");
+				rtRootSig = rrs;
 			}
 		}
 	}

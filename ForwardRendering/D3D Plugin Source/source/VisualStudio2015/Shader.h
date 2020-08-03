@@ -12,7 +12,8 @@ struct RayTracingShaderEntry
 public:
 	bool Valid()
 	{
-		return (entryRayGen != L"" 
+		return (rtRootSignature != L""
+			&& entryRayGen != L"" 
 			&& entryClosest != L"" 
 			&& entryMiss != L""
 			&& entryHitGroup != L""
@@ -20,6 +21,7 @@ public:
 			&& rtPipelineConfig != L"");
 	}
 
+	wstring rtRootSignature;
 	wstring entryRayGen;
 	wstring entryClosest;
 	wstring entryMiss;

@@ -90,6 +90,7 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 
 	// defined in HLSL
 	RayTracingShaderEntry rtse = _shader->GetRTSEntry();
+	lib->DefineExport(rtse.rtRootSignature.c_str());
 	lib->DefineExport(rtse.entryRayGen.c_str());
 	lib->DefineExport(rtse.entryClosest.c_str());
 	lib->DefineExport(rtse.entryMiss.c_str());
