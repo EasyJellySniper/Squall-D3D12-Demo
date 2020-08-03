@@ -40,7 +40,7 @@ public:
 			flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		}
 
-		auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(_format, _width, _height, 1, 0, 1, 0, flags);
+		auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(_format, _width, _height, 1, (_isUAV) ? 1 : 0, 1, 0, flags);
 
 		LogIfFailedWithoutHR(_device->CreateCommittedResource(
 			&uploadHeapProperties,

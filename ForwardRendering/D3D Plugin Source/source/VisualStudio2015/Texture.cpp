@@ -229,9 +229,6 @@ void Texture::InitSRV(ID3D12Resource** _srv, DXGI_FORMAT* _format, bool* _uavLis
 		{
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-			uavDesc.Texture2D.MipSlice = 0;
-			uavDesc.Texture2D.PlaneSlice = 0;
-			uavDesc.Format = _format[i];
 
 			GraphicManager::Instance().GetDevice()->CreateUnorderedAccessView(srvSrc[i], nullptr, &uavDesc, sHandle);
 		}
