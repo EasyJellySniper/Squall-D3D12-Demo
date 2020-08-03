@@ -83,6 +83,11 @@ public class SqLight : MonoBehaviour
     public static RenderTexture collectShadows;
 
     /// <summary>
+    /// ray tracing shadow?
+    /// </summary>
+    public bool rayTracingShadow = false;
+
+    /// <summary>
     /// shadow size
     /// </summary>
     [Header("Shadow size, note even cascade use this size!")]
@@ -113,6 +118,7 @@ public class SqLight : MonoBehaviour
     /// <summary>
     /// collect result
     /// </summary>
+    [Space()]
     public RenderTexture collectResult;
 
     SqLightData lightData;
@@ -123,7 +129,7 @@ public class SqLight : MonoBehaviour
 
     int nativeID = -1;
     int[] shadowMapSize = { 256, 512, 1024, 2048, 4096, 8192 };
-    float[] cascadeLast;
+    float[] cascadeLast = new float[4];
 
     void Start()
     {
@@ -138,6 +144,7 @@ public class SqLight : MonoBehaviour
         mainCamTrans = mainCam.transform;
         InitNativeLight();
         InitShadows();
+        enabled = enabled || rayTracingShadow;
     }
 
     void Update()
@@ -180,6 +187,7 @@ public class SqLight : MonoBehaviour
     void InitNativeLight()
     {
         lightCache = GetComponent<Light>();
+        lightCache.shadows = (rayTracingShadow) ? LightShadows.None : LightShadows.Soft;
         lightData = new SqLightData();
         lightData.shadowMatrix = new Matrix4x4[4];
         lightData.cascadeDist = new float[4];
@@ -260,6 +268,11 @@ public class SqLight : MonoBehaviour
             return;
         }
 
+        if (rayTracingShadow)
+        {
+            return;
+        }
+
         SetupCascade();
 
         // view port and scissor
@@ -324,6 +337,11 @@ public class SqLight : MonoBehaviour
         lightData.intensity = lightCache.intensity;
         lightData.worldPos.w = shadowBias;
         lightData.shadowSize = shadowMapSize[(int)shadowSize];
+
+        if(rayTracingShadow)
+        {
+            lightData.cascadeDist[0] = shadowDistance;
+        }
     }
 
     void UpdateNativeLight()
