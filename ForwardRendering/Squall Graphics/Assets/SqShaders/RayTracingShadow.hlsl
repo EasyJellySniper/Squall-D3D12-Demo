@@ -51,8 +51,9 @@ void RTShadowRayGen()
     float2 xy = DispatchRaysIndex().xy + 0.5f; 
 
     // to ndc space
-    float2 screenUV = xy / DispatchRaysDimensions().xy * 2.0f - 1.0f;
+    float2 screenUV = (xy / DispatchRaysDimensions().xy);
     screenUV.y = 1 - screenUV.y;
+    screenUV = screenUV * 2.0f - 1.0f;
 
     // depth
     float depth = _DepthMap.Load(uint3(xy, 0)).r;
@@ -82,7 +83,7 @@ void RTShadowRayGen()
     TraceRay(_SceneAS, RAY_FLAG_NONE, ~0, 0, 1, 0, ray, payload);
 
     // output shadow
-    _OutputShadow[DispatchRaysIndex().xy] = float4(wpos,1);
+    _OutputShadow[DispatchRaysIndex().xy] = payload.atten;
 }
 
 [shader("closesthit")]
