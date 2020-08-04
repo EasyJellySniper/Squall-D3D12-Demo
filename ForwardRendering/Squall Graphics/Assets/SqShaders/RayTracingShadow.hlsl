@@ -75,7 +75,7 @@ void RTShadowRayGen()
     RayDesc ray;
     ray.Origin = wpos;
     ray.Direction = -mainLight.world.xyz;   // shoot a ray to light
-    ray.TMin = 0.001;
+    ray.TMin = mainLight.world.w;           // use bias as t min
     ray.TMax = mainLight.cascadeDist[0];
 
     // the data payload between ray tracing
