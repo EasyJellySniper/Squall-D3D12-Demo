@@ -351,7 +351,7 @@ void ForwardRenderingPath::ShadowWork()
 	{
 		if (!dirLights[i].HasShadow())
 		{
-			//RayTracingShadow(&dirLights[i]);
+			RayTracingShadow(&dirLights[i]);
 		}
 	}
 }
@@ -372,6 +372,7 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	CD3DX12_GPU_DESCRIPTOR_HANDLE gRayTracing = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart());
 	CD3DX12_GPU_DESCRIPTOR_HANDLE gDepth = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart(), 1, cbvSrvUavSize);
 	auto rayShadowSrc = LightManager::Instance().GetRayShadowSrc();
+	auto collectShadowSrc = LightManager::Instance().GetCollectShadowSrc();
 
 	// set state
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
@@ -387,7 +388,13 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 
 	// dispatch rays
 	auto dxrCmd = GraphicManager::Instance().GetDxrList();
+	dxrCmd->SetPipelineState1(mat->GetDxcPSO());
 	dxrCmd->DispatchRays(&dispatchDesc);
+
+	// copy result
+	D3D12_RESOURCE_STATES before[4] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COPY_DEST };
+	D3D12_RESOURCE_STATES after[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_COMMON };
+	CopyResourceWithBarrier(_cmdList, rayShadowSrc, collectShadowSrc, before, after);
 
 	ExecuteCmdList(_cmdList);
 }

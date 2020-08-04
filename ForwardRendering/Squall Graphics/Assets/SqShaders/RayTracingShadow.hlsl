@@ -61,6 +61,7 @@ void RTShadowRayGen()
     if (depth == 0.0f)
     {
         // early out
+        _OutputShadow[DispatchRaysIndex().xy] = 1;
         return;
     }
 
@@ -81,7 +82,7 @@ void RTShadowRayGen()
     TraceRay(_SceneAS, RAY_FLAG_NONE, ~0, 0, 1, 0, ray, payload);
 
     // output shadow
-    _OutputShadow[DispatchRaysIndex().xy] = payload.atten;
+    _OutputShadow[DispatchRaysIndex().xy] = float4(wpos,1);
 }
 
 [shader("closesthit")]
