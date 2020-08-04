@@ -56,6 +56,7 @@ public:
 	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _index);
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC GetPsoDesc();
 	D3D12_DISPATCH_RAYS_DESC GetDispatchRayDesc(UINT _width, UINT _height);
+	bool IsRayTracingMat();
 
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
