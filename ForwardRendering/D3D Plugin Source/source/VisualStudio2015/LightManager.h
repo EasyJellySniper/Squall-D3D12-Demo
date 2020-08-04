@@ -50,6 +50,7 @@ public:
 	Material* GetRayShadow();
 	ID3D12DescriptorHeap* GetRayShadowHeap();
 	ID3D12DescriptorHeap* GetShadowSampler();
+	ID3D12Resource* GetRayShadowSrc();
 	int GetShadowIndex();
 
 	ID3D12Resource* GetCollectShadowSrc();

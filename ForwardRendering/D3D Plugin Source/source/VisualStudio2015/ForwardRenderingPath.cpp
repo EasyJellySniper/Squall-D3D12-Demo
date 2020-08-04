@@ -351,7 +351,7 @@ void ForwardRenderingPath::ShadowWork()
 	{
 		if (!dirLights[i].HasShadow())
 		{
-			RayTracingShadow(&dirLights[i]);
+			//RayTracingShadow(&dirLights[i]);
 		}
 	}
 }
@@ -369,12 +369,14 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	Material *mat = LightManager::Instance().GetRayShadow();
 	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
 
-	CD3DX12_GPU_DESCRIPTOR_HANDLE hRayTracing = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart());
-	CD3DX12_GPU_DESCRIPTOR_HANDLE hDepth = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart(), 1, cbvSrvUavSize);
+	CD3DX12_GPU_DESCRIPTOR_HANDLE gRayTracing = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart());
+	CD3DX12_GPU_DESCRIPTOR_HANDLE gDepth = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart(), 1, cbvSrvUavSize);
+	auto rayShadowSrc = LightManager::Instance().GetRayShadowSrc();
 
+	// set state
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
-	_cmdList->SetComputeRootDescriptorTable(0, hRayTracing);
-	_cmdList->SetComputeRootDescriptorTable(1, hDepth);
+	_cmdList->SetComputeRootDescriptorTable(0, gRayTracing);
+	_cmdList->SetComputeRootDescriptorTable(1, gDepth);
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
@@ -385,7 +387,7 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 
 	// dispatch rays
 	auto dxrCmd = GraphicManager::Instance().GetDxrList();
-	//dxrCmd->DispatchRays(&dispatchDesc);
+	dxrCmd->DispatchRays(&dispatchDesc);
 
 	ExecuteCmdList(_cmdList);
 }
@@ -974,20 +976,30 @@ void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, C
 	CameraData* camData = _camera->GetCameraData();
 	bool useMsaa = (camData->allowMSAA > 1);
 
-	// barrier
-	D3D12_RESOURCE_BARRIER copyDepth[2] = { CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE)
-	, CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST) };
-
-	D3D12_RESOURCE_BARRIER finishCopy[2] = { CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON)
-		, CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetDebugDepth(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON) };
-
 	// copy to debug depth
 	if (_camera->GetRenderMode() == RenderMode::Depth)
 	{
-		_cmdList->ResourceBarrier(2, copyDepth);
-		_cmdList->CopyResource(_camera->GetDebugDepth(), _camera->GetCameraDepth());
-		_cmdList->ResourceBarrier(2, finishCopy);
+		D3D12_RESOURCE_STATES beforeStates[4] = { D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST };
+		D3D12_RESOURCE_STATES afterStates[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_COMMON };
+		beforeStates[0] = (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON;
+
+		CopyResourceWithBarrier(_cmdList, _camera->GetCameraDepth(), _camera->GetDebugDepth(), beforeStates, afterStates);
 	}
+}
+
+void ForwardRenderingPath::CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[4], D3D12_RESOURCE_STATES _afterCopy[4])
+{
+	D3D12_RESOURCE_BARRIER copyBefore[2];
+	copyBefore[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, _beforeCopy[0], _beforeCopy[1]);
+	copyBefore[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, _beforeCopy[2], _beforeCopy[3]);
+
+	D3D12_RESOURCE_BARRIER copyAfter[2];
+	copyAfter[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, _afterCopy[0], _afterCopy[1]);
+	copyAfter[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, _afterCopy[2], _afterCopy[3]);
+
+	_cmdList->ResourceBarrier(2, copyBefore);
+	_cmdList->CopyResource(_dst, _src);
+	_cmdList->ResourceBarrier(2, copyAfter);
 }
 
 void ForwardRenderingPath::CollectShadow(Light* _light, int _id)

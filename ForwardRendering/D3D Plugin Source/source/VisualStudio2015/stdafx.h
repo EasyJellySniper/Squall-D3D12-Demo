@@ -7,6 +7,7 @@ using namespace std;
 #include <codecvt>
 #include <dxgiformat.h>
 #include <algorithm>
+#include <d3d12.h>
 
 inline wstring AnsiToWString(const string& str)
 {
@@ -134,4 +135,18 @@ inline wstring RemoveString(wstring _wstr, wstring _str)
 	}
 
 	return _wstr;
+}
+
+inline D3D12_CLEAR_VALUE GetD3D12ClearValue(FLOAT _color[4], DXGI_FORMAT _format)
+{
+	D3D12_CLEAR_VALUE cv;
+	for (int i = 0; i < 4; i++)
+	{
+		cv.Color[i] = _color[i];
+	}
+	cv.DepthStencil.Depth = 0.0f;
+	cv.DepthStencil.Stencil = 0;
+	cv.Format = _format;
+
+	return cv;
 }

@@ -270,6 +270,11 @@ ID3D12DescriptorHeap* LightManager::GetShadowSampler()
 	return shadowSampler.GetSamplerHeap();
 }
 
+ID3D12Resource* LightManager::GetRayShadowSrc()
+{
+	return rayTracingShadow->Resource();
+}
+
 int LightManager::GetShadowIndex()
 {
 	return collectShadowID;

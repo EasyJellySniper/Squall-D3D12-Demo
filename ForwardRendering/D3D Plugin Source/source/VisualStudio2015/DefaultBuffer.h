@@ -31,7 +31,8 @@ public:
 	}
 
 	// entry for texture
-	DefaultBuffer(ID3D12Device* _device, bool _isUAV, DXGI_FORMAT _format, UINT64 _width, UINT _height, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON)
+	DefaultBuffer(ID3D12Device* _device, bool _isUAV, DXGI_FORMAT _format, UINT64 _width, UINT _height, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON
+		, D3D12_CLEAR_VALUE *_clearValue = nullptr)
 	{
 		auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
@@ -47,7 +48,7 @@ public:
 			D3D12_HEAP_FLAG_NONE,
 			&texDesc,
 			_states,
-			nullptr,
+			_clearValue,
 			IID_PPV_ARGS(defaultBuffer.GetAddressOf())));
 	}
 

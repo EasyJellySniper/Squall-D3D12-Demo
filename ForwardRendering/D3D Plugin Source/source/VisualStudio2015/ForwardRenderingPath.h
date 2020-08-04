@@ -70,6 +70,7 @@ private:
 	void ResolveColorBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
+	void CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[4], D3D12_RESOURCE_STATES _afterCopy[4]);
 	void CollectShadow(Light* _light, int _id);
 	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers);
 	void ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList);
