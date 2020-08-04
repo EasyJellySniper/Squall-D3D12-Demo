@@ -391,9 +391,9 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	dxrCmd->SetPipelineState1(mat->GetDxcPSO());
 	dxrCmd->DispatchRays(&dispatchDesc);
 
-	// copy result
-	D3D12_RESOURCE_STATES before[4] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COPY_DEST };
-	D3D12_RESOURCE_STATES after[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_COMMON };
+	// copy result, collect shadow will be used in pixel shader later
+	D3D12_RESOURCE_STATES before[4] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ,D3D12_RESOURCE_STATE_COPY_DEST };
+	D3D12_RESOURCE_STATES after[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };
 	CopyResourceWithBarrier(_cmdList, rayShadowSrc, collectShadowSrc, before, after);
 
 	ExecuteCmdList(_cmdList);
@@ -913,12 +913,12 @@ void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdLis
 	// barrier
 	D3D12_RESOURCE_BARRIER finishResolve[2];
 	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
-	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
-
 
 	// resolve to non-AA target if MSAA enabled
 	if (camData->allowMSAA > 1)
 	{
+		finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+
 		_cmdList->ResourceBarrier(2, resolveColor);
 		_cmdList->ResolveSubresource(_camera->GetRtvSrc(0), 0, _camera->GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
 		_cmdList->ResourceBarrier(2, finishResolve);
