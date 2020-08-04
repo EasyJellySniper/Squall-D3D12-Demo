@@ -358,6 +358,11 @@ public class SqLight : MonoBehaviour
             return true;
         }
 
+        if (lightData.cascadeDist[0] != shadowDistance && rayTracingShadow)
+        {
+            return true;
+        }
+
         return false;
     }
 
