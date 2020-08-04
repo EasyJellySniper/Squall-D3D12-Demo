@@ -49,6 +49,7 @@ public class SqMeshRenderer : MonoBehaviour
 
         InitRenderer();
         ExtractMaterialData();
+        UpdateNativeTransform();
     }
 
     void OnEnable()
@@ -65,10 +66,7 @@ public class SqMeshRenderer : MonoBehaviour
     {
         if (transform.hasChanged)
         {
-            Bounds b = rendererCache.bounds;
-            UpdateRendererBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
-            SetWorldMatrix(rendererNativeID, rendererCache.localToWorldMatrix);
-            transform.hasChanged = false;
+            UpdateNativeTransform();
         }
     }
 
@@ -79,6 +77,14 @@ public class SqMeshRenderer : MonoBehaviour
 
         Bounds b = rendererCache.bounds;
         UpdateRendererBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
+    }
+
+    void UpdateNativeTransform()
+    {
+        Bounds b = rendererCache.bounds;
+        UpdateRendererBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
+        SetWorldMatrix(rendererNativeID, rendererCache.localToWorldMatrix);
+        transform.hasChanged = false;
     }
 
     void ExtractMaterialData()
