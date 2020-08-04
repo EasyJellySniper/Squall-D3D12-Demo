@@ -56,7 +56,7 @@ void RTShadowRayGen()
     screenUV = screenUV * 2.0f - 1.0f;
 
     // depth
-    float depth = _DepthMap.Load(uint3(xy, 0)).r;
+    float depth = _DepthMap.Load(uint3(DispatchRaysIndex().xy, 0)).r;
 
     [branch]
     if (depth == 0.0f)
@@ -79,7 +79,7 @@ void RTShadowRayGen()
     ray.TMax = mainLight.cascadeDist[0];
 
     // the data payload between ray tracing
-    RayPayload payload = { float4(0, 0, 0, 0) };
+    RayPayload payload = { float4(1, 1, 1, 1) };
     TraceRay(_SceneAS, RAY_FLAG_NONE, ~0, 0, 1, 0, ray, payload);
 
     // output shadow
