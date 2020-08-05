@@ -30,6 +30,9 @@ public class SqCamera : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void GetDebugDepth(int _instance, IntPtr _debugDepth);
 
+    [DllImport("SquallGraphics")]
+    static extern int GetNativeFrameIndex();
+
     /// <summary>
     /// msaa factor
     /// </summary>
@@ -125,7 +128,6 @@ public class SqCamera : MonoBehaviour
     Camera attachedCam;
     CameraData camData;
     MsaaFactor lastMsaaSample;
-    int currFrame;
 
     void Start ()
     {
@@ -153,8 +155,6 @@ public class SqCamera : MonoBehaviour
         CreateCameraData();
         GetDebugDepth(attachedCam.GetInstanceID(), debugDepth.GetNativeDepthBufferPtr());
         lastMsaaSample = msaaSample;
-
-        currFrame = 0;
     }
 
     void OnDestroy()
@@ -224,8 +224,7 @@ public class SqCamera : MonoBehaviour
         }
         else
         {
-            Graphics.Blit(renderTarget[currFrame], destination);
-            currFrame = (currFrame + 1) % MAX_FRAME_COUNT;
+            Graphics.Blit(renderTarget[GetNativeFrameIndex()], destination);
         }
     }
 

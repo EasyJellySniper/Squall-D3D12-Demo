@@ -2,6 +2,8 @@
 #include <d3d12.h>
 #include "stdafx.h"
 #include <wrl.h>
+#include <vector>
+using namespace std;
 using namespace Microsoft::WRL;
 
 class Texture
@@ -43,9 +45,9 @@ protected:
 	ComPtr<ID3D12DescriptorHeap> dsvHandle;
 	ComPtr<ID3D12DescriptorHeap> cbvSrvUavHandle;
 
-	ID3D12Resource** rtvSrc;
-	ID3D12Resource** dsvSrc;
-	ID3D12Resource** cbvSrvUavSrc;
+	vector<ID3D12Resource*> rtvSrc;
+	vector<ID3D12Resource*> dsvSrc;
+	vector<ID3D12Resource*> cbvSrvUavSrc;
 
 	int rtvCount;
 	int dsvCount;

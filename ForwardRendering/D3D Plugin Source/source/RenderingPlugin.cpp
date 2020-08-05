@@ -186,6 +186,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetSkyboxWorld(XMFLOA
 	LightManager::Instance().SetSkyWorld(_world);
 }
 
+extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetNativeFrameIndex()
+{
+	return GraphicManager::Instance().GetFrameResource()->currFrameIndex;
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

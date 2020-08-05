@@ -31,19 +31,16 @@ Texture::Texture(int _numRtvHeap, int _numDsvHeap, int _numCbvSrvUavHeap)
 	if (_numRtvHeap > 0)
 	{
 		LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(rtvHandle.GetAddressOf())));
-		rtvSrc = new ID3D12Resource * [_numRtvHeap];
 	}
 
 	if (_numDsvHeap > 0)
 	{
 		LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(dsvHandle.GetAddressOf())));
-		dsvSrc = new ID3D12Resource * [_numDsvHeap];
 	}
 
 	if (_numCbvSrvUavHeap > 0)
 	{
 		LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(cbvSrvUavHandle.GetAddressOf())));
-		cbvSrvUavSrc = new ID3D12Resource * [_numCbvSrvUavHeap];
 	}
 }
 
@@ -59,24 +56,9 @@ int Texture::GetInstanceID()
 
 void Texture::Release()
 {
-	if (rtvSrc != nullptr)
-	{
-		delete[]rtvSrc;
-		rtvSrc = nullptr;
-	}
-
-	if (dsvSrc != nullptr)
-	{
-		delete[]dsvSrc;
-		dsvSrc = nullptr;
-	}
-
-	if (cbvSrvUavSrc != nullptr)
-	{
-		delete[]cbvSrvUavSrc;
-		cbvSrvUavSrc = nullptr;
-	}
-
+	rtvSrc.clear();
+	dsvSrc.clear();
+	cbvSrvUavSrc.clear();
 	rtvHandle.Reset();
 	dsvHandle.Reset();
 	cbvSrvUavHandle.Reset();
@@ -136,7 +118,7 @@ ID3D12Resource* Texture::GetSrvSrc(int _index)
 
 int Texture::InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa)
 {
-	rtvSrc[rtvCount] = _rtv;
+	rtvSrc.push_back(_rtv);
 
 	// create rtv
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rHandle(rtvHandle->GetCPUDescriptorHandleForHeapStart(), rtvCount, GraphicManager::Instance().GetRtvDesciptorSize());
@@ -153,7 +135,7 @@ int Texture::InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa)
 
 int Texture::InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa)
 {
-	dsvSrc[dsvCount] = _dsv;
+	dsvSrc.push_back(_dsv);
 
 	// create dsv
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dHandle(dsvHandle->GetCPUDescriptorHandleForHeapStart(), dsvCount, GraphicManager::Instance().GetDsvDesciptorSize());
@@ -168,7 +150,7 @@ int Texture::InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa)
 
 int Texture::InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msaa, bool _isCube)
 {
-	cbvSrvUavSrc[cbvSrvUavCount] = _srv;
+	cbvSrvUavSrc.push_back(_srv);
 
 	// create srv
 	CD3DX12_CPU_DESCRIPTOR_HANDLE sHandle(cbvSrvUavHandle->GetCPUDescriptorHandleForHeapStart(), cbvSrvUavCount, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
@@ -194,7 +176,7 @@ int Texture::InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msaa, bool
 
 int Texture::InitUAV(ID3D12Resource* _uav, DXGI_FORMAT _format)
 {
-	cbvSrvUavSrc[cbvSrvUavCount] = _uav;
+	cbvSrvUavSrc.push_back(_uav);
 
 	// create srv/uav
 	CD3DX12_CPU_DESCRIPTOR_HANDLE uHandle(cbvSrvUavHandle->GetCPUDescriptorHandleForHeapStart(), cbvSrvUavCount, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());

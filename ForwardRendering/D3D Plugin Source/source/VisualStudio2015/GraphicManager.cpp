@@ -406,6 +406,7 @@ FrameResource* GraphicManager::GetFrameResource()
 		frameResource.workerGfxAlloc[i] = workerGfxAllocator[i][currFrameIndex].Get();
 		frameResource.workerGfxList[i] = workerGfxList[i][currFrameIndex].Get();
 	}
+	frameResource.currFrameIndex = currFrameIndex;
 
 	return &frameResource;
 }

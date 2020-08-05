@@ -39,3 +39,4 @@ EXPORTS
    SetAmbientLight
    SetSkybox
    SetSkyboxWorld
+   GetNativeFrameIndex
