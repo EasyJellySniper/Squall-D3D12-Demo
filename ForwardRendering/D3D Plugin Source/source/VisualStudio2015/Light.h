@@ -44,7 +44,7 @@ public:
 	bool IsDirty(int _frameIdx);
 	void SetShadowDirty(bool _dirty, int _frameIdx);
 	bool IsShadowDirty(int _frameIdx);
-	bool HasShadow();
+	bool HasShadowMap();
 
 	ID3D12Resource* GetShadowDsvSrc(int _cascade);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowDsv(int _cascade);
@@ -59,7 +59,7 @@ public:
 private:
 	bool isDirty[MAX_FRAME_COUNT];
 	bool isShadowDirty[MAX_FRAME_COUNT];
-	bool hasShadow;
+	bool hasShadowMap;
 	int instanceID;
 	SqLightData lightDataCPU;
 

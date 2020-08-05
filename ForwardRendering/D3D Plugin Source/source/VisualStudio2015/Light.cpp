@@ -13,7 +13,7 @@ void Light::Init(int _instanceID, SqLightData _data)
 		lightConstant[i] = make_shared<UploadBuffer<LightConstant>>(GraphicManager::Instance().GetDevice(), MAX_CASCADE_SHADOW, true);
 	}
 
-	hasShadow = false;
+	hasShadowMap = false;
 }
 
 void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
@@ -43,7 +43,7 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 		shadowRT->InitSRV(depthAndShadow[i], GetColorFormatFromTypeless(srcDesc.Format), false);
 	}
 
-	hasShadow = true;
+	hasShadowMap = true;
 }
 
 void Light::Release()
@@ -130,9 +130,9 @@ bool Light::IsShadowDirty(int _frameIdx)
 	return isShadowDirty[_frameIdx];
 }
 
-bool Light::HasShadow()
+bool Light::HasShadowMap()
 {
-	return hasShadow;
+	return hasShadowMap;
 }
 
 ID3D12Resource* Light::GetShadowDsvSrc(int _cascade)

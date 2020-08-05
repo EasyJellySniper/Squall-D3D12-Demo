@@ -365,6 +365,20 @@ RenderTargetData Camera::GetRenderTargetData()
 	return rtd;
 }
 
+void Camera::FillSystemConstant(SystemConstant& _sc)
+{
+	_sc.cameraPos = position;
+
+	XMMATRIX vp = XMLoadFloat4x4(&viewMatrix) * XMLoadFloat4x4(&projMatrix);
+	XMStoreFloat4x4(&_sc.sqMatrixViewProj, vp);
+
+	XMMATRIX invVP = XMMatrixInverse(&XMMatrixDeterminant(vp), vp);
+	XMStoreFloat4x4(&_sc.sqMatrixInvViewProj, invVP);
+
+	_sc.farZ = farZ;
+	_sc.nearZ = nearZ;
+}
+
 bool Camera::CreatePipelineMaterial()
 {
 	// init vector

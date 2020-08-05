@@ -84,6 +84,7 @@ public:
 	bool FrustumTest(BoundingBox _bound);
 	Shader* GetFallbackShader();
 	RenderTargetData GetRenderTargetData();
+	void FillSystemConstant(SystemConstant& _sc);
 
 private:
 	static const int MAX_RENDER_TARGETS = 8;
