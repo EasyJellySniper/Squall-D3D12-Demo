@@ -25,15 +25,13 @@ struct SqLight
 
 cbuffer ObjectConstant : register(b0)
 {
-	float4x4 SQ_MATRIX_MVP;
 	float4x4 SQ_MATRIX_WORLD;
 };
 
 cbuffer SystemConstant : register(b1)
 {
 	float4x4 SQ_MATRIX_VP;
-	float4x4 SQ_MATRIX_INV_V;
-	float4x4 SQ_MATRIX_INV_P;
+	float4x4 SQ_MATRIX_INV_VP;
 	float4 ambientGround;
 	float4 ambientSky;
 	float3 _CameraPos;
@@ -88,13 +86,10 @@ float3 DepthToWorldPos(float depth, float4 screenPos)
 {
 	// calc vpos
 	screenPos.z = depth;
-	float4 vpos = mul(SQ_MATRIX_INV_P, screenPos);
-	vpos /= vpos.w;
+	float4 wpos = mul(SQ_MATRIX_INV_VP, screenPos);
+	wpos /= wpos.w;
 
-	// calc vray and wpos
-	float3 wpos = mul(SQ_MATRIX_INV_V, vpos).xyz;
-
-	return wpos;
+	return wpos.xyz;
 }
 
 #endif

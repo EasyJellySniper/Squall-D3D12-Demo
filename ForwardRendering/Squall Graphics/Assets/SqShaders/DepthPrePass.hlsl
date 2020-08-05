@@ -1,5 +1,6 @@
 #define DepthPrePassRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
 "CBV(b0)," \
+"CBV(b1)," \
 "CBV(b3)," \
 "DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
@@ -20,7 +21,9 @@ struct v2f
 v2f DepthPrePassVS(VertexInput i)
 {
 	v2f o = (v2f)0;
-	o.vertex = mul(SQ_MATRIX_MVP, float4(i.vertex, 1.0f));
+
+	float4 wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
+	o.vertex = mul(SQ_MATRIX_VP, wpos);
 	o.uv1 = i.uv1;
 
 	return o;

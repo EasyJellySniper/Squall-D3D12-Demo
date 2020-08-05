@@ -112,11 +112,8 @@ void RendererManager::UploadObjectConstant(Camera* _camera, int _frameIdx, int _
 		}
 
 		XMFLOAT4X4 world = r->GetWorld();
-		XMFLOAT4X4 view = _camera->GetView();
-		XMFLOAT4X4 proj = _camera->GetProj();
 
 		ObjectConstant sc;
-		XMStoreFloat4x4(&sc.sqMatrixMvp, XMLoadFloat4x4(&world) * XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
 		sc.sqMatrixWorld = world;
 		r->UpdateObjectConstant(sc, _frameIdx);
 	}

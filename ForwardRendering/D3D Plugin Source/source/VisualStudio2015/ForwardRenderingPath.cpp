@@ -284,10 +284,12 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 	// calc invert view and invert proj and view proj
 	XMFLOAT4X4 view = _camera->GetView();
 	XMFLOAT4X4 proj = _camera->GetProj();
-	XMStoreFloat4x4(&sc.sqMatrixViewProj, XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj));
+	XMMATRIX vp = XMLoadFloat4x4(&view) * XMLoadFloat4x4(&proj);
+	XMStoreFloat4x4(&sc.sqMatrixViewProj, vp);
 
-	sc.sqMatrixInvView = _camera->GetInvView();
-	sc.sqMatrixInvProj = _camera->GetInvProj();
+	XMMATRIX invVP = XMMatrixInverse(&XMMatrixDeterminant(vp), vp);
+	XMStoreFloat4x4(&sc.sqMatrixInvViewProj, invVP);
+	
 	sc.farZ = _camera->GetFarZ();
 	sc.nearZ = _camera->GetNearZ();
 
@@ -453,13 +455,14 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, _mat->GetMaterialConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
 
 	// setup descriptor table gpu
 	if (_queue >= RenderQueue::CutoffStart)
 	{
-		_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-		_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	}
 }
 
@@ -549,6 +552,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _th
 
 			// set system constant of renderer
 			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);

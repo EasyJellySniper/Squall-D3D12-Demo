@@ -1,5 +1,6 @@
 #define WireFrameRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
-						 "CBV(b0)"
+"CBV(b0)," \
+"CBV(b1)"
 
 #include "SqInput.hlsl"
 #pragma sq_vertex WireFrameVS
@@ -16,8 +17,8 @@ struct v2f
 v2f WireFrameVS(VertexInput i)
 {
 	v2f o = (v2f)0;
-	o.vertex = mul(SQ_MATRIX_MVP, float4(i.vertex, 1.0f));
 	o.wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
+	o.vertex = mul(SQ_MATRIX_VP, o.wpos);
 
 	return o;
 }

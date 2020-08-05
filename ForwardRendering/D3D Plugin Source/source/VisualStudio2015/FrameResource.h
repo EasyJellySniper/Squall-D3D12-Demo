@@ -22,15 +22,13 @@ struct FrameResource
 
 struct ObjectConstant
 {
-	XMFLOAT4X4 sqMatrixMvp;
 	XMFLOAT4X4 sqMatrixWorld;
 };
 
 struct SystemConstant
 {
 	XMFLOAT4X4 sqMatrixViewProj;
-	XMFLOAT4X4 sqMatrixInvView;
-	XMFLOAT4X4 sqMatrixInvProj;
+	XMFLOAT4X4 sqMatrixInvViewProj;
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
 	XMFLOAT3 cameraPos;

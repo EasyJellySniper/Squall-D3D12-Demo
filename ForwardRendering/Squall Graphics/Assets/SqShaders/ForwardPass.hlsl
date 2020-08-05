@@ -37,7 +37,6 @@ struct v2f
 v2f ForwardPassVS(VertexInput i)
 {
 	v2f o = (v2f)0;
-	o.vertex = mul(SQ_MATRIX_MVP, float4(i.vertex, 1.0f));
 	o.tex.xy = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
 
 	float2 detailUV = lerp(i.uv1, i.uv2, _DetailUV);
@@ -46,7 +45,10 @@ v2f ForwardPassVS(VertexInput i)
 
 	// assume uniform scale, mul normal with world matrix directly
 	o.normal = LocalToWorldDir(i.normal);
-	o.worldPos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f)).xyz;
+
+	float4 wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
+	o.worldPos = wpos.xyz;
+	o.vertex = mul(SQ_MATRIX_VP, wpos);
 
 #ifdef _NORMAL_MAP
 	o.worldToTangent = CreateTBN(o.normal, i.tangent);
