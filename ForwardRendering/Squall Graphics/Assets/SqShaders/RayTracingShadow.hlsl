@@ -80,7 +80,7 @@ void RTShadowRayGen()
 
     // the data payload between ray tracing
     RayPayload payload = { float4(1, 1, 1, 1) };
-    TraceRay(_SceneAS, RAY_FLAG_NONE, ~0, 0, 1, 0, ray, payload);
+    TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, ray, payload);
 
     // output shadow
     _OutputShadow[DispatchRaysIndex().xy] = payload.atten;
