@@ -232,7 +232,7 @@ void ForwardRenderingPath::ClearCamera(ID3D12GraphicsCommandList* _cmdList, Came
 
 	// transition render buffer
 	D3D12_RESOURCE_BARRIER clearBarrier[2];
-	clearBarrier[0] = CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
+	clearBarrier[0] = CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(frameIndex) : _camera->GetRtvSrc(frameIndex)
 		, D3D12_RESOURCE_STATE_COMMON
 		, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
@@ -243,7 +243,7 @@ void ForwardRenderingPath::ClearCamera(ID3D12GraphicsCommandList* _cmdList, Came
 	_cmdList->ResourceBarrier(2, clearBarrier);
 
 	// clear render target view and depth view (reversed-z)
-	_cmdList->ClearRenderTargetView((camData->allowMSAA > 1) ? _camera->GetMsaaRtv(0) : _camera->GetRtv(0)
+	_cmdList->ClearRenderTargetView((camData->allowMSAA > 1) ? _camera->GetMsaaRtv(frameIndex) : _camera->GetRtv(frameIndex)
 		, camData->clearColor, 0, nullptr);
 
 	_cmdList->ClearDepthStencilView((camData->allowMSAA > 1) ? _camera->GetMsaaDsv() : _camera->GetDsv()
@@ -424,7 +424,7 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _frameIdx, int 
 
 	// bind
 	_cmdList->OMSetRenderTargets(1,
-		(camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(0) : &_camera->GetRtv(0),
+		(camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(frameIndex) : &_camera->GetRtv(frameIndex),
 		true,
 		(camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv());
 
@@ -779,7 +779,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera, int _frameIdx)
 
 	// bind target
 	CameraData* camData = _camera->GetCameraData();
-	_cmdList->OMSetRenderTargets(1, (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(0) : &_camera->GetRtv(0), true, (camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv());
+	_cmdList->OMSetRenderTargets(1, (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(frameIndex) : &_camera->GetRtv(frameIndex), true, (camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv());
 	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -818,7 +818,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera, int _frameIdx)
 	// bind
 	CameraData* camData = _camera->GetCameraData();
 	_cmdList->OMSetRenderTargets(1,
-		(camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(0) : &_camera->GetRtv(0),
+		(camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(frameIndex) : &_camera->GetRtv(frameIndex),
 		true,
 		(camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv());
 
@@ -908,15 +908,15 @@ void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdLis
 
 	// barrier
 	D3D12_RESOURCE_BARRIER resolveColor[2];
-	resolveColor[0] = CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(0) : _camera->GetRtvSrc(0)
+	resolveColor[0] = CD3DX12_RESOURCE_BARRIER::Transition((camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(frameIndex) : _camera->GetRtvSrc(frameIndex)
 		, D3D12_RESOURCE_STATE_RENDER_TARGET
 		, (camData->allowMSAA > 1) ? D3D12_RESOURCE_STATE_RESOLVE_SOURCE : D3D12_RESOURCE_STATE_COMMON);
 
-	resolveColor[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+	resolveColor[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(frameIndex), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST);
 
 	// barrier
 	D3D12_RESOURCE_BARRIER finishResolve[2];
-	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
+	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(frameIndex), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
 
 	// resolve to non-AA target if MSAA enabled
 	if (camData->allowMSAA > 1)
@@ -924,7 +924,7 @@ void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdLis
 		finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
 
 		_cmdList->ResourceBarrier(2, resolveColor);
-		_cmdList->ResolveSubresource(_camera->GetRtvSrc(0), 0, _camera->GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
+		_cmdList->ResolveSubresource(_camera->GetRtvSrc(frameIndex), 0, _camera->GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
 		_cmdList->ResourceBarrier(2, finishResolve);
 	}
 	else
@@ -958,7 +958,7 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 		_cmdList->ResourceBarrier(2, resolveDepth);
 
 		// bind resolve depth pipeline
-		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera->GetMsaaSrv(0) };
+		ID3D12DescriptorHeap* descriptorHeaps[] = { _camera->GetMsaaSrv() };
 		_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
 		_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera->GetDsv());
@@ -969,7 +969,7 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 		_cmdList->SetPipelineState(_camera->GetPostMaterial()->GetPSO());
 		_cmdList->SetGraphicsRootSignature(_camera->GetPostMaterial()->GetRootSignature());
 		_cmdList->SetGraphicsRootConstantBufferView(0, _camera->GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
-		_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv(0)->GetGPUDescriptorHandleForHeapStart());
+		_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv()->GetGPUDescriptorHandleForHeapStart());
 
 		_cmdList->DrawInstanced(6, 1, 0, 0);
 		GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);

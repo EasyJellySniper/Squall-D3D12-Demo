@@ -98,6 +98,11 @@ public class SqCamera : MonoBehaviour
     public static SqCamera instance = null;
 
     /// <summary>
+    /// max frame count
+    /// </summary>
+    const int MAX_FRAME_COUNT = 3;
+
+    /// <summary>
     /// render mode
     /// </summary>
     public RenderMode renderMode = RenderMode.WireFrame;
@@ -110,7 +115,7 @@ public class SqCamera : MonoBehaviour
     /// <summary>
     /// render target
     /// </summary>
-    RenderTexture renderTarget;
+    RenderTexture []renderTarget = new RenderTexture[MAX_FRAME_COUNT];
 
     /// <summary>
     /// debug depth
@@ -120,6 +125,7 @@ public class SqCamera : MonoBehaviour
     Camera attachedCam;
     CameraData camData;
     MsaaFactor lastMsaaSample;
+    int currFrame;
 
     void Start ()
     {
@@ -147,14 +153,19 @@ public class SqCamera : MonoBehaviour
         CreateCameraData();
         GetDebugDepth(attachedCam.GetInstanceID(), debugDepth.GetNativeDepthBufferPtr());
         lastMsaaSample = msaaSample;
+
+        currFrame = 0;
     }
 
     void OnDestroy()
     {
-        if (renderTarget)
+        for (int i = 0; i < MAX_FRAME_COUNT; i++)
         {
-            renderTarget.Release();
-            DestroyImmediate(renderTarget);
+            if (renderTarget[i])
+            {
+                renderTarget[i].Release();
+                DestroyImmediate(renderTarget[i]);
+            }
         }
         instance = null;
     }
@@ -213,19 +224,23 @@ public class SqCamera : MonoBehaviour
         }
         else
         {
-            Graphics.Blit(renderTarget, destination);
+            Graphics.Blit(renderTarget[currFrame], destination);
+            currFrame = (currFrame + 1) % MAX_FRAME_COUNT;
         }
     }
 
     void CreateRenderTarget()
     {
-        renderTarget = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
-        renderTarget.name = name + " Target";
-        renderTarget.antiAliasing = 1;
-        renderTarget.bindTextureMS = false;
+        for (int i = 0; i < MAX_FRAME_COUNT; i++)
+        {
+            renderTarget[i] = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, (i == 0) ? 32 : 0, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
+            renderTarget[i].name = name + " Target";
+            renderTarget[i].antiAliasing = 1;
+            renderTarget[i].bindTextureMS = false;
 
-        // actually create so that we have native resources
-        renderTarget.Create();
+            // actually create so that we have native resources
+            renderTarget[i].Create();
+        }
 
         debugDepth = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
         debugDepth.name = "Debug Depth";
@@ -248,8 +263,12 @@ public class SqCamera : MonoBehaviour
         camData.allowMSAA = (int)msaaSample;
 
         camData.renderTarget = new IntPtr[8];
-        camData.renderTarget[0] = renderTarget.GetNativeTexturePtr();
-        camData.depthTarget = renderTarget.GetNativeDepthBufferPtr();
+        for (int i = 0; i < MAX_FRAME_COUNT; i++)
+        {
+            camData.renderTarget[i] = renderTarget[i].GetNativeTexturePtr();
+        }
+
+        camData.depthTarget = renderTarget[0].GetNativeDepthBufferPtr();
 
         // add camera to native plugin
         if (!AddCamera(camData))

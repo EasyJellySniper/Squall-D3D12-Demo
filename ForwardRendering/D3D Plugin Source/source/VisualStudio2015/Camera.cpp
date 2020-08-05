@@ -229,9 +229,9 @@ ID3D12DescriptorHeap* Camera::GetDepthSrv()
 	return cameraRT[0]->GetSrv();
 }
 
-ID3D12DescriptorHeap* Camera::GetMsaaSrv(int _index)
+ID3D12DescriptorHeap* Camera::GetMsaaSrv()
 {
-	return cameraRTMsaa[_index]->GetSrv();
+	return cameraRTMsaa[0]->GetSrv();
 }
 
 void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)
