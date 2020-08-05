@@ -78,8 +78,8 @@ void GraphicManager::Release()
 		}
 
 		systemConstantGPU[i].reset();
+		graphicFences[i] = 0;
 	}
-
 
 	mainGraphicQueue.Reset();
 	gpuTimeQuery.Reset();
