@@ -84,7 +84,7 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> dirLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> pointLightData[MAX_FRAME_COUNT];
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
-	unique_ptr<RenderTexture> collectShadow;
+	unique_ptr<Texture> collectShadow;
 	unique_ptr<DefaultBuffer> rayTracingShadow;
 	Texture rayTracingTex;
 

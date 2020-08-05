@@ -54,7 +54,6 @@
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightManager.h" />
-    <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="DefaultBuffer.h" />
     <ClInclude Include="RayTracingManager.h" />
   </ItemGroup>
@@ -82,7 +81,6 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightManager.cpp" />
-    <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="GameTimerManager.cpp" />
     <ClCompile Include="RayTracingManager.cpp" />
   </ItemGroup>

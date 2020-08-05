@@ -7,7 +7,7 @@
 #include <wrl.h>
 #include "Material.h" 
 #include "Shader.h"
-#include "RenderTexture.h"
+#include "Texture.h"
 using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
@@ -104,8 +104,8 @@ private:
 	RenderTargetData rtData;
 
 	// render texture
-	shared_ptr<RenderTexture> cameraRT[MAX_RENDER_TARGETS];
-	shared_ptr<RenderTexture> cameraRTMsaa[MAX_RENDER_TARGETS];
+	shared_ptr<Texture> cameraRT[MAX_RENDER_TARGETS];
+	shared_ptr<Texture> cameraRTMsaa[MAX_RENDER_TARGETS];
 
 	D3D12_CLEAR_VALUE optClearColor;
 	D3D12_CLEAR_VALUE optClearDepth;

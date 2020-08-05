@@ -27,7 +27,7 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	}
 
 	D3D12_RESOURCE_DESC srcDesc = shadowMap[0]->GetDesc();
-	shadowRT = make_shared<RenderTexture>();
+	shadowRT = make_shared<Texture>();
 	shadowRT->InitDSV(shadowMap, GetDepthFormatFromTypeless(srcDesc.Format), numCascade, false);
 
 	ID3D12Resource* depthAndShadow[MAX_CASCADE_SHADOW + 1];

@@ -49,7 +49,6 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererManager.h" />
     <ClInclude Include="RenderingPath.h" />
-    <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderManager.h" />
@@ -77,7 +76,6 @@
     <ClCompile Include="RayTracingManager.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererManager.cpp" />
-    <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />

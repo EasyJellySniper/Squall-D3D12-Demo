@@ -119,8 +119,8 @@ bool Camera::Initialize(CameraData _cameraData)
 
 	for (int i = 0; i < numOfRenderTarget; i++)
 	{
-		cameraRT[i] = make_shared<RenderTexture>();
-		cameraRTMsaa[i] = make_shared<RenderTexture>();
+		cameraRT[i] = make_shared<Texture>();
+		cameraRTMsaa[i] = make_shared<Texture>();
 
 		cameraRT[i]->InitRTV(&renderTarget[i], renderTarrgetDesc[i], 1, false);
 		if (cameraData.allowMSAA > 1)

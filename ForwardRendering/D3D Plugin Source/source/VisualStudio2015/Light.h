@@ -6,7 +6,7 @@ using namespace DirectX;
 
 #include "UploadBuffer.h"
 #include "FrameResource.h"
-#include "RenderTexture.h"
+#include "Texture.h"
 const int MAX_CASCADE_SHADOW = 4;
 
 enum LightType
@@ -64,7 +64,7 @@ private:
 	SqLightData lightDataCPU;
 
 	int numCascade = 1;
-	shared_ptr<RenderTexture> shadowRT;
+	shared_ptr<Texture> shadowRT;
 	D3D12_VIEWPORT shadowViewPort;
 	D3D12_RECT shadowScissorRect;
 	BoundingFrustum shadowFrustum[MAX_CASCADE_SHADOW];
