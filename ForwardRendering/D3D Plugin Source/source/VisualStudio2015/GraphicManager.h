@@ -111,6 +111,7 @@ private:
 	// frame index and fences
 	int currFrameIndex;
 	ComPtr<ID3D12Fence> mainGraphicFence;
+	UINT64 mainFence;
 	HANDLE mainFenceEvent;				// fence event handle for sync
 	UINT64 graphicFences[MAX_FRAME_COUNT];	// use for frame list
 
