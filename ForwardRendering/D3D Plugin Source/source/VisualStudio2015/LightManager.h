@@ -86,12 +86,12 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
 	unique_ptr<Texture> collectShadow;
 	unique_ptr<DefaultBuffer> rayTracingShadow;
-	Texture rayTracingTex;
+	unique_ptr<Texture> rayTracingTex;
 
 	// gi 
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
-	Texture skyboxTex;
+	unique_ptr<Texture> skyboxTex;
 	Sampler skyboxSampler;
 	int skyMeshId;
 	Material skyboxMat;

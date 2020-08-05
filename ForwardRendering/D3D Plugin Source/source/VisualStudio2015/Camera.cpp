@@ -119,13 +119,14 @@ bool Camera::Initialize(CameraData _cameraData)
 
 	for (int i = 0; i < numOfRenderTarget; i++)
 	{
-		cameraRT[i] = make_shared<Texture>();
-		cameraRTMsaa[i] = make_shared<Texture>();
+		// need 1 srv
+		cameraRT[i] = make_shared<Texture>(1, 1, 1);
+		cameraRTMsaa[i] = make_shared<Texture>(1, 1, 1);
 
-		cameraRT[i]->InitRTV(&renderTarget[i], renderTarrgetDesc[i], 1, false);
+		cameraRT[i]->InitRTV(renderTarget[i], renderTarrgetDesc[i], false);
 		if (cameraData.allowMSAA > 1)
 		{
-			cameraRTMsaa[i]->InitRTV(msaaTarget[i].GetAddressOf(), renderTarrgetDesc[i], 1, true);
+			cameraRTMsaa[i]->InitRTV(msaaTarget[i].Get(), renderTarrgetDesc[i], true);
 		}
 	}
 
@@ -133,12 +134,12 @@ bool Camera::Initialize(CameraData _cameraData)
 	auto depthDesc = depthTarget->GetDesc();
 	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
 
-	cameraRT[0]->InitDSV(&depthTarget, depthTargetDesc, 1, false);
-	cameraRT[0]->InitSRV(&depthTarget, GetColorFormatFromTypeless(depthDesc.Format), 1, false);
+	cameraRT[0]->InitDSV(depthTarget, depthTargetDesc, false);
+	cameraRT[0]->InitSRV(depthTarget, GetColorFormatFromTypeless(depthDesc.Format), false);
 	if (cameraData.allowMSAA > 1)
 	{
-		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.GetAddressOf(), depthTargetDesc, 1, true);
-		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.GetAddressOf(), GetColorFormatFromTypeless(depthDesc.Format), 1, true);
+		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.Get(), depthTargetDesc, true);
+		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.Get(), GetColorFormatFromTypeless(depthDesc.Format), true);
 	}
 
 	if (!CreatePipelineMaterial())

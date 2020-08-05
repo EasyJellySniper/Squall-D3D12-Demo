@@ -21,14 +21,14 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	numCascade = _numCascade;
 	ID3D12Resource* shadowMap[MAX_CASCADE_SHADOW];
 
+	shadowRT = make_shared<Texture>(0, 1, 5);
 	for (int i = 0; i < numCascade; i++)
 	{
 		shadowMap[i] = (ID3D12Resource*)_shadowMapRaw[i];
-	}
 
-	D3D12_RESOURCE_DESC srcDesc = shadowMap[0]->GetDesc();
-	shadowRT = make_shared<Texture>();
-	shadowRT->InitDSV(shadowMap, GetDepthFormatFromTypeless(srcDesc.Format), numCascade, false);
+		D3D12_RESOURCE_DESC srcDesc = shadowMap[i]->GetDesc();
+		shadowRT->InitDSV(shadowMap[i], GetDepthFormatFromTypeless(srcDesc.Format), false);
+	}
 
 	ID3D12Resource* depthAndShadow[MAX_CASCADE_SHADOW + 1];
 	for (int i = 1; i < numCascade + 1; i++)
@@ -37,7 +37,11 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	}
 	depthAndShadow[0] = CameraManager::Instance().GetCamera()->GetCameraDepth();
 
-	shadowRT->InitSRV(depthAndShadow, GetColorFormatFromTypeless(srcDesc.Format), numCascade + 1, false);
+	for (int i = 0; i < numCascade + 1; i++)
+	{
+		D3D12_RESOURCE_DESC srcDesc = shadowMap[i]->GetDesc();
+		shadowRT->InitSRV(depthAndShadow[i + 1], GetColorFormatFromTypeless(srcDesc.Format), false);
+	}
 
 	hasShadow = true;
 }

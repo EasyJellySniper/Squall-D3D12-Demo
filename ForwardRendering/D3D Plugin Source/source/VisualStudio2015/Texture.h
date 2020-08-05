@@ -7,6 +7,7 @@ using namespace Microsoft::WRL;
 class Texture
 {
 public:
+	Texture(int _numRtvHeap, int _numDsvHeap, int _numCbvSrvUavHeap);
 	void SetInstanceID(int _id);
 	int GetInstanceID();
 
@@ -17,10 +18,10 @@ public:
 	void SetFormat(DXGI_FORMAT _format);
 	DXGI_FORMAT GetFormat();
 
-	void InitRTV(ID3D12Resource** _rtv, DXGI_FORMAT _format, int _numRT, bool _msaa);
-	void InitDSV(ID3D12Resource** _dsv, DXGI_FORMAT _format, int _numRT, bool _msaa);
-	void InitSRV(ID3D12Resource** _srv, DXGI_FORMAT _format, int _numRT, bool _msaa, bool _isCube = false);
-	void InitSRV(ID3D12Resource** _srv, DXGI_FORMAT *_format, bool *_uavList, int _numRT);
+	int InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa);
+	int InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa);
+	int InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msaa, bool _isCube = false);
+	int InitUAV(ID3D12Resource* _uav, DXGI_FORMAT _format);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtvCPU(int _index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsvCPU(int _index);
@@ -33,17 +34,20 @@ public:
 protected:
 	int instanceID;
 
+	// use for texture manager (global heap)
 	ID3D12Resource* texResource;
 	DXGI_FORMAT texFormat;
 
 	// normally managed by manager, but allow indenpendent descriptor also
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;
 	ComPtr<ID3D12DescriptorHeap> dsvHandle;
-	ComPtr<ID3D12DescriptorHeap> srvHandle;
-	ComPtr<ID3D12DescriptorHeap> uavHandle;
+	ComPtr<ID3D12DescriptorHeap> cbvSrvUavHandle;
 
 	ID3D12Resource** rtvSrc;
 	ID3D12Resource** dsvSrc;
-	ID3D12Resource** srvSrc;
-	ID3D12Resource** uavSrc;
+	ID3D12Resource** cbvSrvUavSrc;
+
+	int rtvCount;
+	int dsvCount;
+	int cbvSrvUavCount;
 };

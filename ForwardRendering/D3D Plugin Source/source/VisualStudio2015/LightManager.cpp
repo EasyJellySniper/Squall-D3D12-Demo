@@ -86,13 +86,23 @@ void LightManager::Release()
 		collectShadow.reset();
 	}
 
+	if (skyboxTex != nullptr)
+	{
+		skyboxTex->Release();
+		skyboxTex.reset();
+	}
+
+	if (rayTracingTex != nullptr)
+	{
+		rayTracingTex->Release();
+		rayTracingTex.reset();
+	}
+
 	shadowSampler.Release();
-	skyboxTex.Release();
 	skyboxMat.Release();
 	skyboxRenderer.Release();
 	rtShadowMat.Release();
 	rayTracingShadow.reset();
-	rayTracingTex.Release();
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -212,7 +222,9 @@ void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMo
 {
 	auto skyboxSrc = (ID3D12Resource*)_skybox;
 	auto desc = skyboxSrc->GetDesc();
-	skyboxTex.InitSRV(&skyboxSrc, desc.Format, 1, false, true);
+
+	skyboxTex = make_unique<Texture>(0, 0, 1);
+	skyboxTex->InitSRV(skyboxSrc, desc.Format, false, true);
 	skyboxSampler.CreateSamplerHeap(wrapU, wrapV, wrapW, _anisoLevel, true);
 	skyMeshId = _skyMesh;
 
@@ -262,7 +274,7 @@ Material* LightManager::GetRayShadow()
 
 ID3D12DescriptorHeap* LightManager::GetRayShadowHeap()
 {
-	return rayTracingTex.GetSrv();
+	return rayTracingTex->GetSrv();
 }
 
 ID3D12DescriptorHeap* LightManager::GetShadowSampler()
@@ -308,7 +320,7 @@ Material* LightManager::GetSkyboxMat()
 
 ID3D12DescriptorHeap* LightManager::GetSkyboxTex()
 {
-	return skyboxTex.GetSrv();
+	return skyboxTex->GetSrv();
 }
 
 ID3D12DescriptorHeap* LightManager::GetSkyboxSampler()
@@ -393,8 +405,8 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	auto desc = opaqueShadowSrc->GetDesc();
 	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format);
 
-	collectShadow = make_unique<Texture>();
-	collectShadow->InitRTV(&opaqueShadowSrc, shadowFormat, 1, false);
+	collectShadow = make_unique<Texture>(1, 0, 0);
+	collectShadow->InitRTV(opaqueShadowSrc, shadowFormat, false);
 	
 	// register to texture manager
 	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, true);
@@ -414,10 +426,9 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	// create ray tracing texture
 	Camera* c = CameraManager::Instance().GetCamera();
 
-	ID3D12Resource* rtHeapSrc[] = { rayTracingShadow->Resource(), c->GetCameraDepth() };
-	DXGI_FORMAT rtHeapFormat[] = { shadowFormat , GetColorFormatFromTypeless(c->GetCameraDepth()->GetDesc().Format) };
-	bool rtHeapUav[] = { true, false };
-	rayTracingTex.InitSRV(rtHeapSrc, rtHeapFormat, rtHeapUav, 2);
+	rayTracingTex = make_unique<Texture>(0, 0, 2);
+	rayTracingTex->InitUAV(rayTracingShadow->Resource(), shadowFormat);
+	rayTracingTex->InitSRV(c->GetCameraDepth(), GetColorFormatFromTypeless(c->GetCameraDepth()->GetDesc().Format), false);
 }
 
 void LightManager::CreateRayTracingShadow()
