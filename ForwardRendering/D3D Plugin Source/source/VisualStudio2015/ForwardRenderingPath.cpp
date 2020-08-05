@@ -905,11 +905,11 @@ void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdLis
 	// barrier
 	D3D12_RESOURCE_BARRIER finishResolve[2];
 	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(frameIndex), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
-	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(0), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(frameIndex), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
 
 	// resolve to non-AA target if MSAA enabled
 	_cmdList->ResourceBarrier(2, resolveColor);
-	_cmdList->ResolveSubresource(_camera->GetRtvSrc(frameIndex), 0, _camera->GetMsaaRtvSrc(0), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	_cmdList->ResolveSubresource(_camera->GetRtvSrc(frameIndex), 0, _camera->GetMsaaRtvSrc(frameIndex), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	_cmdList->ResourceBarrier(2, finishResolve);
 }
 
