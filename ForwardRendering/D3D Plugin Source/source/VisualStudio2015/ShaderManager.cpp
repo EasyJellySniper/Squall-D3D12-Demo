@@ -119,6 +119,7 @@ void ShaderManager::Release()
 
 	dxcCompiler.Reset();
 	dxcLibrary.Reset();
+	dxcIncluder.Reset();
 }
 
 Shader *ShaderManager::FindShader(wstring _shaderName, D3D_SHADER_MACRO* macro)

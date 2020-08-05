@@ -128,6 +128,7 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 		}
 		else
 		{
+			// collect macro define
 			D3D_SHADER_MACRO* macro = new D3D_SHADER_MACRO[_numMacro + 1];
 			for (int i = 0; i < _numMacro; i++)
 			{
