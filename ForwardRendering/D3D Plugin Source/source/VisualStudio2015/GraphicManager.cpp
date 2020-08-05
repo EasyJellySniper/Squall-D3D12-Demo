@@ -97,19 +97,20 @@ int GraphicManager::GetThreadCount()
 
 void GraphicManager::Update()
 {
-	GRAPHIC_TIMER_START
+	GRAPHIC_TIMER_START;
 	
-	const UINT64 lastCompletedFence = mainGraphicFence->GetCompletedValue();
-	currFrameIndex = (currFrameIndex + 1) % MAX_FRAME_COUNT;
+	// move to next frame
+	const UINT64 currentFenceValue = graphicFences[currFrameIndex];
+	LogIfFailedWithoutHR(mainGraphicQueue->Signal(mainGraphicFence.Get(), currentFenceValue));
 
-	// Make sure GPU isn't busy.
-	// If it is, wait for it to complete.
-	if (graphicFences[currFrameIndex] > lastCompletedFence)
+	currFrameIndex = (currFrameIndex + 1) % MAX_FRAME_COUNT;
+	if (mainGraphicFence->GetCompletedValue() < graphicFences[currFrameIndex])
 	{
-		HANDLE eventHandle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		mainGraphicFence->SetEventOnCompletion(graphicFences[currFrameIndex], eventHandle);
-		WaitForSingleObject(eventHandle, INFINITE);
+		LogIfFailedWithoutHR(mainGraphicFence->SetEventOnCompletion(graphicFences[currFrameIndex], mainFenceEvent));
+		WaitForSingleObjectEx(mainFenceEvent, INFINITE, FALSE);
 	}
+
+	graphicFences[currFrameIndex] = currentFenceValue + 1;
 
 	GRAPHIC_TIMER_STOP(GameTimerManager::Instance().gameTime.updateTime)
 }
@@ -201,29 +202,15 @@ HRESULT GraphicManager::CreateGraphicFences()
 {
 	HRESULT hr = S_OK;
 
-	mainFenceValue = 0;
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
-	{
-		graphicFences[i] = 0;
-	}
-
-	LogIfFailed(mainDevice->CreateFence(mainFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mainGraphicFence)), hr);
-	mainFenceValue++;
+	graphicFences[currFrameIndex] = 0;
+	LogIfFailed(mainDevice->CreateFence(graphicFences[currFrameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mainGraphicFence)), hr);
+	graphicFences[currFrameIndex]++;
 
 	mainFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	if (mainFenceEvent == nullptr)
 	{
 		hr = S_FALSE;
 	}
-
-	// Signal and increment the fence value.
-	UINT64 fenceToWaitFor = mainFenceValue;
-	LogIfFailed(mainGraphicQueue->Signal(mainGraphicFence.Get(), mainFenceValue), hr);
-	mainFenceValue++;
-
-	// Wait until the fence is completed.
-	LogIfFailed(mainGraphicFence->SetEventOnCompletion(fenceToWaitFor, mainFenceEvent), hr);
-	WaitForSingleObject(mainFenceEvent, INFINITE);
 
 	return hr;
 }
@@ -316,19 +303,15 @@ void GraphicManager::WaitForGPU()
 {
 	if (mainGraphicFence)
 	{
-		const UINT64 fence = mainFenceValue;
 		const UINT64 lastCompletedFence = mainGraphicFence->GetCompletedValue();
 
 		// Signal and increment the fence value.
-		mainGraphicQueue->Signal(mainGraphicFence.Get(), mainFenceValue);
-		mainFenceValue++;
+		LogIfFailedWithoutHR(mainGraphicQueue->Signal(mainGraphicFence.Get(), graphicFences[currFrameIndex]));
+		LogIfFailedWithoutHR(mainGraphicFence->SetEventOnCompletion(graphicFences[currFrameIndex], mainFenceEvent));
 
 		// Wait until gpu is finished.
-		if (lastCompletedFence < fence)
-		{
-			mainGraphicFence->SetEventOnCompletion(fence, mainFenceEvent);
-			WaitForSingleObject(mainFenceEvent, INFINITE);
-		}
+		WaitForSingleObject(mainFenceEvent, INFINITE);
+		graphicFences[currFrameIndex]++;
 	}
 }
 
@@ -359,11 +342,6 @@ void GraphicManager::RenderThread()
 		WaitForSingleObject(beginRenderThread, INFINITE);
 
 		DrawCamera();
-
-		// Signal and increment the fence value.
-		graphicFences[currFrameIndex] = mainFenceValue;
-		mainGraphicQueue->Signal(mainGraphicFence.Get(), mainFenceValue);
-		mainFenceValue++;
 
 		SetEvent(renderThreadFinish);
 	}

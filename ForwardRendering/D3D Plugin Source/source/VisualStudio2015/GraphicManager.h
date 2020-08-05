@@ -113,9 +113,8 @@ private:
 	ComPtr<ID3D12Fence> mainGraphicFence;
 	HANDLE mainFenceEvent;				// fence event handle for sync
 	UINT64 graphicFences[MAX_FRAME_COUNT];	// use for frame list
-	UINT64 mainFenceValue;				// use for init/destroy
 
-										// if init succeed
+	// if init succeed
 	bool initSucceed;
 
 	// descriptor size
