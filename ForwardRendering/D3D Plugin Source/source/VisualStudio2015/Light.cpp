@@ -21,7 +21,7 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	numCascade = _numCascade;
 	ID3D12Resource* shadowMap[MAX_CASCADE_SHADOW];
 
-	shadowRT = make_shared<Texture>(0, 1, 5);
+	shadowRT = make_shared<Texture>(0, numCascade, 5);
 	for (int i = 0; i < numCascade; i++)
 	{
 		shadowMap[i] = (ID3D12Resource*)_shadowMapRaw[i];
@@ -40,7 +40,7 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	for (int i = 0; i < numCascade + 1; i++)
 	{
 		D3D12_RESOURCE_DESC srcDesc = shadowMap[i]->GetDesc();
-		shadowRT->InitSRV(depthAndShadow[i + 1], GetColorFormatFromTypeless(srcDesc.Format), false);
+		shadowRT->InitSRV(depthAndShadow[i], GetColorFormatFromTypeless(srcDesc.Format), false);
 	}
 
 	hasShadow = true;
