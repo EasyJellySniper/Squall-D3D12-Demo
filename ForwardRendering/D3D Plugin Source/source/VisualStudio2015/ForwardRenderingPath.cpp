@@ -64,8 +64,8 @@ void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 	// transparent pass, this can only be rendered with 1 thread for correct order
 	if (_camera->GetRenderMode() == RenderMode::ForwardPass)
 	{
-		DrawSkyboxPass(_camera, _frameIdx);
-		DrawTransparentPass(_camera, _frameIdx);
+		DrawSkyboxPass(_camera);
+		DrawTransparentPass(_camera);
 	}
 
 	EndFrame(_camera);
@@ -94,21 +94,21 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		else if(workerType == WorkerType::PrePassRendering)
 		{
 			// process render thread
-			BindForwardState(targetCam, frameIndex, _threadIndex);
+			BindForwardState(targetCam, _threadIndex);
 
 			if (targetCam->GetRenderMode() == RenderMode::WireFrame)
 			{
-				DrawWireFrame(targetCam, frameIndex, _threadIndex);
+				DrawWireFrame(targetCam, _threadIndex);
 			}
 
 			if (targetCam->GetRenderMode() == RenderMode::Depth)
 			{
-				DrawOpaqueDepth(targetCam, frameIndex, _threadIndex);
+				DrawOpaqueDepth(targetCam, _threadIndex);
 			}
 
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
-				DrawOpaqueDepth(targetCam, frameIndex, _threadIndex);
+				DrawOpaqueDepth(targetCam, _threadIndex);
 			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
@@ -122,7 +122,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
 				BindShadowState(currLight, cascadeIndex, _threadIndex);
-				DrawShadowPass(currLight, cascadeIndex, frameIndex, _threadIndex);
+				DrawShadowPass(currLight, cascadeIndex, _threadIndex);
 			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
@@ -131,8 +131,8 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		{
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
-				BindForwardState(targetCam, frameIndex, _threadIndex);
-				DrawOpaquePass(targetCam, frameIndex, _threadIndex);
+				BindForwardState(targetCam, _threadIndex);
+				DrawOpaquePass(targetCam, _threadIndex);
 			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
@@ -141,8 +141,8 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		{
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
-				BindForwardState(targetCam, frameIndex, _threadIndex);
-				DrawCutoutPass(targetCam, frameIndex, _threadIndex);
+				BindForwardState(targetCam, _threadIndex);
+				DrawCutoutPass(targetCam, _threadIndex);
 			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
@@ -308,7 +308,7 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 	ResolveDepthBuffer(_cmdList, _camera);
 
 	// draw transparent depth, useful for shadow mapping or light culling
-	DrawTransparentDepth(_cmdList, _camera, frameIndex);
+	DrawTransparentDepth(_cmdList, _camera);
 
 	ExecuteCmdList(_cmdList);
 }
@@ -413,7 +413,7 @@ void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _thr
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void ForwardRenderingPath::BindForwardState(Camera* _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
 {
 	// get frame resource
 	LogIfFailedWithoutHR(currFrameResource->workerGfxList[_threadIndex]->Reset(currFrameResource->workerGfxAlloc[_threadIndex], nullptr));
@@ -433,7 +433,7 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _frameIdx, int 
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx)
+void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh)
 {
 	Material* pipeMat = nullptr;
 	if (_queue < RenderQueue::CutoffStart)
@@ -454,9 +454,9 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 	_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
 
 	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
 
 	// setup descriptor table gpu
 	if (_queue >= RenderQueue::CutoffStart)
@@ -466,7 +466,7 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 	}
 }
 
-void ForwardRenderingPath::BindShadowObject(ID3D12GraphicsCommandList* _cmdList, Light* _light, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx)
+void ForwardRenderingPath::BindShadowObject(ID3D12GraphicsCommandList* _cmdList, Light* _light, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh)
 {
 	// choose shadow material
 	Material* pipeMat = nullptr;
@@ -488,9 +488,9 @@ void ForwardRenderingPath::BindShadowObject(ID3D12GraphicsCommandList* _cmdList,
 	_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
 
 	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, _light->GetLightConstantGPU(cascadeIndex, _frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(1, _light->GetLightConstantGPU(cascadeIndex, frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
 
 	// setup descriptor table gpu
 	if (_queue >= RenderQueue::CutoffStart)
@@ -500,7 +500,7 @@ void ForwardRenderingPath::BindShadowObject(ID3D12GraphicsCommandList* _cmdList,
 	}
 }
 
-void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer* _renderer, Material* _mat, Mesh* _mesh, int _frameIdx)
+void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer* _renderer, Material* _mat, Mesh* _mesh)
 {
 	// bind mesh
 	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
@@ -511,15 +511,15 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootSignature(_mat->GetRootSignature());
 
 	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetDirLightGPU(_frameIdx, 0));
+	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
 }
 
-void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
 {
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 	
@@ -551,8 +551,8 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _th
 			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
 
 			// set system constant of renderer
-			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(_frameIdx));
-			_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
+			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(frameIndex));
+			_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
@@ -564,7 +564,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _frameIdx, int _th
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 {
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
@@ -598,7 +598,7 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _frameIdx, int _
 
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
-			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m, _frameIdx);
+			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m);
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
@@ -610,7 +610,7 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _frameIdx, int _
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _frameIdx)
+void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
 	// om set target
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
@@ -646,7 +646,7 @@ void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdL
 
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
-			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m, _frameIdx);
+			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m);
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
@@ -658,7 +658,7 @@ void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdL
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
 }
 
-void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _threadIndex)
 {
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
@@ -688,7 +688,7 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _fram
 			{
 				// choose pipeline material according to renderqueue
 				Material* const objMat = r->GetMaterial(j);
-				BindShadowObject(_cmdList, _light, objMat->GetRenderQueue(), r.get(), objMat, m, _frameIdx);
+				BindShadowObject(_cmdList, _light, objMat->GetRenderQueue(), r.get(), objMat, m);
 
 				// draw mesh
 				DrawSubmesh(_cmdList, m, j);
@@ -700,7 +700,7 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _fram
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _frameIdx, int _threadIndex, bool _cutout)
+void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, bool _cutout)
 {
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
@@ -745,7 +745,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _frameIdx, int _t
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
 
 			// bind forward object
-			BindForwardObject(_cmdList, r.cache, objMat, m, frameIndex);
+			BindForwardObject(_cmdList, r.cache, objMat, m);
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
@@ -757,12 +757,12 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _frameIdx, int _t
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawCutoutPass(Camera* _camera, int _frameIdx, int _threadIndex)
+void ForwardRenderingPath::DrawCutoutPass(Camera* _camera, int _threadIndex)
 {
-	DrawOpaquePass(_camera, _frameIdx, _threadIndex, true);
+	DrawOpaquePass(_camera, _threadIndex, true);
 }
 
-void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera, int _frameIdx)
+void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 {
 	if (!LightManager::Instance().GetSkyboxRenderer()->GetActive())
 	{
@@ -788,8 +788,8 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera, int _frameIdx)
 	auto skyMat = LightManager::Instance().GetSkyboxMat();
 	_cmdList->SetPipelineState(skyMat->GetPSO());
 	_cmdList->SetGraphicsRootSignature(skyMat->GetRootSignature());
-	_cmdList->SetGraphicsRootConstantBufferView(0, LightManager::Instance().GetSkyboxRenderer()->GetObjectConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(0, LightManager::Instance().GetSkyboxRenderer()->GetObjectConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(2, LightManager::Instance().GetSkyboxTex()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(3, LightManager::Instance().GetSkyboxSampler()->GetGPUDescriptorHandleForHeapStart());
 
@@ -805,7 +805,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera, int _frameIdx)
 	ExecuteCmdList(_cmdList);
 }
 
-void ForwardRenderingPath::DrawTransparentPass(Camera* _camera, int _frameIdx)
+void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 {
 	// get frame resource, reuse BeginFrame's list
 	auto _cmdList = currFrameResource->preGfxList;
@@ -852,7 +852,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera, int _frameIdx)
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
 
 			// bind forward object
-			BindForwardObject(_cmdList, r.cache, objMat, m, frameIndex);
+			BindForwardObject(_cmdList, r.cache, objMat, m);
 
 			// draw mesh
 			DrawSubmesh(_cmdList, m, r.submeshIndex);
