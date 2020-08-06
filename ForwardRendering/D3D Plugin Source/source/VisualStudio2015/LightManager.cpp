@@ -405,10 +405,9 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	auto desc = opaqueShadowSrc->GetDesc();
 	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format);
 
+	// register to texture manager
 	collectShadow = make_unique<Texture>(1, 0, 0);
 	collectShadow->InitRTV(opaqueShadowSrc, shadowFormat, false);
-	
-	// register to texture manager
 	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, true);
 
 	// create collect shadow material
@@ -421,7 +420,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	shadowSampler.CreateSamplerHeap(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true);
 
 	// create ray tracing shadow uav
-	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), true, shadowFormat, desc.Width, desc.Height, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), shadowFormat, desc.Width, desc.Height, 1, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
 	// create ray tracing texture
 	Camera* c = CameraManager::Instance().GetCamera();

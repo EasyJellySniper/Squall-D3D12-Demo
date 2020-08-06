@@ -10,16 +10,10 @@ class DefaultBuffer
 public:
 
 	// entry for buffer
-	DefaultBuffer(ID3D12Device *_device, UINT64 _bufferSize, bool _isUAV, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON)
+	DefaultBuffer(ID3D12Device *_device, UINT64 _bufferSize, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_FLAGS _flags = D3D12_RESOURCE_FLAG_NONE)
 	{
 		auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
-		if (_isUAV)
-		{
-			flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		}
-
-		auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(_bufferSize, flags);
+		auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(_bufferSize, _flags);
 
 		LogIfFailedWithoutHR(_device->CreateCommittedResource(
 			&uploadHeapProperties,
@@ -31,17 +25,11 @@ public:
 	}
 
 	// entry for texture
-	DefaultBuffer(ID3D12Device* _device, bool _isUAV, DXGI_FORMAT _format, UINT64 _width, UINT _height, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON
-		, D3D12_CLEAR_VALUE *_clearValue = nullptr)
+	DefaultBuffer(ID3D12Device* _device, DXGI_FORMAT _format, UINT64 _width, UINT _height, int _mipLevel, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON
+		, D3D12_RESOURCE_FLAGS _flags = D3D12_RESOURCE_FLAG_NONE, D3D12_CLEAR_VALUE *_clearValue = nullptr)
 	{
 		auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
-		if (_isUAV)
-		{
-			flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		}
-
-		auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(_format, _width, _height, 1, (_isUAV) ? 1 : 0, 1, 0, flags);
+		auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(_format, _width, _height, 1, _mipLevel, 1, 0, _flags);
 
 		LogIfFailedWithoutHR(_device->CreateCommittedResource(
 			&uploadHeapProperties,
