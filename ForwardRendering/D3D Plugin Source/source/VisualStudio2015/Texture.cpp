@@ -44,12 +44,12 @@ Texture::Texture(int _numRtvHeap, int _numDsvHeap, int _numCbvSrvUavHeap)
 	}
 }
 
-void Texture::SetInstanceID(int _id)
+void Texture::SetInstanceID(size_t _id)
 {
 	instanceID = _id;
 }
 
-int Texture::GetInstanceID()
+size_t Texture::GetInstanceID()
 {
 	return instanceID;
 }
@@ -74,10 +74,11 @@ ID3D12Resource* Texture::GetResource()
 	return texResource;
 }
 
-void Texture::SetFormat(DXGI_FORMAT _format, bool _isCube)
+void Texture::SetFormat(DXGI_FORMAT _format, bool _isCube, bool _isUav)
 {
 	texFormat = _format;
 	isCube = _isCube;
+	isUav = _isUav;
 }
 
 DXGI_FORMAT Texture::GetFormat()
@@ -88,6 +89,11 @@ DXGI_FORMAT Texture::GetFormat()
 bool Texture::IsCube()
 {
 	return isCube;
+}
+
+bool Texture::IsUav()
+{
+	return isUav;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetRtvCPU(int _index)

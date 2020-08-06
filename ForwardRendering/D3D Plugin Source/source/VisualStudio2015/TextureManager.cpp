@@ -31,7 +31,7 @@ void TextureManager::Release()
 	samplers.clear();
 }
 
-int TextureManager::AddNativeTexture(int _texId, void* _texData, bool _typeless, bool _isCube)
+int TextureManager::AddNativeTexture(size_t _texId, void* _texData, bool _typeless, bool _isCube, bool _isUav)
 {
 	// check duplicate add
 	for (size_t i = 0; i < textures.size(); i++)
@@ -51,7 +51,7 @@ int TextureManager::AddNativeTexture(int _texId, void* _texData, bool _typeless,
 	{
 		desc.Format = GetColorFormatFromTypeless(desc.Format);
 	}
-	t.SetFormat(desc.Format, _isCube);
+	t.SetFormat(desc.Format, _isCube, _isUav);
 
 	textures.push_back(t);
 
@@ -141,25 +141,36 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 	hTexture.ptr += _index * cbvSrvUavDescriptorSize;
 
 	// create shader resource view for texture
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = _texture.GetFormat();
-
-	if (!_texture.IsCube())
+	if (!_texture.IsUav())
 	{
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = -1;
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Format = _texture.GetFormat();
+
+		if (!_texture.IsCube())
+		{
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MostDetailedMip = 0;
+			srvDesc.Texture2D.MipLevels = -1;
+		}
+		else
+		{
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+			srvDesc.TextureCube.MipLevels = -1;
+			srvDesc.TextureCube.MostDetailedMip = 0;
+			srvDesc.TextureCube.ResourceMinLODClamp = 0;
+		}
+
+		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(_texture.GetResource(), &srvDesc, hTexture);
 	}
 	else
 	{
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-		srvDesc.TextureCube.MipLevels = -1;
-		srvDesc.TextureCube.MostDetailedMip = 0;
-		srvDesc.TextureCube.ResourceMinLODClamp = 0;
-	}
+		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+		uavDesc.Format = _texture.GetFormat();
 
-	GraphicManager::Instance().GetDevice()->CreateShaderResourceView(_texture.GetResource(), &srvDesc, hTexture);
+		GraphicManager::Instance().GetDevice()->CreateUnorderedAccessView(_texture.GetResource(), nullptr, &uavDesc, hTexture);
+	}
 }
 
 void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)

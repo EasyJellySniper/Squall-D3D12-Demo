@@ -5,6 +5,7 @@
 #include "MeshManager.h"
 #include "ShaderManager.h"
 #include "MaterialManager.h"
+#include "TextureManager.h"
 
 bool Camera::Initialize(CameraData _cameraData)
 {
@@ -246,6 +247,12 @@ ID3D12DescriptorHeap* Camera::GetMsaaSrv()
 	return cameraRTMsaa[0]->GetSrv();
 }
 
+D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetTransDepthSrv()
+{
+	CD3DX12_GPU_DESCRIPTOR_HANDLE tHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), transDepthSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	return tHandle;
+}
+
 void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)
 {
 	// data from unity is column major, while d3d matrix use row major
@@ -289,9 +296,9 @@ void Camera::SetTransparentDepth(void* _src)
 	transparentDepthSrc = (ID3D12Resource*)_src;
 
 	// create transparent depth
-	transparentDepth = make_shared<Texture>(0, 1, 1);
+	transparentDepth = make_shared<Texture>(0, 1, 0);
 	transparentDepth->InitDSV(transparentDepthSrc, depthTargetDesc, false);
-	transparentDepth->InitSRV(transparentDepthSrc, GetColorFormatFromTypeless(transparentDepthSrc->GetDesc().Format), false);
+	transDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, true, false, false);
 }
 
 D3D12_VIEWPORT Camera::GetViewPort()

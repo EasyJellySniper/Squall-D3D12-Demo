@@ -48,7 +48,6 @@ public:
 	Material* GetShadowCutout(int _cullMode);
 	Material* GetCollectShadow();
 	Material* GetRayShadow();
-	ID3D12DescriptorHeap* GetRayShadowHeap();
 	ID3D12DescriptorHeap* GetShadowSampler();
 	ID3D12Resource* GetRayShadowSrc();
 	int GetShadowIndex();
@@ -62,6 +61,8 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSkyboxTex();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSkyboxSampler();
 	int GetSkyMeshID();
+
+	D3D12_GPU_DESCRIPTOR_HANDLE GetRTShadowUav();
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
@@ -86,7 +87,6 @@ private:
 	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
 	unique_ptr<Texture> collectShadow;
 	unique_ptr<DefaultBuffer> rayTracingShadow;
-	unique_ptr<Texture> rayTracingTex;
 
 	// gi 
 	XMFLOAT4 ambientGround;
@@ -109,4 +109,5 @@ private:
 
 	// ray tracing material
 	Material rtShadowMat;
+	int rtShadowUav;
 };

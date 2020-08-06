@@ -10,16 +10,17 @@ class Texture
 {
 public:
 	Texture(int _numRtvHeap, int _numDsvHeap, int _numCbvSrvUavHeap);
-	void SetInstanceID(int _id);
-	int GetInstanceID();
+	void SetInstanceID(size_t _id);
+	size_t GetInstanceID();
 
 	void Release();
 	void SetResource(ID3D12Resource* _data);
 	ID3D12Resource* GetResource();
 
-	void SetFormat(DXGI_FORMAT _format, bool _isCube);
+	void SetFormat(DXGI_FORMAT _format, bool _isCube, bool _isUav);
 	DXGI_FORMAT GetFormat();
 	bool IsCube();
+	bool IsUav();
 
 	int InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa);
 	int InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa);
@@ -35,12 +36,13 @@ public:
 	ID3D12Resource* GetSrvSrc(int _index);
 
 protected:
-	int instanceID;
+	size_t instanceID;
 
 	// use for texture manager (global heap)
 	ID3D12Resource* texResource;
 	DXGI_FORMAT texFormat;
 	bool isCube;
+	bool isUav;
 
 	// normally managed by manager, but allow indenpendent descriptor also
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;

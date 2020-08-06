@@ -8,6 +8,7 @@ using namespace std;
 #include <dxgiformat.h>
 #include <algorithm>
 #include <d3d12.h>
+#include <functional>
 
 inline wstring AnsiToWString(const string& str)
 {
@@ -149,4 +150,13 @@ inline D3D12_CLEAR_VALUE GetD3D12ClearValue(FLOAT _color[4], DXGI_FORMAT _format
 	cv.Format = _format;
 
 	return cv;
+}
+
+inline size_t GetUniqueID()
+{
+	static int num = 0;
+	size_t id = std::hash<std::string>{}("SquallGraphic" + to_string(num));
+	num++;
+
+	return num;
 }

@@ -351,21 +351,20 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	// bind root signature
-	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetRayShadowHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() };
 	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
 	Material *mat = LightManager::Instance().GetRayShadow();
 	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
 
-	CD3DX12_GPU_DESCRIPTOR_HANDLE gRayTracing = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart());
-	CD3DX12_GPU_DESCRIPTOR_HANDLE gDepth = CD3DX12_GPU_DESCRIPTOR_HANDLE(LightManager::Instance().GetRayShadowHeap()->GetGPUDescriptorHandleForHeapStart(), 1, cbvSrvUavSize);
 	auto rayShadowSrc = LightManager::Instance().GetRayShadowSrc();
 	auto collectShadowSrc = LightManager::Instance().GetCollectShadowSrc();
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 	// set state
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
-	_cmdList->SetComputeRootDescriptorTable(0, gRayTracing);
-	_cmdList->SetComputeRootDescriptorTable(1, gDepth);
+	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
+	_cmdList->SetComputeRootDescriptorTable(1, targetCam->GetTransDepthSrv());
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
@@ -382,6 +381,8 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	// copy result, collect shadow will be used in pixel shader later
 	D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };
 	CopyResourceWithBarrier(_cmdList, rayShadowSrc, collectShadowSrc, before, before);
+
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	ExecuteCmdList(_cmdList);
 }
