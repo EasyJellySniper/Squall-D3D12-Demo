@@ -1,6 +1,7 @@
 #define CollectShadowRS "CBV(b1)," \
 "SRV(t0, space = 1)," \
-"DescriptorTable(SRV(t0, numDescriptors=5))," \
+"DescriptorTable(SRV(t0, numDescriptors=4))," \
+"DescriptorTable(SRV(t4, numDescriptors=1))," \
 "DescriptorTable(Sampler(s0))"
 
 #include "SqInput.hlsl"
@@ -25,7 +26,8 @@ static const float2 gTexCoords[6] =
 };
 
 // shadow map, up to 4 cascades, 1st entry is camera's depth
-Texture2D _ShadowMap[5] : register(t0);
+Texture2D _ShadowMap[4] : register(t0);
+Texture2D _DepthMap : register(t4);
 SamplerComparisonState _ShadowSampler : register(s0);
 
 v2f CollectShadowVS(uint vid : SV_VertexID)
@@ -119,7 +121,7 @@ float ShadowPCF5x5(uint cascade, float4 coord, float texelSize)
 [RootSignature(CollectShadowRS)]
 float4 CollectShadowPS(v2f i) : SV_Target
 {
-    float depth = _ShadowMap[0].Load(uint3(i.vertex.xy, 0)).r;
+    float depth = _DepthMap.Load(uint3(i.vertex.xy, 0)).r;
 
     [branch]
     if (depth == 0.0f)
@@ -148,7 +150,7 @@ float4 CollectShadowPS(v2f i) : SV_Target
         spos.z += light.world.w;            // bias to depth
 
         // test invalid shadow
-        float shadowTest = _ShadowMap[a + 1].Load(uint3(spos.xy * light.shadowSize, 0)).r;
+        float shadowTest = _ShadowMap[a].Load(uint3(spos.xy * light.shadowSize, 0)).r;
         [branch]
         if (shadowTest == 0.0f)
             continue;
@@ -162,11 +164,11 @@ float4 CollectShadowPS(v2f i) : SV_Target
         
         [branch]
         if (_PCFIndex == 0)
-            shadow = ShadowPCF3x3(a + 1, spos, texelSize);
+            shadow = ShadowPCF3x3(a, spos, texelSize);
         else if(_PCFIndex == 1)
-            shadow = ShadowPCF4x4(a + 1, spos, texelSize);
+            shadow = ShadowPCF4x4(a, spos, texelSize);
         else if(_PCFIndex == 2)
-            shadow = ShadowPCF5x5(a + 1, spos, texelSize);
+            shadow = ShadowPCF5x5(a, spos, texelSize);
 
         shadow = lerp(1, lerp(1, shadow, weight), light.color.a);
         atten = min(shadow, atten);

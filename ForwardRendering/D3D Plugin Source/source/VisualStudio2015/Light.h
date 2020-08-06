@@ -48,7 +48,7 @@ public:
 
 	ID3D12Resource* GetShadowDsvSrc(int _cascade);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetShadowDsv(int _cascade);
-	ID3D12DescriptorHeap* GetShadowSrv();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetShadowSrv();
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
 
@@ -64,6 +64,7 @@ private:
 	SqLightData lightDataCPU;
 
 	int numCascade = 1;
+	int shadowSrv;
 	shared_ptr<Texture> shadowRT;
 	D3D12_VIEWPORT shadowViewPort;
 	D3D12_RECT shadowScissorRect;

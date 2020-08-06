@@ -1,5 +1,6 @@
 #include "Light.h"
 #include "GraphicManager.h"
+#include "TextureManager.h"
 
 void Light::Init(int _instanceID, SqLightData _data)
 {
@@ -21,7 +22,7 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	numCascade = _numCascade;
 	ID3D12Resource* shadowMap[MAX_CASCADE_SHADOW];
 
-	shadowRT = make_shared<Texture>(0, numCascade, 5);
+	shadowRT = make_shared<Texture>(0, numCascade, 0);
 	for (int i = 0; i < numCascade; i++)
 	{
 		shadowMap[i] = (ID3D12Resource*)_shadowMapRaw[i];
@@ -30,17 +31,14 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 		shadowRT->InitDSV(shadowMap[i], GetDepthFormatFromTypeless(srcDesc.Format), false);
 	}
 
-	ID3D12Resource* depthAndShadow[MAX_CASCADE_SHADOW + 1];
-	for (int i = 1; i < numCascade + 1; i++)
+	// add to srv heap
+	for (int i = 0; i < numCascade; i++)
 	{
-		depthAndShadow[i] = shadowMap[i - 1];
-	}
-	depthAndShadow[0] = CameraManager::Instance().GetCamera()->GetCameraDepth();
-
-	for (int i = 0; i < numCascade + 1; i++)
-	{
-		D3D12_RESOURCE_DESC srcDesc = shadowMap[i]->GetDesc();
-		shadowRT->InitSRV(depthAndShadow[i], GetColorFormatFromTypeless(srcDesc.Format), false);
+		int srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), shadowMap[i], true, false, false);
+		if (i == 0)
+		{
+			shadowSrv = srv;
+		}
 	}
 
 	hasShadowMap = true;
@@ -150,9 +148,10 @@ D3D12_CPU_DESCRIPTOR_HANDLE Light::GetShadowDsv(int _cascade)
 	return shadowRT->GetDsvCPU(_cascade);
 }
 
-ID3D12DescriptorHeap* Light::GetShadowSrv()
+D3D12_GPU_DESCRIPTOR_HANDLE Light::GetShadowSrv()
 {
-	return shadowRT->GetSrv();
+	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), shadowSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	return handle;
 }
 
 D3D12_VIEWPORT Light::GetViewPort()
