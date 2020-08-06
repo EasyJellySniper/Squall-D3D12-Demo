@@ -598,7 +598,6 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
 	// om set target
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_camera->GetDsv());
 	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
@@ -638,9 +637,6 @@ void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdL
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
 		}
 	}
-
-	// finish rendering
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
 }
 
 void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _threadIndex)
@@ -872,6 +868,12 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 
 	CopyDebugDepth(_cmdList, _camera);
 
+	// reset render target state
+	D3D12_RESOURCE_BARRIER finishFrame[2];
+	finishFrame[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+	finishFrame[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON);
+	_cmdList->ResourceBarrier(2, finishFrame);
+
 #if defined(GRAPHICTIME)
 	// timer end
 	_cmdList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 1);
@@ -917,17 +919,15 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 	CameraData* camData = _camera->GetCameraData();
 
 	// barrier
-	D3D12_RESOURCE_BARRIER resolveDepth[2];
+	D3D12_RESOURCE_BARRIER resolveDepth[1];
 	resolveDepth[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	resolveDepth[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	// barrier
-	D3D12_RESOURCE_BARRIER finishResolve[2];
+	D3D12_RESOURCE_BARRIER finishResolve[1];
 	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
-	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON);
 
 	// prepare to resolve
-	_cmdList->ResourceBarrier(2, resolveDepth);
+	_cmdList->ResourceBarrier(1, resolveDepth);
 
 	// bind resolve depth pipeline
 	ID3D12DescriptorHeap* descriptorHeaps[] = { _camera->GetMsaaSrv() };
@@ -946,7 +946,7 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 	_cmdList->DrawInstanced(6, 1, 0, 0);
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
 
-	_cmdList->ResourceBarrier(2, finishResolve);
+	_cmdList->ResourceBarrier(1, finishResolve);
 }
 
 void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
@@ -958,7 +958,7 @@ void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, C
 	if (_camera->GetRenderMode() == RenderMode::Depth)
 	{
 		D3D12_RESOURCE_STATES beforeStates[4] = { D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST };
-		D3D12_RESOURCE_STATES afterStates[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_COMMON };
+		D3D12_RESOURCE_STATES afterStates[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_COMMON };
 		beforeStates[0] = (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON;
 
 		CopyResourceWithBarrier(_cmdList, _camera->GetCameraDepth(), _camera->GetDebugDepth(), beforeStates, afterStates);
@@ -990,7 +990,7 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 
 	D3D12_RESOURCE_BARRIER collect[6];
 
-	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	for (int i = 2; i < sld->numCascade + 2; i++)
 	{
@@ -1021,7 +1021,7 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	// transition to common
 	D3D12_RESOURCE_BARRIER finishCollect[6];
 	finishCollect[0] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
-	finishCollect[1] = CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
+	finishCollect[1] = CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 	for (int i = 2; i < sld->numCascade + 2; i++)
 	{
 		finishCollect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
