@@ -134,7 +134,6 @@ bool Camera::Initialize(CameraData _cameraData)
 	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
 
 	cameraRT[0]->InitDSV(depthTarget, depthTargetDesc, false);
-	cameraRT[0]->InitSRV(depthTarget, GetColorFormatFromTypeless(depthDesc.Format), false);
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa[0]->InitDSV(msaaDepthTarget->Resource(), depthTargetDesc, true);
