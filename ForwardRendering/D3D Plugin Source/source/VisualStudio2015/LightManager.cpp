@@ -86,7 +86,6 @@ void LightManager::Release()
 		collectShadow.reset();
 	}
 
-	shadowSampler.Release();
 	skyboxMat.Release();
 	skyboxRenderer.Release();
 	rtShadowMat.Release();
@@ -259,9 +258,10 @@ Material* LightManager::GetRayShadow()
 	return &rtShadowMat;
 }
 
-ID3D12DescriptorHeap* LightManager::GetShadowSampler()
+D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetShadowSampler()
 {
-	return shadowSampler.GetSamplerHeap();
+	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart(), shadowSamplerID, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	return handle;
 }
 
 ID3D12Resource* LightManager::GetRayShadowSrc()
@@ -407,7 +407,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 		collectShadowMat = MaterialManager::Instance().CreateMaterialPost(collectShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
 
-	shadowSampler.CreateSamplerHeap(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true, false);
+	shadowSamplerID = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true, false);
 
 	// create ray tracing shadow uav
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;

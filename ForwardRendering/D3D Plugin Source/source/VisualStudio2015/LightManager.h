@@ -48,7 +48,7 @@ public:
 	Material* GetShadowCutout(int _cullMode);
 	Material* GetCollectShadow();
 	Material* GetRayShadow();
-	ID3D12DescriptorHeap* GetShadowSampler();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetShadowSampler();
 	ID3D12Resource* GetRayShadowSrc();
 	int GetShadowIndex();
 
@@ -103,7 +103,7 @@ private:
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];
 	Material collectShadowMat;
-	Sampler shadowSampler;
+	int shadowSamplerID;
 	int collectShadowID;
 	int pcfKernel;
 
