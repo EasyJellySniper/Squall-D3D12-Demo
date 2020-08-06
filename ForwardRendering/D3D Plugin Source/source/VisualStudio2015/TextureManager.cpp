@@ -130,8 +130,6 @@ void TextureManager::EnlargeSamplerDescriptorHeap()
 
 void TextureManager::AddTexToHeap(int _index, Texture _texture)
 {
-	LogMessage(to_wstring(_texture.IsMsaa()));
-
 	// check if we need to enlarge heap
 	if (_index >= MAX_TEXTURE_NUMBER * (texHeapEnlargeCount + 1))
 	{

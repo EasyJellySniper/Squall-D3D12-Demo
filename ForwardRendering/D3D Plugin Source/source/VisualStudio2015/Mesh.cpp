@@ -146,6 +146,7 @@ void Mesh::CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrLis
 	bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelAS->Resource()->GetGPUVirtualAddress();
 
 	_dxrList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
+	_dxrList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(bottomLevelAS->Resource()));
 }
 
 ID3D12Resource* Mesh::GetBottomAS()
