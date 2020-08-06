@@ -45,7 +45,7 @@ bool Camera::Initialize(CameraData _cameraData)
 		{
 			HRESULT hr = S_OK;
 
-			ComPtr<ID3D12Resource> aaTarget;
+			shared_ptr<DefaultBuffer> aaTarget;
 			srcDesc.SampleDesc.Count = cameraData.allowMSAA;
 
 			// check aa quality
@@ -60,16 +60,11 @@ bool Camera::Initialize(CameraData _cameraData)
 			}
 			optClearColor.Format = renderTargetDesc[i];
 
-			LogIfFailed(GraphicManager::Instance().GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT)
-				, D3D12_HEAP_FLAG_NONE
-				, &srcDesc
-				, D3D12_RESOURCE_STATE_COMMON
-				, &optClearColor
-				, IID_PPV_ARGS(&aaTarget)), hr);
+			aaTarget = make_shared<DefaultBuffer>(GraphicManager::Instance().GetDevice(), srcDesc, D3D12_RESOURCE_STATE_COMMON, &optClearColor);
 
-			if (SUCCEEDED(hr))
+			if (aaTarget->Resource() != nullptr)
 			{
-				msaaTarget.push_back(aaTarget);
+				msaaTarget.push_back(move(aaTarget));
 			}
 			else
 			{
@@ -103,14 +98,9 @@ bool Camera::Initialize(CameraData _cameraData)
 		optClearDepth.Format = GetDepthFormatFromTypeless(srcDesc.Format);
 
 		HRESULT hr = S_OK;
-		LogIfFailed(GraphicManager::Instance().GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT)
-			, D3D12_HEAP_FLAG_NONE
-			, &srcDesc
-			, D3D12_RESOURCE_STATE_COMMON
-			, &optClearDepth
-			, IID_PPV_ARGS(&msaaDepthTarget)), hr);
+		msaaDepthTarget = make_shared<DefaultBuffer>(GraphicManager::Instance().GetDevice(), srcDesc, D3D12_RESOURCE_STATE_COMMON, &optClearDepth);
 
-		if (FAILED(hr))
+		if (msaaDepthTarget->Resource() == nullptr)
 		{
 			LogMessage(L"[SqGraphic Error] SqCamera: MSAA Depth creation failed.");
 			return false;
@@ -126,7 +116,7 @@ bool Camera::Initialize(CameraData _cameraData)
 		cameraRT[i]->InitRTV(renderTarget[i], renderTargetDesc[i], false);
 		if (cameraData.allowMSAA > 1)
 		{
-			cameraRTMsaa[i]->InitRTV(msaaTarget[i].Get(), renderTargetDesc[i], true);
+			cameraRTMsaa[i]->InitRTV(msaaTarget[i]->Resource(), renderTargetDesc[i], true);
 		}
 	}
 
@@ -138,8 +128,8 @@ bool Camera::Initialize(CameraData _cameraData)
 	cameraRT[0]->InitSRV(depthTarget, GetColorFormatFromTypeless(depthDesc.Format), false);
 	if (cameraData.allowMSAA > 1)
 	{
-		cameraRTMsaa[0]->InitDSV(msaaDepthTarget.Get(), depthTargetDesc, true);
-		cameraRTMsaa[0]->InitSRV(msaaDepthTarget.Get(), GetColorFormatFromTypeless(depthDesc.Format), true);
+		cameraRTMsaa[0]->InitDSV(msaaDepthTarget->Resource(), depthTargetDesc, true);
+		cameraRTMsaa[0]->InitSRV(msaaDepthTarget->Resource(), GetColorFormatFromTypeless(depthDesc.Format), true);
 	}
 
 	if (!CreatePipelineMaterial())
@@ -155,9 +145,9 @@ void Camera::Release()
 {
 	for (size_t i = 0; i < msaaTarget.size(); i++)
 	{
-		msaaTarget[i].Reset();
+		msaaTarget[i].reset();
 	}
-	msaaDepthTarget.Reset();
+	msaaDepthTarget.reset();
 	msaaTarget.clear();
 
 	for (int i = 0; i < numOfRenderTarget; i++)
@@ -197,12 +187,12 @@ ID3D12Resource* Camera::GetDebugDepth()
 
 ID3D12Resource * Camera::GetMsaaRtvSrc()
 {
-	return msaaTarget[0].Get();
+	return msaaTarget[0]->Resource();
 }
 
 ID3D12Resource * Camera::GetMsaaDsvSrc()
 {
-	return msaaDepthTarget.Get();
+	return msaaDepthTarget->Resource();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetRtv()

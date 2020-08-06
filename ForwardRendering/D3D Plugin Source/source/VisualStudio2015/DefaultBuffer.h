@@ -12,11 +12,11 @@ public:
 	// entry for buffer
 	DefaultBuffer(ID3D12Device *_device, UINT64 _bufferSize, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_FLAGS _flags = D3D12_RESOURCE_FLAG_NONE)
 	{
-		auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 		auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(_bufferSize, _flags);
 
 		LogIfFailedWithoutHR(_device->CreateCommittedResource(
-			&uploadHeapProperties,
+			&heapProperties,
 			D3D12_HEAP_FLAG_NONE,
 			&bufferDesc,
 			_states,
@@ -25,16 +25,14 @@ public:
 	}
 
 	// entry for texture
-	DefaultBuffer(ID3D12Device* _device, DXGI_FORMAT _format, UINT64 _width, UINT _height, int _mipLevel, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON
-		, D3D12_RESOURCE_FLAGS _flags = D3D12_RESOURCE_FLAG_NONE, D3D12_CLEAR_VALUE *_clearValue = nullptr)
+	DefaultBuffer(ID3D12Device* _device, D3D12_RESOURCE_DESC _desc, D3D12_RESOURCE_STATES _states = D3D12_RESOURCE_STATE_COMMON, D3D12_CLEAR_VALUE *_clearValue = nullptr)
 	{
-		auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(_format, _width, _height, 1, _mipLevel, 1, 0, _flags);
+		auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
 		LogIfFailedWithoutHR(_device->CreateCommittedResource(
-			&uploadHeapProperties,
+			&heapProperties,
 			D3D12_HEAP_FLAG_NONE,
-			&texDesc,
+			&_desc,
 			_states,
 			_clearValue,
 			IID_PPV_ARGS(defaultBuffer.GetAddressOf())));

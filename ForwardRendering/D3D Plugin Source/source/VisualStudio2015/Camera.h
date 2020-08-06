@@ -8,6 +8,7 @@
 #include "Material.h" 
 #include "Shader.h"
 #include "Texture.h"
+#include "DefaultBuffer.h"
 using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
@@ -95,8 +96,8 @@ private:
 	RenderMode renderMode = RenderMode::None;
 
 	// render targets
-	vector<ComPtr<ID3D12Resource>> msaaTarget;
-	ComPtr<ID3D12Resource> msaaDepthTarget;
+	vector<shared_ptr<DefaultBuffer>> msaaTarget;
+	shared_ptr<DefaultBuffer> msaaDepthTarget;
 	ID3D12Resource* debugDepth;
 
 	// rt desc cache
