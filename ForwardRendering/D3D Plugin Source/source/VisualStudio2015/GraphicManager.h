@@ -75,21 +75,20 @@ public:
 private:
 	HRESULT CreateGpuTimeQuery();
 	HRESULT CreateGraphicCommand();
-	HRESULT CreateGfxAllocAndList(ComPtr<ID3D12CommandAllocator>& _allocator, ComPtr<ID3D12GraphicsCommandList>& _list);
+	HRESULT CreateGfxAlloc(ComPtr<ID3D12CommandAllocator>& _allocator);
+	HRESULT CreateGfxList(ComPtr<ID3D12CommandAllocator>& _allocator, ComPtr<ID3D12GraphicsCommandList>& _list);
 	HRESULT CreateGraphicFences();
 	bool CreateGraphicThreads();
 	void DrawCamera();
 
 	ID3D12Device *mainDevice;
 	ComPtr<ID3D12CommandQueue> mainGraphicQueue;
-	ComPtr<ID3D12CommandAllocator> preGfxAllocator[MAX_FRAME_COUNT];
-	ComPtr<ID3D12GraphicsCommandList> preGfxList[MAX_FRAME_COUNT];
-	ComPtr<ID3D12CommandAllocator> midGfxAllocator[MAX_FRAME_COUNT];
-	ComPtr<ID3D12GraphicsCommandList> midGfxList[MAX_FRAME_COUNT];
-	ComPtr<ID3D12CommandAllocator> postGfxAllocator[MAX_FRAME_COUNT];
-	ComPtr<ID3D12GraphicsCommandList> postGfxList[MAX_FRAME_COUNT];
-	ComPtr<ID3D12CommandAllocator> workerGfxAllocator[MAX_WORKER_THREAD_COUNT][MAX_FRAME_COUNT];	// allow multiple-thread gfx
-	ComPtr<ID3D12GraphicsCommandList> workerGfxList[MAX_WORKER_THREAD_COUNT][MAX_FRAME_COUNT];
+	ComPtr<ID3D12CommandAllocator> mainGfxAllocator[MAX_FRAME_COUNT];
+	ComPtr<ID3D12GraphicsCommandList> mainGfxList;
+
+	// allow multiple-thread gfx
+	ComPtr<ID3D12CommandAllocator> workerGfxAllocator[MAX_WORKER_THREAD_COUNT][MAX_FRAME_COUNT];	
+	ComPtr<ID3D12GraphicsCommandList> workerGfxList[MAX_WORKER_THREAD_COUNT];
 	ComPtr<ID3D12Device5> rayTracingDevice;
 	ComPtr<ID3D12GraphicsCommandList5> rayTracingCmd;
 

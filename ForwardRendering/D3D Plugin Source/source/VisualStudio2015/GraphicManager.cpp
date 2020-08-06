@@ -43,7 +43,7 @@ bool GraphicManager::Initialize(ID3D12Device* _device, int _numOfThreads)
 void GraphicManager::InitRayTracingInterface()
 {
 	LogIfFailedWithoutHR(mainDevice->QueryInterface(IID_PPV_ARGS(&rayTracingDevice)));
-	LogIfFailedWithoutHR(preGfxList[0]->QueryInterface(IID_PPV_ARGS(&rayTracingCmd)));
+	LogIfFailedWithoutHR(mainGfxList->QueryInterface(IID_PPV_ARGS(&rayTracingCmd)));
 }
 
 void GraphicManager::Release()
@@ -65,22 +65,18 @@ void GraphicManager::Release()
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
-		preGfxAllocator[i].Reset();
-		preGfxList[i].Reset();
-		midGfxAllocator[i].Reset();
-		midGfxList[i].Reset();
-		postGfxAllocator[i].Reset();
-		postGfxList[i].Reset();
+		mainGfxAllocator[i].Reset();
 
 		for (int j = 0; j < numOfLogicalCores - 1; j++)
 		{
 			workerGfxAllocator[j][i].Reset();
-			workerGfxList[j][i].Reset();
+			workerGfxList[j].Reset();
 		}
 
 		systemConstantGPU[i].reset();
 		graphicFences[i] = 0;
 	}
+	mainGfxList.Reset();
 	mainFence = 0;
 
 	mainGraphicQueue.Reset();
@@ -160,21 +156,26 @@ HRESULT GraphicManager::CreateGraphicCommand()
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
-		CreateGfxAllocAndList(preGfxAllocator[i], preGfxList[i]);
-		CreateGfxAllocAndList(midGfxAllocator[i], midGfxList[i]);
-		CreateGfxAllocAndList(postGfxAllocator[i], postGfxList[i]);
+		CreateGfxAlloc(mainGfxAllocator[i]);
 
 		// create worker GFX list
 		for (int j = 0; j < numOfLogicalCores - 1; j++)
 		{
-			CreateGfxAllocAndList(workerGfxAllocator[j][i], workerGfxList[j][i]);
+			CreateGfxAlloc(workerGfxAllocator[j][i]);
+
+			if (i == 0)
+			{
+				CreateGfxList(workerGfxAllocator[j][i], workerGfxList[j]);
+			}
 		}
 	}
+
+	CreateGfxList(mainGfxAllocator[0], mainGfxList);
 
 	return hr;
 }
 
-HRESULT GraphicManager::CreateGfxAllocAndList(ComPtr<ID3D12CommandAllocator>& _allocator, ComPtr<ID3D12GraphicsCommandList>& _list)
+HRESULT GraphicManager::CreateGfxAlloc(ComPtr<ID3D12CommandAllocator>& _allocator)
 {
 	HRESULT hr = S_OK;
 
@@ -182,6 +183,13 @@ HRESULT GraphicManager::CreateGfxAllocAndList(ComPtr<ID3D12CommandAllocator>& _a
 	LogIfFailed(mainDevice->CreateCommandAllocator(
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
 		IID_PPV_ARGS(_allocator.GetAddressOf())), hr);
+
+	return hr;
+}
+
+HRESULT GraphicManager::CreateGfxList(ComPtr<ID3D12CommandAllocator>& _allocator, ComPtr<ID3D12GraphicsCommandList>& _list)
+{
+	HRESULT hr = S_OK;
 
 	LogIfFailed(mainDevice->CreateCommandList(
 		0,
@@ -320,14 +328,14 @@ void GraphicManager::WaitForGPU()
 void GraphicManager::ResetCreationList()
 {
 	// use pre gfx 0 as creation list
-	LogIfFailedWithoutHR(preGfxAllocator[0]->Reset());
-	LogIfFailedWithoutHR(preGfxList[0]->Reset(preGfxAllocator[0].Get(), nullptr));
+	LogIfFailedWithoutHR(mainGfxAllocator[0]->Reset());
+	LogIfFailedWithoutHR(mainGfxList->Reset(mainGfxAllocator[0].Get(), nullptr));
 }
 
 void GraphicManager::ExecuteCreationList()
 {
-	LogIfFailedWithoutHR(preGfxList[0]->Close());
-	ID3D12CommandList* cmd[] = { preGfxList[0].Get() };
+	LogIfFailedWithoutHR(mainGfxList->Close());
+	ID3D12CommandList* cmd[] = { mainGfxList.Get() };
 	ExecuteCommandList(1, cmd);
 }
 
@@ -400,17 +408,13 @@ UINT GraphicManager::GetCbvSrvUavDesciptorSize()
 
 FrameResource* GraphicManager::GetFrameResource()
 {
-	frameResource.preGfxAllocator = preGfxAllocator[currFrameIndex].Get();
-	frameResource.preGfxList = preGfxList[currFrameIndex].Get();
-	frameResource.midGfxAllocator = midGfxAllocator[currFrameIndex].Get();
-	frameResource.midGfxList = midGfxList[currFrameIndex].Get();
-	frameResource.postGfxAllocator = postGfxAllocator[currFrameIndex].Get();
-	frameResource.postGfxList = postGfxList[currFrameIndex].Get();
+	frameResource.mainGfxAllocator = mainGfxAllocator[currFrameIndex].Get();
+	frameResource.mainGfxList = mainGfxList.Get();
 
 	for (int i = 0; i < numOfLogicalCores - 1; i++)
 	{
 		frameResource.workerGfxAlloc[i] = workerGfxAllocator[i][currFrameIndex].Get();
-		frameResource.workerGfxList[i] = workerGfxList[i][currFrameIndex].Get();
+		frameResource.workerGfxList[i] = workerGfxList[i].Get();
 	}
 	frameResource.currFrameIndex = currFrameIndex;
 

@@ -10,12 +10,8 @@ const static int MAX_WORKER_THREAD_COUNT = 32;
 
 struct FrameResource
 {
-	ID3D12CommandAllocator* preGfxAllocator;
-	ID3D12GraphicsCommandList* preGfxList;
-	ID3D12CommandAllocator* midGfxAllocator;
-	ID3D12GraphicsCommandList* midGfxList;
-	ID3D12CommandAllocator* postGfxAllocator;
-	ID3D12GraphicsCommandList* postGfxList;
+	ID3D12CommandAllocator* mainGfxAllocator;
+	ID3D12GraphicsCommandList* mainGfxList;
 	ID3D12CommandAllocator *workerGfxAlloc[MAX_WORKER_THREAD_COUNT];
 	ID3D12GraphicsCommandList *workerGfxList[MAX_WORKER_THREAD_COUNT];
 	int currFrameIndex;

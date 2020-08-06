@@ -203,8 +203,8 @@ void ForwardRenderingPath::ShadowCulling(Light* _light, int _cascade, int _threa
 void ForwardRenderingPath::BeginFrame(Camera* _camera)
 {
 	// get frame resource
-	LogIfFailedWithoutHR(currFrameResource->preGfxAllocator->Reset());
-	LogIfFailedWithoutHR(currFrameResource->preGfxList->Reset(currFrameResource->preGfxAllocator, nullptr));
+	LogIfFailedWithoutHR(currFrameResource->mainGfxAllocator->Reset());
+	LogIfFailedWithoutHR(currFrameResource->mainGfxList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	// reset thread's allocator
 	for (int i = 0; i < numWorkerThreads; i++)
@@ -212,7 +212,7 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 		LogIfFailedWithoutHR(currFrameResource->workerGfxAlloc[i]->Reset());
 	}
 
-	auto _cmdList = currFrameResource->preGfxList;
+	auto _cmdList = currFrameResource->mainGfxList;
 
 #if defined(GRAPHICTIME)
 	// timer begin
@@ -286,8 +286,8 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 	WakeAndWaitWorker();
 
 	// resolve depth for shadow mapping
-	auto _cmdList = currFrameResource->preGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+	auto _cmdList = currFrameResource->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	if (_camera->GetCameraData()->allowMSAA > 1)
 	{
@@ -347,8 +347,8 @@ void ForwardRenderingPath::ShadowWork()
 void ForwardRenderingPath::RayTracingShadow(Light* _light)
 {
 	// use pre gfx list
-	auto _cmdList = currFrameResource->preGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+	auto _cmdList = currFrameResource->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	// bind root signature
 	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetRayShadowHeap() };
@@ -755,8 +755,8 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	}
 
 	// reset cmdlist
-	auto _cmdList = currFrameResource->preGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+	auto _cmdList = currFrameResource->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	// bind descriptor
 	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetSkyboxTex(),LightManager::Instance().GetSkyboxSampler() };
@@ -796,8 +796,8 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 {
 	// get frame resource, reuse BeginFrame's list
-	auto _cmdList = currFrameResource->preGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+	auto _cmdList = currFrameResource->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	// bind descriptor heap, only need to set once, changing descriptor heap isn't good
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
@@ -860,11 +860,10 @@ void ForwardRenderingPath::DrawSubmesh(ID3D12GraphicsCommandList *_cmdList, Mesh
 void ForwardRenderingPath::EndFrame(Camera* _camera)
 {
 	// get frame resource
-	LogIfFailedWithoutHR(currFrameResource->postGfxAllocator->Reset());
-	LogIfFailedWithoutHR(currFrameResource->postGfxList->Reset(currFrameResource->postGfxAllocator, nullptr));
+	LogIfFailedWithoutHR(currFrameResource->mainGfxList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	CameraData* camData = _camera->GetCameraData();
-	auto _cmdList = currFrameResource->postGfxList;
+	auto _cmdList = currFrameResource->mainGfxList;
 
 	if (camData->allowMSAA > 1)
 	{
@@ -983,8 +982,8 @@ void ForwardRenderingPath::CopyResourceWithBarrier(ID3D12GraphicsCommandList* _c
 
 void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 {
-	auto _cmdList = currFrameResource->preGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->preGfxAllocator, nullptr));
+	auto _cmdList = currFrameResource->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	// collect shadow
 	SqLightData* sld = _light->GetLightData();
