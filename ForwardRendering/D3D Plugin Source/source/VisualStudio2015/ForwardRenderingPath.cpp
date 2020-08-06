@@ -380,9 +380,8 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	dxrCmd->DispatchRays(&dispatchDesc);
 
 	// copy result, collect shadow will be used in pixel shader later
-	D3D12_RESOURCE_STATES before[4] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ,D3D12_RESOURCE_STATE_COPY_DEST };
-	D3D12_RESOURCE_STATES after[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };
-	CopyResourceWithBarrier(_cmdList, rayShadowSrc, collectShadowSrc, before, after);
+	D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };
+	CopyResourceWithBarrier(_cmdList, rayShadowSrc, collectShadowSrc, before, before);
 
 	ExecuteCmdList(_cmdList);
 }
@@ -598,8 +597,8 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
 	// copy resolved depth to transparent depth
-	D3D12_RESOURCE_STATES before[4] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_COPY_SOURCE,D3D12_RESOURCE_STATE_COMMON,D3D12_RESOURCE_STATE_COPY_DEST };
-	D3D12_RESOURCE_STATES after[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_DEPTH_WRITE,D3D12_RESOURCE_STATE_COPY_DEST,D3D12_RESOURCE_STATE_DEPTH_WRITE };
+	D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_COMMON };
+	D3D12_RESOURCE_STATES after[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_DEPTH_WRITE };
 	CopyResourceWithBarrier(_cmdList, _camera->GetCameraDepth(), _camera->GetTransparentDepth(), before, after);
 
 	// om set target
@@ -950,8 +949,8 @@ void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, C
 	// copy to debug depth
 	if (_camera->GetRenderMode() == RenderMode::Depth)
 	{
-		D3D12_RESOURCE_STATES beforeStates[4] = { D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST };
-		D3D12_RESOURCE_STATES afterStates[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_COMMON };
+		D3D12_RESOURCE_STATES beforeStates[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON };
+		D3D12_RESOURCE_STATES afterStates[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_COMMON };
 		beforeStates[0] = (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON;
 
 		CopyResourceWithBarrier(_cmdList, _camera->GetCameraDepth(), _camera->GetTransparentDepth(), beforeStates, afterStates);
@@ -960,8 +959,8 @@ void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, C
 
 void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
-	D3D12_RESOURCE_STATES beforeStates[4] = { D3D12_RESOURCE_STATE_RENDER_TARGET , D3D12_RESOURCE_STATE_COPY_SOURCE ,  D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST };
-	D3D12_RESOURCE_STATES afterStates[4] = { D3D12_RESOURCE_STATE_COPY_SOURCE ,D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COPY_DEST ,D3D12_RESOURCE_STATE_COMMON };
+	D3D12_RESOURCE_STATES beforeStates[2] = { D3D12_RESOURCE_STATE_RENDER_TARGET ,  D3D12_RESOURCE_STATE_COMMON };
+	D3D12_RESOURCE_STATES afterStates[2] = {D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COMMON };
 
 	CopyResourceWithBarrier(_cmdList, _camera->GetRtvSrc(), _camera->GetResultSrc(), beforeStates, afterStates);
 
@@ -969,15 +968,15 @@ void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList,
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
 }
 
-void ForwardRenderingPath::CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[4], D3D12_RESOURCE_STATES _afterCopy[4])
+void ForwardRenderingPath::CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[2], D3D12_RESOURCE_STATES _afterCopy[2])
 {
 	D3D12_RESOURCE_BARRIER copyBefore[2];
-	copyBefore[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, _beforeCopy[0], _beforeCopy[1]);
-	copyBefore[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, _beforeCopy[2], _beforeCopy[3]);
+	copyBefore[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, _beforeCopy[0], D3D12_RESOURCE_STATE_COPY_SOURCE);
+	copyBefore[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, _beforeCopy[1], D3D12_RESOURCE_STATE_COPY_SOURCE);
 
 	D3D12_RESOURCE_BARRIER copyAfter[2];
-	copyAfter[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, _afterCopy[0], _afterCopy[1]);
-	copyAfter[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, _afterCopy[2], _afterCopy[3]);
+	copyAfter[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_COPY_DEST, _afterCopy[0]);
+	copyAfter[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, D3D12_RESOURCE_STATE_COPY_DEST, _afterCopy[1]);
 
 	_cmdList->ResourceBarrier(2, copyBefore);
 	_cmdList->CopyResource(_dst, _src);
