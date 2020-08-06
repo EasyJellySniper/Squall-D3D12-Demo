@@ -12,9 +12,6 @@ bool Camera::Initialize(CameraData _cameraData)
 	numOfRenderTarget = 0;
 	msaaQuality = 0;
 
-	ID3D12Resource* renderTarget[MAX_RENDER_TARGETS];
-	ID3D12Resource* depthTarget;
-
 	for (int i = 0; i < MAX_RENDER_TARGETS; i++)
 	{
 		renderTarget[i] = ((ID3D12Resource*)cameraData.renderTarget[i]);
@@ -40,6 +37,23 @@ bool Camera::Initialize(CameraData _cameraData)
 		D3D12_RESOURCE_DESC srcDesc = renderTarget[i]->GetDesc();
 		renderTargetDesc[i] = GetColorFormatFromTypeless(srcDesc.Format);
 
+		// set clear color
+		for (int j = 0; j < 4; j++)
+		{
+			optClearColor.Color[j] = cameraData.clearColor[j];
+		}
+		optClearColor.Format = renderTargetDesc[i];
+
+		// create color target
+		auto colorRT = make_shared<DefaultBuffer>(GraphicManager::Instance().GetDevice(), srcDesc, D3D12_RESOURCE_STATE_COMMON, &optClearColor);
+		if (colorRT->Resource() == nullptr)
+		{
+			LogMessage(L"[SqGraphic Error] SqCamera: Native ColorTarget creation failed.");
+			return false;
+		}
+
+		colorTarget.push_back(colorRT);
+
 		// create msaa target if necessary
 		if (cameraData.allowMSAA > 1)
 		{
@@ -53,12 +67,6 @@ bool Camera::Initialize(CameraData _cameraData)
 			aaData = CheckMsaaQuality(cameraData.allowMSAA, srcDesc.Format);
 			srcDesc.SampleDesc.Quality = max(aaData.NumQualityLevels - 1, 0);
 			msaaQuality = max(aaData.NumQualityLevels - 1, 0);
-
-			for (int j = 0; j < 4; j++)
-			{
-				optClearColor.Color[j] = cameraData.clearColor[j];
-			}
-			optClearColor.Format = renderTargetDesc[i];
 
 			aaTarget = make_shared<DefaultBuffer>(GraphicManager::Instance().GetDevice(), srcDesc, D3D12_RESOURCE_STATE_COMMON, &optClearColor);
 
@@ -113,7 +121,7 @@ bool Camera::Initialize(CameraData _cameraData)
 		cameraRT[i] = make_shared<Texture>(1, 1, 1);
 		cameraRTMsaa[i] = make_shared<Texture>(1, 1, 1);
 
-		cameraRT[i]->InitRTV(renderTarget[i], renderTargetDesc[i], false);
+		cameraRT[i]->InitRTV(colorTarget[i]->Resource(), renderTargetDesc[i], false);
 		if (cameraData.allowMSAA > 1)
 		{
 			cameraRTMsaa[i]->InitRTV(msaaTarget[i]->Resource(), renderTargetDesc[i], true);
@@ -143,10 +151,17 @@ bool Camera::Initialize(CameraData _cameraData)
 
 void Camera::Release()
 {
+	for (size_t i = 0; i < colorTarget.size(); i++)
+	{
+		colorTarget[i].reset();
+	}
+
 	for (size_t i = 0; i < msaaTarget.size(); i++)
 	{
 		msaaTarget[i].reset();
 	}
+
+	colorTarget.clear();
 	msaaDepthTarget.reset();
 	msaaTarget.clear();
 
@@ -173,6 +188,11 @@ void Camera::Release()
 CameraData *Camera::GetCameraData()
 {
 	return &cameraData;
+}
+
+ID3D12Resource* Camera::GetResultSrc()
+{
+	return renderTarget[0];
 }
 
 ID3D12Resource * Camera::GetRtvSrc()

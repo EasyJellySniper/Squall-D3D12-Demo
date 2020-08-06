@@ -223,6 +223,7 @@ public class SqCamera : MonoBehaviour
 
     void CreateRenderTarget()
     {
+        // for receive result
         renderTarget = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
         renderTarget.name = name + " Target";
         renderTarget.antiAliasing = 1;

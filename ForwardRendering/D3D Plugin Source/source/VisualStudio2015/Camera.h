@@ -54,6 +54,7 @@ public:
 	void Release();
 
 	CameraData *GetCameraData();
+	ID3D12Resource* GetResultSrc();
 	ID3D12Resource *GetRtvSrc();
 	ID3D12Resource* GetCameraDepth();
 	ID3D12Resource* GetDebugDepth();
@@ -96,8 +97,12 @@ private:
 	RenderMode renderMode = RenderMode::None;
 
 	// render targets
+	vector<shared_ptr<DefaultBuffer>> colorTarget;
 	vector<shared_ptr<DefaultBuffer>> msaaTarget;
 	shared_ptr<DefaultBuffer> msaaDepthTarget;
+
+	ID3D12Resource* renderTarget[MAX_RENDER_TARGETS];
+	ID3D12Resource* depthTarget;
 	ID3D12Resource* debugDepth;
 
 	// rt desc cache
