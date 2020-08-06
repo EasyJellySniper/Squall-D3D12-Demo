@@ -241,11 +241,6 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
 	return cameraRTMsaa[0]->GetDsvCPU(0);
 }
 
-ID3D12DescriptorHeap* Camera::GetDepthSrv()
-{
-	return cameraRT[0]->GetSrv();
-}
-
 ID3D12DescriptorHeap* Camera::GetMsaaSrv()
 {
 	return cameraRTMsaa[0]->GetSrv();
