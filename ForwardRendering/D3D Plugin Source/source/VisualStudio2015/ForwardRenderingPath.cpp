@@ -759,7 +759,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	// bind descriptor
-	ID3D12DescriptorHeap* descriptorHeaps[] = { LightManager::Instance().GetSkyboxTex(),LightManager::Instance().GetSkyboxSampler() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// bind target
@@ -778,8 +778,8 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	_cmdList->SetGraphicsRootSignature(skyMat->GetRootSignature());
 	_cmdList->SetGraphicsRootConstantBufferView(0, LightManager::Instance().GetSkyboxRenderer()->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(2, LightManager::Instance().GetSkyboxTex()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(3, LightManager::Instance().GetSkyboxSampler()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(2, LightManager::Instance().GetSkyboxTex());
+	_cmdList->SetGraphicsRootDescriptorTable(3, LightManager::Instance().GetSkyboxSampler());
 
 	// bind mesh and draw
 	Mesh* m = MeshManager::Instance().GetMesh(LightManager::Instance().GetSkyMeshID());

@@ -74,14 +74,20 @@ ID3D12Resource* Texture::GetResource()
 	return texResource;
 }
 
-void Texture::SetFormat(DXGI_FORMAT _format)
+void Texture::SetFormat(DXGI_FORMAT _format, bool _isCube)
 {
 	texFormat = _format;
+	isCube = _isCube;
 }
 
 DXGI_FORMAT Texture::GetFormat()
 {
 	return texFormat;
+}
+
+bool Texture::IsCube()
+{
+	return isCube;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetRtvCPU(int _index)

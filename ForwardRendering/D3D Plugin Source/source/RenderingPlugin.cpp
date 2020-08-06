@@ -110,12 +110,12 @@ extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterialPro
 
 extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeTexture(int _instanceID, void *_data)
 {
-	return TextureManager::Instance().AddNativeTexture(_instanceID, _data);
+	return TextureManager::Instance().AddNativeTexture(_instanceID, _data, false, false);
 }
 
 extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel)
 {
-	return TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel);
+	return TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, false, false);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRenderMode(int _instance, int _mode)

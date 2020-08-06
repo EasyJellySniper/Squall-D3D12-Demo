@@ -1,8 +1,8 @@
 #define SkyboxRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
 "CBV(b0)," \
 "CBV(b1)," \
-"DescriptorTable(SRV(t0, numDescriptors=1))," \
-"DescriptorTable(Sampler(s0, numDescriptors=1))" \
+"DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
+"DescriptorTable(Sampler(s0, numDescriptors=unbounded))" \
 
 #include "SqInput.hlsl"
 #pragma sq_vertex SkyboxVS
@@ -41,5 +41,6 @@ v2f SkyboxVS(VertexInput v)
 [RootSignature(SkyboxRS)]
 float4 SkyboxPS(v2f i) : SV_Target
 {
+	// gpu handle is set on CPU side
 	return _SkyCube.Sample(_SkySampler, i.lpos) * _SkyIntensity;
 }

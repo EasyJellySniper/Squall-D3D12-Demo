@@ -17,8 +17,9 @@ public:
 	void SetResource(ID3D12Resource* _data);
 	ID3D12Resource* GetResource();
 
-	void SetFormat(DXGI_FORMAT _format);
+	void SetFormat(DXGI_FORMAT _format, bool _isCube);
 	DXGI_FORMAT GetFormat();
+	bool IsCube();
 
 	int InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa);
 	int InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa);
@@ -39,6 +40,7 @@ protected:
 	// use for texture manager (global heap)
 	ID3D12Resource* texResource;
 	DXGI_FORMAT texFormat;
+	bool isCube;
 
 	// normally managed by manager, but allow indenpendent descriptor also
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;

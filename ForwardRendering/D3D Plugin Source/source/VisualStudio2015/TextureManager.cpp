@@ -31,7 +31,7 @@ void TextureManager::Release()
 	samplers.clear();
 }
 
-int TextureManager::AddNativeTexture(int _texId, void* _texData, bool _typeless)
+int TextureManager::AddNativeTexture(int _texId, void* _texData, bool _typeless, bool _isCube)
 {
 	// check duplicate add
 	for (size_t i = 0; i < textures.size(); i++)
@@ -51,7 +51,7 @@ int TextureManager::AddNativeTexture(int _texId, void* _texData, bool _typeless)
 	{
 		desc.Format = GetColorFormatFromTypeless(desc.Format);
 	}
-	t.SetFormat(desc.Format);
+	t.SetFormat(desc.Format, _isCube);
 
 	textures.push_back(t);
 
@@ -61,19 +61,19 @@ int TextureManager::AddNativeTexture(int _texId, void* _texData, bool _typeless)
 	return nativeId;
 }
 
-int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare)
+int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare, bool _isCube)
 {
 	// check duplicate add
 	for (size_t i = 0; i < samplers.size(); i++)
 	{
-		if (samplers[i].IsSameSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare))
+		if (samplers[i].IsSameSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare, _isCube))
 		{
 			return (int)i;
 		}
 	}
 
 	Sampler s;
-	s.CreateSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare);
+	s.CreateSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare, _isCube);
 	samplers.push_back(s);
 
 	int nativeId = (int)samplers.size() - 1;
@@ -144,9 +144,20 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Format = _texture.GetFormat();
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = -1;
+
+	if (!_texture.IsCube())
+	{
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = -1;
+	}
+	else
+	{
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+		srvDesc.TextureCube.MipLevels = -1;
+		srvDesc.TextureCube.MostDetailedMip = 0;
+		srvDesc.TextureCube.ResourceMinLODClamp = 0;
+	}
 
 	GraphicManager::Instance().GetDevice()->CreateShaderResourceView(_texture.GetResource(), &srvDesc, hTexture);
 }
@@ -167,6 +178,7 @@ void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)
 
 	// force to use anisotropic unless it is compare sampler
 	samplerDesc.Filter = (_sampler.IsCompareSampler()) ? D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT : D3D12_FILTER_ANISOTROPIC;
+	samplerDesc.Filter = (_sampler.IsCubeSampler()) ? D3D12_FILTER_MIN_MAG_MIP_LINEAR : samplerDesc.Filter;
 	samplerDesc.MaxAnisotropy = _sampler.GetAnisoLevel();
 	samplerDesc.AddressU = Sampler::UnityWrapModeToNative(_sampler.GetWrapU());
 	samplerDesc.AddressV = Sampler::UnityWrapModeToNative(_sampler.GetWrapV());

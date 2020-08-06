@@ -8,24 +8,25 @@ D3D12_TEXTURE_ADDRESS_MODE Sampler::UnityWrapModeToNative(TextureWrapMode _wrapM
 	return mode[(int)_wrapMode];
 }
 
-bool Sampler::IsSameSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare)
+bool Sampler::IsSameSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare, bool _isCube)
 {
-	return (wrapU == _wrapU) && (wrapV == _wrapV) && (wrapW == _wrapW) && (anisoLevel == _anisoLevel) && (isCompare == _isCompare);
+	return (wrapU == _wrapU) && (wrapV == _wrapV) && (wrapW == _wrapW) && (anisoLevel == _anisoLevel) && (isCompare == _isCompare) && (isCube == _isCube);
 }
 
-void Sampler::CreateSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare)
+void Sampler::CreateSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare, bool _isCube)
 {
 	wrapU = _wrapU;
 	wrapV = _wrapV;
 	wrapW = _wrapW;
 	anisoLevel = _anisoLevel;
 	isCompare = _isCompare;
+	isCube = _isCube;
 }
 
 void Sampler::CreateSamplerHeap(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare, bool _isCube)
 {
 	// record variable
-	CreateSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare);
+	CreateSampler(_wrapU, _wrapV, _wrapW, _anisoLevel, _isCompare, _isCube);
 
 	// create heap
 	D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {};
@@ -84,6 +85,11 @@ ID3D12DescriptorHeap* Sampler::GetSamplerHeap()
 bool Sampler::IsCompareSampler()
 {
 	return isCompare;
+}
+
+bool Sampler::IsCubeSampler()
+{
+	return isCube;
 }
 
 void Sampler::Release()

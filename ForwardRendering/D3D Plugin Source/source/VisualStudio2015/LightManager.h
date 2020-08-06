@@ -59,8 +59,8 @@ public:
 
 	Renderer* GetSkyboxRenderer();
 	Material* GetSkyboxMat();
-	ID3D12DescriptorHeap* GetSkyboxTex();
-	ID3D12DescriptorHeap* GetSkyboxSampler();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSkyboxTex();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSkyboxSampler();
 	int GetSkyMeshID();
 
 private:
@@ -91,8 +91,9 @@ private:
 	// gi 
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
-	unique_ptr<Texture> skyboxTex;
-	Sampler skyboxSampler;
+
+	int skyboxTexId;
+	int skyboxSampleId;
 	int skyMeshId;
 	Material skyboxMat;
 	Renderer skyboxRenderer;
