@@ -137,7 +137,7 @@ bool Camera::Initialize(CameraData _cameraData)
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa[0]->InitDSV(msaaDepthTarget->Resource(), depthTargetDesc, true);
-		cameraRTMsaa[0]->InitSRV(msaaDepthTarget->Resource(), GetColorFormatFromTypeless(depthDesc.Format), true);
+		msaaDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), msaaDepthTarget->Resource(), true, false, false, true);
 	}
 
 	if (!CreatePipelineMaterial())
@@ -241,9 +241,10 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
 	return cameraRTMsaa[0]->GetDsvCPU(0);
 }
 
-ID3D12DescriptorHeap* Camera::GetMsaaSrv()
+D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetMsaaSrv()
 {
-	return cameraRTMsaa[0]->GetSrv();
+	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), msaaDepthSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	return handle;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetTransDepthSrv()
@@ -297,7 +298,7 @@ void Camera::SetTransparentDepth(void* _src)
 	// create transparent depth
 	transparentDepth = make_shared<Texture>(0, 1, 0);
 	transparentDepth->InitDSV(transparentDepthSrc, depthTargetDesc, false);
-	transDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, true, false, false);
+	transDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, true, false, false, false);
 }
 
 D3D12_VIEWPORT Camera::GetViewPort()

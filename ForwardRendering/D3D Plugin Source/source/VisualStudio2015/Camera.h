@@ -65,7 +65,7 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetTransDsv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaDsv();
-	ID3D12DescriptorHeap* GetMsaaSrv();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetMsaaSrv();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetTransDepthSrv();
 
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near);
@@ -107,6 +107,7 @@ private:
 	ID3D12Resource* depthTarget;
 	ID3D12Resource* transparentDepthSrc;
 	int transDepthSrv;
+	int msaaDepthSrv;
 
 	// rt desc cache
 	DXGI_FORMAT renderTargetDesc[MAX_RENDER_TARGETS];

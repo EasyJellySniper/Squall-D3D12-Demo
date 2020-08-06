@@ -210,7 +210,7 @@ void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMo
 	auto skyboxSrc = (ID3D12Resource*)_skybox;
 	auto desc = skyboxSrc->GetDesc();
 
-	skyboxTexId = TextureManager::Instance().AddNativeTexture(GetUniqueID(), skyboxSrc, false, true, false);
+	skyboxTexId = TextureManager::Instance().AddNativeTexture(GetUniqueID(), skyboxSrc, false, true, false, false);
 	skyboxSampleId = TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, false, true);
 	skyMeshId = _skyMesh;
 
@@ -398,7 +398,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	// register to texture manager
 	collectShadow = make_unique<Texture>(1, 0, 0);
 	collectShadow->InitRTV(opaqueShadowSrc, shadowFormat, false);
-	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, true, false, false);
+	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, true, false, false, false);
 
 	// create collect shadow material
 	Shader *collectShader = ShaderManager::Instance().CompileShader(L"CollectShadow.hlsl");
@@ -415,7 +415,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// create ray tracing texture
-	rtShadowUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadow->Resource(), false, false, true);
+	rtShadowUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadow->Resource(), false, false, true, false);
 }
 
 void LightManager::CreateRayTracingShadow()

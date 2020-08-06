@@ -34,7 +34,7 @@ void Light::InitNativeShadows(int _numCascade, void** _shadowMapRaw)
 	// add to srv heap
 	for (int i = 0; i < numCascade; i++)
 	{
-		int srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), shadowMap[i], true, false, false);
+		int srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), shadowMap[i], true, false, false, false);
 		if (i == 0)
 		{
 			shadowSrv = srv;

@@ -1,5 +1,5 @@
 #define ResolveDepthRS "CBV(b0)," \
-"DescriptorTable(SRV(t0, numDescriptors=1, space=1))" 
+"DescriptorTable(SRV(t0, numDescriptors=1))" 
 
 #pragma sq_vertex ResolveDepthVS
 #pragma sq_pixel ResolveDepthPS
@@ -26,7 +26,7 @@ cbuffer RDConstants : register(b0)
     float3 _Padding;
 };
 
-Texture2DMS<float> _MsaaDepth : register(t0, space1);
+Texture2DMS<float> _MsaaDepth : register(t0);
 
 v2f ResolveDepthVS(uint vid : SV_VertexID)
 {

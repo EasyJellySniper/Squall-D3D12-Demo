@@ -872,7 +872,6 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 	}
 
 	// copy rendering result
-	CopyDebugDepth(_cmdList, _camera);
 	CopyRenderResult(_cmdList, _camera);
 
 #if defined(GRAPHICTIME)
@@ -923,7 +922,7 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	// bind resolve depth pipeline
-	ID3D12DescriptorHeap* descriptorHeaps[] = { _camera->GetMsaaSrv() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() };
 	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
 	_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera->GetDsv());
@@ -934,28 +933,12 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 	_cmdList->SetPipelineState(_camera->GetPostMaterial()->GetPSO());
 	_cmdList->SetGraphicsRootSignature(_camera->GetPostMaterial()->GetRootSignature());
 	_cmdList->SetGraphicsRootConstantBufferView(0, _camera->GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv());
 
 	_cmdList->DrawInstanced(6, 1, 0, 0);
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
 
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
-}
-
-void ForwardRenderingPath::CopyDebugDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
-{
-	CameraData* camData = _camera->GetCameraData();
-	bool useMsaa = (camData->allowMSAA > 1);
-
-	// copy to debug depth
-	if (_camera->GetRenderMode() == RenderMode::Depth)
-	{
-		D3D12_RESOURCE_STATES beforeStates[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON };
-		D3D12_RESOURCE_STATES afterStates[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_COMMON };
-		beforeStates[0] = (useMsaa) ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON;
-
-		CopyResourceWithBarrier(_cmdList, _camera->GetCameraDepth(), _camera->GetTransparentDepth(), beforeStates, afterStates);
-	}
 }
 
 void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)

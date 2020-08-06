@@ -17,10 +17,11 @@ public:
 	void SetResource(ID3D12Resource* _data);
 	ID3D12Resource* GetResource();
 
-	void SetFormat(DXGI_FORMAT _format, bool _isCube, bool _isUav);
+	void SetFormat(DXGI_FORMAT _format, bool _isCube, bool _isUav, bool _isMsaa);
 	DXGI_FORMAT GetFormat();
 	bool IsCube();
 	bool IsUav();
+	bool IsMsaa();
 
 	int InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa);
 	int InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa);
@@ -43,6 +44,7 @@ protected:
 	DXGI_FORMAT texFormat;
 	bool isCube;
 	bool isUav;
+	bool isMsaa;
 
 	// normally managed by manager, but allow indenpendent descriptor also
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;

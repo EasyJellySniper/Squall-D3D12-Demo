@@ -31,7 +31,7 @@ void TextureManager::Release()
 	samplers.clear();
 }
 
-int TextureManager::AddNativeTexture(size_t _texId, void* _texData, bool _typeless, bool _isCube, bool _isUav)
+int TextureManager::AddNativeTexture(size_t _texId, void* _texData, bool _typeless, bool _isCube, bool _isUav, bool _isMsaa)
 {
 	// check duplicate add
 	for (size_t i = 0; i < textures.size(); i++)
@@ -51,7 +51,7 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, bool _typele
 	{
 		desc.Format = GetColorFormatFromTypeless(desc.Format);
 	}
-	t.SetFormat(desc.Format, _isCube, _isUav);
+	t.SetFormat(desc.Format, _isCube, _isUav, _isMsaa);
 
 	textures.push_back(t);
 
@@ -130,6 +130,8 @@ void TextureManager::EnlargeSamplerDescriptorHeap()
 
 void TextureManager::AddTexToHeap(int _index, Texture _texture)
 {
+	LogMessage(to_wstring(_texture.IsMsaa()));
+
 	// check if we need to enlarge heap
 	if (_index >= MAX_TEXTURE_NUMBER * (texHeapEnlargeCount + 1))
 	{
@@ -146,14 +148,16 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Format = _texture.GetFormat();
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = -1;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
-		if (!_texture.IsCube())
+		if (_texture.IsMsaa())
 		{
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srvDesc.Texture2D.MostDetailedMip = 0;
-			srvDesc.Texture2D.MipLevels = -1;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
 		}
-		else
+		
+		if (_texture.IsCube())
 		{
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
 			srvDesc.TextureCube.MipLevels = -1;
