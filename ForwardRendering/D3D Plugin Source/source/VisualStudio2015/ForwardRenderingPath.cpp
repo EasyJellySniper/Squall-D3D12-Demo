@@ -229,9 +229,9 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 void ForwardRenderingPath::ClearCamera(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
 	CameraData* camData = _camera->GetCameraData();
-	auto rtvSrc = (camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc(frameIndex) : _camera->GetRtvSrc(frameIndex);
+	auto rtvSrc = (camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc() : _camera->GetRtvSrc();
 	auto dsvSrc = (camData->allowMSAA > 1) ? _camera->GetMsaaDsvSrc() : _camera->GetCameraDepth();
-	auto hRtv = (camData->allowMSAA > 1) ? _camera->GetMsaaRtv(frameIndex) : _camera->GetRtv(frameIndex);
+	auto hRtv = (camData->allowMSAA > 1) ? _camera->GetMsaaRtv() : _camera->GetRtv();
 	auto hDsv = (camData->allowMSAA > 1) ? _camera->GetMsaaDsv() : _camera->GetDsv();
 
 	// transition render buffer
@@ -409,7 +409,7 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
 	// bind
-	auto rtv = (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(frameIndex) : &_camera->GetRtv(frameIndex);
+	auto rtv = (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv() : &_camera->GetRtv();
 	auto dsv = (camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv();
 
 	_cmdList->OMSetRenderTargets(1, rtv, true, dsv);
@@ -764,7 +764,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 
 	// bind target
 	CameraData* camData = _camera->GetCameraData();
-	auto rtv = (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(frameIndex) : &_camera->GetRtv(frameIndex);
+	auto rtv = (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv() : &_camera->GetRtv();
 	auto dsv = (camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv();
 
 	_cmdList->OMSetRenderTargets(1, rtv, true, dsv);
@@ -805,7 +805,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 
 	// bind
 	CameraData* camData = _camera->GetCameraData();
-	auto rtv = (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv(frameIndex) : &_camera->GetRtv(frameIndex);
+	auto rtv = (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv() : &_camera->GetRtv();
 	auto dsv = (camData->allowMSAA > 1) ? &_camera->GetMsaaDsv() : &_camera->GetDsv();
 
 	_cmdList->OMSetRenderTargets(1, rtv, true,dsv);
@@ -899,17 +899,17 @@ void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdLis
 
 	// barrier
 	D3D12_RESOURCE_BARRIER resolveColor[2];
-	resolveColor[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(frameIndex), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
-	resolveColor[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(frameIndex), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+	resolveColor[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+	resolveColor[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST);
 
 	// barrier
 	D3D12_RESOURCE_BARRIER finishResolve[2];
-	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(frameIndex), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
-	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(frameIndex), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
+	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
 
 	// resolve to non-AA target if MSAA enabled
 	_cmdList->ResourceBarrier(2, resolveColor);
-	_cmdList->ResolveSubresource(_camera->GetRtvSrc(frameIndex), 0, _camera->GetMsaaRtvSrc(frameIndex), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	_cmdList->ResolveSubresource(_camera->GetRtvSrc(), 0, _camera->GetMsaaRtvSrc(), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	_cmdList->ResourceBarrier(2, finishResolve);
 }
 

@@ -38,7 +38,7 @@ bool Camera::Initialize(CameraData _cameraData)
 
 		// get target desc here
 		D3D12_RESOURCE_DESC srcDesc = renderTarget[i]->GetDesc();
-		renderTarrgetDesc[i] = GetColorFormatFromTypeless(srcDesc.Format);
+		renderTargetDesc[i] = GetColorFormatFromTypeless(srcDesc.Format);
 
 		// create msaa target if necessary
 		if (cameraData.allowMSAA > 1)
@@ -58,7 +58,7 @@ bool Camera::Initialize(CameraData _cameraData)
 			{
 				optClearColor.Color[j] = cameraData.clearColor[j];
 			}
-			optClearColor.Format = renderTarrgetDesc[i];
+			optClearColor.Format = renderTargetDesc[i];
 
 			LogIfFailed(GraphicManager::Instance().GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT)
 				, D3D12_HEAP_FLAG_NONE
@@ -74,7 +74,7 @@ bool Camera::Initialize(CameraData _cameraData)
 			else
 			{
 				LogMessage(L"[SqGraphic Error] SqCamera: MSAA Target creation failed.");
-				LogMessage((L"Format: " + to_wstring(renderTarrgetDesc[i])).c_str());
+				LogMessage((L"Format: " + to_wstring(renderTargetDesc[i])).c_str());
 				return false;
 			}
 		}
@@ -123,10 +123,10 @@ bool Camera::Initialize(CameraData _cameraData)
 		cameraRT[i] = make_shared<Texture>(1, 1, 1);
 		cameraRTMsaa[i] = make_shared<Texture>(1, 1, 1);
 
-		cameraRT[i]->InitRTV(renderTarget[i], renderTarrgetDesc[i], false);
+		cameraRT[i]->InitRTV(renderTarget[i], renderTargetDesc[i], false);
 		if (cameraData.allowMSAA > 1)
 		{
-			cameraRTMsaa[i]->InitRTV(msaaTarget[i].Get(), renderTarrgetDesc[i], true);
+			cameraRTMsaa[i]->InitRTV(msaaTarget[i].Get(), renderTargetDesc[i], true);
 		}
 	}
 
@@ -185,9 +185,9 @@ CameraData *Camera::GetCameraData()
 	return &cameraData;
 }
 
-ID3D12Resource * Camera::GetRtvSrc(int _index)
+ID3D12Resource * Camera::GetRtvSrc()
 {
-	return cameraRT[_index]->GetRtvSrc(0);
+	return cameraRT[0]->GetRtvSrc(0);
 }
 
 ID3D12Resource* Camera::GetDebugDepth()
@@ -195,9 +195,9 @@ ID3D12Resource* Camera::GetDebugDepth()
 	return debugDepth;
 }
 
-ID3D12Resource * Camera::GetMsaaRtvSrc(int _index)
+ID3D12Resource * Camera::GetMsaaRtvSrc()
 {
-	return msaaTarget[_index].Get();
+	return msaaTarget[0].Get();
 }
 
 ID3D12Resource * Camera::GetMsaaDsvSrc()
@@ -205,14 +205,14 @@ ID3D12Resource * Camera::GetMsaaDsvSrc()
 	return msaaDepthTarget.Get();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetRtv(int _index)
+D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetRtv()
 {
-	return cameraRT[_index]->GetRtvCPU(0);
+	return cameraRT[0]->GetRtvCPU(0);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaRtv(int _index)
+D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaRtv()
 {
-	return cameraRTMsaa[_index]->GetRtvCPU(0);
+	return cameraRTMsaa[0]->GetRtvCPU(0);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetDsv()
@@ -357,7 +357,7 @@ RenderTargetData Camera::GetRenderTargetData()
 {
 	RenderTargetData rtd;
 	rtd.numRT = numOfRenderTarget;
-	rtd.colorDesc = renderTarrgetDesc;
+	rtd.colorDesc = renderTargetDesc;
 	rtd.depthDesc = depthTargetDesc;
 	rtd.msaaCount = cameraData.allowMSAA;
 	rtd.msaaQuality = msaaQuality;

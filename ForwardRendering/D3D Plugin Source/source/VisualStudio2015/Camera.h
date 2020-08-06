@@ -53,13 +53,13 @@ public:
 	void Release();
 
 	CameraData *GetCameraData();
-	ID3D12Resource *GetRtvSrc(int _index);
+	ID3D12Resource *GetRtvSrc();
 	ID3D12Resource* GetCameraDepth();
 	ID3D12Resource* GetDebugDepth();
-	ID3D12Resource *GetMsaaRtvSrc(int _index);
+	ID3D12Resource *GetMsaaRtvSrc();
 	ID3D12Resource *GetMsaaDsvSrc();
-	D3D12_CPU_DESCRIPTOR_HANDLE GetRtv(int _index);
-	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaRtv(int _index);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetRtv();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaRtv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaDsv();
 	ID3D12DescriptorHeap* GetDepthSrv();
@@ -100,7 +100,7 @@ private:
 	ID3D12Resource* debugDepth;
 
 	// rt desc cache
-	DXGI_FORMAT renderTarrgetDesc[MAX_RENDER_TARGETS];
+	DXGI_FORMAT renderTargetDesc[MAX_RENDER_TARGETS];
 	DXGI_FORMAT depthTargetDesc;
 	RenderTargetData rtData;
 
