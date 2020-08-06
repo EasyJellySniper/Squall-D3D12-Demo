@@ -22,13 +22,10 @@ public class SqCamera : MonoBehaviour
     static extern void SetViewPortScissorRect(int _instanceID, ViewPort _viewPort, RawRect _rawRect);
 
     [DllImport("SquallGraphics")]
-    static extern void SetDebugDepth(int _instance, IntPtr _debugDepth);
+    static extern void SetTransparentDepth(int _instance, IntPtr _debugDepth);
 
     [DllImport("SquallGraphics")]
     static extern void SetRenderMode(int _instance, int _renderMode);
-
-    [DllImport("SquallGraphics")]
-    static extern void GetDebugDepth(int _instance, IntPtr _debugDepth);
 
     [DllImport("SquallGraphics")]
     static extern int GetNativeFrameIndex();
@@ -148,7 +145,7 @@ public class SqCamera : MonoBehaviour
 
         CreateRenderTarget();
         CreateCameraData();
-        GetDebugDepth(attachedCam.GetInstanceID(), debugDepth.GetNativeDepthBufferPtr());
+        SetTransparentDepth(attachedCam.GetInstanceID(), debugDepth.GetNativeDepthBufferPtr());
         lastMsaaSample = msaaSample;
     }
 

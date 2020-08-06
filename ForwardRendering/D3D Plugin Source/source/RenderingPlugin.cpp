@@ -127,12 +127,12 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRenderMode(int _in
 	}
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetDebugDepth(int _id, void* _debugDepth)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetTransparentDepth(int _id, void* _debugDepth)
 {
 	Camera* c = CameraManager::Instance().GetCamera(_id);
 	if (c != nullptr)
 	{
-		c->CopyDepth(_debugDepth);
+		c->SetTransparentDepth(_debugDepth);
 	}
 }
 

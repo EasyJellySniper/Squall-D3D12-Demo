@@ -28,7 +28,7 @@ EXPORTS
    AddNativeTexture
    AddNativeSampler
    SetRenderMode
-   GetDebugDepth
+   SetTransparentDepth
    AddNativeLight
    UpdateNativeLight
    UpdateNativeShadow

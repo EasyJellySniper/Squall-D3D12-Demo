@@ -57,19 +57,20 @@ public:
 	ID3D12Resource* GetResultSrc();
 	ID3D12Resource *GetRtvSrc();
 	ID3D12Resource* GetCameraDepth();
-	ID3D12Resource* GetDebugDepth();
+	ID3D12Resource* GetTransparentDepth();
 	ID3D12Resource *GetMsaaRtvSrc();
 	ID3D12Resource *GetMsaaDsvSrc();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaRtv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsv();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetTransDsv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaDsv();
 	ID3D12DescriptorHeap* GetDepthSrv();
 	ID3D12DescriptorHeap* GetMsaaSrv();
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void SetRenderMode(int _mode);
-	void CopyDepth(void *_dest);
+	void SetTransparentDepth(void *_src);
 
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
@@ -103,7 +104,7 @@ private:
 
 	ID3D12Resource* renderTarget[MAX_RENDER_TARGETS];
 	ID3D12Resource* depthTarget;
-	ID3D12Resource* debugDepth;
+	ID3D12Resource* transparentDepthSrc;
 
 	// rt desc cache
 	DXGI_FORMAT renderTargetDesc[MAX_RENDER_TARGETS];
@@ -113,6 +114,7 @@ private:
 	// render texture
 	shared_ptr<Texture> cameraRT[MAX_RENDER_TARGETS];
 	shared_ptr<Texture> cameraRTMsaa[MAX_RENDER_TARGETS];
+	shared_ptr<Texture> transparentDepth;
 
 	D3D12_CLEAR_VALUE optClearColor;
 	D3D12_CLEAR_VALUE optClearDepth;

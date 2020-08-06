@@ -429,7 +429,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 
 	rayTracingTex = make_unique<Texture>(0, 0, 2);
 	rayTracingTex->InitUAV(rayTracingShadow->Resource(), shadowFormat);
-	rayTracingTex->InitSRV(c->GetCameraDepth(), GetColorFormatFromTypeless(c->GetCameraDepth()->GetDesc().Format), false);
+	rayTracingTex->InitSRV(c->GetTransparentDepth(), GetColorFormatFromTypeless(c->GetTransparentDepth()->GetDesc().Format), false);
 }
 
 void LightManager::CreateRayTracingShadow()

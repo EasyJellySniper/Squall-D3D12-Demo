@@ -164,6 +164,7 @@ void Camera::Release()
 	colorTarget.clear();
 	msaaDepthTarget.reset();
 	msaaTarget.clear();
+	transparentDepth.reset();
 
 	for (int i = 0; i < numOfRenderTarget; i++)
 	{
@@ -200,9 +201,9 @@ ID3D12Resource * Camera::GetRtvSrc()
 	return cameraRT[0]->GetRtvSrc(0);
 }
 
-ID3D12Resource* Camera::GetDebugDepth()
+ID3D12Resource* Camera::GetTransparentDepth()
 {
-	return debugDepth;
+	return transparentDepthSrc;
 }
 
 ID3D12Resource * Camera::GetMsaaRtvSrc()
@@ -228,6 +229,11 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaRtv()
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetDsv()
 {
 	return cameraRT[0]->GetDsvCPU(0);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetTransDsv()
+{
+	return transparentDepth->GetDsvCPU(0);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
@@ -283,9 +289,14 @@ void Camera::SetRenderMode(int _mode)
 	renderMode = (RenderMode)_mode;
 }
 
-void Camera::CopyDepth(void* _dest)
+void Camera::SetTransparentDepth(void* _src)
 {
-	debugDepth = (ID3D12Resource*)_dest;
+	transparentDepthSrc = (ID3D12Resource*)_src;
+
+	// create transparent depth
+	transparentDepth = make_shared<Texture>(0, 1, 1);
+	transparentDepth->InitDSV(transparentDepthSrc, depthTargetDesc, false);
+	transparentDepth->InitSRV(transparentDepthSrc, GetColorFormatFromTypeless(transparentDepthSrc->GetDesc().Format), false);
 }
 
 D3D12_VIEWPORT Camera::GetViewPort()
