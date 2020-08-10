@@ -45,7 +45,28 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 	topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
 	topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 	topLevelInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-	topLevelInputs.NumDescs = (UINT)renderers.size();
+
+	// prepare ray tracing instance desc
+	vector<D3D12_RAYTRACING_INSTANCE_DESC> instanceDescs;
+
+	for (auto& r : renderers)
+	{
+		// build all submesh use by the renderer
+		for (int i = 0; i < r->GetNumMaterials(); i++)
+		{
+			D3D12_RAYTRACING_INSTANCE_DESC rtInstancedesc;
+
+			rtInstancedesc = {};
+			rtInstancedesc.InstanceMask = 1;
+			rtInstancedesc.AccelerationStructure = r->GetMesh()->GetBottomAS(i)->GetGPUVirtualAddress();
+			rtInstancedesc.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE;	// unity use CCW
+			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(rtInstancedesc.Transform), XMLoadFloat4x4(&r->GetWorld()));
+
+			instanceDescs.push_back(rtInstancedesc);
+		}
+	}
+
+	topLevelInputs.NumDescs = (UINT)instanceDescs.size();
 
 	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
 	GraphicManager::Instance().GetDxrDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
@@ -60,25 +81,9 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 	scratchTop = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), topLevelPrebuildInfo.ScratchDataSizeInBytes, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	topLevelAS = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), topLevelPrebuildInfo.ResultDataMaxSizeInBytes, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
-	// prepare ray tracing instance desc
-	vector<D3D12_RAYTRACING_INSTANCE_DESC> instanceDescs;
-	instanceDescs.resize(renderers.size());
-
-	int i = 0;
-	for (auto& r : renderers)
-	{
-		instanceDescs[i] = {};
-		instanceDescs[i].InstanceMask = 1;
-		instanceDescs[i].AccelerationStructure = r->GetMesh()->GetBottomAS()->GetGPUVirtualAddress();
-		instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE;	// unity use CCW
-		XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDescs[i].Transform), XMLoadFloat4x4(&r->GetWorld()));
-
-		i++;
-	}
-
 	// create upload buffer
 	UINT bufferSize = static_cast<UINT>(instanceDescs.size() * sizeof(instanceDescs[0]));
-	rayTracingInstance = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), (UINT)renderers.size(), false, bufferSize);
+	rayTracingInstance = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), (UINT)instanceDescs.size(), false, bufferSize);
 	rayTracingInstance->CopyData(0, instanceDescs.data());
 
 	// fill descs

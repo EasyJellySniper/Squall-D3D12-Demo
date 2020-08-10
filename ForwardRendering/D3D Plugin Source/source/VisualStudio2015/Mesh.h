@@ -39,7 +39,7 @@ public:
 	D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
 	SubMesh GetSubMesh(int _index);
 	void CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5 *_dxrList);
-	ID3D12Resource* GetBottomAS();
+	ID3D12Resource* GetBottomAS(int _submesh);
 
 private:
 	MeshData meshData;
@@ -52,6 +52,6 @@ private:
 	vector<D3D12_VERTEX_BUFFER_VIEW> vbv;
 	D3D12_INDEX_BUFFER_VIEW ibv;
 
-	unique_ptr<DefaultBuffer> scratchBottom;
-	unique_ptr<DefaultBuffer> bottomLevelAS;
+	vector<unique_ptr<DefaultBuffer>> scratchBottom;
+	vector<unique_ptr<DefaultBuffer>> bottomLevelAS;
 };
