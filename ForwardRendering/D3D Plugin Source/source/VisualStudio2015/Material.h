@@ -44,6 +44,7 @@ public:
 	void CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader *_shader);
 	void AddMaterialConstant(UINT _byteSize, void* _data);
 	void Release();
+	void SetInstanceID(int _id);
 	void SetRenderQueue(int _queue);
 	void SetCullMode(int _mode);
 	void SetBlendMode(int _srcBlend, int _dstBlend);
@@ -51,6 +52,7 @@ public:
 	ID3D12PipelineState* GetPSO();
 	ID3D12StateObject* GetDxcPSO();
 	ID3D12RootSignature* GetRootSignature();
+	int GetInstanceID();
 	int GetRenderQueue();
 	CullMode GetCullMode();
 	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _index);
@@ -59,6 +61,7 @@ public:
 	bool IsRayTracingMat();
 
 private:
+	int instanceID;
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	CD3DX12_STATE_OBJECT_DESC dxcPsoDesc;
 

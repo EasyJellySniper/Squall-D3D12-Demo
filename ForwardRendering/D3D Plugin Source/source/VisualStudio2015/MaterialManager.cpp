@@ -114,57 +114,63 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 
 Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend, char* _nativeShader, int _numMacro, char** _macro)
 {
-	if (materialTable.find(_matInstanceId) != materialTable.end())
+	for (size_t i = 0; i < materialTable.size(); i++)
 	{
-		return materialTable[_matInstanceId].get();
+		if (materialTable[i]->GetInstanceID() == _matInstanceId)
+		{
+			return materialTable[i].get();
+		}
 	}
 
 	if (_nativeShader == nullptr)
 	{
-		materialTable[_matInstanceId] = make_unique<Material>();
+		materialTable.push_back(make_unique<Material>());
+		return materialTable[materialTable.size() - 1].get();
+	}
+
+	Shader* forwardShader = nullptr;
+
+	if (_numMacro == 0)
+	{
+		forwardShader = ShaderManager::Instance().CompileShader(AnsiToWString(_nativeShader));
 	}
 	else
 	{
-		Shader* forwardShader = nullptr;
+		// collect macro define
+		D3D_SHADER_MACRO* macro = new D3D_SHADER_MACRO[_numMacro + 1];
+		for (int i = 0; i < _numMacro; i++)
+		{
+			macro[i].Name = _macro[i];
+			macro[i].Definition = "1";
+		}
+		macro[_numMacro].Name = NULL;
+		macro[_numMacro].Definition = NULL;
 
-		if (_numMacro == 0)
-		{
-			forwardShader = ShaderManager::Instance().CompileShader(AnsiToWString(_nativeShader));
-		}
-		else
-		{
-			// collect macro define
-			D3D_SHADER_MACRO* macro = new D3D_SHADER_MACRO[_numMacro + 1];
-			for (int i = 0; i < _numMacro; i++)
-			{
-				macro[i].Name = _macro[i];
-				macro[i].Definition = "1";
-			}
-			macro[_numMacro].Name = NULL;
-			macro[_numMacro].Definition = NULL;
-
-			forwardShader = ShaderManager::Instance().CompileShader(AnsiToWString(_nativeShader), macro);
-			delete[] macro;
-		}
-
-		auto c = CameraManager::Instance().GetCamera();
-		if (forwardShader != nullptr)
-		{
-			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(forwardShader, c->GetRenderTargetData(), D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
-				, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER_EQUAL, false));
-		}
-		else
-		{
-			materialTable[_matInstanceId] = make_unique<Material>(CreateMaterialFromShader(c->GetFallbackShader(), c->GetRenderTargetData(), D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
-				, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER_EQUAL, false));
-		}
+		forwardShader = ShaderManager::Instance().CompileShader(AnsiToWString(_nativeShader), macro);
+		delete[] macro;
 	}
 
-	materialTable[_matInstanceId]->SetRenderQueue(_renderQueue);
-	materialTable[_matInstanceId]->SetCullMode(_cullMode);
-	materialTable[_matInstanceId]->SetBlendMode(_srcBlend, _dstBlend);
+	auto c = CameraManager::Instance().GetCamera();
+	auto tempMat = make_unique<Material>();
 
-	return materialTable[_matInstanceId].get();
+	if (forwardShader != nullptr)
+	{
+		tempMat = make_unique<Material>(CreateMaterialFromShader(forwardShader, c->GetRenderTargetData(), D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
+			, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER_EQUAL, false));
+	}
+	else
+	{
+		tempMat = make_unique<Material>(CreateMaterialFromShader(c->GetFallbackShader(), c->GetRenderTargetData(), D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
+			, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER_EQUAL, false));
+	}
+
+	tempMat->SetInstanceID(_matInstanceId);
+	tempMat->SetRenderQueue(_renderQueue);
+	tempMat->SetCullMode(_cullMode);
+	tempMat->SetBlendMode(_srcBlend, _dstBlend);
+	materialTable.push_back(move(tempMat));
+
+	return materialTable[materialTable.size() - 1].get();
 }
 
 void MaterialManager::ResetNativeMaterial(Camera* _camera)
@@ -172,17 +178,17 @@ void MaterialManager::ResetNativeMaterial(Camera* _camera)
 	for (auto& m : materialTable)
 	{
 		// skip reset rt material
-		if (m.second->IsRayTracingMat())
+		if (m->IsRayTracingMat())
 		{
 			continue;
 		}
 
-		auto desc = m.second->GetPsoDesc();
+		auto desc = m->GetPsoDesc();
 		auto rtd = _camera->GetRenderTargetData();
 		desc.SampleDesc.Count = rtd.msaaCount;
 		desc.SampleDesc.Quality = rtd.msaaQuality;
 
-		m.second->CreatePsoFromDesc(desc);
+		m->CreatePsoFromDesc(desc);
 	}
 }
 
@@ -190,7 +196,7 @@ void MaterialManager::Release()
 {
 	for (auto& m : materialTable)
 	{
-		m.second->Release();
+		m->Release();
 	}
 	materialTable.clear();
 }

@@ -44,6 +44,6 @@ private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC CollectPsoDepth(Shader* _shader, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
 		int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite);
 
-	unordered_map<int, unique_ptr<Material>> materialTable;
+	vector<unique_ptr<Material>> materialTable;
 	D3D12_BLEND blendTable[NUM_BLEND_MODE];
 };

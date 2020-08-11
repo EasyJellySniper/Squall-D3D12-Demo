@@ -71,6 +71,11 @@ void Material::Release()
 	hitGroupTable.reset();
 }
 
+void Material::SetInstanceID(int _id)
+{
+	instanceID = _id;
+}
+
 void Material::SetRenderQueue(int _queue)
 {
 	renderQueue = _queue;
@@ -100,6 +105,11 @@ ID3D12StateObject* Material::GetDxcPSO()
 ID3D12RootSignature* Material::GetRootSignature()
 {
 	return psoDesc.pRootSignature;
+}
+
+int Material::GetInstanceID()
+{
+	return instanceID;
 }
 
 int Material::GetRenderQueue()
