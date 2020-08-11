@@ -359,12 +359,12 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 
 	auto rayShadowSrc = LightManager::Instance().GetRayShadowSrc();
 	auto collectShadowSrc = LightManager::Instance().GetCollectShadowSrc();
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 	// set state
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
 	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
-	_cmdList->SetComputeRootDescriptorTable(1, targetCam->GetTransDepthSrv());
+	_cmdList->SetComputeRootDescriptorTable(1, targetCam->GetOpaqueDepthSrv());
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
@@ -382,7 +382,7 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };
 	CopyResourceWithBarrier(_cmdList, rayShadowSrc, collectShadowSrc, before, before);
 
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	ExecuteCmdList(_cmdList);
 }

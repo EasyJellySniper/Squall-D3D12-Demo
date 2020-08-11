@@ -60,6 +60,14 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 			rtInstancedesc.InstanceMask = 1;
 			rtInstancedesc.AccelerationStructure = r->GetMesh()->GetBottomAS(i)->GetGPUVirtualAddress();
 			rtInstancedesc.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE;	// unity use CCW
+
+			// non-opaque flags, force transparent object use any-hit shader
+			if (r->GetMaterial(i)->GetRenderQueue() > RenderQueue::OpaqueLast)
+			{
+				rtInstancedesc.Flags |= D3D12_RAYTRACING_INSTANCE_FLAG_FORCE_NON_OPAQUE;
+			}
+
+			// transform to world space
 			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(rtInstancedesc.Transform), XMLoadFloat4x4(&r->GetWorld()));
 
 			instanceDescs.push_back(rtInstancedesc);

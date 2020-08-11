@@ -134,6 +134,7 @@ bool Camera::Initialize(CameraData _cameraData)
 	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
 
 	cameraRT[0]->InitDSV(depthTarget, depthTargetDesc, false);
+	opaqueDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), depthTarget, true, false, false, false);
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa[0]->InitDSV(msaaDepthTarget->Resource(), depthTargetDesc, true);
@@ -245,6 +246,12 @@ D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetMsaaSrv()
 {
 	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), msaaDepthSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	return handle;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetOpaqueDepthSrv()
+{
+	CD3DX12_GPU_DESCRIPTOR_HANDLE tHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), opaqueDepthSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	return tHandle;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetTransDepthSrv()
