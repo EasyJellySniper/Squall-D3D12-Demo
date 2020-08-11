@@ -46,7 +46,6 @@ public:
 	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 	void UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex, int _numThreads);
 	void SetWorldMatrix(int _id, XMFLOAT4X4 _world);
-	void AddNativeMaterialProp(int _id, int _matId, UINT _byteSize, void* _data);
 	void Release();
 	void SetNativeRendererActive(int _id, bool _active);
 	void SortWork(Camera* _camera);

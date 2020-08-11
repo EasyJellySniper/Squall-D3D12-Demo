@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -24,7 +23,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern void SetWorldMatrix(int _instanceID, Matrix4x4 _world);
 
     [DllImport("SquallGraphics")]
-    static extern void AddNativeMaterialProp(int _instanceID, int _matIndex, uint _byteSize, MaterialConstant _mc);
+    static extern void AddNativeMaterialProp(int _instanceID, uint _byteSize, MaterialConstant _mc);
 
     [DllImport("SquallGraphics")]
     static extern void SetNativeRendererActive(int _id, bool _active);
@@ -142,7 +141,7 @@ public class SqMeshRenderer : MonoBehaviour
         for (int i = 0; i < mats.Length; i++)
         {
             MaterialConstant mc = SqMaterial.Instance.GetMaterialConstant(mats[i]);
-            AddNativeMaterialProp(rendererNativeID, i, (uint)SqMaterial.Instance.matConstantSize, mc);
+            AddNativeMaterialProp(mats[i].GetInstanceID(), (uint)SqMaterial.Instance.matConstantSize, mc);
         }
     }
 }

@@ -104,9 +104,9 @@ extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRendererBound(
 	RendererManager::Instance().UpdateRendererBound(_instanceID, _x, _y, _z, _ex, _ey, _ez);
 }
 
-extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterialProp(int _instanceID, int _matId, UINT _byteSize, void *_data)
+extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterialProp(int _instanceID, UINT _byteSize, void *_data)
 {
-	RendererManager::Instance().AddNativeMaterialProp(_instanceID, _matId, _byteSize, _data);
+	MaterialManager::Instance().AddMaterialProp(_instanceID, _byteSize, _data);
 }
 
 extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeTexture(int _instanceID, void *_data)

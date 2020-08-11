@@ -80,16 +80,6 @@ void Renderer::AddMaterial(Material* _material)
 	materials.push_back(_material);
 }
 
-void Renderer::AddMaterialProp(int _matId, UINT _byteSize, void* _data)
-{
-	if (_matId < 0 || _matId >= (int)materials.size())
-	{
-		return;
-	}
-
-	materials[_matId]->AddMaterialConstant(_byteSize, _data);
-}
-
 XMFLOAT4X4 Renderer::GetWorld()
 {
 	return world;

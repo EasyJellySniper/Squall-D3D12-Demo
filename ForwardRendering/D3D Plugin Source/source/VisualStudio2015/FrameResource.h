@@ -37,6 +37,7 @@ struct SystemConstant
 	int numSpotLight;
 	int collectShadowIndex;
 	int pcfIndex;
+	int msaaCount;
 };
 
 struct LightConstant

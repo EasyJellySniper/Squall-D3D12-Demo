@@ -129,15 +129,6 @@ void RendererManager::SetWorldMatrix(int _id, XMFLOAT4X4 _world)
 	renderers[_id]->SetWorld(_world);
 }
 
-void RendererManager::AddNativeMaterialProp(int _id, int _matId, UINT _byteSize, void* _data)
-{
-	if (_id < 0 || _id >= (int)renderers.size())
-	{
-		return;
-	}
-	renderers[_id]->AddMaterialProp(_matId, _byteSize, _data);
-}
-
 void RendererManager::Release()
 {
 	for (auto&r : renderers)

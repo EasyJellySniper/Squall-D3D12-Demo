@@ -1,5 +1,6 @@
 #include "Material.h"
 #include "GraphicManager.h"
+#include "MaterialManager.h"
 
 bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 {
@@ -48,24 +49,10 @@ void Material::CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader* _shader)
 	}
 }
 
-void Material::AddMaterialConstant(UINT _byteSize, void* _data)
-{
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
-	{
-		materialConstant[i] = make_shared<UploadBufferAny>(GraphicManager::Instance().GetDevice(), 1, true, _byteSize);
-		materialConstant[i]->CopyData(0, _data);
-	}
-}
-
 void Material::Release()
 {
 	pso.Reset();
 	dxcPso.Reset();
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
-	{
-		materialConstant[i].reset();
-	}
-
 	rayGenShaderTable.reset();
 	missShaderTable.reset();
 	hitGroupTable.reset();
@@ -107,6 +94,11 @@ ID3D12RootSignature* Material::GetRootSignature()
 	return psoDesc.pRootSignature;
 }
 
+D3D12_GPU_VIRTUAL_ADDRESS Material::GetMaterialConstantGPU(int _frameIdx)
+{
+	return MaterialManager::Instance().GetMaterialConstantGPU(instanceID, _frameIdx);
+}
+
 int Material::GetInstanceID()
 {
 	return instanceID;
@@ -120,11 +112,6 @@ int Material::GetRenderQueue()
 CullMode Material::GetCullMode()
 {
 	return cullMode;
-}
-
-D3D12_GPU_VIRTUAL_ADDRESS Material::GetMaterialConstantGPU(int _index)
-{
-	return materialConstant[_index]->Resource()->GetGPUVirtualAddress();
 }
 
 D3D12_GRAPHICS_PIPELINE_STATE_DESC Material::GetPsoDesc()

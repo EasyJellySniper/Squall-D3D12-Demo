@@ -933,7 +933,7 @@ void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdLis
 
 	_cmdList->SetPipelineState(_camera->GetPostMaterial()->GetPSO());
 	_cmdList->SetGraphicsRootSignature(_camera->GetPostMaterial()->GetRootSignature());
-	_cmdList->SetGraphicsRootConstantBufferView(0, _camera->GetPostMaterial()->GetMaterialConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv());
 
 	_cmdList->DrawInstanced(6, 1, 0, 0);

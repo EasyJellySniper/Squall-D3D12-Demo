@@ -407,6 +407,7 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 
 	_sc.farZ = farZ;
 	_sc.nearZ = nearZ;
+	_sc.msaaCount = cameraData.allowMSAA;
 }
 
 bool Camera::CreatePipelineMaterial()
@@ -450,16 +451,6 @@ bool Camera::CreatePipelineMaterial()
 	if (resolveDepth != nullptr)
 	{
 		resolveDepthMaterial = MaterialManager::Instance().CreateMaterialPost(resolveDepth, true, 0, nullptr, depthTargetDesc);
-
-		struct RDConstants
-		{
-			UINT _msaaCount;
-			XMFLOAT3 _padding;
-		};
-		static RDConstants rConstants;
-		rConstants._msaaCount = rtd.msaaCount;
-
-		resolveDepthMaterial.AddMaterialConstant(sizeof(RDConstants), &rConstants);
 	}
 
 	return true;

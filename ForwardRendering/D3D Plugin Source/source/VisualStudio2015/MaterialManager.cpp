@@ -18,6 +18,12 @@ void MaterialManager::Init()
 	blendTable[8] = D3D12_BLEND_INV_DEST_ALPHA;
 	blendTable[9] = D3D12_BLEND_SRC_ALPHA_SAT;
 	blendTable[10] = D3D12_BLEND_INV_SRC_ALPHA;
+
+	// create large enough buffer for material constant
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		materialConstant[i] = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), MAX_MATERIAL_COUNT, true, MATERIAL_STRIDE);
+	}
 }
 
 Material MaterialManager::CreateMaterialFromShader(Shader* _shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode
@@ -114,18 +120,18 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 
 Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend, char* _nativeShader, int _numMacro, char** _macro)
 {
-	for (size_t i = 0; i < materialTable.size(); i++)
+	for (size_t i = 0; i < materialList.size(); i++)
 	{
-		if (materialTable[i]->GetInstanceID() == _matInstanceId)
+		if (materialList[i]->GetInstanceID() == _matInstanceId)
 		{
-			return materialTable[i].get();
+			return materialList[i].get();
 		}
 	}
 
 	if (_nativeShader == nullptr)
 	{
-		materialTable.push_back(make_unique<Material>());
-		return materialTable[materialTable.size() - 1].get();
+		materialList.push_back(make_unique<Material>());
+		return materialList[materialList.size() - 1].get();
 	}
 
 	Shader* forwardShader = nullptr;
@@ -168,14 +174,24 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 	tempMat->SetRenderQueue(_renderQueue);
 	tempMat->SetCullMode(_cullMode);
 	tempMat->SetBlendMode(_srcBlend, _dstBlend);
-	materialTable.push_back(move(tempMat));
+	materialList.push_back(move(tempMat));
+	matIndexTable[_matInstanceId] = (int)materialList.size() - 1;
 
-	return materialTable[materialTable.size() - 1].get();
+	return materialList[materialList.size() - 1].get();
+}
+
+void MaterialManager::AddMaterialProp(int _matId, UINT _byteSize, void* _data)
+{
+	int idx = matIndexTable[_matId];
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		materialConstant[i]->CopyData(idx, _data);
+	}
 }
 
 void MaterialManager::ResetNativeMaterial(Camera* _camera)
 {
-	for (auto& m : materialTable)
+	for (auto& m : materialList)
 	{
 		// skip reset rt material
 		if (m->IsRayTracingMat())
@@ -194,11 +210,29 @@ void MaterialManager::ResetNativeMaterial(Camera* _camera)
 
 void MaterialManager::Release()
 {
-	for (auto& m : materialTable)
+	for (auto& m : materialList)
 	{
 		m->Release();
 	}
-	materialTable.clear();
+	materialList.clear();
+
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		materialConstant[i].reset();
+	}
+
+	matIndexTable.clear();
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS MaterialManager::GetMaterialConstantGPU(int _id, int _frameIdx)
+{
+	int idx = matIndexTable[_id];
+	if (idx >= MAX_MATERIAL_COUNT)
+	{
+		LogMessage(L"[SqGraphic Error] : Reach max material limit, " + to_wstring(idx) + L"is ignored.");
+	}
+
+	return materialConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + idx * MATERIAL_STRIDE;
 }
 
 D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
