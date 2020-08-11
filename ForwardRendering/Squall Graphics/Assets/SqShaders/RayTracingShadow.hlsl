@@ -12,7 +12,8 @@
 GlobalRootSignature RTShadowRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
-    "DescriptorTable( SRV( t0 , numDescriptors = 1) ),"     // depth map
+    "DescriptorTable( SRV( t0 , numDescriptors = 1) ),"     // opaque depth map
+    "DescriptorTable( SRV( t1 , numDescriptors = 1) ),"     // transparent depth map
     "CBV( b1 ),"                        // system constant
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 )"              // sqlight
@@ -43,19 +44,11 @@ struct RayPayload
 
 RaytracingAccelerationStructure _SceneAS : register(t0, space2);
 RWTexture2D<float4> _OutputShadow : register(u0);
-Texture2D _DepthMap : register(t0);
+Texture2D _OpaqueDepthMap : register(t0);
+Texture2D _TransDepthMap : register(t1);
 
-[shader("raygeneration")]
-void RTShadowRayGen()
+void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
 {
-    // center in the middle of the pixel, it's half-offset rule of D3D
-    float2 xy = DispatchRaysIndex().xy + 0.5f; 
-
-    // to ndc space
-    float2 screenUV = (xy / DispatchRaysDimensions().xy);
-    screenUV.y = 1 - screenUV.y;
-    screenUV = screenUV * 2.0f - 1.0f;
-
     // depth
     float depth = _DepthMap.Load(uint3(DispatchRaysIndex().xy, 0)).r;
 
@@ -63,12 +56,11 @@ void RTShadowRayGen()
     if (depth == 0.0f)
     {
         // early out
-        _OutputShadow[DispatchRaysIndex().xy] = 1;
         return;
     }
 
     // to world pos
-    float3 wpos = DepthToWorldPos(depth, float4(screenUV, 0, 1));
+    float3 wpos = DepthToWorldPos(depth, float4(_ScreenUV, 0, 1));
 
     // setup ray, trace for main dir light
     SqLight mainLight = _SqDirLight[0];
@@ -84,7 +76,26 @@ void RTShadowRayGen()
     TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, ray, payload);
 
     // output shadow
-    _OutputShadow[DispatchRaysIndex().xy] = payload.atten;
+    float currAtten = _OutputShadow[DispatchRaysIndex().xy];
+    _OutputShadow[DispatchRaysIndex().xy] = min(payload.atten, currAtten);
+}
+
+[shader("raygeneration")]
+void RTShadowRayGen()
+{
+    // reset value
+    _OutputShadow[DispatchRaysIndex().xy] = 1;
+
+    // center in the middle of the pixel, it's half-offset rule of D3D
+    float2 xy = DispatchRaysIndex().xy + 0.5f; 
+
+    // to ndc space
+    float2 screenUV = (xy / DispatchRaysDimensions().xy);
+    screenUV.y = 1 - screenUV.y;
+    screenUV = screenUV * 2.0f - 1.0f;
+
+    ShootRayFromDepth(_OpaqueDepthMap, screenUV);
+    ShootRayFromDepth(_TransDepthMap, screenUV);
 }
 
 [shader("closesthit")]

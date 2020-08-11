@@ -365,9 +365,10 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
 	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
 	_cmdList->SetComputeRootDescriptorTable(1, targetCam->GetOpaqueDepthSrv());
-	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(4, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
+	_cmdList->SetComputeRootDescriptorTable(2, targetCam->GetTransDepthSrv());
+	_cmdList->SetComputeRootConstantBufferView(3, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootShaderResourceView(4, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(5, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
 
 	// prepare dispatch
 	Camera* c = CameraManager::Instance().GetCamera();
