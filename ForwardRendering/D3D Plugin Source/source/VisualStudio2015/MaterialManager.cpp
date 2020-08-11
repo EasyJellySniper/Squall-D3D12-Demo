@@ -98,6 +98,11 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 	lib->DefineExport(rtse.rtShaderConfig.c_str());
 	lib->DefineExport(rtse.rtPipelineConfig.c_str());
 
+	if (!rtse.entryAny.empty())
+	{
+		lib->DefineExport(rtse.entryAny.c_str());
+	}
+
 	HRESULT hr = S_OK;
 	ComPtr<ID3D12StateObject> dxcPso;
 	LogIfFailed(GraphicManager::Instance().GetDxrDevice()->CreateStateObject(rayPsoDesc, IID_PPV_ARGS(&dxcPso)), hr);

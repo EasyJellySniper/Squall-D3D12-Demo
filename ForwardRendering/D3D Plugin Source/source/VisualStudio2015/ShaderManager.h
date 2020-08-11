@@ -58,6 +58,7 @@ private:
 	wstring rtRootSig;
 	wstring entryRayGen;
 	wstring entryClosest;
+	wstring entryAny;
 	wstring entryMiss;
 	wstring entryHitGroup;
 	wstring rtShaderConfig;

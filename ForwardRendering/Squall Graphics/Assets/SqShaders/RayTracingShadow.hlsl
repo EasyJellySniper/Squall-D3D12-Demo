@@ -3,6 +3,7 @@
 #pragma sq_rayrootsig RTShadowRootSig
 #pragma sq_raygen RTShadowRayGen
 #pragma sq_closesthit RTShadowClosestHit
+#pragma sq_anyhit RTShadowAnyHit
 #pragma sq_miss RTShadowMiss
 #pragma sq_hitgroup RTShadowGroup
 #pragma sq_rtshaderconfig RTShadowConfig
@@ -19,7 +20,7 @@ GlobalRootSignature RTShadowRootSig =
 
 TriangleHitGroup RTShadowGroup =
 {
-    "",                     // AnyHit
+    "RTShadowAnyHit",      // AnyHit
     "RTShadowClosestHit"   // ClosestHit
 };
 
@@ -89,8 +90,18 @@ void RTShadowRayGen()
 [shader("closesthit")]
 void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // yes yes yes we hit, set shadow atten
+    // hit, set shadow atten
     payload.atten = 0.0f;
+}
+
+[shader("anyhit")]
+void RTShadowAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+{
+    // hit transparent
+    payload.atten = 0.0f;
+
+    // finish any hit
+    AcceptHitAndEndSearch();
 }
 
 [shader("miss")]

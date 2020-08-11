@@ -31,6 +31,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	entryRS = "";
 	entryRayGen = L"";
 	entryClosest = L"";
+	entryAny = L"";
 	entryMiss = L"";
 	entryHitGroup = L"";
 	rtShaderConfig = L"";
@@ -56,6 +57,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 		rtse.entryRayGen = entryRayGen;
 		rtse.entryHitGroup = entryHitGroup;
 		rtse.entryClosest = entryClosest;
+		rtse.entryAny = entryAny;
 		rtse.entryMiss = entryMiss;
 		rtse.rtShaderConfig = rtShaderConfig;
 		rtse.rtPipelineConfig = rtPipelineConfig;
@@ -308,6 +310,12 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				wstring cs;
 				is >> cs;
 				entryClosest = cs;
+			}
+			else if (ss == L"sq_anyhit")
+			{
+				wstring ah;
+				is >> ah;
+				entryAny = ah;
 			}
 			else if (ss == L"sq_miss")
 			{

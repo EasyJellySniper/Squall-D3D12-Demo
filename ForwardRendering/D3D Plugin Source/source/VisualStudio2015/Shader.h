@@ -24,6 +24,7 @@ public:
 	wstring rtRootSignature;
 	wstring entryRayGen;
 	wstring entryClosest;
+	wstring entryAny;
 	wstring entryMiss;
 	wstring entryHitGroup;
 	wstring rtShaderConfig;
