@@ -97,9 +97,6 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
 [shader("anyhit")]
 void RTShadowAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // hit transparent
-    payload.atten = 0.0f;
-
     // finish any hit
     AcceptHitAndEndSearch();
 }
@@ -108,5 +105,5 @@ void RTShadowAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttr
 void RTShadowMiss(inout RayPayload payload)
 {
     // hit nothing at all, no shadow atten
-    payload.atten = 1.0f;
+    // doesn't need to do anything
 }
