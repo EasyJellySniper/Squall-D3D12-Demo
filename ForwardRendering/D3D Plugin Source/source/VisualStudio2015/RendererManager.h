@@ -42,7 +42,7 @@ public:
 
 	void Init();
 	int AddRenderer(int _instanceID, int _meshInstanceID);
-	void AddMaterial(int _instanceID, int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend, char* _nativeShader, int _numMacro, char** _macro);
+	void AddCreatedMaterial(int _instanceID, Material *_mat);
 	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 	void UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex, int _numThreads);
 	void SetWorldMatrix(int _id, XMFLOAT4X4 _world);

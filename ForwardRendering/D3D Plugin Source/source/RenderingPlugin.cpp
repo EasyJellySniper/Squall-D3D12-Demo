@@ -95,7 +95,8 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetNativeRendererActi
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode, int _srcBlend, int _dstBlend
 	, char* _nativeShader, int _numMacro, char** _macro)
 {
-	RendererManager::Instance().AddMaterial(_nRendererId, _matInstanceId, _queue, _cullMode, _srcBlend, _dstBlend, _nativeShader, _numMacro, _macro);
+	Material* mat = MaterialManager::Instance().AddMaterial(_matInstanceId, _queue, _cullMode, _srcBlend, _dstBlend, _nativeShader, _numMacro, _macro);
+	RendererManager::Instance().AddCreatedMaterial(_nRendererId, mat);
 }
 
 extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez)
