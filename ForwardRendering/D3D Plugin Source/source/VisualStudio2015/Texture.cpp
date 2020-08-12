@@ -74,12 +74,14 @@ ID3D12Resource* Texture::GetResource()
 	return texResource;
 }
 
-void Texture::SetFormat(DXGI_FORMAT _format, bool _isCube, bool _isUav, bool _isMsaa)
+void Texture::SetFormat(DXGI_FORMAT _format)
 {
 	texFormat = _format;
-	isCube = _isCube;
-	isUav = _isUav;
-	isMsaa = _isMsaa;
+}
+
+void Texture::SetInfo(TextureInfo _info)
+{
+	texInfo = _info;
 }
 
 DXGI_FORMAT Texture::GetFormat()
@@ -87,19 +89,9 @@ DXGI_FORMAT Texture::GetFormat()
 	return texFormat;
 }
 
-bool Texture::IsCube()
+TextureInfo Texture::GetInfo()
 {
-	return isCube;
-}
-
-bool Texture::IsUav()
-{
-	return isUav;
-}
-
-bool Texture::IsMsaa()
-{
-	return isMsaa;
+	return texInfo;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetRtvCPU(int _index)

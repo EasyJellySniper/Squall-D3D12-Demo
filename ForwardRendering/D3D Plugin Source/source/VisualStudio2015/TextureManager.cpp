@@ -31,7 +31,7 @@ void TextureManager::Release()
 	samplers.clear();
 }
 
-int TextureManager::AddNativeTexture(size_t _texId, void* _texData, bool _typeless, bool _isCube, bool _isUav, bool _isMsaa)
+int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo _info)
 {
 	// check duplicate add
 	for (size_t i = 0; i < textures.size(); i++)
@@ -47,11 +47,12 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, bool _typele
 	t.SetResource((ID3D12Resource*)_texData);
 
 	D3D12_RESOURCE_DESC desc = t.GetResource()->GetDesc();
-	if (_typeless)
+	if (_info.typeless)
 	{
 		desc.Format = GetColorFormatFromTypeless(desc.Format);
 	}
-	t.SetFormat(desc.Format, _isCube, _isUav, _isMsaa);
+	t.SetFormat(desc.Format);
+	t.SetInfo(_info);
 
 	textures.push_back(t);
 
@@ -140,8 +141,10 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 	D3D12_CPU_DESCRIPTOR_HANDLE hTexture = texDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	hTexture.ptr += _index * cbvSrvUavDescriptorSize;
 
+	auto texInfo = _texture.GetInfo();
+
 	// create shader resource view for texture
-	if (!_texture.IsUav())
+	if (!texInfo.isUav)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -150,12 +153,12 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 		srvDesc.Texture2D.MipLevels = -1;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
-		if (_texture.IsMsaa())
+		if (texInfo.isMsaa)
 		{
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
 		}
 		
-		if (_texture.IsCube())
+		if (texInfo.isCube)
 		{
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
 			srvDesc.TextureCube.MipLevels = -1;

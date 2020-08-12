@@ -134,11 +134,11 @@ bool Camera::Initialize(CameraData _cameraData)
 	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
 
 	cameraRT[0]->InitDSV(depthTarget, depthTargetDesc, false);
-	opaqueDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), depthTarget, true, false, false, false);
+	opaqueDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), depthTarget, TextureInfo(true, false, false, false, false));
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa[0]->InitDSV(msaaDepthTarget->Resource(), depthTargetDesc, true);
-		msaaDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), msaaDepthTarget->Resource(), true, false, false, true);
+		msaaDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), msaaDepthTarget->Resource(), TextureInfo(true, false, false, true, false));
 	}
 
 	if (!CreatePipelineMaterial())
@@ -305,7 +305,7 @@ void Camera::SetTransparentDepth(void* _src)
 	// create transparent depth
 	transparentDepth = make_shared<Texture>(0, 1, 0);
 	transparentDepth->InitDSV(transparentDepthSrc, depthTargetDesc, false);
-	transDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, true, false, false, false);
+	transDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, TextureInfo(true, false, false, false, false));
 }
 
 D3D12_VIEWPORT Camera::GetViewPort()

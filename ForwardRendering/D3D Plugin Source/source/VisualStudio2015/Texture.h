@@ -6,6 +6,25 @@
 using namespace std;
 using namespace Microsoft::WRL;
 
+struct TextureInfo
+{
+	TextureInfo() {}
+	TextureInfo(bool _typeless, bool _isCube, bool _isUav, bool _isMsaa, bool _isBuffer)
+	{
+		typeless = _typeless;
+		isCube = _isCube;
+		isUav = _isUav;
+		isMsaa = _isMsaa;
+		isBuffer = _isBuffer;
+	}
+
+	bool typeless;
+	bool isCube;
+	bool isUav;
+	bool isMsaa;
+	bool isBuffer;
+};
+
 class Texture
 {
 public:
@@ -17,11 +36,10 @@ public:
 	void SetResource(ID3D12Resource* _data);
 	ID3D12Resource* GetResource();
 
-	void SetFormat(DXGI_FORMAT _format, bool _isCube, bool _isUav, bool _isMsaa);
+	void SetFormat(DXGI_FORMAT _format);
+	void SetInfo(TextureInfo _info);
 	DXGI_FORMAT GetFormat();
-	bool IsCube();
-	bool IsUav();
-	bool IsMsaa();
+	TextureInfo GetInfo();
 
 	int InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa);
 	int InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa);
@@ -42,9 +60,7 @@ protected:
 	// use for texture manager (global heap)
 	ID3D12Resource* texResource;
 	DXGI_FORMAT texFormat;
-	bool isCube;
-	bool isUav;
-	bool isMsaa;
+	TextureInfo texInfo;
 
 	// normally managed by manager, but allow indenpendent descriptor also
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;
