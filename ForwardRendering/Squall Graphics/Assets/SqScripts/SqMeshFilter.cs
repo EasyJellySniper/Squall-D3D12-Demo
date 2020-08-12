@@ -67,7 +67,6 @@ struct MeshData
 /// <summary>
 /// sq mesh filter
 /// </summary>
-[RequireComponent(typeof(MeshFilter))]
 public class SqMeshFilter : MonoBehaviour
 {
     [DllImport("SquallGraphics")]
@@ -127,6 +126,8 @@ public class SqMeshFilter : MonoBehaviour
             Debug.LogError("[Error] SqMeshFilter: AddMesh() Failed.");
             enabled = false;
         }
+
+        Destroy(GetComponent<MeshFilter>());
     }
 
     void CalcVertexData(Mesh _mesh, ref uint _size, ref uint _stride)

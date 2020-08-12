@@ -48,8 +48,8 @@ private:
 
 	vector<SubMesh> submeshes;
 
-	ID3D12Resource* vertexBuffer;
-	ID3D12Resource* indexBuffer;
+	unique_ptr<DefaultBuffer> vertexBuffer;
+	unique_ptr<DefaultBuffer> indexBuffer;
 
 	D3D12_VERTEX_BUFFER_VIEW vbv;
 	D3D12_INDEX_BUFFER_VIEW ibv;

@@ -11,6 +11,9 @@ public class SqRayTracingManager : MonoBehaviour
 
     void Start()
     {
+        // unload unused assets
+        Resources.UnloadUnusedAssets();
+
         // make sure the execution order of this script is after SqMeshFilter & SqMeshRenderer
         InitRayTracingInstance();
     }

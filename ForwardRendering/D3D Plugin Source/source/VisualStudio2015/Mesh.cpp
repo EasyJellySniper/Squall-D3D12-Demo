@@ -7,6 +7,10 @@ bool Mesh::Initialize(int _instanceID, MeshData _mesh)
 {
 	meshData = _mesh;
 	instanceID = _instanceID;
+	auto device = GraphicManager::Instance().GetDevice();
+	auto cmdList = GraphicManager::Instance().GetDxrList();	// bascially creation list
+
+	GraphicManager::Instance().ResetCreationList();
 
 	// data setup
 	if (meshData.vertexBuffer == nullptr)
@@ -14,14 +18,26 @@ bool Mesh::Initialize(int _instanceID, MeshData _mesh)
 		LogMessage(L"[SqGraphic Error] SqMesh: Vertex buffer pointer is null.");
 		return false;
 	}
-	vertexBuffer = ((ID3D12Resource*)meshData.vertexBuffer);
+
+	auto vbSrc = (ID3D12Resource*)meshData.vertexBuffer;
+	auto vbDesc = vbSrc->GetDesc();
+	vbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;	// remove god damn deny shader flags
+	vertexBuffer = make_unique<DefaultBuffer>(device, vbDesc);
+	cmdList->CopyResource(vertexBuffer->Resource(), vbSrc);
 
 	if (meshData.indexBuffer == nullptr)
 	{
 		LogMessage(L"[SqGraphic Error] SqMesh: Index buffer pointer is null.");
 		return false;
 	}
-	indexBuffer = (ID3D12Resource*)meshData.indexBuffer;
+
+	auto ibSrc = (ID3D12Resource*)meshData.indexBuffer;
+	auto ibDesc = ibSrc->GetDesc();
+	ibDesc.Flags = D3D12_RESOURCE_FLAG_NONE;   // remove god damn deny shader flags
+	indexBuffer = make_unique<DefaultBuffer>(device, ibDesc);
+	cmdList->CopyResource(indexBuffer->Resource(), ibSrc);
+
+	GraphicManager::Instance().ExecuteCreationList();
 
 	for (int i = 0; i < meshData.subMeshCount; i++)
 	{
@@ -30,9 +46,9 @@ bool Mesh::Initialize(int _instanceID, MeshData _mesh)
 
 	// create vertex view check
 	D3D12_VERTEX_BUFFER_VIEW vbvDesc;
-	vbvDesc.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+	vbvDesc.BufferLocation = vertexBuffer->Resource()->GetGPUVirtualAddress();
 
-	D3D12_RESOURCE_DESC buffDesc = vertexBuffer->GetDesc();
+	D3D12_RESOURCE_DESC buffDesc = vertexBuffer->Resource()->GetDesc();
 	vbvDesc.SizeInBytes = meshData.vertexSizeInBytes;
 	vbvDesc.StrideInBytes = meshData.vertexStrideInBytes;
 
@@ -46,9 +62,9 @@ bool Mesh::Initialize(int _instanceID, MeshData _mesh)
 	vbv = (vbvDesc);
 
 	// index view check
-	buffDesc = indexBuffer->GetDesc();
+	buffDesc = indexBuffer->Resource()->GetDesc();
 	D3D12_INDEX_BUFFER_VIEW ibvDesc;
-	ibvDesc.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+	ibvDesc.BufferLocation = indexBuffer->Resource()->GetGPUVirtualAddress();
 	ibvDesc.SizeInBytes = meshData.indexSizeInBytes;
 	ibvDesc.Format = (meshData.indexFormat == 0) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 	ibv = ibvDesc;
@@ -63,8 +79,8 @@ bool Mesh::Initialize(int _instanceID, MeshData _mesh)
 	int vertCount = vbv.SizeInBytes / vbv.StrideInBytes;
 	int idxStride = (meshData.indexFormat == 0) ? 2 : 4;
 	int idxCount = ibv.SizeInBytes / idxStride;
-	//vertexBufferSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), vertexBuffer[0], TextureInfo(false, false, false, false, true, vertCount, vbv[0].StrideInBytes));
-	//indexBufferSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _mesh.indexBuffer, TextureInfo(false, false, false, false, true, idxCount, idxStride));
+	vertexBufferSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), vertexBuffer->Resource(), TextureInfo(false, false, false, false, true, vertCount, vbv.StrideInBytes));
+	indexBufferSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), indexBuffer->Resource(), TextureInfo(false, false, false, false, true, idxCount, idxStride));
 
 	return true;
 }
@@ -84,6 +100,9 @@ void Mesh::Release()
 	submeshes.clear();
 	scratchBottom.clear();
 	bottomLevelAS.clear();
+
+	vertexBuffer.reset();
+	indexBuffer.reset();
 }
 
 void Mesh::ReleaseScratch()
@@ -126,14 +145,14 @@ void Mesh::CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrLis
 
 		UINT ibStride = (meshData.indexFormat == 0) ? 2 : 4;
 		geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-		geometryDesc.Triangles.IndexBuffer = indexBuffer->GetGPUVirtualAddress() + ibStride * sm.StartIndexLocation;
+		geometryDesc.Triangles.IndexBuffer = indexBuffer->Resource()->GetGPUVirtualAddress() + ibStride * sm.StartIndexLocation;
 		geometryDesc.Triangles.IndexCount = sm.IndexCountPerInstance;
 		geometryDesc.Triangles.IndexFormat = (meshData.indexFormat == 0) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
 		UINT vbStride = meshData.vertexStrideInBytes;
 		geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;		// we only need position (float3)
 		geometryDesc.Triangles.VertexCount = sm.IndexCountPerInstance * 3;
-		geometryDesc.Triangles.VertexBuffer.StartAddress = vertexBuffer->GetGPUVirtualAddress() + vbStride * sm.BaseVertexLocation;
+		geometryDesc.Triangles.VertexBuffer.StartAddress = vertexBuffer->Resource()->GetGPUVirtualAddress() + vbStride * sm.BaseVertexLocation;
 		geometryDesc.Triangles.VertexBuffer.StrideInBytes = meshData.vertexStrideInBytes;
 
 		geometryDesc.Flags = geometryFlags;
