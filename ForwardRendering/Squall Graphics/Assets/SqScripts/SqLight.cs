@@ -168,7 +168,6 @@ public class SqLight : MonoBehaviour
     void InitNativeLight()
     {
         lightCache = GetComponent<Light>();
-        lightCache.shadows = (rayTracingShadow) ? LightShadows.None : LightShadows.Soft;
         lightData = new SqLightData();
         lightData.shadowMatrix = new Matrix4x4[4];
         lightData.cascadeDist = new float[4];
@@ -179,7 +178,7 @@ public class SqLight : MonoBehaviour
 
     void InitShadows()
     {
-        if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional)
+        if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional || rayTracingShadow)
         {
             enabled = false;
             return;

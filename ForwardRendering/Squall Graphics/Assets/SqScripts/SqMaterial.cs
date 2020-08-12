@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// material constant
@@ -106,6 +107,10 @@ public class SqMaterial
         if (_mat.HasProperty("_Cutoff"))
         {
             mc._CutOff = _mat.GetFloat("_Cutoff");
+            if (_mat.renderQueue < 2226)
+            {
+                mc._CutOff = 0;
+            }
         }
 
         // property
