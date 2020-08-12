@@ -192,7 +192,8 @@ void MaterialManager::AddMaterialProp(int _matId, UINT _byteSize, void* _data)
 	int idx = matIndexTable[_matId];
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
-		materialConstant[i]->CopyData(idx, _data, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+		// copy starts at 32-bytes location and copy with a length of [elementBytes-32]
+		materialConstant[i]->CopyDataOffset(idx, _data, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, -D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 	}
 }
 
@@ -247,7 +248,8 @@ void MaterialManager::CopyHitGroupIdentifier(Material* _dxrMat, int _frameIdx)
 
 	for (size_t i = 0; i < materialList.size(); i++)
 	{
-		materialConstant[_frameIdx]->CopyData((int)i, hitGroupIdentifier, 0, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+		// copy only first 32 bytes data to constant
+		materialConstant[_frameIdx]->CopyDataByteSize((int)i, hitGroupIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 	}
 
 	hitGroupName[_frameIdx] = rtse.entryHitGroup;
@@ -261,7 +263,7 @@ D3D12_GPU_VIRTUAL_ADDRESS MaterialManager::GetMaterialConstantGPU(int _id, int _
 		LogMessage(L"[SqGraphic Error] : Reach max material limit, " + to_wstring(idx) + L"is ignored.");
 	}
 
-	return materialConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + idx * MATERIAL_STRIDE;
+	return materialConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + idx * MATERIAL_STRIDE + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
 }
 
 UploadBufferAny* MaterialManager::GetHitGroupGPU(int _frameIdx)

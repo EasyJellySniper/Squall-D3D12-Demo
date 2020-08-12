@@ -23,7 +23,7 @@ GlobalRootSignature RTShadowRootSig =
 
 LocalRootSignature RTShadowRootSigLocal =
 {
-    "CBV(b3)"   // material constant
+    "RootConstants( num32BitConstants = 64, b3 )"   // material constant
 };
 
 TriangleHitGroup RTShadowGroup =
@@ -52,7 +52,8 @@ RaytracingPipelineConfig RTShadowPipelineConfig =
 struct RayPayload
 {
     float atten;
-    float3 padding;
+    int isTransparent;
+    float2 padding;
 };
 
 RaytracingAccelerationStructure _SceneAS : register(t0, space2);
@@ -85,7 +86,7 @@ void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
     ray.TMax = mainLight.cascadeDist[0];
 
     // the data payload between ray tracing
-    RayPayload payload = { float4(1, 1, 1, 1) };
+    RayPayload payload = { 1.0f, 0, 0, 0 };
     TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, ray, payload);
 
     // output shadow
@@ -116,12 +117,20 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
 {
     // hit, set shadow atten
     payload.atten = 0.0f;
+
+    if (payload.isTransparent > 0)
+    {
+        payload.atten = _CutOff;
+    }
 }
 
 [shader("anyhit")]
 void RTShadowAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // finish any hit
+    // mark hit transparent
+    payload.isTransparent = 1;
+
+    // accept hit so that system goes to closet hit
     AcceptHitAndEndSearch();
 }
 

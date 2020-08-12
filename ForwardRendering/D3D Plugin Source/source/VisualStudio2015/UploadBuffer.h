@@ -118,16 +118,21 @@ public:
         return mElementByteSize;
     }
 
-    void CopyData(int elementIndex, const void* data, UINT _offset = 0, UINT _byteSize = 0)
+    void CopyData(int elementIndex, const void* data)
     {
-        if (_byteSize == 0)
-        {
-            memcpy(&mMappedData[elementIndex * mElementByteSize] + _offset, data, mElementByteSize);
-        }
-        else
-        {
-            memcpy(&mMappedData[elementIndex * mElementByteSize] + _offset, data, _byteSize);
-        }
+        memcpy(&mMappedData[elementIndex * mElementByteSize], data, mElementByteSize);
+    }
+
+    void CopyDataByteSize(int elementIndex, const void* data, UINT _byteSize)
+    {
+        // copy partial data to dest
+        memcpy(&mMappedData[elementIndex * mElementByteSize], data, _byteSize);
+    }
+
+    void CopyDataOffset(int elementIndex, const void* data, UINT _destOffet, UINT _sizeOffset)
+    {
+        // copy data with offset
+        memcpy(&mMappedData[elementIndex * mElementByteSize] + _destOffet, data, mElementByteSize + _sizeOffset);
     }
 
 private:
