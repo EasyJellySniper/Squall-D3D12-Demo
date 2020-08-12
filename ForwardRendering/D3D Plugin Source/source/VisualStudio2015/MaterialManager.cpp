@@ -185,7 +185,7 @@ void MaterialManager::AddMaterialProp(int _matId, UINT _byteSize, void* _data)
 	int idx = matIndexTable[_matId];
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
-		materialConstant[i]->CopyData(idx, _data);
+		materialConstant[i]->CopyData(idx, _data, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 	}
 }
 

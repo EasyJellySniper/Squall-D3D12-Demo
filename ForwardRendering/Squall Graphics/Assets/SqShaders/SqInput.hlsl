@@ -53,6 +53,7 @@ cbuffer LightConstant : register(b2)
 
 cbuffer MaterialConstant : register(b3)
 {
+	float4 _DxrIdentifier[2];		// 32 bytes for DXR hit group use
 	float4 _MainTex_ST;
 	float4 _DetailAlbedoMap_ST;
 	float4 _Color;
