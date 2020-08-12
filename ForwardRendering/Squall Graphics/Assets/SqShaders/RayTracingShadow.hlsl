@@ -1,6 +1,7 @@
 // need assign relative path for dxc compiler with forward slash
 #include "Assets/SqShaders/SqInput.hlsl"
 #pragma sq_rayrootsig RTShadowRootSig
+#pragma sq_rayrootsiglocal RTShadowRootSigLocal
 #pragma sq_raygen RTShadowRayGen
 #pragma sq_closesthit RTShadowClosestHit
 #pragma sq_anyhit RTShadowAnyHit
@@ -8,6 +9,7 @@
 #pragma sq_hitgroup RTShadowGroup
 #pragma sq_rtshaderconfig RTShadowConfig
 #pragma sq_rtpipelineconfig RTShadowPipelineConfig
+#pragma sq_rayrootsigassociation LocalRootSignatureAssociation
 
 GlobalRootSignature RTShadowRootSig =
 {
@@ -19,10 +21,21 @@ GlobalRootSignature RTShadowRootSig =
     "SRV( t0, space = 1 )"              // sqlight
 };
 
+LocalRootSignature RTShadowRootSigLocal =
+{
+    "CBV(b3)"   // material constant
+};
+
 TriangleHitGroup RTShadowGroup =
 {
     "RTShadowAnyHit",      // AnyHit
     "RTShadowClosestHit"   // ClosestHit
+};
+
+SubobjectToExportsAssociation LocalRootSignatureAssociation =
+{
+    "RTShadowRootSigLocal",  // subobject name
+    "RTShadowGroup"          // export association 
 };
 
 RaytracingShaderConfig RTShadowConfig =

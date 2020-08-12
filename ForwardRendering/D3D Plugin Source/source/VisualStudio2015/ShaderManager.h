@@ -63,6 +63,8 @@ private:
 	wstring entryHitGroup;
 	wstring rtShaderConfig;
 	wstring rtPipelineConfig;
+	wstring rtRootSigLocal;
+	wstring rtRootSigAssociation;
 
 	// ray tracing compiler
 	ComPtr<IDxcCompiler> dxcCompiler = nullptr;

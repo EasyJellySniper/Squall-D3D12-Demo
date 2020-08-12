@@ -37,6 +37,8 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	rtShaderConfig = L"";
 	rtPipelineConfig = L"";
 	rtRootSig = L"";
+	rtRootSigLocal = L"";
+	rtRootSigAssociation = L"";
 
 	// collect data
 	CollectShaderData(_fileName);
@@ -61,6 +63,8 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 		rtse.entryMiss = entryMiss;
 		rtse.rtShaderConfig = rtShaderConfig;
 		rtse.rtPipelineConfig = rtPipelineConfig;
+		rtse.rtRootSigLocal = rtRootSigLocal;
+		rtse.rtRootSigAssociation = rtRootSigAssociation;
 
 		if (rtse.Valid())
 		{
@@ -351,6 +355,20 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				is >> rrs;
 
 				rtRootSig = rrs;
+			}
+			else if (ss == L"sq_rayrootsiglocal")
+			{
+				wstring rrsl;
+				is >> rrsl;
+
+				rtRootSigLocal = rrsl;
+			}
+			else if (ss == L"sq_rayrootsigassociation")
+			{
+				wstring rtAssociation;
+				is >> rtAssociation;
+
+				rtRootSigAssociation = rtAssociation;
 			}
 		}
 	}

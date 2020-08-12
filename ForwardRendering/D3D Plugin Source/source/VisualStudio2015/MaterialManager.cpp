@@ -95,20 +95,26 @@ Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 	D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE(_shader->GetRTS()->GetBufferPointer(), _shader->GetRTS()->GetBufferSize());
 	lib->SetDXILLibrary(&libdxil);
 
+	auto DefineCheckedExport = [&](CD3DX12_DXIL_LIBRARY_SUBOBJECT *lib, wstring _string)
+	{
+		if (_string != L"")
+		{
+			lib->DefineExport(_string.c_str());
+		}
+	};
+
 	// defined in HLSL
 	RayTracingShaderEntry rtse = _shader->GetRTSEntry();
-	lib->DefineExport(rtse.rtRootSignature.c_str());
-	lib->DefineExport(rtse.entryRayGen.c_str());
-	lib->DefineExport(rtse.entryClosest.c_str());
-	lib->DefineExport(rtse.entryMiss.c_str());
-	lib->DefineExport(rtse.entryHitGroup.c_str());
-	lib->DefineExport(rtse.rtShaderConfig.c_str());
-	lib->DefineExport(rtse.rtPipelineConfig.c_str());
-
-	if (!rtse.entryAny.empty())
-	{
-		lib->DefineExport(rtse.entryAny.c_str());
-	}
+	DefineCheckedExport(lib, rtse.rtRootSignature);
+	DefineCheckedExport(lib, rtse.entryRayGen);
+	DefineCheckedExport(lib, rtse.entryClosest);
+	DefineCheckedExport(lib, rtse.entryMiss);
+	DefineCheckedExport(lib, rtse.entryHitGroup);
+	DefineCheckedExport(lib, rtse.rtShaderConfig);
+	DefineCheckedExport(lib, rtse.rtPipelineConfig);
+	DefineCheckedExport(lib, rtse.rtRootSigLocal);
+	DefineCheckedExport(lib, rtse.rtRootSigAssociation);
+	DefineCheckedExport(lib, rtse.entryAny);
 
 	HRESULT hr = S_OK;
 	ComPtr<ID3D12StateObject> dxcPso;

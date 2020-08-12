@@ -29,6 +29,8 @@ public:
 	wstring entryHitGroup;
 	wstring rtShaderConfig;
 	wstring rtPipelineConfig;
+	wstring rtRootSigLocal;
+	wstring rtRootSigAssociation;
 };
 
 class Shader
