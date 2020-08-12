@@ -17,7 +17,7 @@ void MeshManager::Init()
 bool MeshManager::AddMesh(int _instanceID, MeshData _mesh)
 {
 	// duplicate mesh instance, consider it is added
-	if (meshes.find(_instanceID) != meshes.end())
+	if (meshIndexTable.find(_instanceID) != meshIndexTable.end())
 	{
 		return true;
 	}
@@ -26,7 +26,8 @@ bool MeshManager::AddMesh(int _instanceID, MeshData _mesh)
 	bool init = m.Initialize(_mesh);
 	if (init)
 	{
-		meshes[_instanceID] = std::move(m);
+		meshes.push_back(std::move(m));
+		meshIndexTable[_instanceID] = (int)meshes.size() - 1;
 	}
 
 	return init;
@@ -36,18 +37,20 @@ void MeshManager::Release()
 {
 	for (auto&m : meshes)
 	{
-		m.second.Release();
+		m.Release();
 	}
 
 	meshes.clear();
 	defaultInputLayout.clear();
+	meshIndexTable.clear();
+	indexInHeap.clear();
 }
 
 void MeshManager::CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	for (auto& m : meshes)
 	{
-		m.second.CreateBottomAccelerationStructure(_dxrList);
+		m.CreateBottomAccelerationStructure(_dxrList);
 	}
 }
 
@@ -55,15 +58,15 @@ void MeshManager::ReleaseScratch()
 {
 	for (auto& m : meshes)
 	{
-		m.second.ReleaseScratch();
+		m.ReleaseScratch();
 	}
 }
 
 Mesh * MeshManager::GetMesh(int _instanceID)
 {
-	if (meshes.find(_instanceID) != meshes.end())
+	if (meshIndexTable.find(_instanceID) != meshIndexTable.end())
 	{
-		return &meshes[_instanceID];
+		return &meshes[meshIndexTable[_instanceID]];
 	}
 
 	return nullptr;

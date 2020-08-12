@@ -34,6 +34,8 @@ public:
 	UINT GetDefaultInputLayoutSize();
 
 private:
-	unordered_map<int, Mesh> meshes;
+	vector<Mesh> meshes;
+	vector<int> indexInHeap;
 	vector<D3D12_INPUT_ELEMENT_DESC> defaultInputLayout;
+	unordered_map<int, int> meshIndexTable;
 };
