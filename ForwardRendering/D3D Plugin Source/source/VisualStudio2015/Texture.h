@@ -9,13 +9,15 @@ using namespace Microsoft::WRL;
 struct TextureInfo
 {
 	TextureInfo() {}
-	TextureInfo(bool _typeless, bool _isCube, bool _isUav, bool _isMsaa, bool _isBuffer)
+	TextureInfo(bool _typeless, bool _isCube, bool _isUav, bool _isMsaa, bool _isBuffer, UINT _numElement = 0, UINT _stride = 0)
 	{
 		typeless = _typeless;
 		isCube = _isCube;
 		isUav = _isUav;
 		isMsaa = _isMsaa;
 		isBuffer = _isBuffer;
+		numElement = _numElement;
+		numStride = _stride;
 	}
 
 	bool typeless;
@@ -23,6 +25,10 @@ struct TextureInfo
 	bool isUav;
 	bool isMsaa;
 	bool isBuffer;
+
+	// use for structured buffer
+	UINT numElement;
+	UINT numStride;
 };
 
 class Texture

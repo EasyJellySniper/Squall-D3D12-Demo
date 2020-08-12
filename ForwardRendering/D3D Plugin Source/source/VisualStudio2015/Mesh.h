@@ -17,12 +17,11 @@ struct SubMesh
 
 struct MeshData
 {
-	int vertexBufferCount;
 	int subMeshCount;
 	SubMesh *submesh;
-	void** vertexBuffer;
-	unsigned int *vertexSizeInBytes;
-	unsigned int *vertexStrideInBytes;
+	void* vertexBuffer;
+	unsigned int vertexSizeInBytes;
+	unsigned int vertexStrideInBytes;
 	void* indexBuffer;
 	unsigned int indexSizeInBytes;
 	int indexFormat;
@@ -31,7 +30,7 @@ struct MeshData
 class Mesh
 {
 public:
-	bool Initialize(MeshData _mesh);
+	bool Initialize(int _instanceID, MeshData _mesh);
 	void Release();
 	void ReleaseScratch();
 
@@ -43,13 +42,16 @@ public:
 
 private:
 	MeshData meshData;
+	int instanceID;
+	int vertexBufferSrv;
+	int indexBufferSrv;
 
 	vector<SubMesh> submeshes;
 
-	vector<ID3D12Resource*> vertexBuffer;
-	ID3D12Resource *indexBuffer;
+	ID3D12Resource* vertexBuffer;
+	ID3D12Resource* indexBuffer;
 
-	vector<D3D12_VERTEX_BUFFER_VIEW> vbv;
+	D3D12_VERTEX_BUFFER_VIEW vbv;
 	D3D12_INDEX_BUFFER_VIEW ibv;
 
 	vector<unique_ptr<DefaultBuffer>> scratchBottom;

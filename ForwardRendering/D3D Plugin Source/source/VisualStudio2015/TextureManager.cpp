@@ -166,6 +166,17 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 			srvDesc.TextureCube.ResourceMinLODClamp = 0;
 		}
 
+		if (texInfo.isBuffer)
+		{
+			// create srv buffer
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+			srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+			srvDesc.Buffer.NumElements = texInfo.numElement;
+			srvDesc.Buffer.StructureByteStride = texInfo.numStride;
+			srvDesc.Buffer.FirstElement = 0;
+		}
+
 		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(_texture.GetResource(), &srvDesc, hTexture);
 	}
 	else

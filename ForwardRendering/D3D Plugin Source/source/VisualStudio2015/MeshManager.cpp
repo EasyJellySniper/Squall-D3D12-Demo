@@ -23,7 +23,7 @@ bool MeshManager::AddMesh(int _instanceID, MeshData _mesh)
 	}
 
 	Mesh m;
-	bool init = m.Initialize(_mesh);
+	bool init = m.Initialize(_instanceID, _mesh);
 	if (init)
 	{
 		meshes.push_back(std::move(m));

@@ -24,11 +24,6 @@ struct SubMesh
 struct MeshData
 {
     /// <summary>
-    /// vertex buffer count
-    /// </summary>
-    public int vertexBufferCount;
-
-    /// <summary>
     /// submesh count
     /// </summary>
     public int subMeshCount;
@@ -41,17 +36,17 @@ struct MeshData
     /// <summary>
     /// vertex buffer
     /// </summary>
-    public IntPtr[] vertexBuffer;
+    public IntPtr vertexBuffer;
 
     /// <summary>
     /// vertex size in byte
     /// </summary>
-    public uint[] vertexSizeInBytes;
+    public uint vertexSizeInBytes;
 
     /// <summary>
     /// vertex stride in byte
     /// </summary>
-    public uint[] vertexStrideInBytes;
+    public uint vertexStrideInBytes;
 
     /// <summary>
     /// index buffer
@@ -98,7 +93,6 @@ public class SqMeshFilter : MonoBehaviour
         mesh = GetComponent<MeshFilter>().sharedMesh;
 
         // setup basic info
-        meshData.vertexBufferCount = mesh.vertexBufferCount;
         meshData.subMeshCount = mesh.subMeshCount;
 
         uint indexCount = 0;
@@ -112,14 +106,8 @@ public class SqMeshFilter : MonoBehaviour
         }
 
         // setup vertex buffer
-        meshData.vertexBuffer = new IntPtr[mesh.vertexBufferCount];
-        meshData.vertexSizeInBytes = new uint[mesh.vertexBufferCount];
-        meshData.vertexStrideInBytes = new uint[mesh.vertexBufferCount];
-        for (int i = 0; i < mesh.vertexBufferCount; i++)
-        {
-            CalcVertexData(mesh, ref meshData.vertexSizeInBytes[i], ref meshData.vertexStrideInBytes[i]);
-            meshData.vertexBuffer[i] = mesh.GetNativeVertexBufferPtr(i);
-        }
+        CalcVertexData(mesh, ref meshData.vertexSizeInBytes, ref meshData.vertexStrideInBytes);
+        meshData.vertexBuffer = mesh.GetNativeVertexBufferPtr(0);
 
         // setup index buffer
         meshData.indexBuffer = mesh.GetNativeIndexBufferPtr();
