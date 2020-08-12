@@ -58,6 +58,7 @@ public:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC GetPsoDesc();
 	D3D12_DISPATCH_RAYS_DESC GetDispatchRayDesc(UINT _width, UINT _height);
 	bool IsRayTracingMat();
+	Shader* GetShaderCache();
 
 private:
 	int instanceID;
@@ -68,7 +69,6 @@ private:
 	ComPtr<ID3D12StateObject> dxcPso;
 	shared_ptr<UploadBufferAny> rayGenShaderTable;
 	shared_ptr<UploadBufferAny> missShaderTable;
-	shared_ptr<UploadBufferAny> hitGroupTable;
 
 	int renderQueue = 2000;
 	CullMode cullMode = CullMode::Off;
@@ -77,4 +77,5 @@ private:
 
 	bool validMaterial = false;
 	bool isDirty = true;
+	Shader* shaderCache;
 };

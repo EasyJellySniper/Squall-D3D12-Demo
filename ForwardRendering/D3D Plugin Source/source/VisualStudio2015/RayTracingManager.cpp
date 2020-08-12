@@ -2,6 +2,7 @@
 #include "GraphicManager.h"
 #include "MeshManager.h"
 #include "RendererManager.h"
+#include "MaterialManager.h"
 
 void RayTracingManager::Release()
 {
@@ -60,6 +61,7 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 			rtInstancedesc.InstanceMask = 1;
 			rtInstancedesc.AccelerationStructure = r->GetMesh()->GetBottomAS(i)->GetGPUVirtualAddress();
 			rtInstancedesc.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE;	// unity use CCW
+			rtInstancedesc.InstanceContributionToHitGroupIndex = MaterialManager::Instance().GetMatIndexFromID(r->GetMaterial(i)->GetInstanceID());
 
 			// non-opaque flags, force transparent object use any-hit shader
 			if (r->GetMaterial(i)->GetRenderQueue() > RenderQueue::OpaqueLast)

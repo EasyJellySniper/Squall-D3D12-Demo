@@ -370,9 +370,18 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	_cmdList->SetComputeRootShaderResourceView(4, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(5, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
 
-	// prepare dispatch
+	// prepare dispatch desc
 	Camera* c = CameraManager::Instance().GetCamera();
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)c->GetViewPort().Width, (UINT)c->GetViewPort().Height);
+
+	// copy hit group identifier
+	MaterialManager::Instance().CopyHitGroupIdentifier(mat, frameIndex);
+
+	// setup hit group table
+	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(frameIndex);
+	dispatchDesc.HitGroupTable.StartAddress = hitGroup->Resource()->GetGPUVirtualAddress();
+	dispatchDesc.HitGroupTable.SizeInBytes = hitGroup->Resource()->GetDesc().Width;
+	dispatchDesc.HitGroupTable.StrideInBytes = hitGroup->Stride();
 
 	// dispatch rays
 	auto dxrCmd = GraphicManager::Instance().GetDxrList();

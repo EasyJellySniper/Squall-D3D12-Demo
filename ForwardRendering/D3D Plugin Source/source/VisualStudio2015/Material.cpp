@@ -30,7 +30,6 @@ void Material::CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader* _shader)
 
 		rayGenShaderTable = make_shared<UploadBufferAny>(device, 1, false, shaderIdentifierSize);
 		missShaderTable = make_shared<UploadBufferAny>(device, 1, false, shaderIdentifierSize);
-		hitGroupTable = make_shared<UploadBufferAny>(device, 1, false, shaderIdentifierSize);
 
 		// Get shader identifiers.
 		ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
@@ -39,13 +38,12 @@ void Material::CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader* _shader)
 		auto rtse = _shader->GetRTSEntry();
 		void* rayGenShaderIdentifier = stateObjectProperties->GetShaderIdentifier(rtse.entryRayGen.c_str());
 		void* missShaderIdentifier = stateObjectProperties->GetShaderIdentifier(rtse.entryMiss.c_str());
-		void* hitGroupShaderIdentifier = stateObjectProperties->GetShaderIdentifier(rtse.entryHitGroup.c_str());
 
 		rayGenShaderTable->CopyData(0, rayGenShaderIdentifier);
 		missShaderTable->CopyData(0, missShaderIdentifier);
-		hitGroupTable->CopyData(0, hitGroupShaderIdentifier);
 
 		psoDesc.pRootSignature = _shader->GetRS();
+		shaderCache = _shader;
 	}
 }
 
@@ -55,7 +53,6 @@ void Material::Release()
 	dxcPso.Reset();
 	rayGenShaderTable.reset();
 	missShaderTable.reset();
-	hitGroupTable.reset();
 }
 
 void Material::SetInstanceID(int _id)
@@ -124,9 +121,6 @@ D3D12_DISPATCH_RAYS_DESC Material::GetDispatchRayDesc(UINT _width, UINT _height)
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
 
 	// Since each shader table has only one shader record, the stride is same as the size.
-	dispatchDesc.HitGroupTable.StartAddress = hitGroupTable->Resource()->GetGPUVirtualAddress();
-	dispatchDesc.HitGroupTable.SizeInBytes = hitGroupTable->Resource()->GetDesc().Width;
-	dispatchDesc.HitGroupTable.StrideInBytes = dispatchDesc.HitGroupTable.SizeInBytes;
 	dispatchDesc.MissShaderTable.StartAddress = missShaderTable->Resource()->GetGPUVirtualAddress();
 	dispatchDesc.MissShaderTable.SizeInBytes = missShaderTable->Resource()->GetDesc().Width;
 	dispatchDesc.MissShaderTable.StrideInBytes = dispatchDesc.MissShaderTable.SizeInBytes;
@@ -147,4 +141,9 @@ bool Material::IsRayTracingMat()
 	}
 
 	return false;
+}
+
+Shader* Material::GetShaderCache()
+{
+	return shaderCache;
 }

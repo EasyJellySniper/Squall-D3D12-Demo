@@ -38,7 +38,10 @@ public:
 	void ResetNativeMaterial(Camera* _camera);
 	void Release();
 
+	void CopyHitGroupIdentifier(Material *_dxrMat, int _frameIdx);
 	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _id, int _frameIdx);
+	UploadBufferAny *GetHitGroupGPU(int _frameIdx);
+	int GetMatIndexFromID(int _id);
 
 private:
 	static const int NUM_BLEND_MODE = 11;
@@ -56,4 +59,5 @@ private:
 
 	D3D12_BLEND blendTable[NUM_BLEND_MODE];
 	unique_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];
+	wstring hitGroupName[MAX_FRAME_COUNT];
 };

@@ -23,6 +23,7 @@ void MaterialManager::Init()
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		materialConstant[i] = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), MAX_MATERIAL_COUNT, true, MATERIAL_STRIDE);
+		hitGroupName[i] = L"";
 	}
 }
 
@@ -224,6 +225,28 @@ void MaterialManager::Release()
 	matIndexTable.clear();
 }
 
+void MaterialManager::CopyHitGroupIdentifier(Material* _dxrMat, int _frameIdx)
+{
+	ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
+	LogIfFailedWithoutHR(_dxrMat->GetDxcPSO()->QueryInterface(IID_PPV_ARGS(stateObjectProperties.GetAddressOf())));
+
+	auto rtse = _dxrMat->GetShaderCache()->GetRTSEntry();
+	void* hitGroupIdentifier = stateObjectProperties->GetShaderIdentifier(rtse.entryHitGroup.c_str());
+
+	if (rtse.entryHitGroup == hitGroupName[_frameIdx])
+	{
+		// already copied
+		return;
+	}
+
+	for (size_t i = 0; i < materialList.size(); i++)
+	{
+		materialConstant[_frameIdx]->CopyData((int)i, hitGroupIdentifier, 0, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+	}
+
+	hitGroupName[_frameIdx] = rtse.entryHitGroup;
+}
+
 D3D12_GPU_VIRTUAL_ADDRESS MaterialManager::GetMaterialConstantGPU(int _id, int _frameIdx)
 {
 	int idx = matIndexTable[_id];
@@ -233,6 +256,16 @@ D3D12_GPU_VIRTUAL_ADDRESS MaterialManager::GetMaterialConstantGPU(int _id, int _
 	}
 
 	return materialConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + idx * MATERIAL_STRIDE;
+}
+
+UploadBufferAny* MaterialManager::GetHitGroupGPU(int _frameIdx)
+{
+	return materialConstant[_frameIdx].get();
+}
+
+int MaterialManager::GetMatIndexFromID(int _id)
+{
+	return matIndexTable[_id];
 }
 
 D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,

@@ -113,9 +113,21 @@ public:
         return mUploadBuffer.Get();
     }
 
-    void CopyData(int elementIndex, const void* data, UINT _offset = 0)
+    UINT Stride()const
     {
-        memcpy(&mMappedData[elementIndex * mElementByteSize] + _offset, data, mElementByteSize);
+        return mElementByteSize;
+    }
+
+    void CopyData(int elementIndex, const void* data, UINT _offset = 0, UINT _byteSize = 0)
+    {
+        if (_byteSize == 0)
+        {
+            memcpy(&mMappedData[elementIndex * mElementByteSize] + _offset, data, mElementByteSize);
+        }
+        else
+        {
+            memcpy(&mMappedData[elementIndex * mElementByteSize] + _offset, data, _byteSize);
+        }
     }
 
 private:
