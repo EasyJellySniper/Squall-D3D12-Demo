@@ -158,7 +158,7 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
     if (_CutOff > 0)
     {
         // get primitive index
-        uint pIdx = PrimitiveIndex();
+        uint pIdx = PrimitiveIndex() * 3;
         uint vertID = InstanceID();
 
         // get interpolated uv and tiling it
