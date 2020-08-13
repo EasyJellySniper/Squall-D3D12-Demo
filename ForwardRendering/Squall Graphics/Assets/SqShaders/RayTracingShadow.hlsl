@@ -183,18 +183,11 @@ void RTShadowRayGen()
 [shader("closesthit")]
 void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // transparent, use invert alpha as shadow atten
-    if (payload.isTransparent > 0)
-    {
-        payload.atten = 1 - _Color.a;
-        return;
-    }
-
     // opaque shadow
     payload.atten = 0.0f;
 
-    // cutoff
-    if (_CutOff > 0)
+    float alpha = 1;
+    if (payload.isTransparent > 0 || _CutOff > 0)
     {
         // get primitive index
         // offset 3 * sizeof(index) = 6, also consider the startindexlocation
@@ -205,10 +198,20 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
         // get interpolated uv and tiling it
         float2 uvHit = GetHitUV(pIdx, vertID, attr);
         uvHit = uvHit * _MainTex_ST.xy + _MainTex_ST.zw;
+        alpha = _TexTable[_DiffuseIndex].SampleLevel(_SamplerTable[_SamplerIndex], uvHit, 0).a * _Color.a;
+    }
 
+    // cutoff
+    if (_CutOff > 0)
+    {
         // clip shadow
-        float alpha = _TexTable[_DiffuseIndex].SampleLevel(_SamplerTable[_SamplerIndex], uvHit, 0).a * _Color.a;
         payload.atten = lerp(1.0f, payload.atten, alpha >= _CutOff);
+    }
+
+    // transparent, use invert alpha as shadow atten
+    if (payload.isTransparent > 0)
+    {
+        payload.atten = 1 - alpha;
     }
 }
 
