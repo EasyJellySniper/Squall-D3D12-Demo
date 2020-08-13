@@ -9,6 +9,8 @@ void RayTracingManager::Release()
 	scratchTop.reset();
 	topLevelAS.reset();
 	rayTracingInstance.reset();
+	subMeshInfo.reset();
+	instanceDescs.clear();
 }
 
 void RayTracingManager::InitRayTracingInstance()
@@ -21,6 +23,7 @@ void RayTracingManager::InitRayTracingInstance()
 
 	// build top AS
 	CreateTopAccelerationStructure(dxrCmd);
+	CreateSubMeshInfoForTopAS();
 
 	GraphicManager::Instance().ExecuteCreationList();
 	GraphicManager::Instance().WaitForGPU();
@@ -31,9 +34,32 @@ void RayTracingManager::InitRayTracingInstance()
 	MeshManager::Instance().ReleaseScratch();
 }
 
+void RayTracingManager::CreateSubMeshInfoForTopAS()
+{
+	// create enough buffer
+	int numTopASInstance = (int)instanceDescs.size();
+	subMeshInfo = make_unique<UploadBuffer<SubMesh>>(GraphicManager::Instance().GetDevice(), numTopASInstance, false);
+
+	int count = 0;
+	auto renderers = RendererManager::Instance().GetRenderers();
+	for (auto& r : renderers)
+	{
+		for (int i = 0; i < r->GetNumMaterials(); i++)
+		{
+			SubMesh sm = r->GetMesh()->GetSubMesh(i);
+			subMeshInfo->CopyData(count++, sm);
+		}
+	}
+}
+
 ID3D12Resource* RayTracingManager::GetTopLevelAS()
 {
 	return topLevelAS->Resource();
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS RayTracingManager::GetSubMeshInfoGPU()
+{
+	return subMeshInfo->Resource()->GetGPUVirtualAddress();
 }
 
 void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
@@ -48,8 +74,7 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 	topLevelInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
 
 	// prepare ray tracing instance desc
-	vector<D3D12_RAYTRACING_INSTANCE_DESC> instanceDescs;
-
+	instanceDescs.clear();
 	for (auto& r : renderers)
 	{
 		// build all submesh use by the renderer

@@ -20,7 +20,8 @@ GlobalRootSignature RTShadowRootSig =
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, flags = DESCRIPTORS_VOLATILE) ),"     // tex table
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 3, flags = DESCRIPTORS_VOLATILE) ),"    //vertex start
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
-    "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) )"
+    "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) ),"     // tex sampler
+    "SRV( t0, space = 5)"       // submesh data
 };
 
 LocalRootSignature RTShadowRootSigLocal =
@@ -64,6 +65,7 @@ RWTexture2D<float4> _OutputShadow : register(u0);
 // bind vb/ib. be careful we use the same heap with texture, indexing to correct address is important
 StructuredBuffer<VertexInput> _Vertices[] : register(t0, space3);
 ByteAddressBuffer _Indices[] : register(t0, space4);
+StructuredBuffer<SubMesh> _SubMesh : register(t0, space5);
 
 void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
 {
@@ -186,8 +188,9 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
     if (_CutOff > 0)
     {
         // get primitive index
-        // offset 3 * sizeof(index) = 6
-        uint pIdx = PrimitiveIndex() * 3 * 2;
+        // offset 3 * sizeof(index) = 6, also consider the startindexlocation
+        uint ibStride = 2;
+        uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
         uint vertID = InstanceID();
 
         // get interpolated uv and tiling it

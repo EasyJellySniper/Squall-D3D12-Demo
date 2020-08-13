@@ -24,6 +24,14 @@ struct SqLight
 	float shadowSize;
 };
 
+struct SubMesh
+{
+	uint IndexCountPerInstance;
+	uint StartIndexLocation;
+	int BaseVertexLocation;
+	float padding;
+};
+
 cbuffer ObjectConstant : register(b0)
 {
 	float4x4 SQ_MATRIX_WORLD;

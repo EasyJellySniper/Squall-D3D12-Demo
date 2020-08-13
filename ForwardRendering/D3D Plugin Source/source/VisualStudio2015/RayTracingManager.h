@@ -2,6 +2,7 @@
 #include "DefaultBuffer.h"
 #include "UploadBuffer.h"
 #include "stdafx.h"
+#include "Mesh.h"
 
 #pragma once
 
@@ -24,7 +25,9 @@ public:
 
 	void Release();
 	void InitRayTracingInstance();
+	void CreateSubMeshInfoForTopAS();
 	ID3D12Resource* GetTopLevelAS();
+	D3D12_GPU_VIRTUAL_ADDRESS GetSubMeshInfoGPU();
 
 private:
 	void CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
@@ -32,4 +35,6 @@ private:
 	unique_ptr<DefaultBuffer> scratchTop;
 	unique_ptr<DefaultBuffer> topLevelAS;
 	unique_ptr<UploadBufferAny> rayTracingInstance;
+	unique_ptr<UploadBuffer<SubMesh>> subMeshInfo;
+	vector<D3D12_RAYTRACING_INSTANCE_DESC> instanceDescs;
 };
