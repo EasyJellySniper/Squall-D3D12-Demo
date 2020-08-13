@@ -61,7 +61,12 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 			rtInstancedesc.InstanceMask = 1;
 			rtInstancedesc.AccelerationStructure = r->GetMesh()->GetBottomAS(i)->GetGPUVirtualAddress();
 			rtInstancedesc.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE;	// unity use CCW
+
+			// setup material index in hitgroup table
 			rtInstancedesc.InstanceContributionToHitGroupIndex = MaterialManager::Instance().GetMatIndexFromID(r->GetMaterial(i)->GetInstanceID());
+
+			// setup instance id by using vertex buffer SRV
+			rtInstancedesc.InstanceID = r->GetMesh()->GetVertexSrv();
 
 			// non-opaque flags, force transparent object use any-hit shader
 			if (r->GetMaterial(i)->GetRenderQueue() > RenderQueue::OpaqueLast)

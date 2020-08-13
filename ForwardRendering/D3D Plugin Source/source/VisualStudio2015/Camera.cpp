@@ -408,6 +408,8 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 	_sc.farZ = farZ;
 	_sc.nearZ = nearZ;
 	_sc.msaaCount = cameraData.allowMSAA;
+	_sc.depthIndex = opaqueDepthSrv;
+	_sc.transDepthIndex = transDepthSrv;
 }
 
 bool Camera::CreatePipelineMaterial()

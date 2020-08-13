@@ -14,11 +14,10 @@
 GlobalRootSignature RTShadowRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
-    "DescriptorTable( SRV( t0 , numDescriptors = 1) ),"     // opaque depth map
-    "DescriptorTable( SRV( t1 , numDescriptors = 1) ),"     // transparent depth map
     "CBV( b1 ),"                        // system constant
     "SRV( t0, space = 2),"              // acceleration strutures
-    "SRV( t0, space = 1 )"              // sqlight
+    "SRV( t0, space = 1 ),"              // sqlight
+    "DescriptorTable( SRV( t0 , numDescriptors = unbounded) ),"     // tex table
 };
 
 LocalRootSignature RTShadowRootSigLocal =
@@ -58,8 +57,6 @@ struct RayPayload
 
 RaytracingAccelerationStructure _SceneAS : register(t0, space2);
 RWTexture2D<float4> _OutputShadow : register(u0);
-Texture2D _OpaqueDepthMap : register(t0);
-Texture2D _TransDepthMap : register(t1);
 
 void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
 {
@@ -111,8 +108,8 @@ void RTShadowRayGen()
     screenUV.y = 1 - screenUV.y;
     screenUV = screenUV * 2.0f - 1.0f;
 
-    ShootRayFromDepth(_OpaqueDepthMap, screenUV);
-    ShootRayFromDepth(_TransDepthMap, screenUV);
+    ShootRayFromDepth(_TexTable[_DepthIndex], screenUV);
+    ShootRayFromDepth(_TexTable[_TransDepthIndex], screenUV);
 }
 
 [shader("closesthit")]

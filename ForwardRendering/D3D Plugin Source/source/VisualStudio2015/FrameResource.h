@@ -38,6 +38,8 @@ struct SystemConstant
 	int collectShadowIndex;
 	int pcfIndex;
 	int msaaCount;
+	int depthIndex;
+	int transDepthIndex;
 };
 
 struct LightConstant

@@ -39,6 +39,7 @@ public:
 	SubMesh GetSubMesh(int _index);
 	void CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5 *_dxrList);
 	ID3D12Resource* GetBottomAS(int _submesh);
+	int GetVertexSrv();
 
 private:
 	MeshData meshData;

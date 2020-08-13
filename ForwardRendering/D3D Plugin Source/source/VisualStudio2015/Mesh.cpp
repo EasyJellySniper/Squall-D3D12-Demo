@@ -193,3 +193,8 @@ ID3D12Resource* Mesh::GetBottomAS(int _submesh)
 {
 	return bottomLevelAS[_submesh]->Resource();
 }
+
+int Mesh::GetVertexSrv()
+{
+	return vertexBufferSrv;
+}
