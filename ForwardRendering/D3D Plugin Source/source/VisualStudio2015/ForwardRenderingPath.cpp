@@ -214,13 +214,10 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 
 	auto _cmdList = currFrameResource->mainGfxList;
 
-#if defined(GRAPHICTIME)
-	// timer begin
-	_cmdList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
-#endif
-
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 	ClearCamera(_cmdList, _camera);
 	ClearLight(_cmdList);
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::BeginFrame])
 
 	// close command list and execute
 	ExecuteCmdList(_cmdList);
@@ -282,21 +279,23 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 
 void ForwardRenderingPath::PrePassWork(Camera* _camera)
 {
+	auto _cmdList = currFrameResource->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
+
 	workerType = WorkerType::PrePassRendering;
 	WakeAndWaitWorker();
 
-	// resolve depth for shadow mapping
-	auto _cmdList = currFrameResource->mainGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
-
+	// resolve depth for other application
 	if (_camera->GetCameraData()->allowMSAA > 1)
 	{
 		ResolveDepthBuffer(_cmdList, _camera);
 	}
 
-	// draw transparent depth, useful for shadow mapping or light culling
+	// draw transparent depth, useful for other application
 	DrawTransparentDepth(_cmdList, _camera);
 
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::PrepassWork])
 	ExecuteCmdList(_cmdList);
 }
 
@@ -349,6 +348,7 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 	// use pre gfx list
 	auto _cmdList = currFrameResource->mainGfxList;
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 
 	// bind root signature
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
@@ -397,6 +397,7 @@ void ForwardRenderingPath::RayTracingShadow(Light* _light)
 
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingShadow])
 	ExecuteCmdList(_cmdList);
 }
 
@@ -420,6 +421,11 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
 	// update camera constant
 	CameraData* camData = _camera->GetCameraData();
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
+
+	if (workerType == WorkerType::OpaqueRendering || workerType == WorkerType::CutoffRendering)
+	{
+		GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
+	}
 
 	// bind
 	auto rtv = (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv() : &_camera->GetRtv();
@@ -753,6 +759,15 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 	}
 
 	// close command list and execute
+	if (!_cutout)
+	{
+		GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeOpaque[_threadIndex])
+	}
+	else
+	{
+		GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeCutout[_threadIndex])
+	}
+
 	ExecuteCmdList(_cmdList);
 }
 
@@ -771,6 +786,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	// reset cmdlist
 	auto _cmdList = currFrameResource->mainGfxList;
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 
 	// bind descriptor
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
@@ -804,6 +820,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
 
 	// execute
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::SkyboxPass])
 	ExecuteCmdList(_cmdList);
 }
 
@@ -812,6 +829,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 	// get frame resource, reuse BeginFrame's list
 	auto _cmdList = currFrameResource->mainGfxList;
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 
 	// bind descriptor heap, only need to set once, changing descriptor heap isn't good
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
@@ -862,6 +880,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 	}
 
 	// close command list and execute
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::TransparentPass])
 	ExecuteCmdList(_cmdList);
 }
 
@@ -878,6 +897,7 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 
 	CameraData* camData = _camera->GetCameraData();
 	auto _cmdList = currFrameResource->mainGfxList;
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 
 	if (camData->allowMSAA > 1)
 	{
@@ -887,24 +907,9 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 	// copy rendering result
 	CopyRenderResult(_cmdList, _camera);
 
-#if defined(GRAPHICTIME)
-	// timer end
-	_cmdList->EndQuery(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 1);
-	_cmdList->ResolveQueryData(GraphicManager::Instance().GetGpuTimeQuery(), D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, GraphicManager::Instance().GetGpuTimeResult(), 0);
-#endif
-
 	// close command list and execute
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::EndFrame])
 	ExecuteCmdList(_cmdList);
-
-#if defined(GRAPHICTIME)
-	uint64_t* pRes;
-	LogIfFailedWithoutHR(GraphicManager::Instance().GetGpuTimeResult()->Map(0, nullptr, reinterpret_cast<void**>(&pRes)));
-	uint64_t t1 = pRes[0];
-	uint64_t t2 = pRes[1];
-	GraphicManager::Instance().GetGpuTimeResult()->Unmap(0, nullptr);
-
-	GameTimerManager::Instance().gameTime.gpuTime = static_cast<double>(t2 - t1) / static_cast<double>(GraphicManager::Instance().GetGpuFreq()) * 1000.0;
-#endif
 }
 
 void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)

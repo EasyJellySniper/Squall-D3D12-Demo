@@ -81,7 +81,6 @@ void GraphicManager::Release()
 
 	mainGraphicQueue.Reset();
 	gpuTimeQuery.Reset();
-	gpuTimeResult.Reset();
 
 	rayTracingCmd.Reset();
 	rayTracingDevice.Reset();
@@ -128,13 +127,6 @@ HRESULT GraphicManager::CreateGpuTimeQuery()
 	queryDesc.Count = 2;
 
 	LogIfFailed(mainDevice->CreateQueryHeap(&queryDesc, IID_PPV_ARGS(&gpuTimeQuery)), hr);
-	
-	LogIfFailed(mainDevice->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK)
-		, D3D12_HEAP_FLAG_NONE
-		, &CD3DX12_RESOURCE_DESC::Buffer(2 * sizeof(uint64_t))
-		, D3D12_RESOURCE_STATE_COPY_DEST
-		, nullptr
-		, IID_PPV_ARGS(&gpuTimeResult)), hr);
 #endif
 
 	return hr;
@@ -287,7 +279,6 @@ void GraphicManager::DrawCamera()
 	GameTimerManager::Instance().gameTime.cullingTime = 0.0;
 	GameTimerManager::Instance().gameTime.sortingTime = 0.0;
 	GameTimerManager::Instance().gameTime.renderTime = 0.0;
-	GameTimerManager::Instance().gameTime.gpuTime = 0.0f;
 	for (int i = 0; i < numOfLogicalCores - 1; i++)
 	{
 		GameTimerManager::Instance().gameTime.renderThreadTime[i] = 0.0;
@@ -384,11 +375,6 @@ ID3D12GraphicsCommandList5* GraphicManager::GetDxrList()
 ID3D12QueryHeap * GraphicManager::GetGpuTimeQuery()
 {
 	return gpuTimeQuery.Get();
-}
-
-ID3D12Resource * GraphicManager::GetGpuTimeResult()
-{
-	return gpuTimeResult.Get();
 }
 
 UINT GraphicManager::GetRtvDesciptorSize()

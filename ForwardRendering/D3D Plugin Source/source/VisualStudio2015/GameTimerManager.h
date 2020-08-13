@@ -8,11 +8,15 @@ struct GameTime
 {
 	double updateTime;
 	double renderTime;
-	double gpuTime;
 	double cullingTime;
 	double sortingTime;
 	int batchCount[MAX_WORKER_THREAD_COUNT];
 	double renderThreadTime[MAX_WORKER_THREAD_COUNT];
+};
+
+enum GpuTimeType
+{
+	BeginFrame = 0, PrepassWork, RayTracingShadow, SkyboxPass, TransparentPass, EndFrame, Count
 };
 
 class GameTimerManager
@@ -25,7 +29,9 @@ public:
 
 	GameTimerManager() {}
 	~GameTimerManager() {}
-
+	void Init();
+	void Release();
+	void CalcGpuTime();
 
 	static GameTimerManager& Instance()
 	{
@@ -39,5 +45,12 @@ public:
 	GameTime gameTime;
 	chrono::steady_clock::time_point lastTime;
 	double profileTime = 0.0;
+	ComPtr<ID3D12Resource> gpuTimeResult[GpuTimeType::Count];
+	ComPtr<ID3D12Resource> gpuTimeOpaque[MAX_WORKER_THREAD_COUNT];
+	ComPtr<ID3D12Resource> gpuTimeCutout[MAX_WORKER_THREAD_COUNT];
+	double gpuTimeMs[GpuTimeType::Count];
+	double gpuTimeOpaqueMs;
+	double gpuTimeCutoutMs;
+	double totalGpuMs;
 #endif
 };

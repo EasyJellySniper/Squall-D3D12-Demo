@@ -81,9 +81,17 @@ void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
 
     // to world pos
     float3 wpos = DepthToWorldPos(depth, float4(_ScreenUV, 0, 1));
+    float distToCam = length(_CameraPos - wpos);
 
     // setup ray, trace for main dir light
     SqLight mainLight = _SqDirLight[0];
+
+    [branch]
+    if (distToCam > mainLight.cascadeDist[0])
+    {
+        // save ray if distance is too far
+        return;
+    }
 
     RayDesc ray;
     ray.Origin = wpos;

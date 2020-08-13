@@ -76,6 +76,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	}
 
 	initSucceed = GraphicManager::Instance().Initialize(mainDevice, _numOfThreads);
+	GameTimerManager::Instance().Init();
 	MeshManager::Instance().Init();
 	RendererManager::Instance().Init();
 	MaterialManager::Instance().Init();
@@ -95,6 +96,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 void RenderAPI_D3D12::ReleaseResources()
 {
 	GraphicManager::Instance().Release();
+	GameTimerManager::Instance().Release();
 	CameraManager::Instance().Release();
 	MeshManager::Instance().Release();
 	MaterialManager::Instance().Release();
@@ -125,6 +127,7 @@ void RenderAPI_D3D12::OnRender()
 	GraphicManager::Instance().Render();
 
 #if defined(GRAPHICTIME)
+	GameTimerManager::Instance().CalcGpuTime();
 	GameTimerManager::Instance().PrintGameTime();
 #endif
 }

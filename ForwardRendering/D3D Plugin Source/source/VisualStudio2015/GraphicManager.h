@@ -57,7 +57,6 @@ public:
 	ID3D12Device5* GetDxrDevice();
 	ID3D12GraphicsCommandList5* GetDxrList();
 	ID3D12QueryHeap *GetGpuTimeQuery();
-	ID3D12Resource *GetGpuTimeResult();
 	UINT GetRtvDesciptorSize();
 	UINT GetDsvDesciptorSize();
 	UINT GetCbvSrvUavDesciptorSize();
@@ -94,7 +93,6 @@ private:
 
 	// for gpu time measure
 	ComPtr<ID3D12QueryHeap> gpuTimeQuery;
-	ComPtr<ID3D12Resource> gpuTimeResult;
 	UINT64 gpuFreq;
 
 	// render thread

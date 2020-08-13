@@ -34,10 +34,18 @@ x += elapsedTime; \
 
 #define GRAPHIC_BATCH_ADD(x) x += 1;
 
+#define GPU_TIMER_START(x,y) \
+x->EndQuery(y, D3D12_QUERY_TYPE_TIMESTAMP, 0); \
+
+#define GPU_TIMER_STOP(x,y,z) \
+x->EndQuery(y, D3D12_QUERY_TYPE_TIMESTAMP, 1); \
+x->ResolveQueryData(y, D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, z.Get(), 0); \
+
 #else
 // null define
 #define GRAPHIC_TIMER_START
 #define GRAPHIC_TIMER_STOP(x)
 #define GRAPHIC_TIMER_STOP_ADD(x)
 #define GRAPHIC_BATCH_ADD(x)
+#define GPU_TIMER_START(x,y)
 #endif
