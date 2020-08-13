@@ -17,7 +17,10 @@ GlobalRootSignature RTShadowRootSig =
     "CBV( b1 ),"                        // system constant
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 ),"              // sqlight
-    "DescriptorTable( SRV( t0 , numDescriptors = unbounded) )"     // tex table
+    "DescriptorTable( SRV( t0 , numDescriptors = unbounded, flags = DESCRIPTORS_VOLATILE) ),"     // tex table
+    "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 3, flags = DESCRIPTORS_VOLATILE) ),"    //vertex start
+    "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
+    "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) )"
 };
 
 LocalRootSignature RTShadowRootSigLocal =
@@ -59,8 +62,8 @@ RaytracingAccelerationStructure _SceneAS : register(t0, space2);
 RWTexture2D<float4> _OutputShadow : register(u0);
 
 // bind vb/ib. be careful we use the same heap with texture, indexing to correct address is important
-StructuredBuffer<VertexInput> _VertexBuffer[] : register(t0);
-StructuredBuffer<IndexInput> _IndexBuffer[] : register(t0);
+StructuredBuffer<VertexInput> _VertexBuffer[] : register(t0, space3);
+StructuredBuffer<IndexInput> _IndexBuffer[] : register(t0, space4);
 
 void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
 {
@@ -163,7 +166,7 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
         uvHit = uvHit * _MainTex_ST.xy + _MainTex_ST.zw;
 
         // clip shadow
-        float alpha = _TexTable[_DiffuseIndex].Load(uint3(0,0,0)).a * _Color.a;
+        float alpha = _TexTable[_DiffuseIndex].SampleLevel(_SamplerTable[_SamplerIndex], uvHit, 0).a * _Color.a;
         payload.atten = lerp(1.0f, payload.atten, alpha >= _CutOff);
     }
 }
