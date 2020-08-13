@@ -17,7 +17,7 @@ GlobalRootSignature RTShadowRootSig =
     "CBV( b1 ),"                        // system constant
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 ),"              // sqlight
-    "DescriptorTable( SRV( t0 , numDescriptors = unbounded) ),"     // tex table
+    "DescriptorTable( SRV( t0 , numDescriptors = unbounded) )"     // tex table
 };
 
 LocalRootSignature RTShadowRootSigLocal =
@@ -94,8 +94,30 @@ void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
     payload.atten = lerp(1, payload.atten, mainLight.color.a);
 
     // output shadow
-    float currAtten = _OutputShadow[DispatchRaysIndex().xy];
+    float currAtten = _OutputShadow[DispatchRaysIndex().xy].r;
     _OutputShadow[DispatchRaysIndex().xy] = min(payload.atten, currAtten);
+}
+
+float2 GetHitUV(uint pIdx, uint vertID, BuiltInTriangleIntersectionAttributes attr)
+{
+    uint indexID = vertID + 1;
+
+    // get indices
+    uint indice[3];
+    indice[0] = _IndexBuffer[indexID][pIdx].index;
+    indice[1] = _IndexBuffer[indexID][pIdx + 1].index;
+    indice[2] = _IndexBuffer[indexID][pIdx + 2].index;
+
+    // get uv
+    float2 uv[3];
+    uv[0] = _VertexBuffer[vertID][indice[0]].uv1;
+    uv[1] = _VertexBuffer[vertID][indice[1]].uv1;
+    uv[2] = _VertexBuffer[vertID][indice[2]].uv1;
+
+    // interpolate uv according to barycentric coordinate
+    return uv[0] +
+        attr.barycentrics.x * (uv[1] - uv[0]) +
+        attr.barycentrics.y * (uv[2] - uv[0]);
 }
 
 [shader("raygeneration")]
@@ -119,12 +141,30 @@ void RTShadowRayGen()
 [shader("closesthit")]
 void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // hit, set shadow atten
-    payload.atten = 0.0f;
-
+    // transparent, use invert alpha as shadow atten
     if (payload.isTransparent > 0)
     {
         payload.atten = 1 - _Color.a;
+        return;
+    }
+
+    // opaque shadow
+    payload.atten = 0.0f;
+
+    // cutoff
+    if (_CutOff > 0)
+    {
+        // get primitive index
+        uint pIdx = PrimitiveIndex();
+        uint vertID = InstanceID();
+
+        // get interpolated uv and tiling it
+        float2 uvHit = GetHitUV(pIdx, vertID, attr);
+        uvHit = uvHit * _MainTex_ST.xy + _MainTex_ST.zw;
+
+        // clip shadow
+        float alpha = _TexTable[_DiffuseIndex].Load(uint3(0,0,0)).a * _Color.a;
+        payload.atten = lerp(1.0f, payload.atten, alpha >= _CutOff);
     }
 }
 

@@ -8,11 +8,12 @@ struct VertexInput
 	float4 tangent : TANGENT;
 	float2 uv1 : TEXCOORD0;
 	float2 uv2 : TEXCOORD1;
+	float2 uv3 : TEXCOORD2;	// for padding to 32bytes multipier
 };
 
 struct IndexInput
 {
-	int index;
+	uint index;
 };
 
 struct SqLight
