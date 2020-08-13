@@ -19,6 +19,7 @@ struct SubMesh
     /// start vertex
     /// </summary>
     public int BaseVertexLocation;
+    public float padding;
 };
 
 struct MeshData

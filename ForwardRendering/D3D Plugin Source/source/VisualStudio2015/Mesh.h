@@ -13,6 +13,7 @@ struct SubMesh
 	unsigned int IndexCountPerInstance;
 	unsigned int StartIndexLocation;
 	int BaseVertexLocation;
+	float padding;
 };
 
 struct MeshData
