@@ -1,7 +1,7 @@
 #define CollectShadowRS "CBV(b1)," \
 "SRV(t0, space = 1)," \
-"DescriptorTable(SRV(t0, numDescriptors=4))," \
-"DescriptorTable(SRV(t4, numDescriptors=1))," \
+"DescriptorTable(SRV(t0, numDescriptors=4,space=2))," \
+"DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
 "DescriptorTable(Sampler(s0))"
 
 #include "SqInput.hlsl"
@@ -26,8 +26,7 @@ static const float2 gTexCoords[6] =
 };
 
 // shadow map, up to 4 cascades, 1st entry is camera's depth
-Texture2D _ShadowMap[4] : register(t0);
-Texture2D _DepthMap : register(t4);
+Texture2D _ShadowMap[4] : register(t0, space2);
 SamplerComparisonState _ShadowSampler : register(s0);
 
 v2f CollectShadowVS(uint vid : SV_VertexID)
@@ -121,7 +120,7 @@ float ShadowPCF5x5(uint cascade, float4 coord, float texelSize)
 [RootSignature(CollectShadowRS)]
 float4 CollectShadowPS(v2f i) : SV_Target
 {
-    float depth = _DepthMap.Load(uint3(i.vertex.xy, 0)).r;
+    float depth = _TexTable[_TransDepthIndex].Load(uint3(i.vertex.xy, 0)).r;
 
     [branch]
     if (depth == 0.0f)

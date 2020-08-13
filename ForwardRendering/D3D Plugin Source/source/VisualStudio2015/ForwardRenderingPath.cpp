@@ -1009,7 +1009,7 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootShaderResourceView(1, LightManager::Instance().GetDirLightGPU(frameIndex, _id));
 	_cmdList->SetGraphicsRootDescriptorTable(2, _light->GetShadowSrv());
-	_cmdList->SetGraphicsRootDescriptorTable(3, targetCam->GetTransDepthSrv());
+	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(4, LightManager::Instance().GetShadowSampler());
 
 	_cmdList->DrawInstanced(6, 1, 0, 0);

@@ -248,18 +248,6 @@ D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetMsaaSrv()
 	return handle;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetOpaqueDepthSrv()
-{
-	CD3DX12_GPU_DESCRIPTOR_HANDLE tHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), opaqueDepthSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
-	return tHandle;
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetTransDepthSrv()
-{
-	CD3DX12_GPU_DESCRIPTOR_HANDLE tHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), transDepthSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
-	return tHandle;
-}
-
 void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)
 {
 	// data from unity is column major, while d3d matrix use row major
