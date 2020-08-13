@@ -67,26 +67,20 @@ StructuredBuffer<VertexInput> _Vertices[] : register(t0, space3);
 ByteAddressBuffer _Indices[] : register(t0, space4);
 StructuredBuffer<SubMesh> _SubMesh : register(t0, space5);
 
-void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
+void ShootRayFromDepth(float _Depth, float2 _ScreenUV)
 {
-    // depth
-    float depth = _DepthMap.Load(uint3(DispatchRaysIndex().xy, 0)).r;
-
-    [branch]
-    if (depth == 0.0f)
+    if (_Depth == 0.0f)
     {
         // early out
         return;
     }
 
     // to world pos
-    float3 wpos = DepthToWorldPos(depth, float4(_ScreenUV, 0, 1));
+    float3 wpos = DepthToWorldPos(_Depth, float4(_ScreenUV, 0, 1));
     float distToCam = length(_CameraPos - wpos);
 
     // setup ray, trace for main dir light
     SqLight mainLight = _SqDirLight[0];
-
-    [branch]
     if (distToCam > mainLight.cascadeDist[0])
     {
         // save ray if distance is too far
@@ -175,8 +169,15 @@ void RTShadowRayGen()
     screenUV.y = 1 - screenUV.y;
     screenUV = screenUV * 2.0f - 1.0f;
 
-    ShootRayFromDepth(_TexTable[_DepthIndex], screenUV);
-    ShootRayFromDepth(_TexTable[_TransDepthIndex], screenUV);
+    // shoot ray according to depth
+    float opaqueDepth = _TexTable[_DepthIndex].Load(uint3(DispatchRaysIndex().xy, 0)).r;
+    float transDepth = _TexTable[_TransDepthIndex].Load(uint3(DispatchRaysIndex().xy, 0)).r;
+
+    ShootRayFromDepth(opaqueDepth, screenUV);
+
+    // shoot ray for transparent object if necessary
+    if (opaqueDepth != transDepth)
+        ShootRayFromDepth(transDepth, screenUV);
 }
 
 [shader("closesthit")]
