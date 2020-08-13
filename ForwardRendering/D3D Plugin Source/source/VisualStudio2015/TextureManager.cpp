@@ -175,6 +175,13 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 			srvDesc.Buffer.NumElements = texInfo.numElement;
 			srvDesc.Buffer.StructureByteStride = texInfo.numStride;
 			srvDesc.Buffer.FirstElement = 0;
+
+			if (texInfo.numStride == 0)
+			{
+				srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+				srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+				srvDesc.Buffer.NumElements = texInfo.numElement / 4;
+			}
 		}
 
 		GraphicManager::Instance().GetDevice()->CreateShaderResourceView(_texture.GetResource(), &srvDesc, hTexture);

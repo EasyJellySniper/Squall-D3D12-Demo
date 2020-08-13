@@ -11,11 +11,6 @@ struct VertexInput
 	float2 uv3 : TEXCOORD2;	// for padding to 32bytes multipier
 };
 
-struct IndexInput
-{
-	uint index;
-};
-
 struct SqLight
 {
 	// up to 4 cascade
