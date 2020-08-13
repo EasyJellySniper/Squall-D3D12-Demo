@@ -136,8 +136,7 @@ public class SqMeshFilter : MonoBehaviour
         // float3 position (12 bytes) 
         // float3 normal (12 bytes) 
         // float4 tangent (16 bytes)
-        // float2 uv(8 bytes)
-        // float2 uv2(8 bytes)
+        // float2 uv~uv3(24 bytes)
         // it's good to share this layout for rendering
         // so that we can reduce the changing of pipeline state object
 
@@ -175,9 +174,9 @@ public class SqMeshFilter : MonoBehaviour
             _mesh.uv2 = new Vector2[_mesh.vertexCount];
         }
 
-        if (_mesh.uv3.Length > 0)
+        if (_mesh.uv3.Length == 0)
         {
-            _mesh.uv3 = null;
+            _mesh.uv3 = new Vector2[_mesh.vertexCount];
         }
 
         if (_mesh.uv4.Length > 0)
@@ -190,8 +189,8 @@ public class SqMeshFilter : MonoBehaviour
             _mesh.tangents = new Vector4[_mesh.vertexCount];
         }
 
-        // force to alignment to 56 bytes
-        _stride = 56;
-        _size = (uint)(56 * _mesh.vertexCount);
+        // force to alignment to 64 bytes
+        _stride = 64;
+        _size = (uint)(64 * _mesh.vertexCount);
     }
 }

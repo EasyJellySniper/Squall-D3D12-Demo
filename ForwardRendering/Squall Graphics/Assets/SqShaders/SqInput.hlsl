@@ -10,6 +10,11 @@ struct VertexInput
 	float2 uv2 : TEXCOORD1;
 };
 
+struct IndexInput
+{
+	int index;
+};
+
 struct SqLight
 {
 	// up to 4 cascade

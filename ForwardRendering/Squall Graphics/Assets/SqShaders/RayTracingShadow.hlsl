@@ -58,6 +58,10 @@ struct RayPayload
 RaytracingAccelerationStructure _SceneAS : register(t0, space2);
 RWTexture2D<float4> _OutputShadow : register(u0);
 
+// bind vb/ib. be careful we use the same heap with texture, indexing to correct address is important
+StructuredBuffer<VertexInput> _VertexBuffer[] : register(t0);
+StructuredBuffer<IndexInput> _IndexBuffer[] : register(t0);
+
 void ShootRayFromDepth(Texture2D _DepthMap, float2 _ScreenUV)
 {
     // depth
