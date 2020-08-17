@@ -244,9 +244,6 @@ void ForwardRenderingPath::ShadowWork()
 			workerType = WorkerType::ShadowRendering;
 			WakeAndWaitWorker();
 		}
-
-		// collect shadow
-		CollectShadow(&dirLights[i], i);
 	}
 
 	// ray tracing shadow
@@ -765,56 +762,4 @@ void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList,
 
 	// reset render target state
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
-}
-
-void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
-{
-	auto _cmdList = currFrameResource->mainGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
-
-	// collect shadow
-	SqLightData* sld = _light->GetLightData();
-
-	D3D12_RESOURCE_BARRIER collect[6];
-
-	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	for (int i = 2; i < sld->numCascade + 2; i++)
-	{
-		collect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	}
-	_cmdList->ResourceBarrier(2 + sld->numCascade, collect);
-
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() , TextureManager::Instance().GetSamplerHeap() };
-	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
-
-	// set target
-	_cmdList->OMSetRenderTargets(1, &LightManager::Instance().GetCollectShadowRtv(), true, nullptr);
-	_cmdList->RSSetViewports(1, &targetCam->GetViewPort());
-	_cmdList->RSSetScissorRects(1, &targetCam->GetScissorRect());
-	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	// set material
-	_cmdList->SetPipelineState(LightManager::Instance().GetCollectShadow()->GetPSO());
-	_cmdList->SetGraphicsRootSignature(LightManager::Instance().GetCollectShadow()->GetRootSignature());
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootShaderResourceView(1, LightManager::Instance().GetDirLightGPU(frameIndex, _id));
-	_cmdList->SetGraphicsRootDescriptorTable(2, _light->GetShadowSrv());
-	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(4, LightManager::Instance().GetShadowSampler());
-
-	_cmdList->DrawInstanced(6, 1, 0, 0);
-	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
-
-	// transition to common
-	D3D12_RESOURCE_BARRIER finishCollect[6];
-	finishCollect[0] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
-	finishCollect[1] = CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	for (int i = 2; i < sld->numCascade + 2; i++)
-	{
-		finishCollect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
-	}
-	_cmdList->ResourceBarrier(2 + sld->numCascade, finishCollect);
-
-	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }

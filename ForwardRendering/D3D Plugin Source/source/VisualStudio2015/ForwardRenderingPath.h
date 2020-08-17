@@ -62,7 +62,6 @@ private:
 	void DrawTransparentPass(Camera* _camera);
 	void EndFrame(Camera* _camera);
 	void CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
-	void CollectShadow(Light* _light, int _id);
 
 	Camera* targetCam;
 	Light* currLight;

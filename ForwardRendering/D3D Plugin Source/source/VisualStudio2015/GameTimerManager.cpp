@@ -116,6 +116,7 @@ void GameTimerManager::PrintGameTime()
 		cout << "GPU Time: " << totalGpuMs << endl;
 		cout << "Begin Frame (Clear Target) : " << gpuTimeMs[GpuTimeType::BeginFrame] << endl;
 		cout << "Prepass Work (Depth) : " << gpuTimeMs[GpuTimeType::PrepassWork] << endl;
+		cout << "Collect Shadow Map: " << gpuTimeMs[GpuTimeType::CollectShadowMap] << endl;
 		cout << "Ray Tracing Shadow : " << gpuTimeMs[GpuTimeType::RayTracingShadow] << endl;
 		cout << "Skybox : " << gpuTimeMs[GpuTimeType::SkyboxPass] << endl;
 		cout << "Forward Transparent: " << gpuTimeMs[GpuTimeType::TransparentPass] << endl;

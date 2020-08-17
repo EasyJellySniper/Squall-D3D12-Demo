@@ -116,11 +116,16 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 
 void LightManager::ShadowWork(Camera* _targetCam)
 {
-	for (int i = 0; i < maxDirLight; i++)
+	for (int i = 0; i < GetNumDirLights(); i++)
 	{
 		if (!dirLights[i].HasShadowMap())
 		{
 			RayTracingShadow(_targetCam, &dirLights[i]);
+		}
+		else
+		{
+			// collect shadow
+			CollectShadowMap(_targetCam , &dirLights[i], i);
 		}
 	}
 }
@@ -181,6 +186,61 @@ void LightManager::RayTracingShadow(Camera* _targetCam, Light* _light)
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingShadow])
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
+}
+
+void LightManager::CollectShadowMap(Camera *_targetCam, Light* _light, int _id)
+{
+	auto currFrameResource = GraphicManager::Instance().GetFrameResource();
+	auto _cmdList = currFrameResource->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
+
+	// collect shadow
+	SqLightData* sld = _light->GetLightData();
+
+	D3D12_RESOURCE_BARRIER collect[6];
+
+	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	for (int i = 2; i < sld->numCascade + 2; i++)
+	{
+		collect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	}
+	_cmdList->ResourceBarrier(2 + sld->numCascade, collect);
+
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() , TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	// set target
+	_cmdList->OMSetRenderTargets(1, &LightManager::Instance().GetCollectShadowRtv(), true, nullptr);
+	_cmdList->RSSetViewports(1, &_targetCam->GetViewPort());
+	_cmdList->RSSetScissorRects(1, &_targetCam->GetScissorRect());
+	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// set material
+	_cmdList->SetPipelineState(LightManager::Instance().GetCollectShadow()->GetPSO());
+	_cmdList->SetGraphicsRootSignature(LightManager::Instance().GetCollectShadow()->GetRootSignature());
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
+	_cmdList->SetGraphicsRootShaderResourceView(1, LightManager::Instance().GetDirLightGPU(currFrameResource->currFrameIndex, _id));
+	_cmdList->SetGraphicsRootDescriptorTable(2, _light->GetShadowSrv());
+	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(4, LightManager::Instance().GetShadowSampler());
+
+	_cmdList->DrawInstanced(6, 1, 0, 0);
+	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
+
+	// transition to common
+	D3D12_RESOURCE_BARRIER finishCollect[6];
+	finishCollect[0] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+	finishCollect[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	for (int i = 2; i < sld->numCascade + 2; i++)
+	{
+		finishCollect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
+	}
+	_cmdList->ResourceBarrier(2 + sld->numCascade, finishCollect);
+
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::CollectShadowMap])
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
