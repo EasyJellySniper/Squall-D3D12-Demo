@@ -53,6 +53,7 @@ public:
 	bool Initialize(CameraData _cameraData);
 	void Release();
 	void ClearCamera(ID3D12GraphicsCommandList* _cmdList);
+	void ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx);
 
 	CameraData *GetCameraData();
 	ID3D12Resource* GetResultSrc();
@@ -83,7 +84,7 @@ public:
 	float GetFarZ();
 	float GetNearZ();
 	Material *GetPipelineMaterial(MaterialType _type, CullMode _cullMode);
-	Material* GetPostMaterial();
+	Material* GetResolveDepthMaterial();
 	RenderMode GetRenderMode();
 	bool FrustumTest(BoundingBox _bound);
 	Shader* GetFallbackShader();

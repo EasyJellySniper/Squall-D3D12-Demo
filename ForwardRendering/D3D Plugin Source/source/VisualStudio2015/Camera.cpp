@@ -206,6 +206,31 @@ void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList)
 	_cmdList->ClearDepthStencilView(hDsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
 }
 
+void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx)
+{
+	// prepare to resolve
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
+	// bind resolve depth pipeline
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() };
+	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
+
+	_cmdList->OMSetRenderTargets(0, nullptr, true, &GetDsv());
+	_cmdList->RSSetViewports(1, &GetViewPort());
+	_cmdList->RSSetScissorRects(1, &GetScissorRect());
+	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	_cmdList->SetPipelineState(GetResolveDepthMaterial()->GetPSO());
+	_cmdList->SetGraphicsRootSignature(GetResolveDepthMaterial()->GetRootSignature());
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootDescriptorTable(1, GetMsaaSrv());
+
+	_cmdList->DrawInstanced(6, 1, 0, 0);
+	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
+
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
+}
+
 CameraData *Camera::GetCameraData()
 {
 	return &cameraData;
@@ -365,7 +390,7 @@ Material *Camera::GetPipelineMaterial(MaterialType _type, CullMode _cullMode)
 	return &pipelineMaterials[_type][_cullMode];
 }
 
-Material* Camera::GetPostMaterial()
+Material* Camera::GetResolveDepthMaterial()
 {
 	return &resolveDepthMaterial;
 }

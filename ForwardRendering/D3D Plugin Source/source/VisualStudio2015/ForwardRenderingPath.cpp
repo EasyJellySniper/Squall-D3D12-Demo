@@ -216,10 +216,7 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 	WakeAndWaitWorker();
 
 	// resolve depth for other application
-	if (_camera->GetCameraData()->allowMSAA > 1)
-	{
-		ResolveDepthBuffer(_cmdList, _camera);
-	}
+	_camera->ResolveDepthBuffer(_cmdList, frameIndex);
 
 	// draw transparent depth, useful for other application
 	DrawTransparentDepth(_cmdList, _camera);
@@ -859,33 +856,6 @@ void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdLis
 	_cmdList->ResourceBarrier(2, resolveColor);
 	_cmdList->ResolveSubresource(_camera->GetRtvSrc(), 0, _camera->GetMsaaRtvSrc(), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	_cmdList->ResourceBarrier(2, finishResolve);
-}
-
-void ForwardRenderingPath::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
-{
-	CameraData* camData = _camera->GetCameraData();
-
-	// prepare to resolve
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-
-	// bind resolve depth pipeline
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() };
-	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
-
-	_cmdList->OMSetRenderTargets(0, nullptr, true, &_camera->GetDsv());
-	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
-	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
-	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	_cmdList->SetPipelineState(_camera->GetPostMaterial()->GetPSO());
-	_cmdList->SetGraphicsRootSignature(_camera->GetPostMaterial()->GetRootSignature());
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(1, _camera->GetMsaaSrv());
-
-	_cmdList->DrawInstanced(6, 1, 0, 0);
-	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
-
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON));
 }
 
 void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
