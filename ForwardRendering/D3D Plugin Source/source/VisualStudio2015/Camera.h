@@ -52,6 +52,7 @@ public:
 
 	bool Initialize(CameraData _cameraData);
 	void Release();
+	void ClearCamera(ID3D12GraphicsCommandList* _cmdList);
 
 	CameraData *GetCameraData();
 	ID3D12Resource* GetResultSrc();

@@ -185,53 +185,12 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 	auto _cmdList = currFrameResource->mainGfxList;
 
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
-	ClearCamera(_cmdList, _camera);
-	ClearLight(_cmdList);
+	_camera->ClearCamera(_cmdList);
+	LightManager::Instance().ClearLight(_cmdList);
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::BeginFrame])
 
 	// close command list and execute
 	ExecuteCmdList(_cmdList);
-}
-
-void ForwardRenderingPath::ClearCamera(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
-{
-	CameraData* camData = _camera->GetCameraData();
-	auto rtvSrc = (camData->allowMSAA > 1) ? _camera->GetMsaaRtvSrc() : _camera->GetRtvSrc();
-	auto dsvSrc = (camData->allowMSAA > 1) ? _camera->GetMsaaDsvSrc() : _camera->GetCameraDepth();
-	auto hRtv = (camData->allowMSAA > 1) ? _camera->GetMsaaRtv() : _camera->GetRtv();
-	auto hDsv = (camData->allowMSAA > 1) ? _camera->GetMsaaDsv() : _camera->GetDsv();
-
-	// transition render buffer
-	D3D12_RESOURCE_BARRIER clearBarrier[2];
-	clearBarrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(rtvSrc, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	clearBarrier[1] = CD3DX12_RESOURCE_BARRIER::Transition(dsvSrc, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-	_cmdList->ResourceBarrier(2, clearBarrier);
-
-	// clear render target view and depth view (reversed-z)
-	_cmdList->ClearRenderTargetView(hRtv, camData->clearColor, 0, nullptr);
-	_cmdList->ClearDepthStencilView(hDsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
-}
-
-void ForwardRenderingPath::ClearLight(ID3D12GraphicsCommandList* _cmdList)
-{
-	auto dirLights = LightManager::Instance().GetDirLights();
-	int numDirLight = LightManager::Instance().GetNumDirLights();
-
-	for (int i = 0; i < numDirLight; i++)
-	{
-		SqLightData *sld = dirLights[i].GetLightData();
-
-		for (int j = 0; j < sld->numCascade; j++)
-		{
-			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(dirLights[i].GetShadowDsvSrc(j), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-			_cmdList->ClearDepthStencilView(dirLights[i].GetShadowDsv(j), D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
-		}
-	}
-
-	// clear target
-	FLOAT c[] = { 1,1,1,1 };
-	_cmdList->ClearRenderTargetView(LightManager::Instance().GetCollectShadowRtv(), c, 0, nullptr);
 }
 
 void ForwardRenderingPath::UploadWork(Camera *_camera)

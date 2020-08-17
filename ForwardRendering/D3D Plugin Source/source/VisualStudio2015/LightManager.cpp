@@ -92,6 +92,27 @@ void LightManager::Release()
 	rayTracingShadow.reset();
 }
 
+void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
+{
+	auto dirLights = GetDirLights();
+	int numDirLight = GetNumDirLights();
+
+	for (int i = 0; i < numDirLight; i++)
+	{
+		SqLightData* sld = dirLights[i].GetLightData();
+
+		for (int j = 0; j < sld->numCascade; j++)
+		{
+			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(dirLights[i].GetShadowDsvSrc(j), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+			_cmdList->ClearDepthStencilView(dirLights[i].GetShadowDsv(j), D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
+		}
+	}
+
+	// clear target
+	FLOAT c[] = { 1,1,1,1 };
+	_cmdList->ClearRenderTargetView(LightManager::Instance().GetCollectShadowRtv(), c, 0, nullptr);
+}
+
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
 {
 	if (_data.type == LightType::Directional)

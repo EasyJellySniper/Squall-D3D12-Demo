@@ -29,6 +29,7 @@ public:
 	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, int _opaqueShadowID);
 	void InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void Release();
+	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
 
 	int AddNativeLight(int _instanceID, SqLightData _data);
 	void UpdateNativeLight(int _nativeID, SqLightData _data);

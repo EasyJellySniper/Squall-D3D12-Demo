@@ -46,8 +46,6 @@ private:
 	void FrustumCulling(int _threadIndex);
 	void ShadowCulling(Light* _light, int _cascade, int _threadIndex);
 	void BeginFrame(Camera* _camera);
-	void ClearCamera(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
-	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
 	void UploadWork(Camera* _camera);
 	void PrePassWork(Camera* _camera);
 	void ShadowWork();

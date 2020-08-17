@@ -187,6 +187,25 @@ void Camera::Release()
 	resolveDepthMaterial.Release();
 }
 
+void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList)
+{
+	auto rtvSrc = (cameraData.allowMSAA > 1) ? GetMsaaRtvSrc() : GetRtvSrc();
+	auto dsvSrc = (cameraData.allowMSAA > 1) ? GetMsaaDsvSrc() : GetCameraDepth();
+	auto hRtv = (cameraData.allowMSAA > 1) ? GetMsaaRtv() : GetRtv();
+	auto hDsv = (cameraData.allowMSAA > 1) ? GetMsaaDsv() : GetDsv();
+
+	// transition render buffer
+	D3D12_RESOURCE_BARRIER clearBarrier[2];
+	clearBarrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(rtvSrc, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	clearBarrier[1] = CD3DX12_RESOURCE_BARRIER::Transition(dsvSrc, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	_cmdList->ResourceBarrier(2, clearBarrier);
+
+	// clear render target view and depth view (reversed-z)
+	_cmdList->ClearRenderTargetView(hRtv, cameraData.clearColor, 0, nullptr);
+	_cmdList->ClearDepthStencilView(hDsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
+}
+
 CameraData *Camera::GetCameraData()
 {
 	return &cameraData;
