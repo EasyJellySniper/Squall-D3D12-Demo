@@ -1,6 +1,7 @@
 #pragma once
 #include "Camera.h"
 #include "Renderer.h"
+#include "Light.h"
 using namespace std;
 #include <map>
 
@@ -49,6 +50,8 @@ public:
 	void Release();
 	void SetNativeRendererActive(int _id, bool _active);
 	void SortWork(Camera* _camera);
+	void FrustumCulling(Camera* _camera, int _threadIdx);
+	void ShadowCulling(Light* _light, int _cascade, int _threadIndex);
 
 	vector<shared_ptr<Renderer>> &GetRenderers();
 	map<int, vector<QueueRenderer>>& GetQueueRenderers();

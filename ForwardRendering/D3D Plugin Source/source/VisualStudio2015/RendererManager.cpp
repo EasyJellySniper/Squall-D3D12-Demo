@@ -1,6 +1,7 @@
 #include "RendererManager.h"
 #include "Material.h"
 #include "MaterialManager.h"
+#include "GraphicManager.h"
 #include <algorithm>
 
 void RendererManager::Init()
@@ -180,6 +181,46 @@ void RendererManager::SortWork(Camera* _camera)
 			sort(qr.second.begin(), qr.second.end(), BackToFrontRender);
 		}
 	}
+}
+
+void RendererManager::FrustumCulling(Camera* _camera, int _threadIdx)
+{
+	auto numWorkerThreads = GraphicManager::Instance().GetThreadCount() - 1;
+	int count = (int)renderers.size() / numWorkerThreads + 1;
+	int start = _threadIdx * count;
+
+	for (int i = start; i <= start + count; i++)
+	{
+		if (i >= (int)renderers.size())
+		{
+			continue;
+		}
+
+		bool isVisible = _camera->FrustumTest(renderers[i]->GetBound());
+		renderers[i]->SetVisible(isVisible);
+	}
+}
+
+void RendererManager::ShadowCulling(Light* _light, int _cascade, int _threadIndex)
+{
+	GRAPHIC_TIMER_START
+	
+	auto numWorkerThreads = GraphicManager::Instance().GetThreadCount() - 1;
+	int count = (int)renderers.size() / numWorkerThreads + 1;
+	int start = _threadIndex * count;
+
+	for (int i = start; i <= start + count; i++)
+	{
+		if (i >= (int)renderers.size())
+		{
+			continue;
+		}
+
+		bool shadowVisible = _light->FrustumTest(renderers[i]->GetBound(), _cascade);
+		renderers[i]->SetShadowVisible(shadowVisible);
+	}
+
+	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
 }
 
 vector<shared_ptr<Renderer>>& RendererManager::GetRenderers()

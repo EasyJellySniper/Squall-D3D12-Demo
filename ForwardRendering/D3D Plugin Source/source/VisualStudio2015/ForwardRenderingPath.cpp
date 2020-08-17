@@ -162,42 +162,12 @@ void ForwardRenderingPath::WakeAndWaitWorker()
 
 void ForwardRenderingPath::FrustumCulling(int _threadIndex)
 {
-	auto renderers = RendererManager::Instance().GetRenderers();
-	int count = (int)renderers.size() / numWorkerThreads + 1;
-	int start = _threadIndex * count;
-
-	for (int i = start; i <= start + count; i++)
-	{
-		if (i >= (int)renderers.size())
-		{
-			continue;
-		}
-
-		bool isVisible = targetCam->FrustumTest(renderers[i]->GetBound());
-		renderers[i]->SetVisible(isVisible);
-	}
+	RendererManager::Instance().FrustumCulling(targetCam, _threadIndex);
 }
 
 void ForwardRenderingPath::ShadowCulling(Light* _light, int _cascade, int _threadIndex)
 {
-	GRAPHIC_TIMER_START
-
-	auto renderers = RendererManager::Instance().GetRenderers();
-	int count = (int)renderers.size() / numWorkerThreads + 1;
-	int start = _threadIndex * count;
-
-	for (int i = start; i <= start + count; i++)
-	{
-		if (i >= (int)renderers.size())
-		{
-			continue;
-		}
-
-		bool shadowVisible = _light->FrustumTest(renderers[i]->GetBound(), _cascade);
-		renderers[i]->SetShadowVisible(shadowVisible);
-	}
-
-	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
+	RendererManager::Instance().ShadowCulling(_light, _cascade, _threadIndex);
 }
 
 void ForwardRenderingPath::BeginFrame(Camera* _camera)
