@@ -180,7 +180,7 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::BeginFrame])
 
 	// close command list and execute
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::UploadWork(Camera *_camera)
@@ -212,7 +212,7 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 	DrawTransparentDepth(_cmdList, _camera);
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::PrepassWork])
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::ShadowWork()
@@ -250,71 +250,7 @@ void ForwardRenderingPath::ShadowWork()
 	}
 
 	// ray tracing shadow
-	for (int i = 0; i < numDirLights; i++)
-	{
-		if (!dirLights[i].HasShadowMap())
-		{
-			RayTracingShadow(&dirLights[i]);
-		}
-	}
-}
-
-void ForwardRenderingPath::RayTracingShadow(Light* _light)
-{
-	// use pre gfx list
-	auto _cmdList = currFrameResource->mainGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
-	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
-
-	// bind root signature
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
-	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
-
-	Material *mat = LightManager::Instance().GetRayShadow();
-	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
-
-	auto rayShadowSrc = LightManager::Instance().GetRayShadowSrc();
-	auto collectShadowSrc = LightManager::Instance().GetCollectShadowSrc();
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-
-	// set state
-	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
-	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
-	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootShaderResourceView(2, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(3, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
-	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(8, RayTracingManager::Instance().GetSubMeshInfoGPU());
-
-	// prepare dispatch desc
-	Camera* c = CameraManager::Instance().GetCamera();
-	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)c->GetViewPort().Width, (UINT)c->GetViewPort().Height);
-
-	// copy hit group identifier
-	MaterialManager::Instance().CopyHitGroupIdentifier(mat, frameIndex);
-
-	// setup hit group table
-	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(frameIndex);
-	dispatchDesc.HitGroupTable.StartAddress = hitGroup->Resource()->GetGPUVirtualAddress();
-	dispatchDesc.HitGroupTable.SizeInBytes = hitGroup->Resource()->GetDesc().Width;
-	dispatchDesc.HitGroupTable.StrideInBytes = hitGroup->Stride();
-
-	// dispatch rays
-	auto dxrCmd = GraphicManager::Instance().GetDxrList();
-	dxrCmd->SetPipelineState1(mat->GetDxcPSO());
-	dxrCmd->DispatchRays(&dispatchDesc);
-
-	// copy result, collect shadow will be used in pixel shader later
-	D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };
-	CopyResourceWithBarrier(_cmdList, rayShadowSrc, collectShadowSrc, before, before);
-
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-
-	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingShadow])
-	ExecuteCmdList(_cmdList);
+	LightManager::Instance().ShadowWork(targetCam);
 }
 
 void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _threadIndex)
@@ -481,7 +417,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
 	}
 
 	// close command list and execute
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
@@ -527,7 +463,7 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 	}
 
 	// close command list and execute
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
@@ -535,7 +471,7 @@ void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdL
 	// copy resolved depth to transparent depth
 	D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_COMMON };
 	D3D12_RESOURCE_STATES after[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_DEPTH_WRITE };
-	CopyResourceWithBarrier(_cmdList, _camera->GetCameraDepth(), _camera->GetTransparentDepth(), before, after);
+	GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, _camera->GetCameraDepth(), _camera->GetTransparentDepth(), before, after);
 
 	// om set target
 	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_camera->GetTransDsv());
@@ -618,7 +554,7 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _thre
 		}
 	}
 
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, bool _cutout)
@@ -684,7 +620,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 		GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeCutout[_threadIndex])
 	}
 
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::DrawCutoutPass(Camera* _camera, int _threadIndex)
@@ -737,7 +673,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 
 	// execute
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::SkyboxPass])
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
@@ -797,7 +733,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 
 	// close command list and execute
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::TransparentPass])
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::EndFrame(Camera* _camera)
@@ -817,7 +753,7 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 
 	// close command list and execute
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::EndFrame])
-	ExecuteCmdList(_cmdList);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
@@ -825,25 +761,10 @@ void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList,
 	D3D12_RESOURCE_STATES beforeStates[2] = { D3D12_RESOURCE_STATE_RENDER_TARGET ,  D3D12_RESOURCE_STATE_COMMON };
 	D3D12_RESOURCE_STATES afterStates[2] = {D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COMMON };
 
-	CopyResourceWithBarrier(_cmdList, _camera->GetRtvSrc(), _camera->GetResultSrc(), beforeStates, afterStates);
+	GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, _camera->GetRtvSrc(), _camera->GetResultSrc(), beforeStates, afterStates);
 
 	// reset render target state
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
-}
-
-void ForwardRenderingPath::CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[2], D3D12_RESOURCE_STATES _afterCopy[2])
-{
-	D3D12_RESOURCE_BARRIER copyBefore[2];
-	copyBefore[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, _beforeCopy[0], D3D12_RESOURCE_STATE_COPY_SOURCE);
-	copyBefore[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, _beforeCopy[1], D3D12_RESOURCE_STATE_COPY_SOURCE);
-
-	D3D12_RESOURCE_BARRIER copyAfter[2];
-	copyAfter[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_COPY_DEST, _afterCopy[0]);
-	copyAfter[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, D3D12_RESOURCE_STATE_COPY_DEST, _afterCopy[1]);
-
-	_cmdList->ResourceBarrier(2, copyBefore);
-	_cmdList->CopyResource(_dst, _src);
-	_cmdList->ResourceBarrier(2, copyAfter);
 }
 
 void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
@@ -895,13 +816,5 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	}
 	_cmdList->ResourceBarrier(2 + sld->numCascade, finishCollect);
 
-	ExecuteCmdList(_cmdList);
-}
-
-void ForwardRenderingPath::ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList)
-{
-	// close command list and execute
-	LogIfFailedWithoutHR(_cmdList->Close());
-	ID3D12CommandList* cmdsLists[] = { _cmdList };
-	GraphicManager::Instance().ExecuteCommandList(_countof(cmdsLists), cmdsLists);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }

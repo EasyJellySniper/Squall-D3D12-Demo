@@ -30,6 +30,8 @@ public:
 	void InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void Release();
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
+	void ShadowWork(Camera *_targetCam);
+	void RayTracingShadow(Camera* _targetCam, Light* _light);
 
 	int AddNativeLight(int _instanceID, SqLightData _data);
 	void UpdateNativeLight(int _nativeID, SqLightData _data);

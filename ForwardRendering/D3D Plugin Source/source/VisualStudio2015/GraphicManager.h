@@ -52,7 +52,9 @@ public:
 	void WaitForGPU();
 	void ResetCreationList();
 	void ExecuteCreationList();
-	void ExecuteCommandList(int _listCount, ID3D12CommandList **_cmdList);
+	void ExecuteCommandList(ID3D12GraphicsCommandList* _cmdList);
+	void CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[2], D3D12_RESOURCE_STATES _afterCopy[2]);
+
 	ID3D12Device *GetDevice();
 	ID3D12Device5* GetDxrDevice();
 	ID3D12GraphicsCommandList5* GetDxrList();

@@ -2,6 +2,7 @@
 #include "GraphicManager.h"
 #include "ShaderManager.h"
 #include "TextureManager.h"
+#include "RayTracingManager.h"
 
 void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _opaqueShadows, int _opaqueShadowID)
 {
@@ -111,6 +112,76 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 	// clear target
 	FLOAT c[] = { 1,1,1,1 };
 	_cmdList->ClearRenderTargetView(LightManager::Instance().GetCollectShadowRtv(), c, 0, nullptr);
+}
+
+void LightManager::ShadowWork(Camera* _targetCam)
+{
+	for (int i = 0; i < maxDirLight; i++)
+	{
+		if (!dirLights[i].HasShadowMap())
+		{
+			RayTracingShadow(_targetCam, &dirLights[i]);
+		}
+	}
+}
+
+void LightManager::RayTracingShadow(Camera* _targetCam, Light* _light)
+{
+	// use pre gfx list
+	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
+	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
+
+	// bind root signature
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	Material *mat = LightManager::Instance().GetRayShadow();
+	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
+
+	auto rayShadowSrc = LightManager::Instance().GetRayShadowSrc();
+	auto collectShadowSrc = LightManager::Instance().GetCollectShadowSrc();
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+
+	// set state
+	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
+	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
+	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootShaderResourceView(2, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(3, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
+	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(8, RayTracingManager::Instance().GetSubMeshInfoGPU());
+
+	// prepare dispatch desc
+	Camera* c = CameraManager::Instance().GetCamera();
+	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)c->GetViewPort().Width, (UINT)c->GetViewPort().Height);
+
+	// copy hit group identifier
+	MaterialManager::Instance().CopyHitGroupIdentifier(mat, frameIndex);
+
+	// setup hit group table
+	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(frameIndex);
+	dispatchDesc.HitGroupTable.StartAddress = hitGroup->Resource()->GetGPUVirtualAddress();
+	dispatchDesc.HitGroupTable.SizeInBytes = hitGroup->Resource()->GetDesc().Width;
+	dispatchDesc.HitGroupTable.StrideInBytes = hitGroup->Stride();
+
+	// dispatch rays
+	auto dxrCmd = GraphicManager::Instance().GetDxrList();
+	dxrCmd->SetPipelineState1(mat->GetDxcPSO());
+	dxrCmd->DispatchRays(&dispatchDesc);
+
+	// copy result, collect shadow will be used in pixel shader later
+	D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_UNORDERED_ACCESS ,D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };
+	GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, rayShadowSrc, collectShadowSrc, before, before);
+
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingShadow])
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)

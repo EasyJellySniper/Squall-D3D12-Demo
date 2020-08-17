@@ -325,14 +325,29 @@ void GraphicManager::ResetCreationList()
 
 void GraphicManager::ExecuteCreationList()
 {
-	LogIfFailedWithoutHR(mainGfxList->Close());
-	ID3D12CommandList* cmd[] = { mainGfxList.Get() };
-	ExecuteCommandList(1, cmd);
+	ExecuteCommandList(mainGfxList.Get());
 }
 
-void GraphicManager::ExecuteCommandList(int _listCount, ID3D12CommandList** _cmdList)
+void GraphicManager::ExecuteCommandList(ID3D12GraphicsCommandList* _cmdList)
 {
-	mainGraphicQueue->ExecuteCommandLists(_listCount, _cmdList);
+	LogIfFailedWithoutHR(_cmdList->Close());
+	ID3D12CommandList* list = { _cmdList };
+	mainGraphicQueue->ExecuteCommandLists(1, &list);
+}
+
+void GraphicManager::CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[2], D3D12_RESOURCE_STATES _afterCopy[2])
+{
+	D3D12_RESOURCE_BARRIER copyBefore[2];
+	copyBefore[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, _beforeCopy[0], D3D12_RESOURCE_STATE_COPY_SOURCE);
+	copyBefore[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, _beforeCopy[1], D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+	D3D12_RESOURCE_BARRIER copyAfter[2];
+	copyAfter[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_COPY_DEST, _afterCopy[0]);
+	copyAfter[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, D3D12_RESOURCE_STATE_COPY_DEST, _afterCopy[1]);
+
+	_cmdList->ResourceBarrier(2, copyBefore);
+	_cmdList->CopyResource(_dst, _src);
+	_cmdList->ResourceBarrier(2, copyAfter);
 }
 
 void GraphicManager::RenderThread()

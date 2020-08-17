@@ -47,7 +47,6 @@ private:
 	void UploadWork(Camera* _camera);
 	void PrePassWork(Camera* _camera);
 	void ShadowWork();
-	void RayTracingShadow(Light* _light);
 	void BindShadowState(Light *_light, int _cascade, int _threadIndex);
 	void BindForwardState(Camera* _camera, int _threadIndex);
 	void BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh);
@@ -63,9 +62,7 @@ private:
 	void DrawTransparentPass(Camera* _camera);
 	void EndFrame(Camera* _camera);
 	void CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
-	void CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[2], D3D12_RESOURCE_STATES _afterCopy[2]);
 	void CollectShadow(Light* _light, int _id);
-	void ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList);
 
 	Camera* targetCam;
 	Light* currLight;
