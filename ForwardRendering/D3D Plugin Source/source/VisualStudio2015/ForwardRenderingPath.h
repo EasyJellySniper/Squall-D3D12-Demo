@@ -63,7 +63,6 @@ private:
 	void DrawCutoutPass(Camera* _camera, int _threadIndex);
 	void DrawSkyboxPass(Camera* _camera);
 	void DrawTransparentPass(Camera* _camera);
-	void DrawSubmesh(ID3D12GraphicsCommandList* _cmdList, Mesh* _mesh, int _subIndex);
 	void EndFrame(Camera* _camera);
 	void ResolveColorBuffer(ID3D12GraphicsCommandList *_cmdList, Camera* _camera);
 	void CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);

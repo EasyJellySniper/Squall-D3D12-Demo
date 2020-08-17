@@ -114,6 +114,12 @@ void Mesh::ReleaseScratch()
 	scratchBottom.clear();
 }
 
+void Mesh::DrawSubMesh(ID3D12GraphicsCommandList* _cmdList, int _subIndex)
+{
+	SubMesh sm = GetSubMesh(_subIndex);
+	_cmdList->DrawIndexedInstanced(sm.IndexCountPerInstance, 1, sm.StartIndexLocation, sm.BaseVertexLocation, 0);
+}
+
 D3D12_VERTEX_BUFFER_VIEW Mesh::GetVertexBufferView()
 {
 	return vbv;

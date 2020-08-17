@@ -34,6 +34,7 @@ public:
 	bool Initialize(int _instanceID, MeshData _mesh);
 	void Release();
 	void ReleaseScratch();
+	void DrawSubMesh(ID3D12GraphicsCommandList* _cmdList, int _subIndex);
 
 	D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
