@@ -40,6 +40,14 @@ void GameTimerManager::Init()
 			, D3D12_RESOURCE_STATE_COPY_DEST
 			, nullptr
 			, IID_PPV_ARGS(&gpuTimeShadow[i])));
+
+
+		LogIfFailedWithoutHR(mainDevice->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK)
+			, D3D12_HEAP_FLAG_NONE
+			, &CD3DX12_RESOURCE_DESC::Buffer(2 * sizeof(uint64_t))
+			, D3D12_RESOURCE_STATE_COPY_DEST
+			, nullptr
+			, IID_PPV_ARGS(&gpuTimeDepth[i])));
 	}
 }
 
@@ -55,6 +63,7 @@ void GameTimerManager::Release()
 		gpuTimeOpaque[i].Reset();
 		gpuTimeCutout[i].Reset();
 		gpuTimeShadow[i].Reset();
+		gpuTimeDepth[i].Reset();
 	}
 }
 
@@ -76,6 +85,7 @@ void GameTimerManager::CalcGpuTime()
 	gpuTimeOpaqueMs = 0;
 	gpuTimeCutoutMs = 0;
 	gpuTimeShadowMs = 0;
+	gpuTimeDepthMs = 0;
 	for (int i = 0; i < GraphicManager::Instance().GetThreadCount(); i++)
 	{
 		// opaque time
@@ -102,8 +112,16 @@ void GameTimerManager::CalcGpuTime()
 		gpuTimeShadow[i]->Unmap(0, nullptr);
 
 		gpuTimeShadowMs += static_cast<double>(t2 - t1) / static_cast<double>(GraphicManager::Instance().GetGpuFreq()) * 1000.0;
+
+		// depth time
+		LogIfFailedWithoutHR(gpuTimeDepth[i]->Map(0, nullptr, reinterpret_cast<void**>(&pRes)));
+		t1 = pRes[0];
+		t2 = pRes[1];
+		gpuTimeDepth[i]->Unmap(0, nullptr);
+
+		gpuTimeDepthMs += static_cast<double>(t2 - t1) / static_cast<double>(GraphicManager::Instance().GetGpuFreq()) * 1000.0;
 	}
-	totalGpuMs += gpuTimeCutoutMs + gpuTimeOpaqueMs;
+	totalGpuMs += gpuTimeCutoutMs + gpuTimeOpaqueMs + gpuTimeDepthMs + gpuTimeShadowMs;
 }
 
 void GameTimerManager::PrintGameTime()
@@ -132,7 +150,7 @@ void GameTimerManager::PrintGameTime()
 		cout << "\n-------------- GPU Profile(ms) --------------\n";
 		cout << "GPU Time: " << totalGpuMs << endl;
 		cout << "Begin Frame (Clear Target) : " << gpuTimeMs[GpuTimeType::BeginFrame] << endl;
-		cout << "Prepass Work (Depth) : " << gpuTimeMs[GpuTimeType::PrepassWork] << endl;
+		cout << "Prepass Work (Depth) : " << gpuTimeMs[GpuTimeType::PrepassWork] + gpuTimeDepthMs << endl;
 		cout << "Shadow Rendering: " << gpuTimeShadowMs << endl;
 		cout << "Collect Shadow Map: " << gpuTimeMs[GpuTimeType::CollectShadowMap] << endl;
 		cout << "Ray Tracing Shadow : " << gpuTimeMs[GpuTimeType::RayTracingShadow] << endl;

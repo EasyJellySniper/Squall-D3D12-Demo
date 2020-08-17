@@ -272,7 +272,7 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
 	CameraData* camData = _camera->GetCameraData();
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
-	if (workerType == WorkerType::OpaqueRendering || workerType == WorkerType::CutoffRendering)
+	if (workerType == WorkerType::OpaqueRendering || workerType == WorkerType::CutoffRendering || workerType == WorkerType::PrePassRendering)
 	{
 		GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 	}
@@ -460,6 +460,7 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 		}
 	}
 
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeDepth[_threadIndex])
 	// close command list and execute
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
