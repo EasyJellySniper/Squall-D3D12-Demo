@@ -748,20 +748,9 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 	_camera->ResolveColorBuffer(_cmdList);
 
 	// copy rendering result
-	CopyRenderResult(_cmdList, _camera);
+	_camera->CopyRenderResult(_cmdList);
 
 	// close command list and execute
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::EndFrame])
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
-}
-
-void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
-{
-	D3D12_RESOURCE_STATES beforeStates[2] = { D3D12_RESOURCE_STATE_RENDER_TARGET ,  D3D12_RESOURCE_STATE_COMMON };
-	D3D12_RESOURCE_STATES afterStates[2] = {D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COMMON };
-
-	GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, _camera->GetRtvSrc(), _camera->GetResultSrc(), beforeStates, afterStates);
-
-	// reset render target state
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
 }

@@ -55,6 +55,7 @@ public:
 	void ClearCamera(ID3D12GraphicsCommandList* _cmdList);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx);
 	void ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList);
+	void CopyRenderResult(ID3D12GraphicsCommandList* _cmdList);
 
 	CameraData *GetCameraData();
 	ID3D12Resource* GetResultSrc();

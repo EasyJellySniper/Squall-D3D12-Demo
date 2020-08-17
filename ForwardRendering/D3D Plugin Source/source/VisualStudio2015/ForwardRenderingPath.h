@@ -61,7 +61,6 @@ private:
 	void DrawSkyboxPass(Camera* _camera);
 	void DrawTransparentPass(Camera* _camera);
 	void EndFrame(Camera* _camera);
-	void CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
 
 	Camera* targetCam;
 	Light* currLight;

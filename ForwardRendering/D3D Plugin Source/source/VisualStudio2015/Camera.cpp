@@ -259,6 +259,17 @@ void Camera::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList)
 	_cmdList->ResourceBarrier(2, finishResolve);
 }
 
+void Camera::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList)
+{
+	D3D12_RESOURCE_STATES beforeStates[2] = { D3D12_RESOURCE_STATE_RENDER_TARGET ,  D3D12_RESOURCE_STATE_COMMON };
+	D3D12_RESOURCE_STATES afterStates[2] = { D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COMMON };
+
+	GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, GetRtvSrc(), GetResultSrc(), beforeStates, afterStates);
+
+	// reset render target state
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
+}
+
 CameraData *Camera::GetCameraData()
 {
 	return &cameraData;
