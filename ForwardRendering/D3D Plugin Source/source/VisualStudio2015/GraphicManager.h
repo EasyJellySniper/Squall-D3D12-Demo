@@ -65,9 +65,7 @@ public:
 	FrameResource *GetFrameResource();
 	UINT64 GetGpuFreq();
 	void WaitBeginWorkerThread(int _index);
-	void SetBeginWorkerThreadEvent();
-	void ResetWorkerThreadFinish();
-	void WaitForWorkerThread();
+	void WakeAndWaitWorker();
 	void SetWorkerThreadFinishEvent(int _index);
 	void UploadSystemConstant(SystemConstant _sc, int _frameIdx);
 	SystemConstant GetSystemConstantCPU();

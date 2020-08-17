@@ -16,10 +16,9 @@ void ForwardRenderingPath::CullingWork(Camera* _camera)
 	currFrameResource = GraphicManager::Instance().GetFrameResource();
 	numWorkerThreads = GraphicManager::Instance().GetThreadCount() - 1;
 	targetCam = _camera;
+
 	workerType = WorkerType::Culling;
-	GraphicManager::Instance().ResetWorkerThreadFinish();
-	GraphicManager::Instance().SetBeginWorkerThreadEvent();
-	GraphicManager::Instance().WaitForWorkerThread();
+	GraphicManager::Instance().WakeAndWaitWorker();
 
 	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
 }
@@ -55,11 +54,11 @@ void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 
 	// opaque pass
 	workerType = WorkerType::OpaqueRendering;
-	WakeAndWaitWorker();
+	GraphicManager::Instance().WakeAndWaitWorker();
 
 	// cutoff pass
 	workerType = WorkerType::CutoffRendering;
-	WakeAndWaitWorker();
+	GraphicManager::Instance().WakeAndWaitWorker();
 
 	// transparent pass, this can only be rendered with 1 thread for correct order
 	if (_camera->GetRenderMode() == RenderMode::ForwardPass)
@@ -153,13 +152,6 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 	}
 }
 
-void ForwardRenderingPath::WakeAndWaitWorker()
-{
-	GraphicManager::Instance().ResetWorkerThreadFinish();
-	GraphicManager::Instance().SetBeginWorkerThreadEvent();
-	GraphicManager::Instance().WaitForWorkerThread();
-}
-
 void ForwardRenderingPath::BeginFrame(Camera* _camera)
 {
 	// get frame resource
@@ -186,7 +178,7 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 void ForwardRenderingPath::UploadWork(Camera *_camera)
 {
 	workerType = WorkerType::Upload;
-	WakeAndWaitWorker();
+	GraphicManager::Instance().WakeAndWaitWorker();
 
 	SystemConstant sc;
 	_camera->FillSystemConstant(sc);
@@ -203,7 +195,7 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 
 	workerType = WorkerType::PrePassRendering;
-	WakeAndWaitWorker();
+	GraphicManager::Instance().WakeAndWaitWorker();
 
 	// resolve depth for other application
 	_camera->ResolveDepthBuffer(_cmdList, frameIndex);
@@ -238,11 +230,11 @@ void ForwardRenderingPath::ShadowWork()
 
 			// culling renderer
 			workerType = WorkerType::ShadowCulling;
-			WakeAndWaitWorker();
+			GraphicManager::Instance().WakeAndWaitWorker();
 
 			// multi thread work
 			workerType = WorkerType::ShadowRendering;
-			WakeAndWaitWorker();
+			GraphicManager::Instance().WakeAndWaitWorker();
 		}
 	}
 

@@ -432,24 +432,21 @@ void GraphicManager::WaitBeginWorkerThread(int _index)
 	WaitForSingleObject(beginWorkerThread[_index], INFINITE);
 }
 
-void GraphicManager::SetBeginWorkerThreadEvent()
+void GraphicManager::WakeAndWaitWorker()
 {
-	for (int i = 0; i < numOfLogicalCores - 1; i++)
-	{
-		SetEvent(beginWorkerThread[i]);
-	}
-}
-
-void GraphicManager::ResetWorkerThreadFinish()
-{
+	// reset thread
 	for (int i = 0; i < numOfLogicalCores - 1; i++)
 	{
 		ResetEvent(workerThreadFinish[i]);
 	}
-}
 
-void GraphicManager::WaitForWorkerThread()
-{
+	// begin thread
+	for (int i = 0; i < numOfLogicalCores - 1; i++)
+	{
+		SetEvent(beginWorkerThread[i]);
+	}
+
+	// wait for thread finish
 	WaitForMultipleObjects(numOfLogicalCores - 1, workerThreadFinish, TRUE, INFINITE);
 }
 

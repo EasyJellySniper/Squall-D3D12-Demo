@@ -42,7 +42,6 @@ public:
 	void RenderLoop(Camera* _camera, int _frameIdx);
 	void WorkerThread(int _threadIndex);
 private:
-	void WakeAndWaitWorker();
 	void BeginFrame(Camera* _camera);
 	void UploadWork(Camera* _camera);
 	void PrePassWork(Camera* _camera);
