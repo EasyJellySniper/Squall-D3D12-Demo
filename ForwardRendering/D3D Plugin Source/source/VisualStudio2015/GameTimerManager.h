@@ -49,12 +49,10 @@ public:
 	ComPtr<ID3D12Resource> gpuTimeOpaque[MAX_WORKER_THREAD_COUNT];
 	ComPtr<ID3D12Resource> gpuTimeCutout[MAX_WORKER_THREAD_COUNT];
 	ComPtr<ID3D12Resource> gpuTimeShadow[MAX_WORKER_THREAD_COUNT];
-	ComPtr<ID3D12Resource> gpuTimePrePass[MAX_WORKER_THREAD_COUNT];
 	double gpuTimeMs[GpuTimeType::Count];
 	double gpuTimeOpaqueMs;
 	double gpuTimeCutoutMs;
 	double gpuTimeShadowMs;
-	double gpuTimePreDepthMs;
 	double totalGpuMs;
 #endif
 };

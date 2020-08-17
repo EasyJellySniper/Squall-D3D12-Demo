@@ -96,6 +96,11 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 			// process render thread
 			BindForwardState(targetCam, _threadIndex);
 
+			if (targetCam->GetRenderMode() == RenderMode::WireFrame)
+			{
+				DrawWireFrame(targetCam, _threadIndex);
+			}
+
 			if (targetCam->GetRenderMode() == RenderMode::Depth)
 			{
 				DrawOpaqueDepth(targetCam, _threadIndex);
@@ -271,10 +276,6 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
 	{
 		GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 	}
-	else if (workerType == WorkerType::PrePassRendering)
-	{
-		GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
-	}
 
 	// bind
 	auto rtv = (camData->allowMSAA > 1) ? &_camera->GetMsaaRtv() : &_camera->GetRtv();
@@ -372,6 +373,51 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
 }
 
+void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
+{
+	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
+	
+	// set debug wire frame material
+	Material *mat = _camera->GetPipelineMaterial(MaterialType::DebugWireFrame, CullMode::Off);
+	_cmdList->SetPipelineState(mat->GetPSO());
+	_cmdList->SetGraphicsRootSignature(mat->GetRootSignature());
+
+	// loop render-queue
+	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
+	for (auto const& qr : queueRenderers)
+	{
+		auto renderers = qr.second;
+		int count = (int)renderers.size() / numWorkerThreads + 1;
+		int start = _threadIndex * count;
+
+		for (int i = start; i <= start + count; i++)
+		{
+			// valid renderer
+			if (!RendererManager::Instance().ValidRenderer(i, renderers))
+			{
+				continue;
+			}
+
+			// bind mesh
+			auto const r = renderers[i];
+			Mesh *m = r.cache->GetMesh();
+			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
+			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
+
+			// set system constant of renderer
+			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(frameIndex));
+			_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+
+			// draw mesh
+			m->DrawSubMesh(_cmdList, r.submeshIndex);
+			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
+		}
+	}
+
+	// close command list and execute
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
+}
+
 void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 {
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
@@ -414,7 +460,6 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 		}
 	}
 
-	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimePrePass[_threadIndex])
 	// close command list and execute
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }

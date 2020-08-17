@@ -41,7 +41,7 @@ enum MaterialType
 
 enum RenderMode
 {
-	None = 0, Depth, ForwardPass
+	None = 0, WireFrame, Depth, ForwardPass
 };
 
 class Camera
