@@ -223,6 +223,29 @@ void RendererManager::ShadowCulling(Light* _light, int _cascade, int _threadInde
 	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
 }
 
+bool RendererManager::ValidRenderer(int _index, vector<QueueRenderer> _renderers)
+{
+	if (_index >= (int)_renderers.size())
+	{
+		return false;
+	}
+
+	auto const r = _renderers[_index];
+
+	if (!r.cache->GetVisible())
+	{
+		return false;
+	}
+
+	Mesh* m = r.cache->GetMesh();
+	if (m == nullptr)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 vector<shared_ptr<Renderer>>& RendererManager::GetRenderers()
 {
 	return renderers;

@@ -85,7 +85,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		// culling work
 		if (workerType == WorkerType::Culling)
 		{
-			FrustumCulling(_threadIndex);
+			RendererManager::Instance().FrustumCulling(targetCam, _threadIndex);
 		}
 		else if (workerType == WorkerType::Upload)
 		{
@@ -115,7 +115,7 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 		}
 		else if (workerType == WorkerType::ShadowCulling)
 		{
-			ShadowCulling(currLight, cascadeIndex, _threadIndex);
+			RendererManager::Instance().ShadowCulling(currLight, cascadeIndex, _threadIndex);
 		}
 		else if (workerType == WorkerType::ShadowRendering)
 		{
@@ -158,16 +158,6 @@ void ForwardRenderingPath::WakeAndWaitWorker()
 	GraphicManager::Instance().ResetWorkerThreadFinish();
 	GraphicManager::Instance().SetBeginWorkerThreadEvent();
 	GraphicManager::Instance().WaitForWorkerThread();
-}
-
-void ForwardRenderingPath::FrustumCulling(int _threadIndex)
-{
-	RendererManager::Instance().FrustumCulling(targetCam, _threadIndex);
-}
-
-void ForwardRenderingPath::ShadowCulling(Light* _light, int _cascade, int _threadIndex)
-{
-	RendererManager::Instance().ShadowCulling(_light, _cascade, _threadIndex);
 }
 
 void ForwardRenderingPath::BeginFrame(Camera* _camera)
@@ -469,7 +459,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
 		for (int i = start; i <= start + count; i++)
 		{
 			// valid renderer
-			if (!ValidRenderer(i, renderers))
+			if (!RendererManager::Instance().ValidRenderer(i, renderers))
 			{
 				continue;
 			}
@@ -519,7 +509,7 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 		for (int i = start; i <= start + count; i++)
 		{
 			// valid renderer
-			if (!ValidRenderer(i, renderers))
+			if (!RendererManager::Instance().ValidRenderer(i, renderers))
 			{
 				continue;
 			}
@@ -571,7 +561,7 @@ void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdL
 		for (int i = 0; i < renderers.size(); i++)
 		{
 			// valid renderer
-			if (!ValidRenderer(i, renderers))
+			if (!RendererManager::Instance().ValidRenderer(i, renderers))
 			{
 				continue;
 			}
@@ -665,7 +655,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 		for (int i = start; i <= start + count; i++)
 		{
 			// valid renderer
-			if (!ValidRenderer(i, renderers))
+			if (!RendererManager::Instance().ValidRenderer(i, renderers))
 			{
 				continue;
 			}
@@ -786,7 +776,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 		for (int i = 0; i < (int)renderers.size(); i++)
 		{
 			// valid renderer
-			if (!ValidRenderer(i, renderers))
+			if (!RendererManager::Instance().ValidRenderer(i, renderers))
 			{
 				continue;
 			}
@@ -906,29 +896,6 @@ void ForwardRenderingPath::CollectShadow(Light* _light, int _id)
 	_cmdList->ResourceBarrier(2 + sld->numCascade, finishCollect);
 
 	ExecuteCmdList(_cmdList);
-}
-
-bool ForwardRenderingPath::ValidRenderer(int _index, vector<QueueRenderer> _renderers)
-{
-	if (_index >= (int)_renderers.size())
-	{
-		return false;
-	}
-
-	auto const r = _renderers[_index];
-
-	if (!r.cache->GetVisible())
-	{
-		return false;
-	}
-
-	Mesh* m = r.cache->GetMesh();
-	if (m == nullptr)
-	{
-		return false;
-	}
-
-	return true;
 }
 
 void ForwardRenderingPath::ExecuteCmdList(ID3D12GraphicsCommandList* _cmdList)
