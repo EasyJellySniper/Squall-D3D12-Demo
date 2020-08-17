@@ -819,10 +819,8 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 	auto _cmdList = currFrameResource->mainGfxList;
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 
-	if (camData->allowMSAA > 1)
-	{
-		ResolveColorBuffer(_cmdList, _camera);
-	}
+	// resolve color buffer
+	_camera->ResolveColorBuffer(_cmdList);
 
 	// copy rendering result
 	CopyRenderResult(_cmdList, _camera);
@@ -830,26 +828,6 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 	// close command list and execute
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::EndFrame])
 	ExecuteCmdList(_cmdList);
-}
-
-void ForwardRenderingPath::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
-{
-	CameraData* camData = _camera->GetCameraData();
-
-	// barrier
-	D3D12_RESOURCE_BARRIER resolveColor[2];
-	resolveColor[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
-	resolveColor[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST);
-
-	// barrier
-	D3D12_RESOURCE_BARRIER finishResolve[2];
-	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetRtvSrc(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
-	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetMsaaRtvSrc(), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
-
-	// resolve to non-AA target if MSAA enabled
-	_cmdList->ResourceBarrier(2, resolveColor);
-	_cmdList->ResolveSubresource(_camera->GetRtvSrc(), 0, _camera->GetMsaaRtvSrc(), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
-	_cmdList->ResourceBarrier(2, finishResolve);
 }
 
 void ForwardRenderingPath::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
