@@ -254,6 +254,7 @@ void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _thr
 {
 	LogIfFailedWithoutHR(currFrameResource->workerGfxList[_threadIndex]->Reset(currFrameResource->workerGfxAlloc[_threadIndex], nullptr));
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 
 	// transition to depth write
 	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_light->GetShadowDsv(_cascade));
@@ -551,6 +552,7 @@ void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _thre
 		}
 	}
 
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeShadow[_threadIndex])
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
