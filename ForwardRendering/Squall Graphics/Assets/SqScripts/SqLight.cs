@@ -78,11 +78,6 @@ public class SqLight : MonoBehaviour
     }
 
     /// <summary>
-    /// ray tracing shadow?
-    /// </summary>
-    public bool rayTracingShadow = false;
-
-    /// <summary>
     /// shadow size
     /// </summary>
     [Header("Shadow size, note even cascade use this size!")]
@@ -123,7 +118,7 @@ public class SqLight : MonoBehaviour
     void Start()
     {
         // return if sqgraphic not init
-        if (SqGraphicManager.instance == null)
+        if (SqGraphicManager.Instance == null)
         {
             enabled = false;
             return;
@@ -133,7 +128,7 @@ public class SqLight : MonoBehaviour
         mainCamTrans = mainCam.transform;
         InitNativeLight();
         InitShadows();
-        enabled = enabled || rayTracingShadow;
+        enabled = enabled || SqLightManager.Instace.rayTracingShadow;
     }
 
     void Update()
@@ -178,7 +173,7 @@ public class SqLight : MonoBehaviour
 
     void InitShadows()
     {
-        if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional || rayTracingShadow)
+        if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional || SqLightManager.Instace.rayTracingShadow)
         {
             enabled = false;
             return;
@@ -248,7 +243,7 @@ public class SqLight : MonoBehaviour
             return;
         }
 
-        if (rayTracingShadow)
+        if (SqLightManager.Instace.rayTracingShadow)
         {
             return;
         }
@@ -318,7 +313,7 @@ public class SqLight : MonoBehaviour
         lightData.worldPos.w = shadowBias;
         lightData.shadowSize = shadowMapSize[(int)shadowSize];
 
-        if(rayTracingShadow)
+        if(SqLightManager.Instace.rayTracingShadow)
         {
             lightData.cascadeDist[0] = shadowDistance;
         }
@@ -357,7 +352,7 @@ public class SqLight : MonoBehaviour
             return true;
         }
 
-        if (lightData.cascadeDist[0] != shadowDistance && rayTracingShadow)
+        if (lightData.cascadeDist[0] != shadowDistance && SqLightManager.Instace.rayTracingShadow)
         {
             return true;
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // for init sq light
 public class SqLightManager : MonoBehaviour
@@ -19,6 +20,11 @@ public class SqLightManager : MonoBehaviour
 
     [DllImport("SquallGraphics")]
     static extern void SetPCFKernel(int _kernel);
+
+    /// <summary>
+    /// ray tracing shadow?
+    /// </summary>
+    public bool rayTracingShadow = false;
 
     /// <summary>
     /// max dir light
@@ -46,9 +52,15 @@ public class SqLightManager : MonoBehaviour
     /// </summary>
     public RenderTexture collectShadows;
 
+    /// <summary>
+    /// instance
+    /// </summary>
+    public static SqLightManager Instace { get; private set; }
+
     // Start is called before the first frame update
     void Start()
     {
+        Instace = this;
         InitLights();
         SetPCF();
     }
@@ -70,8 +82,14 @@ public class SqLightManager : MonoBehaviour
 
     void InitLights()
     {
+        int downSample = 0;
+        if(rayTracingShadow)
+        {
+            downSample = 1;
+        }
+
         // create collect shadows 
-        collectShadows = new RenderTexture(Mathf.CeilToInt(Screen.width / 2f), Mathf.CeilToInt(Screen.height / 2f), 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
+        collectShadows = new RenderTexture(Screen.width >> downSample, Screen.height >> downSample, 0, RenderTextureFormat.RGHalf, RenderTextureReadWrite.Linear);
         collectShadows.name = "Collect Shadows";
         collectShadows.Create();
 

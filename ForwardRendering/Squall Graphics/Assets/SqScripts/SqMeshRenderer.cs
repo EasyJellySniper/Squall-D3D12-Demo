@@ -34,7 +34,7 @@ public class SqMeshRenderer : MonoBehaviour
     void Start ()
     {
         // return if sqgraphic not init
-        if (SqGraphicManager.instance == null)
+        if (SqGraphicManager.Instance == null)
         {
             enabled = false;
             return;

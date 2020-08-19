@@ -23,11 +23,6 @@ public class SqGraphicManager : MonoBehaviour
     static extern int GetRenderThreadCount();
 
     /// <summary>
-    /// instance
-    /// </summary>
-    public static SqGraphicManager instance;
-
-    /// <summary>
     /// number of render threads
     /// </summary>
     [Range(2, 32)]
@@ -45,10 +40,14 @@ public class SqGraphicManager : MonoBehaviour
     [HideInInspector]
     public bool resetingFrame = false;
 
+    /// <summary>
+    /// instance
+    /// </summary>
+    public static SqGraphicManager Instance { private set; get; }
 
     void Awake()
     {
-        if (instance != null)
+        if (Instance != null)
         {
             Debug.LogError("Only one SqGraphicManager can be created.");
             enabled = false;
@@ -63,7 +62,7 @@ public class SqGraphicManager : MonoBehaviour
         if (InitializeSqGraphic(numOfRenderThreads))
         {
             Debug.Log("[SqGraphicManager] Squall Graphics initialized.");
-            instance = this;
+            Instance = this;
         }
         else
         {

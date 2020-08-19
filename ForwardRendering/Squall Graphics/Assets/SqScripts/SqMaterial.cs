@@ -149,12 +149,12 @@ public class SqMaterial
         if (_tex)
         {
             _texIndex = AddNativeTexture(_tex.GetInstanceID(), _tex.GetNativeTexturePtr());
-            _samplerIndex = AddNativeSampler(_tex.wrapModeU, _tex.wrapModeV, _tex.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+            _samplerIndex = AddNativeSampler(_tex.wrapModeU, _tex.wrapModeV, _tex.wrapModeW, SqGraphicManager.Instance.globalAnisoLevel);
         }
         else
         {
             _texIndex = AddNativeTexture(whiteTex.GetInstanceID(), whiteTex.GetNativeTexturePtr());
-            _samplerIndex = AddNativeSampler(whiteTex.wrapModeU, whiteTex.wrapModeV, whiteTex.wrapModeW, SqGraphicManager.instance.globalAnisoLevel);
+            _samplerIndex = AddNativeSampler(whiteTex.wrapModeU, whiteTex.wrapModeV, whiteTex.wrapModeW, SqGraphicManager.Instance.globalAnisoLevel);
         }
     }
 

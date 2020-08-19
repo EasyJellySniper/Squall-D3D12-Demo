@@ -124,7 +124,7 @@ public class SqCamera : MonoBehaviour
     void Start ()
     {
         // return if sqgraphic not init
-        if (SqGraphicManager.instance == null)
+        if (SqGraphicManager.Instance == null)
         {
             enabled = false;
             return;
@@ -171,7 +171,7 @@ public class SqCamera : MonoBehaviour
             RemoveCamera(instanceID);
             OnDestroy();
             Start();
-            SqGraphicManager.instance.resetingFrame = true;
+            SqGraphicManager.Instance.resetingFrame = true;
         }
 
         // update VP matrix

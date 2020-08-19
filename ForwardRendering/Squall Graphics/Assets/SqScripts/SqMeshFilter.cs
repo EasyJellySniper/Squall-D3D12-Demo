@@ -84,7 +84,7 @@ public class SqMeshFilter : MonoBehaviour
 	void Awake ()
     {
         // return if sqgraphic not init
-        if (SqGraphicManager.instance == null)
+        if (SqGraphicManager.Instance == null)
         {
             enabled = false;
             return;

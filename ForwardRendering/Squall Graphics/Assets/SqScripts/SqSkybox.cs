@@ -39,7 +39,7 @@ public class SqSkybox : MonoBehaviour
     void Start()
     {
         SetAmbientLight(ambientGround, ambientSky, skyIntensity);
-        SetSkybox(skybox.GetNativeTexturePtr(), skybox.wrapModeU, skybox.wrapModeV, skybox.wrapModeW, SqGraphicManager.instance.globalAnisoLevel, GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
+        SetSkybox(skybox.GetNativeTexturePtr(), skybox.wrapModeU, skybox.wrapModeV, skybox.wrapModeW, SqGraphicManager.Instance.globalAnisoLevel, GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
         transform.hasChanged = true;
     }
 
