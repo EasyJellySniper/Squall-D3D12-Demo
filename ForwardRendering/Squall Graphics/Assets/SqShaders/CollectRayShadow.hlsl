@@ -55,8 +55,8 @@ float PenumbraFilter(float2 uv, int innerLoop)
             [branch]
             if (shadowData.x < 1)
             {
-                avgBlockDepth += shadowData.y;
-                avgReceiverDepth += shadowData.z;
+                avgBlockDepth += shadowData.y;      // blocker to light distance
+                avgReceiverDepth += shadowData.z;   // receiver to light distance
                 lightSize += shadowData.w;
                 blockCount++;
             }
