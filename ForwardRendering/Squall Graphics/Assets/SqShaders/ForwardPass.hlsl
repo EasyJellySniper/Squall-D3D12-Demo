@@ -84,7 +84,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	SqGI gi = CalcGI(bumpNormal, occlusion);
 
 	// BRDF
-	float atten = _TexTable[_CollectShadowIndex].Load(uint3(i.vertex.xy, 0)).r;
+	float atten = _TexTable[_CollectShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], i.vertex.xy / _ScreenSize).r;
 
 	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten, gi);
 

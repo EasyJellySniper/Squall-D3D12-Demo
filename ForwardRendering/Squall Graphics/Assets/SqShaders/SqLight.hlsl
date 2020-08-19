@@ -69,7 +69,7 @@ SqGI CalcGI(float3 normal, float occlusion)
 
 	// hemi sphere sky light
 	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
-	gi.indirectDiffuse = ambientGround.rgb + up * ambientSky.rgb;
+	gi.indirectDiffuse = _AmbientGround.rgb + up * _AmbientSky.rgb;
 	gi.indirectDiffuse *= occlusion;
 
 	return gi;

@@ -468,7 +468,9 @@ RenderTargetData Camera::GetRenderTargetData()
 
 void Camera::FillSystemConstant(SystemConstant& _sc)
 {
-	_sc.cameraPos = position;
+	_sc.cameraPos.x = position.x;
+	_sc.cameraPos.y = position.y;
+	_sc.cameraPos.z = position.z;
 
 	XMMATRIX vp = XMLoadFloat4x4(&viewMatrix) * XMLoadFloat4x4(&projMatrix);
 	XMStoreFloat4x4(&_sc.sqMatrixViewProj, vp);
@@ -481,6 +483,8 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 	_sc.msaaCount = cameraData.allowMSAA;
 	_sc.depthIndex = opaqueDepthSrv;
 	_sc.transDepthIndex = transDepthSrv;
+	_sc.screenSize.x = viewPort.Width;
+	_sc.screenSize.y = viewPort.Height;
 }
 
 bool Camera::CreatePipelineMaterial()

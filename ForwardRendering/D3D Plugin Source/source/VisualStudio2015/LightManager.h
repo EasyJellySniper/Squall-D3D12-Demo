@@ -109,6 +109,7 @@ private:
 	Material collectShadowMat;
 	int shadowSamplerID;
 	int collectShadowID;
+	int collectShadowSampler;
 	int pcfKernel;
 
 	// ray tracing material

@@ -163,7 +163,7 @@ void LightManager::RayTracingShadow(Camera* _targetCam, Light* _light)
 
 	// prepare dispatch desc
 	auto rtShadowSrc = rayTracingShadow->Resource();
-	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc(rtShadowSrc->GetDesc().Width, rtShadowSrc->GetDesc().Height);
+	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)rtShadowSrc->GetDesc().Width, rtShadowSrc->GetDesc().Height);
 
 	// copy hit group identifier
 	MaterialManager::Instance().CopyHitGroupIdentifier(mat, frameIndex);
@@ -343,6 +343,7 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.ambientGround = ambientGround;
 	_sc.ambientSky = ambientSky;
 	_sc.skyIntensity = skyIntensity;
+	_sc.collectShadowSampler = collectShadowSampler;
 }
 
 void LightManager::SetPCFKernel(int _kernel)
@@ -560,6 +561,7 @@ void LightManager::CreateOpaqueShadow(int _instanceID, void* _opaqueShadows)
 	}
 
 	shadowSamplerID = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true, false);
+	collectShadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, false, false);
 
 	// create ray tracing shadow uav
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;

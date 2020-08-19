@@ -28,7 +28,8 @@ struct SystemConstant
 	XMFLOAT4X4 sqMatrixInvViewProj;
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
-	XMFLOAT3 cameraPos;
+	XMFLOAT4 cameraPos;
+	XMFLOAT2 screenSize;
 	float farZ;
 	float nearZ;
 	float skyIntensity;
@@ -36,6 +37,7 @@ struct SystemConstant
 	int numPointLight;
 	int numSpotLight;
 	int collectShadowIndex;
+	int collectShadowSampler;
 	int pcfIndex;
 	int msaaCount;
 	int depthIndex;

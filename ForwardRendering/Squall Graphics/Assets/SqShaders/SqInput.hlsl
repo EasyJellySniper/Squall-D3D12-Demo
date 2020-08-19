@@ -41,9 +41,10 @@ cbuffer SystemConstant : register(b1)
 {
 	float4x4 SQ_MATRIX_VP;
 	float4x4 SQ_MATRIX_INV_VP;
-	float4 ambientGround;
-	float4 ambientSky;
-	float3 _CameraPos;
+	float4 _AmbientGround;
+	float4 _AmbientSky;
+	float4 _CameraPos;	// w is for padding 4 bytes
+	float2 _ScreenSize;
 	float _FarZ;
 	float _NearZ;
 	float _SkyIntensity;
@@ -51,6 +52,7 @@ cbuffer SystemConstant : register(b1)
 	int _NumPointLight;
 	int _NumSpotLight;
 	int _CollectShadowIndex;
+	int _CollectShadowSampler;
 	int _PCFIndex;
 	int _MsaaCount;
 	int _DepthIndex;
