@@ -313,9 +313,10 @@ public class SqLight : MonoBehaviour
         lightData.worldPos.w = shadowBias;
         lightData.shadowSize = shadowMapSize[(int)shadowSize];
 
-        if(SqLightManager.Instace.rayTracingShadow)
+        if (SqLightManager.Instace.rayTracingShadow)
         {
             lightData.cascadeDist[0] = shadowDistance;
+            lightData.shadowSize = lightCache.cookieSize;
         }
     }
 
@@ -353,6 +354,11 @@ public class SqLight : MonoBehaviour
         }
 
         if (lightData.cascadeDist[0] != shadowDistance && SqLightManager.Instace.rayTracingShadow)
+        {
+            return true;
+        }
+
+        if (SqLightManager.Instace.rayTracingShadow && lightData.shadowSize != lightCache.cookieSize)
         {
             return true;
         }

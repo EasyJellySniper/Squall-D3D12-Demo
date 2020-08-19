@@ -56,7 +56,7 @@ struct RayPayload
 {
     float atten;
     int isTransparent;
-    float distToBlocker;
+    float distBlockToLight;
     float padding;
 };
 
@@ -88,6 +88,8 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV)
         return;
     }
 
+    float3 lightPos = -mainLight.world.xyz * mainLight.cascadeDist[0];
+
     RayDesc ray;
     ray.Origin = wpos;
     ray.Direction = -mainLight.world.xyz;   // shoot a ray to light
@@ -104,7 +106,11 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV)
     // output shadow
     float currAtten = _OutputShadow[DispatchRaysIndex().xy].r;
     _OutputShadow[DispatchRaysIndex().xy].r = min(payload.atten, currAtten);
-    _OutputShadow[DispatchRaysIndex().xy].g = payload.distToBlocker;
+
+    float receiverDistToLight = length(lightPos - wpos); // receiver dist to light
+    _OutputShadow[DispatchRaysIndex().xy].g = receiverDistToLight - payload.distBlockToLight;  // blocker distance to light
+    _OutputShadow[DispatchRaysIndex().xy].b = receiverDistToLight;
+    _OutputShadow[DispatchRaysIndex().xy].a = mainLight.shadowSize;
 }
 
 uint3 Load3x16BitIndices(uint offsetBytes, uint indexID)
@@ -188,7 +194,7 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
 {
     // mark atten to 0
     payload.atten = 0.0f;
-    payload.distToBlocker = RayTCurrent();
+    payload.distBlockToLight = RayTCurrent();
 
     float alpha = 1;
     if (payload.isTransparent > 0 || _CutOff > 0)

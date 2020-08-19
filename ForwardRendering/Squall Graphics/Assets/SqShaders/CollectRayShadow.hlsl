@@ -37,8 +37,72 @@ v2f CollectRayShadowVS(uint vid : SV_VertexID)
 	return o;
 }
 
+float PenumbraFilter(float2 uv, int innerLoop)
+{
+    float blockCount = 0;
+    float avgBlockDepth = 0;
+    float avgReceiverDepth = 0;
+    float lightSize = 0;
+
+    float2 texelSize = 1.0f / (_ScreenSize * 0.5f);
+    for (int i = -innerLoop; i <= innerLoop; i++)
+    {
+        for (int j = -innerLoop; j <= innerLoop; j++)
+        {
+            // x for blocked, y for dist to blocker
+            float4 shadowData = _TexTable[_RayShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], uv + texelSize * float2(i, j), 0).rgba;
+
+            [branch]
+            if (shadowData.x < 1)
+            {
+                avgBlockDepth += shadowData.y;
+                avgReceiverDepth += shadowData.z;
+                lightSize += shadowData.w;
+                blockCount++;
+            }
+        }
+    }
+
+    [branch]
+    if (blockCount > 0)
+    {
+        avgBlockDepth /= blockCount;
+        avgReceiverDepth /= blockCount;
+        lightSize /= blockCount;
+
+        // penumbra formula: (d_receiver - d_blocker) * light_size / d_blocker
+        float penumbra = (avgReceiverDepth - avgBlockDepth) * lightSize / avgBlockDepth;
+        penumbra = saturate(penumbra);
+
+        // give a pow5 attenation
+        return penumbra * penumbra * penumbra * penumbra * penumbra;
+    }
+
+    return 0.0f;
+}
+
+float PCFFilter(float2 uv, int innerLoop, float penumbra)
+{
+    float atten = 0;
+    float2 texelSize = 1.0f / (_ScreenSize * 0.5f);
+    int count = 0;
+
+    for (int i = -innerLoop; i <= innerLoop; i++)
+    {
+        for (int j = -innerLoop; j <= innerLoop; j++)
+        {
+            atten += _TexTable[_RayShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], uv + float2(i,j) * texelSize * penumbra, 0).r;
+            count++;
+        }
+    }
+
+    return atten / count;
+}
+
 [RootSignature(CollectRayShadowRS)]
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
-    return _TexTable[_RayShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], i.uv).r;
+    // do 7x7 penumbra
+    float penumbra = max(PenumbraFilter(i.uv, 3), 0.1f);
+    return PCFFilter(i.uv, 3, penumbra);
 }
