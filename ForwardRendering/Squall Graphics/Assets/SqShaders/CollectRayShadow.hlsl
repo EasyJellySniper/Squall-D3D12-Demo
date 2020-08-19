@@ -39,12 +39,15 @@ v2f CollectRayShadowVS(uint vid : SV_VertexID)
 
 float PenumbraFilter(float2 uv, int innerLoop)
 {
+    uint2 d;
+    _TexTable[_RayShadowIndex].GetDimensions(d.x, d.y);
+
     float blockCount = 0;
     float avgBlockDepth = 0;
     float avgReceiverDepth = 0;
     float lightSize = 0;
 
-    float2 texelSize = 1.0f / _ScreenSize;
+    float2 texelSize = 1.0f / d;
     for (int i = -innerLoop; i <= innerLoop; i++)
     {
         for (int j = -innerLoop; j <= innerLoop; j++)
@@ -83,8 +86,11 @@ float PenumbraFilter(float2 uv, int innerLoop)
 
 float PCFFilter(float2 uv, int innerLoop, float penumbra)
 {
+    uint2 d;
+    _TexTable[_RayShadowIndex].GetDimensions(d.x, d.y);
+
     float atten = 0;
-    float2 texelSize = 1.0f / _ScreenSize;
+    float2 texelSize = 1.0f / d;
     int count = 0;
 
     for (int i = -innerLoop; i <= innerLoop; i++)
