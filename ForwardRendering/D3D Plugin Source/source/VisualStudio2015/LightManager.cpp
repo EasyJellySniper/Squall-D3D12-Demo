@@ -620,7 +620,7 @@ void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)
 	}
 
 	shadowSamplerID = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR);
-	collectShadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, D3D12_FILTER_MIN_MAG_MIP_POINT);
+	collectShadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
 
 	// create ray tracing shadow uav
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
