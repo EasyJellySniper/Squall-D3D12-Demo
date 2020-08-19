@@ -168,13 +168,13 @@ void RTShadowRayGen()
 
     // to ndc space
     float2 screenUV = (xy / DispatchRaysDimensions().xy);
-    uint2 depthUV = screenUV * _ScreenSize;
+    float2 depthUV = screenUV;
     screenUV.y = 1 - screenUV.y;
     screenUV = screenUV * 2.0f - 1.0f;
 
     // shoot ray according to depth
-    float opaqueDepth = _TexTable[_DepthIndex].Load(uint3(depthUV, 0)).r;
-    float transDepth = _TexTable[_TransDepthIndex].Load(uint3(depthUV, 0)).r;
+    float opaqueDepth = _TexTable[_DepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
+    float transDepth = _TexTable[_TransDepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
 
     ShootRayFromDepth(opaqueDepth, screenUV);
 
