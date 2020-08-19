@@ -81,15 +81,9 @@ public class SqLightManager : MonoBehaviour
     }
 
     void InitLights()
-    {
-        int downSample = 0;
-        if(rayTracingShadow)
-        {
-            downSample = 1;
-        }
-
+    { 
         // create collect shadows 
-        collectShadows = new RenderTexture(Screen.width >> downSample, Screen.height >> downSample, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        collectShadows = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
         collectShadows.name = "Collect Shadows";
         collectShadows.Create();
 

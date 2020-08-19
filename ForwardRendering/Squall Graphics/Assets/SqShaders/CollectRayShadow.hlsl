@@ -44,7 +44,7 @@ float PenumbraFilter(float2 uv, int innerLoop)
     float avgReceiverDepth = 0;
     float lightSize = 0;
 
-    float2 texelSize = 1.0f / (_ScreenSize * 0.5f);
+    float2 texelSize = 1.0f / _ScreenSize;
     for (int i = -innerLoop; i <= innerLoop; i++)
     {
         for (int j = -innerLoop; j <= innerLoop; j++)
@@ -84,7 +84,7 @@ float PenumbraFilter(float2 uv, int innerLoop)
 float PCFFilter(float2 uv, int innerLoop, float penumbra)
 {
     float atten = 0;
-    float2 texelSize = 1.0f / (_ScreenSize * 0.5f);
+    float2 texelSize = 1.0f / _ScreenSize;
     int count = 0;
 
     for (int i = -innerLoop; i <= innerLoop; i++)
@@ -102,7 +102,7 @@ float PCFFilter(float2 uv, int innerLoop, float penumbra)
 [RootSignature(CollectRayShadowRS)]
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
-    // do 7x7 penumbra
-    float penumbra = max(PenumbraFilter(i.uv, 3), 0.1f);
-    return PCFFilter(i.uv, 3, penumbra);
+    int kernel = 3;
+    float penumbra = PenumbraFilter(i.uv, kernel);
+    return PCFFilter(i.uv, kernel, penumbra);
 }
