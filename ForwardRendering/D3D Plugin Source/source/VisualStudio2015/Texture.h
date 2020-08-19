@@ -8,7 +8,7 @@ using namespace Microsoft::WRL;
 
 struct TextureInfo
 {
-	TextureInfo() {}
+	TextureInfo() { typeless = false; isCube = false; isUav = false; isMsaa = false; isBuffer = false; numElement = 0; numStride = 0; }
 	TextureInfo(bool _typeless, bool _isCube, bool _isUav, bool _isMsaa, bool _isBuffer, UINT _numElement = 0, UINT _stride = 0)
 	{
 		typeless = _typeless;

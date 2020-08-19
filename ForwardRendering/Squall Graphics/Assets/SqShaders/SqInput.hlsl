@@ -53,6 +53,7 @@ cbuffer SystemConstant : register(b1)
 	int _NumSpotLight;
 	int _CollectShadowIndex;
 	int _CollectShadowSampler;
+	int _RayShadowIndex;
 	int _PCFIndex;
 	int _MsaaCount;
 	int _DepthIndex;

@@ -33,6 +33,7 @@ public:
 	void ShadowWork(Camera *_targetCam);
 	void RayTracingShadow(Camera* _targetCam, Light* _light);
 	void CollectShadowMap(Camera* _targetCam, Light* _light, int _id);
+	void CollectRayShadow(Camera* _targetCam);
 
 	int AddNativeLight(int _instanceID, SqLightData _data);
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
@@ -74,7 +75,7 @@ private:
 	int AddPointLight(int _instanceID, SqLightData _data);
 	int AddSpotLight(int _instanceID, SqLightData _data);
 	void AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw);
-	void CreateOpaqueShadow(int _instanceID, void *_opaqueShadows);
+	void CreateCollectShadow(int _instanceID, void *_opaqueShadows);
 	void CreateRayTracingShadow();
 
 	// light data
@@ -107,6 +108,7 @@ private:
 	Material shadowOpaqueMat[CullMode::NumCullMode];
 	Material shadowCutoutMat[CullMode::NumCullMode];
 	Material collectShadowMat;
+	Material collectRayShadowMat;
 	int shadowSamplerID;
 	int collectShadowID;
 	int collectShadowSampler;
@@ -115,4 +117,5 @@ private:
 	// ray tracing material
 	Material rtShadowMat;
 	int rtShadowUav;
+	int rtShadowSrv;
 };
