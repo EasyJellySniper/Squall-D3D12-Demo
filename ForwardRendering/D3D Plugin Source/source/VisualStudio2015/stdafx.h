@@ -75,6 +75,10 @@ inline DXGI_FORMAT GetColorFormatFromTypeless(DXGI_FORMAT _typelessFormat, bool 
 	{
 		colorFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	}
+	else if (_typelessFormat == DXGI_FORMAT_R16G16_TYPELESS)
+	{
+		colorFormat = DXGI_FORMAT_R16G16_FLOAT;
+	}
 	else if (_typelessFormat == DXGI_FORMAT_R16_TYPELESS)
 	{
 		colorFormat = DXGI_FORMAT_R16_FLOAT;
