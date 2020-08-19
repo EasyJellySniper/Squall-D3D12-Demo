@@ -162,8 +162,8 @@ void LightManager::RayTracingShadow(Camera* _targetCam, Light* _light)
 	_cmdList->SetComputeRootShaderResourceView(8, RayTracingManager::Instance().GetSubMeshInfoGPU());
 
 	// prepare dispatch desc
-	Camera* c = CameraManager::Instance().GetCamera();
-	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)c->GetViewPort().Width, (UINT)c->GetViewPort().Height);
+	auto rtShadowSrc = rayTracingShadow->Resource();
+	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc(rtShadowSrc->GetDesc().Width, rtShadowSrc->GetDesc().Height);
 
 	// copy hit group identifier
 	MaterialManager::Instance().CopyHitGroupIdentifier(mat, frameIndex);
