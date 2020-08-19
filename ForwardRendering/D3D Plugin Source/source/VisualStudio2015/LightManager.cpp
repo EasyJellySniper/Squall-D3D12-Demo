@@ -416,7 +416,7 @@ void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMo
 	auto desc = skyboxSrc->GetDesc();
 
 	skyboxTexId = TextureManager::Instance().AddNativeTexture(GetUniqueID(), skyboxSrc, TextureInfo(false, true, false, false, false));
-	skyboxSampleId = TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, false, true);
+	skyboxSampleId = TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
 	skyMeshId = _skyMesh;
 
 	Shader* skyShader = ShaderManager::Instance().CompileShader(L"Skybox.hlsl");
@@ -619,8 +619,8 @@ void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)
 		collectRayShadowMat = MaterialManager::Instance().CreateMaterialPost(collectRayShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
 
-	shadowSamplerID = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, true, false);
-	collectShadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, false, false);
+	shadowSamplerID = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR);
+	collectShadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, D3D12_FILTER_MIN_MAG_MIP_POINT);
 
 	// create ray tracing shadow uav
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;

@@ -12,18 +12,16 @@ class Sampler
 {
 public:
 	static D3D12_TEXTURE_ADDRESS_MODE UnityWrapModeToNative(TextureWrapMode _wrapMode);
-	bool IsSameSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare, bool _isCube);
-	void CreateSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare, bool _isCube);
-	void CreateSamplerHeap(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, bool _isCompare, bool _isCube);
+	bool IsSameSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, D3D12_FILTER _filter);
+	void CreateSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, D3D12_FILTER _filter);
 
 	TextureWrapMode GetWrapU();
 	TextureWrapMode GetWrapV();
 	TextureWrapMode GetWrapW();
 	int GetAnisoLevel();
+	D3D12_FILTER GetFilter();
 	ID3D12DescriptorHeap* GetSamplerHeap();
 
-	bool IsCompareSampler();
-	bool IsCubeSampler();
 	void Release();
 
 private:
@@ -31,8 +29,7 @@ private:
 	TextureWrapMode wrapV;
 	TextureWrapMode wrapW;
 	int anisoLevel;
-	bool isCompare;
-	bool isCube;
+	D3D12_FILTER filter;
 
 	ComPtr<ID3D12DescriptorHeap> samplerHeap = nullptr;
 };

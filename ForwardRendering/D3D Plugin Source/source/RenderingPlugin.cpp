@@ -116,7 +116,7 @@ extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeTexture(int 
 
 extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel)
 {
-	return TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, false, false);
+	return TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, D3D12_FILTER_ANISOTROPIC);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRenderMode(int _instance, int _mode)
