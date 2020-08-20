@@ -85,7 +85,7 @@ public class SqLightManager : MonoBehaviour
         int downSample = 0;
         if (rayTracingShadow)
         {
-            downSample = 1;
+            downSample = 0;
         }
 
         // create collect shadows 
