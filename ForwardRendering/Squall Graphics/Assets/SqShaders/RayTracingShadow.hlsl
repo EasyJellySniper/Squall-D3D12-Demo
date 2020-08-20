@@ -78,7 +78,7 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV)
 
     // to world pos
     float3 wpos = DepthToWorldPos(_Depth, float4(_ScreenUV, 0, 1));
-    float distToCam = length(_CameraPos - wpos);
+    float distToCam = length(_CameraPos.xyz - wpos);
 
     // setup ray, trace for main dir light
     SqLight mainLight = _SqDirLight[0];
