@@ -42,10 +42,10 @@ public class SqLightManager : MonoBehaviour
     public int maxSpotLight = 32;
 
     /// <summary>
-    /// pcf kernel
+    /// pcss kernel
     /// </summary>
-    public PCFKernel pcfKernal = PCFKernel.PCF4x4;
-    PCFKernel lastPCF;
+    [Range(0, 5)]
+    public int pcssKernel = 3;
 
     /// <summary>
     /// collect shadows
@@ -98,11 +98,13 @@ public class SqLightManager : MonoBehaviour
 
     void SetPCF()
     {
-        if (lastPCF != pcfKernal)
+        if (!rayTracingShadow)
         {
-            SetPCFKernel((int)pcfKernal);
+            SetPCFKernel((int)PCFKernel.PCF4x4);
         }
-
-        lastPCF = pcfKernal;
+        else
+        {
+            SetPCFKernel(pcssKernel);
+        }
     }
 }

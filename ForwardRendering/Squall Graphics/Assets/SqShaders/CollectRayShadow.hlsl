@@ -108,7 +108,6 @@ float PCFFilter(float2 uv, int innerLoop, float penumbra)
 [RootSignature(CollectRayShadowRS)]
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
-    int kernel = 3;
-    float penumbra = PenumbraFilter(i.uv, kernel);
-    return PCFFilter(i.uv, kernel, penumbra);
+    float penumbra = PenumbraFilter(i.uv, _PCFIndex);
+    return PCFFilter(i.uv, _PCFIndex, penumbra);
 }
