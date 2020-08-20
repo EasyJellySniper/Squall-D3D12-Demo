@@ -128,6 +128,7 @@ public class SqLight : MonoBehaviour
         mainCamTrans = mainCam.transform;
         InitNativeLight();
         InitShadows();
+        enabled = enabled || SqLightManager.Instace.rayTracingShadow;
     }
 
     void Update()
@@ -172,7 +173,7 @@ public class SqLight : MonoBehaviour
 
     void InitShadows()
     {
-        if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional)
+        if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional || SqLightManager.Instace.rayTracingShadow)
         {
             enabled = false;
             return;
@@ -182,15 +183,6 @@ public class SqLight : MonoBehaviour
         {
             enabled = false;
             Debug.LogError("Max cascade is 4");
-            return;
-        }
-
-        if (SqLightManager.Instace.rayTracingShadow)
-        {
-            // dummy tex
-            cascadeSetting = new float[1];
-            cascadeSetting[0] = 1;
-            CreateShadowCam();
             return;
         }
 
@@ -225,15 +217,6 @@ public class SqLight : MonoBehaviour
         }
         InitNativeShadows(nativeID, shadowMaps.Length, shadowPtr);
 
-        // change shadow cam's view port 
-        CreateShadowCam();
-        shadowCam.targetTexture = shadowMaps[0];
-
-        transform.hasChanged = true;    // force update once
-    }
-
-    void CreateShadowCam()
-    {
         // init shadow cam
         GameObject newObj = new GameObject();
         shadowCam = newObj.AddComponent<Camera>();
@@ -246,11 +229,21 @@ public class SqLight : MonoBehaviour
         shadowCam.aspect = 1f;
         shadowCam.cullingMask = 0;
         shadowCam.clearFlags = CameraClearFlags.Nothing;
+
+        // change shadow cam's view port 
+        shadowCam.targetTexture = shadowMaps[0];
+
+        transform.hasChanged = true;    // force update once
     }
 
     void UpdateShadowMatrix()
     {
         if (lightCache.type != LightType.Directional)
+        {
+            return;
+        }
+
+        if (SqLightManager.Instace.rayTracingShadow)
         {
             return;
         }

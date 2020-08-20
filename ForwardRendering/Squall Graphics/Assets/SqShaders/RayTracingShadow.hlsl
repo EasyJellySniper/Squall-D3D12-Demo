@@ -100,6 +100,9 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV)
     RayPayload payload = { 1.0f, 0, 0, 0 };
     TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, ray, payload);
 
+    // lerp between atten and strength
+    payload.atten = lerp(1, payload.atten, mainLight.color.a);
+
     // output shadow
     float currAtten = _OutputShadow[DispatchRaysIndex().xy].r;
     _OutputShadow[DispatchRaysIndex().xy].r = min(payload.atten, currAtten);
@@ -213,6 +216,12 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
     {
         // clip shadow
         payload.atten = lerp(1.0f, payload.atten, alpha >= _CutOff);
+    }
+
+    // transparent, use invert alpha as shadow atten
+    if (payload.isTransparent > 0)
+    {
+        payload.atten = 1 - alpha;
     }
 }
 

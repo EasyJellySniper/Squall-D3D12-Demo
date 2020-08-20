@@ -135,7 +135,7 @@ bool Light::HasShadowMap()
 
 ID3D12Resource* Light::GetShadowDsvSrc(int _cascade)
 {
-	if (_cascade < 0 || _cascade >= MAX_CASCADE_SHADOW || shadowRT == nullptr)
+	if (_cascade < 0 || _cascade >= MAX_CASCADE_SHADOW)
 	{
 		return nullptr;
 	}
