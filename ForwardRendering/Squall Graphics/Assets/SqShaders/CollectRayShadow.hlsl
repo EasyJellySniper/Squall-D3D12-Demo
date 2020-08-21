@@ -89,6 +89,9 @@ float PCFFilter(float2 uv, int innerLoop, float penumbra)
     uint2 d;
     _TexTable[_RayShadowIndex].GetDimensions(d.x, d.y);
 
+    // skip filter if penumbra is zero
+    innerLoop = lerp(0, innerLoop, penumbra > 0.0f);
+
     float atten = 0;
     float2 texelSize = 1.0f / d;
     int count = 0;
