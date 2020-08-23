@@ -15,9 +15,10 @@
 
 static RenderAPI* s_CurrentAPI = NULL;
 // define function like this
-extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitializeSqGraphic(int _numOfThreads)
+extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitializeSqGraphic(int _numOfThreads, int _width, int _height)
 {
 	s_CurrentAPI->CreateResources(_numOfThreads);
+	GraphicManager::Instance().SetScreenSize(_width, _height);
 	return s_CurrentAPI->CheckDevice();
 }
 

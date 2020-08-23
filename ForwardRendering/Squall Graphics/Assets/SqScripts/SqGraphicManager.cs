@@ -8,7 +8,7 @@ using UnityEngine;
 public class SqGraphicManager : MonoBehaviour
 {
     [DllImport("SquallGraphics")]
-    static extern bool InitializeSqGraphic(int _numOfThreads);
+    static extern bool InitializeSqGraphic(int _numOfThreads, int _width, int _height);
 
     [DllImport("SquallGraphics")]
     static extern void ReleaseSqGraphic();
@@ -59,7 +59,7 @@ public class SqGraphicManager : MonoBehaviour
             numOfRenderThreads = 2;
         }
 
-        if (InitializeSqGraphic(numOfRenderThreads))
+        if (InitializeSqGraphic(numOfRenderThreads, Screen.width, Screen.height))
         {
             Debug.Log("[SqGraphicManager] Squall Graphics initialized.");
             Instance = this;

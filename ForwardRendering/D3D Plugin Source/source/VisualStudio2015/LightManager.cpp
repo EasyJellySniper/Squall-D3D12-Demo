@@ -625,6 +625,11 @@ void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)
 	// create ray tracing shadow uav
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 	desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+	int w, h;
+	GraphicManager::Instance().GetScreenSize(w, h);
+	desc.Width = w;
+	desc.Height = h;
 	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// create ray tracing texture

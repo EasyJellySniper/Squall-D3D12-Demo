@@ -42,6 +42,7 @@ public:
 	~GraphicManager() {}
 
 	bool Initialize(ID3D12Device* _device, int _numOfThreads);
+	void SetScreenSize(int _w, int _h);
 	void InitRayTracingInterface();
 	void Release();
 	int GetThreadCount();
@@ -70,6 +71,7 @@ public:
 	void UploadSystemConstant(SystemConstant _sc, int _frameIdx);
 	SystemConstant GetSystemConstantCPU();
 	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU(int _frameIdx);
+	void GetScreenSize(int& _w, int& _h);
 
 private:
 	HRESULT CreateGpuTimeQuery();
@@ -120,8 +122,9 @@ private:
 	UINT dsvDescriptorSize;
 	UINT cbvSrvUavDescriptorSize;
 
-	// camera cache
-	Camera activeCam;
+	// system constant
+	int screenWidth;
+	int screenHeight;
 	SystemConstant systemConstantCPU;
 	FrameResource frameResource;
 

@@ -40,6 +40,12 @@ bool GraphicManager::Initialize(ID3D12Device* _device, int _numOfThreads)
 	return initSucceed;
 }
 
+void GraphicManager::SetScreenSize(int _w, int _h)
+{
+	screenWidth = _w;
+	screenHeight = _h;
+}
+
 void GraphicManager::InitRayTracingInterface()
 {
 	LogIfFailedWithoutHR(mainDevice->QueryInterface(IID_PPV_ARGS(&rayTracingDevice)));
@@ -469,4 +475,10 @@ SystemConstant GraphicManager::GetSystemConstantCPU()
 D3D12_GPU_VIRTUAL_ADDRESS GraphicManager::GetSystemConstantGPU(int _frameIdx)
 {
 	return systemConstantGPU[_frameIdx]->Resource()->GetGPUVirtualAddress();
+}
+
+void GraphicManager::GetScreenSize(int& _w, int& _h)
+{
+	_w = screenWidth;
+	_h = screenHeight;
 }
