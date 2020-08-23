@@ -118,5 +118,5 @@ float BlurFilter(float2 uv, int innerLoop, float penumbra)
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
     float penumbra = PenumbraFilter(i.uv, _PCFIndex);
-    return BlurFilter(i.uv, _PCFIndex, 1);
+    return BlurFilter(i.uv, _PCFIndex, penumbra);
 }
