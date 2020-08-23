@@ -117,6 +117,13 @@ float BlurFilter(float2 uv, int innerLoop, float penumbra)
 [RootSignature(CollectRayShadowRS)]
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
+    float depth = _TexTable[_TransDepthIndex].Sample(_SamplerTable[_CollectShadowSampler], i.uv).r;
+    float3 wpos = DepthToWorldPos(depth, i.screenPos);
+    float distRatio = 1 - saturate(abs(wpos.z - _CameraPos.z) * 0.05f);
+
+    // reduce penumbra according to distance
+    // prevent far object blurring too much
+
     float penumbra = PenumbraFilter(i.uv, _PCFIndex);
-    return BlurFilter(i.uv, _PCFIndex, penumbra);
+    return BlurFilter(i.uv, _PCFIndex, penumbra * distRatio);
 }
