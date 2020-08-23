@@ -110,7 +110,7 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light)
     float receiverDistToLight = length(lightPos - wpos); // receiver dist to light
     _OutputShadow[DispatchRaysIndex().xy].g = receiverDistToLight - payload.distBlockToLight;  // blocker distance to light
     _OutputShadow[DispatchRaysIndex().xy].b = receiverDistToLight;
-    _OutputShadow[DispatchRaysIndex().xy].a = _light.shadowSize;
+    _OutputShadow[DispatchRaysIndex().xy].a = _light.shadowSize;    // use as light size
 }
 
 uint3 Load3x16BitIndices(uint offsetBytes, uint indexID)
