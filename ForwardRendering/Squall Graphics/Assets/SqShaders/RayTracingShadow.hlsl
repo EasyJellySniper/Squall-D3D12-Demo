@@ -68,7 +68,7 @@ StructuredBuffer<VertexInput> _Vertices[] : register(t0, space3);
 ByteAddressBuffer _Indices[] : register(t0, space4);
 StructuredBuffer<SubMesh> _SubMesh : register(t0, space5);
 
-void ShootRayFromDepth(float _Depth, float2 _ScreenUV)
+void ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light)
 {
     if (_Depth == 0.0f)
     {
@@ -81,36 +81,36 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV)
     float distToCam = length(_CameraPos.xyz - wpos);
 
     // setup ray, trace for main dir light
-    SqLight mainLight = _SqDirLight[0];
-    if (distToCam > mainLight.cascadeDist[0])
+
+    if (distToCam > _light.cascadeDist[0])
     {
         // save ray if distance is too far
         return;
     }
 
-    float3 lightPos = -mainLight.world.xyz * mainLight.cascadeDist[0];
+    float3 lightPos = -_light.world.xyz * _light.cascadeDist[0];
 
     RayDesc ray;
     ray.Origin = wpos;
-    ray.Direction = -mainLight.world.xyz;   // shoot a ray to light
-    ray.TMin = mainLight.world.w;           // use bias as t min
-    ray.TMax = mainLight.cascadeDist[0];
+    ray.Direction = -_light.world.xyz;   // shoot a ray to light
+    ray.TMin = _light.world.w;           // use bias as t min
+    ray.TMax = _light.cascadeDist[0];
 
     // the data payload between ray tracing
     RayPayload payload = { 1.0f, 0, 0, 0 };
     TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, ray, payload);
 
     // lerp between atten and strength
-    payload.atten = lerp(1, payload.atten, mainLight.color.a);
+    payload.atten = lerp(1, payload.atten, _light.color.a);
 
     // output shadow
     float currAtten = _OutputShadow[DispatchRaysIndex().xy].r;
-    _OutputShadow[DispatchRaysIndex().xy].r = min(payload.atten, currAtten);
+    _OutputShadow[DispatchRaysIndex().xy].r = payload.atten;
 
     float receiverDistToLight = length(lightPos - wpos); // receiver dist to light
     _OutputShadow[DispatchRaysIndex().xy].g = receiverDistToLight - payload.distBlockToLight;  // blocker distance to light
     _OutputShadow[DispatchRaysIndex().xy].b = receiverDistToLight;
-    _OutputShadow[DispatchRaysIndex().xy].a = mainLight.shadowSize;
+    _OutputShadow[DispatchRaysIndex().xy].a = _light.shadowSize;
 }
 
 uint3 Load3x16BitIndices(uint offsetBytes, uint indexID)
@@ -170,7 +170,7 @@ void RTShadowRayGen()
     _OutputShadow[DispatchRaysIndex().xy] = 1;
 
     // center in the middle of the pixel, it's half-offset rule of D3D
-    float2 xy = DispatchRaysIndex().xy + 0.5f; 
+    float2 xy = DispatchRaysIndex().xy + 0.5f;
 
     // to ndc space
     float2 screenUV = (xy / DispatchRaysDimensions().xy);
@@ -182,11 +182,15 @@ void RTShadowRayGen()
     float opaqueDepth = _TexTable[_DepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
     float transDepth = _TexTable[_TransDepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
 
-    ShootRayFromDepth(opaqueDepth, screenUV);
 
-    // shoot ray for transparent object if necessary
+    SqLight light = _SqDirLight[0];
+
+    ShootRayFromDepth(opaqueDepth, screenUV, light);
     if (opaqueDepth != transDepth)
-        ShootRayFromDepth(transDepth, screenUV);
+    {
+        // shoot ray for transparent object if necessary
+        ShootRayFromDepth(transDepth, screenUV, light);
+    }
 }
 
 [shader("closesthit")]
