@@ -75,7 +75,7 @@ float PenumbraFilter(float2 uv, int innerLoop)
 
         // penumbra formula: (d_receiver - d_blocker) * light_size / d_blocker
         float penumbra = (avgReceiverDepth - avgBlockDepth) * lightSize / avgBlockDepth;
-        penumbra = saturate(penumbra);
+        penumbra = pow(penumbra, 0.5f);
         return penumbra;
     }
 
