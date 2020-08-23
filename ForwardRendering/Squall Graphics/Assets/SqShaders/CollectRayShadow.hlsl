@@ -53,7 +53,7 @@ float PenumbraFilter(float2 uv, int innerLoop)
         for (int j = -innerLoop; j <= innerLoop; j++)
         {
             // x for blocked, y for dist to blocker
-            float4 shadowData = _TexTable[_RayShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], uv + texelSize * float2(i, j), 0).rgba;
+            float4 shadowData = _TexTable[_RayShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], uv + texelSize * float2(i, j)).rgba;
 
             [branch]
             if (shadowData.x < 1)
@@ -76,32 +76,38 @@ float PenumbraFilter(float2 uv, int innerLoop)
         // penumbra formula: (d_receiver - d_blocker) * light_size / d_blocker
         float penumbra = (avgReceiverDepth - avgBlockDepth) * lightSize / avgBlockDepth;
         penumbra = saturate(penumbra);
-
-        // give a pow5 attenation
-        return penumbra * penumbra * penumbra * penumbra * penumbra;
+        return penumbra;
     }
 
     return 0.0f;
 }
 
-float PCFFilter(float2 uv, int innerLoop, float penumbra)
+float BlurFilter(float2 uv, int innerLoop, float penumbra)
 {
+    float center = _TexTable[_RayShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], uv).r;
+    [branch]
+    if (penumbra < 1.401298E-45)
+    {
+        // early out if doesn't need blur
+        return center;
+    }
+
     uint2 d;
     _TexTable[_RayShadowIndex].GetDimensions(d.x, d.y);
-
-    // skip filter if penumbra is zero
-    innerLoop = lerp(0, innerLoop, penumbra > 0.0f);
 
     float atten = 0;
     float2 texelSize = 1.0f / d;
     int count = 0;
 
+    [loop]
     for (int i = -innerLoop; i <= innerLoop; i++)
     {
+        [loop]
         for (int j = -innerLoop; j <= innerLoop; j++)
         {
-            atten += _TexTable[_RayShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], uv + float2(i,j) * texelSize * penumbra, 0).r;
-            count++;
+            float w = (innerLoop - abs(i) + 1) * (innerLoop - abs(j) + 1);
+            atten += _TexTable[_RayShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], uv + float2(i, j) * texelSize * penumbra).r * w;
+            count += w;
         }
     }
 
@@ -112,5 +118,5 @@ float PCFFilter(float2 uv, int innerLoop, float penumbra)
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
     float penumbra = PenumbraFilter(i.uv, _PCFIndex);
-    return PCFFilter(i.uv, _PCFIndex, penumbra);
+    return BlurFilter(i.uv, _PCFIndex, 1);
 }
