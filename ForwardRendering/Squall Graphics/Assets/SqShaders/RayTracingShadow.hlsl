@@ -105,7 +105,7 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light)
 
     // output shadow
     float currAtten = _OutputShadow[DispatchRaysIndex().xy].r;
-    _OutputShadow[DispatchRaysIndex().xy].r = payload.atten;
+    _OutputShadow[DispatchRaysIndex().xy].r = min(payload.atten, currAtten);
 
     float receiverDistToLight = length(lightPos - wpos); // receiver dist to light
     _OutputShadow[DispatchRaysIndex().xy].g = receiverDistToLight - payload.distBlockToLight;  // blocker distance to light
