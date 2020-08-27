@@ -146,7 +146,7 @@ void LightManager::RayTracingShadow(Camera* _targetCam, Light* _light)
 	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootShaderResourceView(2, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(3, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
+	_cmdList->SetComputeRootShaderResourceView(3, GetLightDataGPU(LightType::Directional, frameIndex, 0));
 	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
@@ -210,7 +210,7 @@ void LightManager::CollectShadowMap(Camera *_targetCam, Light* _light, int _id)
 	_cmdList->SetPipelineState(LightManager::Instance().GetCollectShadow()->GetPSO());
 	_cmdList->SetGraphicsRootSignature(LightManager::Instance().GetCollectShadow()->GetRootSignature());
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
-	_cmdList->SetGraphicsRootShaderResourceView(1, LightManager::Instance().GetDirLightGPU(currFrameResource->currFrameIndex, _id));
+	_cmdList->SetGraphicsRootShaderResourceView(1, GetLightDataGPU(LightType::Directional, currFrameResource->currFrameIndex, _id));
 	_cmdList->SetGraphicsRootDescriptorTable(2, _light->GetShadowSrv());
 	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(4, LightManager::Instance().GetShadowSampler());
@@ -459,10 +459,10 @@ D3D12_CPU_DESCRIPTOR_HANDLE LightManager::GetCollectShadowRtv()
 	return collectShadow->GetRtvCPU(0);
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetDirLightGPU(int _frameIdx, int _offset)
+D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetLightDataGPU(LightType _type, int _frameIdx, int _offset)
 {
 	UINT lightSize = sizeof(SqLightData);
-	return lightDataGPU[LightType::Directional][_frameIdx]->Resource()->GetGPUVirtualAddress() + lightSize * _offset;
+	return lightDataGPU[_type][_frameIdx]->Resource()->GetGPUVirtualAddress() + lightSize * _offset;
 }
 
 Renderer* LightManager::GetSkyboxRenderer()

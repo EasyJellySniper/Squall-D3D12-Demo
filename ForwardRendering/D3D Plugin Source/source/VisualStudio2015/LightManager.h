@@ -59,7 +59,7 @@ public:
 
 	ID3D12Resource* GetCollectShadowSrc();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCollectShadowRtv();
-	D3D12_GPU_VIRTUAL_ADDRESS GetDirLightGPU(int _frameIdx, int _offset);
+	D3D12_GPU_VIRTUAL_ADDRESS GetLightDataGPU(LightType _type, int _frameIdx, int _offset);
 
 	Renderer* GetSkyboxRenderer();
 	Material* GetSkyboxMat();

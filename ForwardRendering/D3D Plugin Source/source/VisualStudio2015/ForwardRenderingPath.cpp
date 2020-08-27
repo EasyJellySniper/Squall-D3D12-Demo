@@ -362,7 +362,7 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetDirLightGPU(frameIndex, 0));
+	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetLightDataGPU(LightType::Directional, frameIndex, 0));
 }
 
 void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
