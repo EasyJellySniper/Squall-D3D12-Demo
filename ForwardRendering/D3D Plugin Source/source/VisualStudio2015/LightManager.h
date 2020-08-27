@@ -27,19 +27,14 @@ public:
 	~LightManager() {}
 
 	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, int _opaqueShadowID);
-	void InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void Release();
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
 	void ShadowWork(Camera *_targetCam);
-	void RayTracingShadow(Camera* _targetCam, Light* _light);
-	void CollectShadowMap(Camera* _targetCam, Light* _light, int _id);
+	void RayTracingShadow(Camera* _targetCam);
 	void CollectRayShadow(Camera* _targetCam);
 
 	int AddNativeLight(int _instanceID, SqLightData _data);
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
-	void UpdateNativeShadow(int _nativeID, SqLightData _data);
-	void SetShadowFrustum(int _nativeID, XMFLOAT4X4 _view, XMFLOAT4X4 _projCulling, int _cascade);
-	void SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void UploadPerLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
 	void SetPCFKernel(int _kernel);
@@ -49,11 +44,7 @@ public:
 
 	Light *GetDirLights();
 	int GetNumDirLights();
-	Material* GetShadowOpqaue(int _cullMode);
-	Material* GetShadowCutout(int _cullMode);
-	Material* GetCollectShadow();
 	Material* GetRayShadow();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetShadowSampler();
 	ID3D12Resource* GetRayShadowSrc();
 	int GetShadowIndex();
 
@@ -72,7 +63,6 @@ public:
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
 	int AddLight(int _instanceID, SqLightData _data);
-	void AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void CreateCollectShadow(int _instanceID, void *_opaqueShadows);
 	void CreateRayTracingShadow();
 
@@ -96,11 +86,7 @@ private:
 	float skyIntensity;
 
 	// shadow material
-	Material shadowOpaqueMat[CullMode::NumCullMode];
-	Material shadowCutoutMat[CullMode::NumCullMode];
-	Material collectShadowMat;
 	Material collectRayShadowMat;
-	int shadowSamplerID;
 	int collectShadowID;
 	int collectShadowSampler;
 	int pcfKernel;

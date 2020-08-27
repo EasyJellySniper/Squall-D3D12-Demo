@@ -20,31 +20,8 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 		}
 	}
 
-	D3D_SHADER_MACRO shadowMacro[] = { "_SHADOW_CUTOFF_ON","1",NULL,NULL };
-	Shader* shadowPassOpaque = ShaderManager::Instance().CompileShader(L"ShadowPass.hlsl");
-	Shader* shadowPassCutoff = ShaderManager::Instance().CompileShader(L"ShadowPass.hlsl", shadowMacro);
-
-	// create shadow material
-	for (int i = 0; i < CullMode::NumCullMode; i++)
-	{
-		if (shadowPassOpaque != nullptr)
-		{
-			shadowOpaqueMat[i] = MaterialManager::Instance().CreateMaterialDepthOnly(shadowPassOpaque, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
-		}
-
-		if (shadowPassCutoff != nullptr)
-		{
-			shadowCutoutMat[i] = MaterialManager::Instance().CreateMaterialDepthOnly(shadowPassCutoff, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
-		}
-	}
-
 	CreateCollectShadow(_opaqueShadowID, _opaqueShadows);
 	CreateRayTracingShadow();
-}
-
-void LightManager::InitNativeShadows(int _nativeID, int _numCascade, void** _shadowMapRaw)
-{
-	AddDirShadow(_nativeID, _numCascade, _shadowMapRaw);
 }
 
 void LightManager::Release()
@@ -63,12 +40,6 @@ void LightManager::Release()
 		}
 	}
 
-	for (int i = 0; i < CullMode::NumCullMode; i++)
-	{
-		shadowOpaqueMat[i].Release();
-		shadowCutoutMat[i].Release();
-	}
-	collectShadowMat.Release();
 	collectRayShadowMat.Release();
 
 	if (collectShadow != nullptr)
@@ -85,20 +56,6 @@ void LightManager::Release()
 
 void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 {
-	auto dirLights = GetDirLights();
-	int numDirLight = GetNumDirLights();
-
-	for (int i = 0; i < numDirLight; i++)
-	{
-		SqLightData* sld = dirLights[i].GetLightData();
-
-		for (int j = 0; j < sld->numCascade; j++)
-		{
-			_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(dirLights[i].GetShadowDsvSrc(j), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-			_cmdList->ClearDepthStencilView(dirLights[i].GetShadowDsv(j), D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
-		}
-	}
-
 	// clear target
 	FLOAT c[] = { 1,1,1,1 };
 	_cmdList->ClearRenderTargetView(LightManager::Instance().GetCollectShadowRtv(), c, 0, nullptr);
@@ -106,23 +63,11 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 
 void LightManager::ShadowWork(Camera* _targetCam)
 {
-	auto dirLights = sqLights[LightType::Directional];
-	for (int i = 0; i < GetNumDirLights(); i++)
-	{
-		if (!dirLights[i].HasShadowMap())
-		{
-			RayTracingShadow(_targetCam, &dirLights[i]);
-			CollectRayShadow(_targetCam);
-		}
-		else
-		{
-			// collect shadow
-			CollectShadowMap(_targetCam , &dirLights[i], i);
-		}
-	}
+	RayTracingShadow(_targetCam);
+	CollectRayShadow(_targetCam);
 }
 
-void LightManager::RayTracingShadow(Camera* _targetCam, Light* _light)
+void LightManager::RayTracingShadow(Camera* _targetCam)
 {
 	// use pre gfx list
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
@@ -174,61 +119,6 @@ void LightManager::RayTracingShadow(Camera* _targetCam, Light* _light)
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingShadow])
-	GraphicManager::Instance().ExecuteCommandList(_cmdList);
-}
-
-void LightManager::CollectShadowMap(Camera *_targetCam, Light* _light, int _id)
-{
-	auto currFrameResource = GraphicManager::Instance().GetFrameResource();
-	auto _cmdList = currFrameResource->mainGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
-	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
-
-	// collect shadow
-	SqLightData* sld = _light->GetLightData();
-
-	D3D12_RESOURCE_BARRIER collect[6];
-
-	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	for (int i = 2; i < sld->numCascade + 2; i++)
-	{
-		collect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	}
-	_cmdList->ResourceBarrier(2 + sld->numCascade, collect);
-
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() , TextureManager::Instance().GetSamplerHeap() };
-	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
-
-	// set target
-	_cmdList->OMSetRenderTargets(1, &LightManager::Instance().GetCollectShadowRtv(), true, nullptr);
-	_cmdList->RSSetViewports(1, &_targetCam->GetViewPort());
-	_cmdList->RSSetScissorRects(1, &_targetCam->GetScissorRect());
-	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	// set material
-	_cmdList->SetPipelineState(LightManager::Instance().GetCollectShadow()->GetPSO());
-	_cmdList->SetGraphicsRootSignature(LightManager::Instance().GetCollectShadow()->GetRootSignature());
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
-	_cmdList->SetGraphicsRootShaderResourceView(1, GetLightDataGPU(LightType::Directional, currFrameResource->currFrameIndex, _id));
-	_cmdList->SetGraphicsRootDescriptorTable(2, _light->GetShadowSrv());
-	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(4, LightManager::Instance().GetShadowSampler());
-
-	_cmdList->DrawInstanced(6, 1, 0, 0);
-	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
-
-	// transition to common
-	D3D12_RESOURCE_BARRIER finishCollect[6];
-	finishCollect[0] = CD3DX12_RESOURCE_BARRIER::Transition(LightManager::Instance().GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
-	finishCollect[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	for (int i = 2; i < sld->numCascade + 2; i++)
-	{
-		finishCollect[i] = CD3DX12_RESOURCE_BARRIER::Transition(_light->GetShadowDsvSrc(i - 2), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
-	}
-	_cmdList->ResourceBarrier(2 + sld->numCascade, finishCollect);
-
-	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::CollectShadowMap])
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
@@ -295,26 +185,6 @@ void LightManager::UpdateNativeLight(int _id, SqLightData _data)
 	sqLights[_data.type][_id].SetLightData(_data);
 }
 
-void LightManager::UpdateNativeShadow(int _nativeID, SqLightData _data)
-{
-	if (_data.type == LightType::Directional)
-	{
-		sqLights[_data.type][_nativeID].SetLightData(_data, true);
-	}
-}
-
-void LightManager::SetShadowFrustum(int _nativeID, XMFLOAT4X4 _view, XMFLOAT4X4 _projCulling, int _cascade)
-{
-	// currently only dir light needs 
-	sqLights[LightType::Directional][_nativeID].SetShadowFrustum(_view, _projCulling, _cascade);
-}
-
-void LightManager::SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
-{
-	// currently only dir light needs 
-	sqLights[LightType::Directional][_nativeID].SetViewPortScissorRect(_viewPort, _scissorRect);
-}
-
 void LightManager::UploadPerLightBuffer(int _frameIdx)
 {
 	// per light upload
@@ -331,19 +201,6 @@ void LightManager::UploadPerLightBuffer(int _frameIdx)
 				SqLightData* sld = lightList[j].GetLightData();
 				lightData[_frameIdx]->CopyData(j, *sld);
 				lightList[j].SetDirty(false, _frameIdx);
-			}
-
-			// upload cascade
-			if (lightList[j].IsShadowDirty(_frameIdx))
-			{
-				SqLightData* sld = lightList[j].GetLightData();
-				for (int k = 0; k < sld->numCascade; k++)
-				{
-					LightConstant lc;
-					lc.sqMatrixShadow = sld->shadowMatrix[k];
-					lightList[j].UploadLightConstant(lc, k, _frameIdx);
-				}
-				lightList[j].SetShadowDirty(false, _frameIdx);
 			}
 		}
 	}
@@ -417,30 +274,9 @@ int LightManager::GetNumDirLights()
 	return (int)sqLights[LightType::Directional].size();
 }
 
-Material* LightManager::GetShadowOpqaue(int _cullMode)
-{
-	return &shadowOpaqueMat[_cullMode];
-}
-
-Material* LightManager::GetShadowCutout(int _cullMode)
-{
-	return &shadowCutoutMat[_cullMode];
-}
-
-Material* LightManager::GetCollectShadow()
-{
-	return &collectShadowMat;
-}
-
 Material* LightManager::GetRayShadow()
 {
 	return &rtShadowMat;
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetShadowSampler()
-{
-	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart(), shadowSamplerID, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
-	return handle;
 }
 
 ID3D12Resource* LightManager::GetRayShadowSrc()
@@ -542,16 +378,6 @@ int LightManager::AddLight(int _instanceID, SqLightData _data)
 	return idx;
 }
 
-void LightManager::AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw)
-{
-	if (_nativeID < 0 || (int)_nativeID >= sqLights[LightType::Directional].size())
-	{
-		return;
-	}
-
-	sqLights[LightType::Directional][_nativeID].InitNativeShadows(_numCascade, _shadowMapRaw);
-}
-
 void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)
 {
 	if (_opaqueShadows == nullptr)
@@ -570,20 +396,12 @@ void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)
 	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, TextureInfo(true, false, false, false, false));
 
 	// create collect shadow material
-	Shader *collectShader = ShaderManager::Instance().CompileShader(L"CollectShadow.hlsl");
 	Shader *collectRayShader = ShaderManager::Instance().CompileShader(L"CollectRayShadow.hlsl");
-
-	if (collectShader != nullptr)
-	{
-		collectShadowMat = MaterialManager::Instance().CreateMaterialPost(collectShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
-	}
-
 	if (collectRayShader != nullptr)
 	{
 		collectRayShadowMat = MaterialManager::Instance().CreateMaterialPost(collectRayShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
 
-	shadowSamplerID = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Border, TextureWrapMode::Border, TextureWrapMode::Border, 8, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR);
 	collectShadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, D3D12_FILTER_ANISOTROPIC);
 
 	// create ray tracing shadow uav

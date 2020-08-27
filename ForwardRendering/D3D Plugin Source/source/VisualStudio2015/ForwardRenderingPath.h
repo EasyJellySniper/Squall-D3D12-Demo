@@ -13,8 +13,6 @@ enum WorkerType
 	Culling = 0,
 	Upload,
 	PrePassRendering,
-	ShadowCulling,
-	ShadowRendering,
 	OpaqueRendering,
 	CutoffRendering,
 	TransparentRendering,
@@ -45,16 +43,12 @@ private:
 	void BeginFrame(Camera* _camera);
 	void UploadWork(Camera* _camera);
 	void PrePassWork(Camera* _camera);
-	void ShadowWork();
-	void BindShadowState(Light *_light, int _cascade, int _threadIndex);
 	void BindForwardState(Camera* _camera, int _threadIndex);
 	void BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh);
-	void BindShadowObject(ID3D12GraphicsCommandList* _cmdList, Light* _light, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh);
 	void DrawWireFrame(Camera* _camera, int _threadIndex);
 	void DrawOpaqueDepth(Camera* _camera, int _threadIndex);
 	void DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
-	void DrawShadowPass(Light* _light, int _cascade, int _threadIndex);
 	void DrawOpaquePass(Camera* _camera, int _threadIndex, bool _cutout = false);
 	void DrawCutoutPass(Camera* _camera, int _threadIndex);
 	void DrawSkyboxPass(Camera* _camera);

@@ -16,16 +16,14 @@ struct VertexInput
 struct SqLight
 {
 	// up to 4 cascade
-	float4x4 shadowMatrix[4];
 	float4 color;		// a = shadow strength
 	float4 world;		// as position for spot/point light, as dir for directional light, w used for bias value
-	float cascadeDist[4];
 	int type;
 	float intensity;
-	int numCascade;
 	float shadowSize;
+	float shadowDistance;
 	float range;	// light range
-	float2 padding;
+	float3 padding;
 };
 
 struct SubMesh

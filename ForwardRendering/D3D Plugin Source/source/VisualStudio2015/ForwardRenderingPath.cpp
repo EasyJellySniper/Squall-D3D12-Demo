@@ -50,7 +50,7 @@ void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 	PrePassWork(_camera);
 
 	// shadow work
-	ShadowWork();
+	LightManager::Instance().ShadowWork(targetCam);
 
 	// opaque pass
 	workerType = WorkerType::OpaqueRendering;
@@ -108,20 +108,6 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
 				DrawOpaqueDepth(targetCam, _threadIndex);
-			}
-
-			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
-		}
-		else if (workerType == WorkerType::ShadowCulling)
-		{
-			RendererManager::Instance().ShadowCulling(currLight, cascadeIndex, _threadIndex);
-		}
-		else if (workerType == WorkerType::ShadowRendering)
-		{
-			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
-			{
-				BindShadowState(currLight, cascadeIndex, _threadIndex);
-				DrawShadowPass(currLight, cascadeIndex, _threadIndex);
 			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
@@ -209,54 +195,6 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
-void ForwardRenderingPath::ShadowWork()
-{
-	auto dirLights = LightManager::Instance().GetDirLights();
-	int numDirLights = LightManager::Instance().GetNumDirLights();
-
-	// rendering
-	for (int i = 0; i < numDirLights; i++)
-	{
-		if (!dirLights[i].HasShadowMap())
-		{
-			continue;
-		}
-
-		// render all cascade
-		SqLightData *sld = dirLights[i].GetLightData();
-
-		for (int j = 0; j < sld->numCascade; j++)
-		{
-			cascadeIndex = j;
-			currLight = &dirLights[i];
-
-			// culling renderer
-			workerType = WorkerType::ShadowCulling;
-			GraphicManager::Instance().WakeAndWaitWorker();
-
-			// multi thread work
-			workerType = WorkerType::ShadowRendering;
-			GraphicManager::Instance().WakeAndWaitWorker();
-		}
-	}
-
-	// ray tracing shadow
-	LightManager::Instance().ShadowWork(targetCam);
-}
-
-void ForwardRenderingPath::BindShadowState(Light *_light, int _cascade, int _threadIndex)
-{
-	LogIfFailedWithoutHR(currFrameResource->workerGfxList[_threadIndex]->Reset(currFrameResource->workerGfxAlloc[_threadIndex], nullptr));
-	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
-	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
-
-	// transition to depth write
-	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_light->GetShadowDsv(_cascade));
-	_cmdList->RSSetViewports(1, &_light->GetViewPort());
-	_cmdList->RSSetScissorRects(1, &_light->GetScissorRect());
-	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
-
 void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
 {
 	// get frame resource
@@ -304,40 +242,6 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
-
-	// setup descriptor table gpu
-	if (_queue >= RenderQueue::CutoffStart)
-	{
-		_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-		_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	}
-}
-
-void ForwardRenderingPath::BindShadowObject(ID3D12GraphicsCommandList* _cmdList, Light* _light, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh)
-{
-	// choose shadow material
-	Material* pipeMat = nullptr;
-	if (_queue < RenderQueue::CutoffStart)
-	{
-		pipeMat = LightManager::Instance().GetShadowOpqaue(_mat->GetCullMode());
-	}
-	else if (_queue >= RenderQueue::CutoffStart)
-	{
-		pipeMat = LightManager::Instance().GetShadowCutout(_mat->GetCullMode());
-	}
-
-	// bind mesh
-	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
-	_cmdList->IASetIndexBuffer(&_mesh->GetIndexBufferView());
-
-	// bind pipeline material
-	_cmdList->SetPipelineState(pipeMat->GetPSO());
-	_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
-
-	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(1, _light->GetLightConstantGPU(cascadeIndex, frameIndex));
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
 
 	// setup descriptor table gpu
@@ -507,49 +411,6 @@ void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdL
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
 		}
 	}
-}
-
-void ForwardRenderingPath::DrawShadowPass(Light* _light, int _cascade, int _threadIndex)
-{
-	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
-
-	// bind heap
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
-	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
-
-	// loop render-queue
-	auto renderers = RendererManager::Instance().GetRenderers();
-	int count = (int)renderers.size() / numWorkerThreads + 1;
-	int start = _threadIndex * count;
-
-	for (int i = start; i <= start + count; i++)
-	{
-		// valid renderer
-		if (i >= renderers.size() || !renderers[i]->GetShadowVisible())
-		{
-			continue;
-		}
-
-		auto const r = renderers[i];
-		Mesh* m = r->GetMesh();
-
-		if (m != nullptr)
-		{
-			for (int j = 0; j < r->GetNumMaterials(); j++)
-			{
-				// choose pipeline material according to renderqueue
-				Material* const objMat = r->GetMaterial(j);
-				BindShadowObject(_cmdList, _light, objMat->GetRenderQueue(), r.get(), objMat, m);
-
-				// draw mesh
-				m->DrawSubMesh(_cmdList, j);
-				GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
-			}
-		}
-	}
-
-	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeShadow[_threadIndex])
-	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
 void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, bool _cutout)

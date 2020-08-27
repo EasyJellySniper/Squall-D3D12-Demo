@@ -31,10 +31,6 @@ EXPORTS
    SetTransparentDepth
    AddNativeLight
    UpdateNativeLight
-   UpdateNativeShadow
-   InitNativeShadows
-   SetShadowViewPortScissorRect
-   SetShadowFrustum
    SetPCFKernel
    SetAmbientLight
    SetSkybox

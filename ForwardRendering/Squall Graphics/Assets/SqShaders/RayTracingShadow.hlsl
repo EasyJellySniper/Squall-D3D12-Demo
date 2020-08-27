@@ -82,19 +82,19 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light)
 
     // setup ray, trace for main dir light
 
-    if (distToCam > _light.cascadeDist[0])
+    if (distToCam > _light.shadowDistance)
     {
         // save ray if distance is too far
         return;
     }
 
-    float3 lightPos = -_light.world.xyz * _light.cascadeDist[0];
+    float3 lightPos = -_light.world.xyz * _light.shadowDistance;
 
     RayDesc ray;
     ray.Origin = wpos;
     ray.Direction = -_light.world.xyz;   // shoot a ray to light
     ray.TMin = _light.world.w;           // use bias as t min
-    ray.TMax = _light.cascadeDist[0];
+    ray.TMax = _light.shadowDistance;
 
     // the data payload between ray tracing
     RayPayload payload = { 1.0f, 0, 0, 0 };

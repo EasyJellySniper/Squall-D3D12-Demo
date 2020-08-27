@@ -1,30 +1,15 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 // for init sq light
 public class SqLightManager : MonoBehaviour
 {
-    /// <summary>
-    /// pcf kernel
-    /// </summary>
-    public enum PCFKernel
-    {
-        PCF3x3 = 0, PCF4x4, PCF5x5
-    }
-
-
     [DllImport("SquallGraphics")]
     static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, int _instance);
 
     [DllImport("SquallGraphics")]
     static extern void SetPCFKernel(int _kernel);
-
-    /// <summary>
-    /// ray tracing shadow?
-    /// </summary>
-    public bool rayTracingShadow = false;
 
     /// <summary>
     /// max dir light
@@ -82,11 +67,7 @@ public class SqLightManager : MonoBehaviour
 
     void InitLights()
     {
-        int downSample = 0;
-        if (rayTracingShadow)
-        {
-            downSample = 1;
-        }
+        int downSample = 1;
 
         // create collect shadows 
         collectShadows = new RenderTexture(Screen.width >> downSample, Screen.height >> downSample, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear); 
@@ -98,13 +79,6 @@ public class SqLightManager : MonoBehaviour
 
     void SetPCF()
     {
-        if (!rayTracingShadow)
-        {
-            SetPCFKernel((int)PCFKernel.PCF4x4);
-        }
-        else
-        {
-            SetPCFKernel(pcssKernel);
-        }
+        SetPCFKernel(pcssKernel);
     }
 }

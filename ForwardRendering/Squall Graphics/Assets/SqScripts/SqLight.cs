@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using UnityEngine;
 
 /// <summary>
@@ -8,38 +7,15 @@ using UnityEngine;
 [RequireComponent(typeof(Light))]
 public class SqLight : MonoBehaviour
 {
-    public enum ShadowSize
-    {
-        S256 = 0, S512, S1024, S2048, S4096, S8192
-    }
-
     [DllImport("SquallGraphics")]
     static extern int AddNativeLight(int _instanceID, SqLightData _sqLightData);
 
     [DllImport("SquallGraphics")]
     static extern void UpdateNativeLight(int _nativeID, SqLightData _sqLightData);
 
-    [DllImport("SquallGraphics")]
-    static extern void UpdateNativeShadow(int _nativeID, SqLightData _sqLightData);
-
-    [DllImport("SquallGraphics")]
-    static extern void InitNativeShadows(int _nativeID, int _numCascade, IntPtr[] _shadowMaps);
-
-    [DllImport("SquallGraphics")]
-    static extern void SetShadowViewPortScissorRect(int _nativeID, ViewPort _viewPort, RawRect _rawRect);
-
-    [DllImport("SquallGraphics")]
-    static extern void SetShadowFrustum(int _nativeID, Matrix4x4 _view, Matrix4x4 _projCulling, int _cascade);
-
     [StructLayout(LayoutKind.Sequential)]
     struct SqLightData
     {
-        /// <summary>
-        /// shadow matrix
-        /// </summary>
-        [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.Struct, SizeConst = 4)]
-        public Matrix4x4[] shadowMatrix;
-
         /// <summary>
         /// color
         /// </summary>
@@ -49,12 +25,6 @@ public class SqLight : MonoBehaviour
         /// world dir as directional light, world pos for point/spotlight
         /// </summary>
         public Vector4 worldPos;
-
-        /// <summary>
-        /// cascade dist
-        /// </summary>
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-        public float[] cascadeDist;
 
         /// <summary>
         /// type
@@ -67,14 +37,14 @@ public class SqLight : MonoBehaviour
         public float intensity;
 
         /// <summary>
-        /// cascade
-        /// </summary>
-        public int numCascade;
-
-        /// <summary>
         /// padding
         /// </summary>
         public float shadowSize;
+
+        /// <summary>
+        /// shadow distance
+        /// </summary>
+        public float shadowDistance;
 
         /// <summary>
         /// range from spot/point light
@@ -84,14 +54,8 @@ public class SqLight : MonoBehaviour
         /// <summary>
         /// padding
         /// </summary>
-        public Vector2 padding;
+        public Vector3 padding;
     }
-
-    /// <summary>
-    /// shadow size
-    /// </summary>
-    [Header("Shadow size, note even cascade use this size!")]
-    public ShadowSize shadowSize = ShadowSize.S4096;
 
     /// <summary>
     /// shadow bias
@@ -104,26 +68,11 @@ public class SqLight : MonoBehaviour
     /// </summary>
     public float shadowDistance = 500;
 
-    /// <summary>
-    /// cascade setting
-    /// </summary>
-    [Header("Cascade setting")]
-    public float[] cascadeSetting;
-
-    /// <summary>
-    /// shadow map
-    /// </summary>
-    public RenderTexture[] shadowMaps;
-
     SqLightData lightData;
     Light lightCache;
-    Camera shadowCam;
     Camera mainCam;
     Transform mainCamTrans;
-
     int nativeID = -1;
-    int[] shadowMapSize = { 256, 512, 1024, 2048, 4096, 8192 };
-    float[] cascadeLast = new float[4];
 
     void Start()
     {
@@ -137,172 +86,20 @@ public class SqLight : MonoBehaviour
         mainCam = Camera.main;
         mainCamTrans = mainCam.transform;
         InitNativeLight();
-        InitShadows();
-        enabled = enabled || SqLightManager.Instace.rayTracingShadow;
     }
 
     void Update()
     {
-        UpdateShadowMatrix();
         UpdateNativeLight();
-
-        // keep cascade
-        for (int i = 0; i < cascadeSetting.Length; i++)
-        {
-            cascadeLast[i] = cascadeSetting[i];
-        }
-    }
-
-    void OnDestroy()
-    {
-        if (shadowCam)
-        {
-            shadowCam.targetTexture = null;
-        }
-
-        for (int i = 0; i < shadowMaps.Length; i++)
-        {
-            if (shadowMaps[i])
-            {
-                shadowMaps[i].Release();
-                DestroyImmediate(shadowMaps[i]);
-            }
-        }
     }
 
     void InitNativeLight()
     {
         lightCache = GetComponent<Light>();
         lightData = new SqLightData();
-        lightData.shadowMatrix = new Matrix4x4[4];
-        lightData.cascadeDist = new float[4];
 
         SetupLightData();
         nativeID = AddNativeLight(lightCache.GetInstanceID(), lightData);
-    }
-
-    void InitShadows()
-    {
-        if (lightCache.shadows == LightShadows.None || lightCache.type != LightType.Directional || SqLightManager.Instace.rayTracingShadow)
-        {
-            enabled = false;
-            return;
-        }
-
-        if (cascadeSetting.Length > 4)
-        {
-            enabled = false;
-            Debug.LogError("Max cascade is 4");
-            return;
-        }
-
-        int size = shadowMapSize[(int)shadowSize];
-
-        // create cascade shadows
-        if (cascadeSetting.Length > 0)
-        {
-            shadowMaps = new RenderTexture[cascadeSetting.Length];
-            cascadeLast = new float[cascadeSetting.Length];
-            for (int i = 0; i < shadowMaps.Length; i++)
-            {
-                shadowMaps[i] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
-                shadowMaps[i].name = name + "_ShadowMap " + i;
-                shadowMaps[i].Create();
-                cascadeLast[i] = cascadeSetting[i];
-            }
-        }
-        else
-        {
-            // otherwise create normal shadow maps
-            shadowMaps = new RenderTexture[1];
-            shadowMaps[0] = new RenderTexture(size, size, 32, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
-            shadowMaps[0].name = name + "_ShadowMap";
-            shadowMaps[0].Create();
-        }
-
-        IntPtr[] shadowPtr = new IntPtr[shadowMaps.Length];
-        for (int i = 0; i < shadowMaps.Length; i++)
-        {
-            shadowPtr[i] = shadowMaps[i].GetNativeDepthBufferPtr();
-        }
-        InitNativeShadows(nativeID, shadowMaps.Length, shadowPtr);
-
-        // init shadow cam
-        GameObject newObj = new GameObject();
-        shadowCam = newObj.AddComponent<Camera>();
-        shadowCam.transform.SetParent(lightCache.transform);
-        shadowCam.transform.localPosition = Vector3.zero;
-        shadowCam.transform.localRotation = Quaternion.identity;
-        shadowCam.transform.localScale = Vector3.one;
-        shadowCam.orthographic = true;
-        shadowCam.targetDisplay = 3;
-        shadowCam.aspect = 1f;
-        shadowCam.cullingMask = 0;
-        shadowCam.clearFlags = CameraClearFlags.Nothing;
-
-        // change shadow cam's view port 
-        shadowCam.targetTexture = shadowMaps[0];
-
-        transform.hasChanged = true;    // force update once
-    }
-
-    void UpdateShadowMatrix()
-    {
-        if (lightCache.type != LightType.Directional)
-        {
-            return;
-        }
-
-        if (SqLightManager.Instace.rayTracingShadow)
-        {
-            return;
-        }
-
-        SetupCascade();
-
-        // view port and scissor
-        Rect viewRect = shadowCam.pixelRect;
-
-        ViewPort vp;
-        vp.TopLeftX = viewRect.xMin;
-        vp.TopLeftY = viewRect.yMin;
-        vp.Width = viewRect.width;
-        vp.Height = viewRect.height;
-        vp.MinDepth = 0f;
-        vp.MaxDepth = 1f;
-
-        RawRect rr;
-        rr.left = 0;
-        rr.top = 0;
-        rr.right = (int)viewRect.width;
-        rr.bottom = (int)viewRect.height;
-
-        SetShadowViewPortScissorRect(nativeID, vp, rr);
-    }
-
-    void SetupCascade()
-    {
-        int numCascade = cascadeSetting.Length;
-        numCascade = (numCascade == 0) ? 1 : numCascade;
-
-        for (int i = 0; i < numCascade; i++)
-        {
-            float dist = shadowDistance * ((cascadeSetting.Length == 0) ? 1f : cascadeSetting[i]);
-            shadowCam.nearClipPlane = lightCache.shadowNearPlane;
-            shadowCam.farClipPlane = dist * 2;
-            shadowCam.orthographicSize = dist;
-
-            // position
-            shadowCam.transform.position = mainCamTrans.position - lightCache.transform.forward * dist;
-            lightData.shadowMatrix[i] = GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, true) * shadowCam.worldToCameraMatrix;
-            lightData.cascadeDist[i] = dist;
-
-            SetShadowFrustum(nativeID, shadowCam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(shadowCam.projectionMatrix, false), i);
-        }
-
-        lightData.numCascade = numCascade;
-
-        UpdateNativeShadow(nativeID, lightData);
     }
 
     void SetupLightData()
@@ -321,14 +118,9 @@ public class SqLight : MonoBehaviour
         lightData.color.w = lightCache.shadowStrength;
         lightData.intensity = lightCache.intensity;
         lightData.worldPos.w = shadowBias;
-        lightData.shadowSize = shadowMapSize[(int)shadowSize];
         lightData.range = (lightCache.type == LightType.Directional) ? float.MaxValue : lightCache.range;
-
-        if (SqLightManager.Instace.rayTracingShadow)
-        {
-            lightData.cascadeDist[0] = shadowDistance;
-            lightData.shadowSize = lightCache.cookieSize;
-        }
+        lightData.shadowDistance = shadowDistance;
+        lightData.shadowSize = lightCache.cookieSize;
     }
 
     void UpdateNativeLight()
@@ -364,12 +156,12 @@ public class SqLight : MonoBehaviour
             return true;
         }
 
-        if (lightData.cascadeDist[0] != shadowDistance && SqLightManager.Instace.rayTracingShadow)
+        if (lightData.shadowDistance != shadowDistance)
         {
             return true;
         }
 
-        if (SqLightManager.Instace.rayTracingShadow && lightData.shadowSize != lightCache.cookieSize)
+        if (lightData.shadowSize != lightCache.cookieSize)
         {
             return true;
         }
@@ -382,14 +174,6 @@ public class SqLight : MonoBehaviour
         if (lightCache.type != LightType.Directional)
         {
             return false;
-        }
-
-        for (int i = 0; i < cascadeSetting.Length; i++)
-        {
-            if (cascadeSetting[i] != cascadeLast[i])
-            {
-                return true;
-            }
         }
 
         return false;

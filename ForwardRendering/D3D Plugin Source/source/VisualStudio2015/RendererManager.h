@@ -51,7 +51,6 @@ public:
 	void SetNativeRendererActive(int _id, bool _active);
 	void SortWork(Camera* _camera);
 	void FrustumCulling(Camera* _camera, int _threadIdx);
-	void ShadowCulling(Light* _light, int _cascade, int _threadIndex);
 	bool ValidRenderer(int _index, vector<QueueRenderer> _renderers);
 
 	vector<shared_ptr<Renderer>> &GetRenderers();

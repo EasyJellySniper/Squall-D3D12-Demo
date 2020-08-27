@@ -44,8 +44,3 @@ struct SystemConstant
 	int depthIndex;
 	int transDepthIndex;
 };
-
-struct LightConstant
-{
-	XMFLOAT4X4 sqMatrixShadow;
-};
