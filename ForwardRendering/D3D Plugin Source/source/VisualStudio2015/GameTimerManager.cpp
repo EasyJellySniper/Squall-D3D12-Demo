@@ -136,6 +136,7 @@ void GameTimerManager::PrintGameTime()
 		cout << "Wait GPU Fence: " << gameTime.updateTime << endl;
 		cout << "Culling Time: " << gameTime.cullingTime << endl;
 		cout << "Sorting Time: " << gameTime.sortingTime << endl;
+		cout << "Upload Time: " << gameTime.uploadTime << endl;
 		cout << "Render Time: " << gameTime.renderTime << endl;
 
 		int totalDrawCall = 0;

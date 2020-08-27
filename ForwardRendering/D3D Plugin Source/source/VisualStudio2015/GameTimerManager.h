@@ -10,6 +10,7 @@ struct GameTime
 	double renderTime;
 	double cullingTime;
 	double sortingTime;
+	double uploadTime;
 	int batchCount[MAX_WORKER_THREAD_COUNT];
 	double renderThreadTime[MAX_WORKER_THREAD_COUNT];
 };

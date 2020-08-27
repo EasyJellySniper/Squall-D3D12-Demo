@@ -177,6 +177,7 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 
 void ForwardRenderingPath::UploadWork(Camera *_camera)
 {
+	GRAPHIC_TIMER_START
 	workerType = WorkerType::Upload;
 	GraphicManager::Instance().WakeAndWaitWorker();
 
@@ -186,6 +187,7 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 
 	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 	LightManager::Instance().UploadPerLightBuffer(frameIndex);
+	GRAPHIC_TIMER_STOP(GameTimerManager::Instance().gameTime.uploadTime)
 }
 
 void ForwardRenderingPath::PrePassWork(Camera* _camera)
@@ -363,6 +365,7 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetLightDataGPU(LightType::Directional, frameIndex, 0));
+	_cmdList->SetGraphicsRootShaderResourceView(7, LightManager::Instance().GetLightDataGPU(LightType::Point, frameIndex, 0));
 }
 
 void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)

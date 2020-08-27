@@ -75,6 +75,16 @@ public class SqLight : MonoBehaviour
         /// padding
         /// </summary>
         public float shadowSize;
+
+        /// <summary>
+        /// range from spot/point light
+        /// </summary>
+        public float range;
+
+        /// <summary>
+        /// padding
+        /// </summary>
+        public Vector2 padding;
     }
 
     /// <summary>
@@ -312,6 +322,7 @@ public class SqLight : MonoBehaviour
         lightData.intensity = lightCache.intensity;
         lightData.worldPos.w = shadowBias;
         lightData.shadowSize = shadowMapSize[(int)shadowSize];
+        lightData.range = (lightCache.type == LightType.Directional) ? float.MaxValue : lightCache.range;
 
         if (SqLightManager.Instace.rayTracingShadow)
         {
@@ -322,7 +333,7 @@ public class SqLight : MonoBehaviour
 
     void UpdateNativeLight()
     {
-        if (transform.hasChanged || LightChanged() || CascadeChanged())
+        if (transform.hasChanged || LightChanged() || CascadeChanged() || (transform.parent && transform.parent.hasChanged))
         {
             SetupLightData();
 

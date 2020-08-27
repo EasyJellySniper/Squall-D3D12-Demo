@@ -292,7 +292,7 @@ int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
 
 void LightManager::UpdateNativeLight(int _id, SqLightData _data)
 {
-	sqLights[LightType::Directional][_id].SetLightData(_data);
+	sqLights[_data.type][_id].SetLightData(_data);
 }
 
 void LightManager::UpdateNativeShadow(int _nativeID, SqLightData _data)
@@ -318,29 +318,33 @@ void LightManager::SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPor
 void LightManager::UploadPerLightBuffer(int _frameIdx)
 {
 	// per light upload
-	auto dirLights = sqLights[LightType::Directional];
-	auto dirLightData = lightDataGPU[LightType::Directional];
-	for (int i = 0; i < (int)dirLights.size(); i++)
+	for (int i = 0; i < LightType::LightCount; i++)
 	{
-		// upload light
-		if (dirLights[i].IsDirty(_frameIdx))
-		{
-			SqLightData* sld = dirLights[i].GetLightData();
-			dirLightData[_frameIdx]->CopyData(i, *sld);
-			dirLights[i].SetDirty(false, _frameIdx);
-		}
+		auto lightList = sqLights[i];
+		auto lightData = lightDataGPU[i];
 
-		// upload cascade
-		if (dirLights[i].IsShadowDirty(_frameIdx))
+		for (int j = 0; j < (int)lightList.size(); j++)
 		{
-			SqLightData* sld = dirLights[i].GetLightData();
-			for (int j = 0; j < sld->numCascade; j++)
+			// upload light
+			if (lightList[j].IsDirty(_frameIdx))
 			{
-				LightConstant lc;
-				lc.sqMatrixShadow = sld->shadowMatrix[j];
-				dirLights[i].UploadLightConstant(lc, j, _frameIdx);
+				SqLightData* sld = lightList[j].GetLightData();
+				lightData[_frameIdx]->CopyData(j, *sld);
+				lightList[j].SetDirty(false, _frameIdx);
 			}
-			dirLights[i].SetShadowDirty(false, _frameIdx);
+
+			// upload cascade
+			if (lightList[j].IsShadowDirty(_frameIdx))
+			{
+				SqLightData* sld = lightList[j].GetLightData();
+				for (int k = 0; k < sld->numCascade; k++)
+				{
+					LightConstant lc;
+					lc.sqMatrixShadow = sld->shadowMatrix[k];
+					lightList[j].UploadLightConstant(lc, k, _frameIdx);
+				}
+				lightList[j].SetShadowDirty(false, _frameIdx);
+			}
 		}
 	}
 
@@ -357,8 +361,8 @@ void LightManager::UploadPerLightBuffer(int _frameIdx)
 void LightManager::FillSystemConstant(SystemConstant& _sc)
 {
 	_sc.numDirLight = (int)sqLights[LightType::Directional].size();
-	_sc.numPointLight = 0;
-	_sc.numSpotLight = 0;
+	_sc.numPointLight = (int)sqLights[LightType::Point].size();
+	_sc.numSpotLight = (int)sqLights[LightType::Spot].size();
 	_sc.collectShadowIndex = collectShadowID;
 	_sc.pcfIndex = pcfKernel;
 	_sc.ambientGround = ambientGround;

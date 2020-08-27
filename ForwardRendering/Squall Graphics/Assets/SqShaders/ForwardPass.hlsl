@@ -5,7 +5,8 @@
 "CBV(b3)," \
 "DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))," \
-"SRV(t0, space=1)"
+"SRV(t0, space=1)," \
+"SRV(t1, space=1)"
 
 #include "SqForwardInclude.hlsl"
 #include "SqLight.hlsl"
@@ -84,9 +85,9 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	SqGI gi = CalcGI(bumpNormal, occlusion);
 
 	// BRDF
-	float atten = _TexTable[_CollectShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], i.vertex.xy / _ScreenSize).r;
+	float shadowAtten = _TexTable[_CollectShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], i.vertex.xy / _ScreenSize).r;
 
-	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten, gi);
+	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, shadowAtten, gi);
 
 	// emission
 	float3 emission = GetEmission(i.tex.xy);

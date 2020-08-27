@@ -12,6 +12,21 @@ float3 LightDir(SqLight light, float3 worldPos)
 	return lerp(normalize(worldPos - light.world.xyz), light.world.xyz, light.type == 1);
 }
 
+float3 LightAtten(int lightType, float distToLight, float range)
+{
+	[branch]
+	if (lightType == 1)
+	{
+		return 1.0f;
+	}
+
+	// square atten
+	float atten = 1 - saturate(distToLight / range);
+	atten *= atten;
+
+	return atten;
+}
+
 float3 SchlickFresnel(float3 specColor, float ldotH)
 {
 	float cosIncidentAngle = ldotH;
@@ -30,7 +45,7 @@ float BlinnPhong(float m, float ndotH)
 
 //   BRDF = Fresnel & Blinn Phong
 //   I = BRDF * NdotL
-float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular, float atten)
+float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular, float shadowAtten)
 {
 	float roughness = 1 - smoothness;
 	float3 viewDir = -normalize(worldPos - _CameraPos);
@@ -38,9 +53,21 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 	float3 col = 0;
 	specular = 0;
 
+	[loop]
 	for (uint i = 0; i < numLight; i++)
 	{
-		float3 lightColor = light[i].color.rgb * light[i].intensity * atten;
+		float distToLight = length(worldPos - light[i].world.xyz);
+		[branch]
+		if (distToLight > light[i].range)
+		{
+			// early out if not in range
+			continue;
+		}
+
+		float lightAtten = LightAtten(light[i].type, distToLight, light[i].range);
+
+		// calc fresnel & blinn phong
+		float3 lightColor = light[i].color.rgb * light[i].intensity * shadowAtten * lightAtten;
 		float3 lightDir = -LightDir(light[i], worldPos);
 		float3 halfDir = (viewDir + lightDir) / (length(viewDir + lightDir) + 0.00001f);	// safe normalize
 
@@ -55,12 +82,15 @@ float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 nor
 	return col;
 }
 
-float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float atten, SqGI gi)
+float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float shadowAtten, SqGI gi)
 {
 	float3 dirSpecular = 0;
-	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, smoothness, dirSpecular, atten);
+	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, smoothness, dirSpecular, shadowAtten);
 
-	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular;
+	float3 pointSpecular = 0;
+	float3 pointDiffuse = AccumulateLight(_NumPointLight, _SqPointLight, normal, worldPos, specColor, smoothness, pointSpecular, 1);
+
+	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular;
 }
 
 SqGI CalcGI(float3 normal, float occlusion)

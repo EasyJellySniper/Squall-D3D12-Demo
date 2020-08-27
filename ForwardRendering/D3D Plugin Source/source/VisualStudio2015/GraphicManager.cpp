@@ -284,6 +284,7 @@ void GraphicManager::DrawCamera()
 #if defined(GRAPHICTIME)
 	GameTimerManager::Instance().gameTime.cullingTime = 0.0;
 	GameTimerManager::Instance().gameTime.sortingTime = 0.0;
+	GameTimerManager::Instance().gameTime.uploadTime = 0.0;
 	GameTimerManager::Instance().gameTime.renderTime = 0.0;
 	for (int i = 0; i < numOfLogicalCores - 1; i++)
 	{

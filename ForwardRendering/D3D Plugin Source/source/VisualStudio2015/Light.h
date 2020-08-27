@@ -26,7 +26,9 @@ struct SqLightData
 	int type;
 	float intensity;
 	int numCascade;
-	float padding;		// padding for 16-bytes alignment
+	float shadowSize;
+	float range;	// point/spot light range
+	XMFLOAT2 padding;
 };
 
 class Light

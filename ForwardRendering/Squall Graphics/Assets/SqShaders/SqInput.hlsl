@@ -1,6 +1,8 @@
 #ifndef SQINPUT
 #define SQINPUT
 
+#define FLOAT_EPSILON 1.401298E-45
+
 struct VertexInput
 {
 	float3 vertex : POSITION;
@@ -22,6 +24,8 @@ struct SqLight
 	float intensity;
 	int numCascade;
 	float shadowSize;
+	float range;	// light range
+	float2 padding;
 };
 
 struct SubMesh
@@ -93,7 +97,7 @@ cbuffer MaterialConstant : register(b3)
 Texture2D _TexTable[] : register(t0);
 SamplerState _SamplerTable[] : register(s0);
 StructuredBuffer<SqLight> _SqDirLight: register(t0, space1);
-//StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
+StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
 //StructuredBuffer<SqLight> _SqSpotLight: register(t2, space1);
 
 float3 DepthToWorldPos(float depth, float4 screenPos)
