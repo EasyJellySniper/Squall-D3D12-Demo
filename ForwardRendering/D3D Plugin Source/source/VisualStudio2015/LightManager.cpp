@@ -6,17 +6,18 @@
 
 void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _opaqueShadows, int _opaqueShadowID)
 {
-	maxDirLight = _numDirLight;
-	maxPointLight = _numPointLight;
-	maxSpotLight = _numSpotLight;
+	maxLightCount[LightType::Directional] = _numDirLight;
+	maxLightCount[LightType::Point] = _numPointLight;
+	maxLightCount[LightType::Spot] = _numSpotLight;
 
 	// create srv buffer
 	ID3D12Device *device = GraphicManager::Instance().GetDevice();
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	for (int i = 0; i < LightType::LightCount; i++)
 	{
-		dirLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxDirLight, false);
-		//pointLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxPointLight, false);
-		//spotLightData[i] = make_unique<UploadBuffer<SqLightData>>(device, maxSpotLight, false);
+		for (int j = 0; j < MAX_FRAME_COUNT; j++)
+		{
+			lightDataGPU[i][j] = make_unique<UploadBuffer<SqLightData>>(device, maxLightCount[i], false);
+		}
 	}
 
 	D3D_SHADER_MACRO shadowMacro[] = { "_SHADOW_CUTOFF_ON","1",NULL,NULL };
@@ -48,30 +49,18 @@ void LightManager::InitNativeShadows(int _nativeID, int _numCascade, void** _sha
 
 void LightManager::Release()
 {
-	for (int i = 0; i < (int)dirLights.size(); i++)
+	for (int i = 0; i < LightType::LightCount; i++)
 	{
-		dirLights[i].Release();
-	}
+		for (int j = 0; j < sqLights[i].size(); j++)
+		{
+			sqLights[i][j].Release();
+		}
+		sqLights[i].clear();
 
-	for (int i = 0; i < (int)pointLights.size(); i++)
-	{
-		pointLights[i].Release();
-	}
-
-	for (int i = 0; i < (int)spotLights.size(); i++)
-	{
-		spotLights[i].Release();
-	}
-
-	dirLights.clear();
-	pointLights.clear();
-	spotLights.clear();
-
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
-	{
-		dirLightData[i].reset();
-		pointLightData[i].reset();
-		spotLightData[i].reset();
+		for (int j = 0; j < MAX_FRAME_COUNT; j++)
+		{
+			lightDataGPU[i][j].reset();
+		}
 	}
 
 	for (int i = 0; i < CullMode::NumCullMode; i++)
@@ -117,6 +106,7 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 
 void LightManager::ShadowWork(Camera* _targetCam)
 {
+	auto dirLights = sqLights[LightType::Directional];
 	for (int i = 0; i < GetNumDirLights(); i++)
 	{
 		if (!dirLights[i].HasShadowMap())
@@ -297,59 +287,39 @@ void LightManager::CollectRayShadow(Camera* _targetCam)
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
 {
-	if (_data.type == LightType::Directional)
-	{
-		return AddDirLight(_instanceID, _data);
-	}
-	else if (_data.type == LightType::Point)
-	{
-		return AddPointLight(_instanceID, _data);
-	}
-	else
-	{
-		return AddSpotLight(_instanceID, _data);
-	}
+	return AddLight(_instanceID, _data);
 }
 
 void LightManager::UpdateNativeLight(int _id, SqLightData _data)
 {
-	if (_data.type == LightType::Directional)
-	{
-		dirLights[_id].SetLightData(_data);
-	}
-	else if (_data.type == LightType::Point)
-	{
-		pointLights[_id].SetLightData(_data);
-	}
-	else
-	{
-		spotLights[_id].SetLightData(_data);
-	}
+	sqLights[LightType::Directional][_id].SetLightData(_data);
 }
 
 void LightManager::UpdateNativeShadow(int _nativeID, SqLightData _data)
 {
 	if (_data.type == LightType::Directional)
 	{
-		dirLights[_nativeID].SetLightData(_data, true);
+		sqLights[_data.type][_nativeID].SetLightData(_data, true);
 	}
 }
 
 void LightManager::SetShadowFrustum(int _nativeID, XMFLOAT4X4 _view, XMFLOAT4X4 _projCulling, int _cascade)
 {
-	// currently onyl dir light needs 
-	dirLights[_nativeID].SetShadowFrustum(_view, _projCulling, _cascade);
+	// currently only dir light needs 
+	sqLights[LightType::Directional][_nativeID].SetShadowFrustum(_view, _projCulling, _cascade);
 }
 
 void LightManager::SetViewPortScissorRect(int _nativeID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
 {
-	// currently onyl dir light needs 
-	dirLights[_nativeID].SetViewPortScissorRect(_viewPort, _scissorRect);
+	// currently only dir light needs 
+	sqLights[LightType::Directional][_nativeID].SetViewPortScissorRect(_viewPort, _scissorRect);
 }
 
 void LightManager::UploadPerLightBuffer(int _frameIdx)
 {
 	// per light upload
+	auto dirLights = sqLights[LightType::Directional];
+	auto dirLightData = lightDataGPU[LightType::Directional];
 	for (int i = 0; i < (int)dirLights.size(); i++)
 	{
 		// upload light
@@ -386,7 +356,7 @@ void LightManager::UploadPerLightBuffer(int _frameIdx)
 
 void LightManager::FillSystemConstant(SystemConstant& _sc)
 {
-	_sc.numDirLight = (int)dirLights.size();
+	_sc.numDirLight = (int)sqLights[LightType::Directional].size();
 	_sc.numPointLight = 0;
 	_sc.numSpotLight = 0;
 	_sc.collectShadowIndex = collectShadowID;
@@ -435,12 +405,12 @@ void LightManager::SetSkyWorld(XMFLOAT4X4 _world)
 
 Light* LightManager::GetDirLights()
 {
-	return dirLights.data();
+	return sqLights[LightType::Directional].data();
 }
 
 int LightManager::GetNumDirLights()
 {
-	return (int)dirLights.size();
+	return (int)sqLights[LightType::Directional].size();
 }
 
 Material* LightManager::GetShadowOpqaue(int _cullMode)
@@ -492,7 +462,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE LightManager::GetCollectShadowRtv()
 D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetDirLightGPU(int _frameIdx, int _offset)
 {
 	UINT lightSize = sizeof(SqLightData);
-	return dirLightData[_frameIdx]->Resource()->GetGPUVirtualAddress() + lightSize * _offset;
+	return lightDataGPU[LightType::Directional][_frameIdx]->Resource()->GetGPUVirtualAddress() + lightSize * _offset;
 }
 
 Renderer* LightManager::GetSkyboxRenderer()
@@ -541,51 +511,41 @@ int LightManager::FindLight(vector<Light> _lights, int _instanceID)
 	return -1;
 }
 
-int LightManager::AddDirLight(int _instanceID, SqLightData _data)
+int LightManager::AddLight(int _instanceID, SqLightData _data)
 {
 	// max light reached
-	if ((int)dirLights.size() == maxDirLight)
+	if ((int)sqLights[_data.type].size() == maxLightCount[_data.type])
 	{
 		return -1;
 	}
 
-	int idx = FindLight(dirLights, _instanceID);
+	int idx = FindLight(sqLights[_data.type], _instanceID);
 
 	if (idx == -1)
 	{
-		Light newDirLight;
-		newDirLight.Init(_instanceID, _data);
-		dirLights.push_back(newDirLight);
-		idx = (int)dirLights.size() - 1;
+		Light newLight;
+		newLight.Init(_instanceID, _data);
+		sqLights[_data.type].push_back(newLight);
+		idx = (int)sqLights[_data.type].size() - 1;
 
 		// copy to buffer
 		for (int i = 0; i < MAX_FRAME_COUNT; i++)
 		{
-			dirLightData[i]->CopyData(idx, _data);
+			lightDataGPU[_data.type][i]->CopyData(idx, _data);
 		}
 	}
 
 	return idx;
 }
 
-int LightManager::AddPointLight(int _instanceID, SqLightData _data)
-{
-	return -1;
-}
-
-int LightManager::AddSpotLight(int _instanceID, SqLightData _data)
-{
-	return -1;
-}
-
 void LightManager::AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw)
 {
-	if (_nativeID < 0 || (int)_nativeID >= dirLights.size())
+	if (_nativeID < 0 || (int)_nativeID >= sqLights[LightType::Directional].size())
 	{
 		return;
 	}
 
-	dirLights[_nativeID].InitNativeShadows(_numCascade, _shadowMapRaw);
+	sqLights[LightType::Directional][_nativeID].InitNativeShadows(_numCascade, _shadowMapRaw);
 }
 
 void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)

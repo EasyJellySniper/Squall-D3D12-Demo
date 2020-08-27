@@ -71,25 +71,16 @@ public:
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
-	int AddDirLight(int _instanceID, SqLightData _data);
-	int AddPointLight(int _instanceID, SqLightData _data);
-	int AddSpotLight(int _instanceID, SqLightData _data);
+	int AddLight(int _instanceID, SqLightData _data);
 	void AddDirShadow(int _nativeID, int _numCascade, void** _shadowMapRaw);
 	void CreateCollectShadow(int _instanceID, void *_opaqueShadows);
 	void CreateRayTracingShadow();
 
 	// light data
-	int maxDirLight;
-	int maxPointLight;
-	int maxSpotLight;
+	int maxLightCount[LightType::LightCount];
+	vector<Light> sqLights[LightType::LightCount];
+	unique_ptr<UploadBuffer<SqLightData>> lightDataGPU[LightType::LightCount][MAX_FRAME_COUNT];
 
-	vector<Light> dirLights;
-	vector<Light> pointLights;
-	vector<Light> spotLights;
-
-	unique_ptr<UploadBuffer<SqLightData>> dirLightData[MAX_FRAME_COUNT];
-	unique_ptr<UploadBuffer<SqLightData>> pointLightData[MAX_FRAME_COUNT];
-	unique_ptr<UploadBuffer<SqLightData>> spotLightData[MAX_FRAME_COUNT];
 	unique_ptr<Texture> collectShadow;
 	unique_ptr<DefaultBuffer> rayTracingShadow;
 

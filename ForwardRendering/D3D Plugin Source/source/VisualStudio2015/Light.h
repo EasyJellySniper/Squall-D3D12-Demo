@@ -14,6 +14,7 @@ enum LightType
 	Spot,
 	Directional,
 	Point,
+	LightCount
 };
 
 struct SqLightData
