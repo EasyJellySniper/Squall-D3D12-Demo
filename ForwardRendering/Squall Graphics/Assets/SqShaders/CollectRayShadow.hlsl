@@ -86,7 +86,7 @@ float BlurFilter(float2 uv, int innerLoop, float penumbra)
 {
     float center = _TexTable[_RayShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], uv).r;
     [branch]
-    if (penumbra < 1.401298E-45)
+    if (penumbra < FLOAT_EPSILON)
     {
         // early out if doesn't need blur
         return center;
