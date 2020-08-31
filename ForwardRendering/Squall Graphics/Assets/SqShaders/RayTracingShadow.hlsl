@@ -104,7 +104,7 @@ RayResult ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light, RayR
     ray.Origin = wpos;
     ray.Direction = (_light.type == 1) ? -_light.world.xyz : -normalize(wpos - lightPos);   // shoot a ray to light according to light type
     ray.TMin = _light.shadowBiasNear;
-    ray.TMax = (_light.type == 1) ? _light.shadowDistance : _light.range - _light.shadowBiasFar;
+    ray.TMax = (_light.type == 1) ? _light.shadowDistance : receiverDistToLight - _light.shadowBiasFar;
 
     // the data payload between ray tracing
     RayPayload payload = { 1.0f, 0, 0, 0 };
