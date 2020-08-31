@@ -88,7 +88,7 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	float3 dirDiffuse = AccumulateLight(_NumDirLight, _SqDirLight, normal, worldPos, specColor, smoothness, dirSpecular, shadowAtten);
 
 	float3 pointSpecular = 0;
-	float3 pointDiffuse = AccumulateLight(_NumPointLight, _SqPointLight, normal, worldPos, specColor, smoothness, pointSpecular, 1);
+	float3 pointDiffuse = AccumulateLight(_NumPointLight, _SqPointLight, normal, worldPos, specColor, smoothness, pointSpecular, shadowAtten);
 
 	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular;
 }
