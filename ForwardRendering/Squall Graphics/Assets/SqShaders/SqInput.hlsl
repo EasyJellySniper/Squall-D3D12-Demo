@@ -17,13 +17,15 @@ struct SqLight
 {
 	// up to 4 cascade
 	float4 color;		// a = shadow strength
-	float4 world;		// as position for spot/point light, as dir for directional light, w used for bias value
+	float4 world;		// as position for spot/point light, as dir for directional light
 	int type;
 	float intensity;
 	float shadowSize;
 	float shadowDistance;
 	float range;	// light range
-	float3 padding;
+	float shadowBiasNear;
+	float shadowBiasFar;
+	float padding;
 };
 
 struct SubMesh

@@ -52,16 +52,30 @@ public class SqLight : MonoBehaviour
         public float range;
 
         /// <summary>
+        /// shadow bias near
+        /// </summary>
+        public float shadowBiasNear;
+
+        /// <summary>
+        /// shadow bias far
+        /// </summary>
+        public float shadowBiasFar;
+
+        /// <summary>
         /// padding
         /// </summary>
-        public Vector3 padding;
+        public float padding;
     }
 
     /// <summary>
     /// shadow bias
     /// </summary>
-    [Range(0.001f, 1f)]
-    public float shadowBias = 0.003f;
+    public float shadowBiasNear = 0.003f;
+
+    /// <summary>
+    /// shadow bias far
+    /// </summary>
+    public float shadowBiasFar = 0f;
 
     /// <summary>
     /// shadow distance
@@ -122,7 +136,8 @@ public class SqLight : MonoBehaviour
         lightData.color = lightCache.color.linear;
         lightData.color.w = lightCache.shadowStrength;
         lightData.intensity = lightCache.intensity;
-        lightData.worldPos.w = shadowBias;
+        lightData.shadowBiasNear = shadowBiasNear;
+        lightData.shadowBiasFar = shadowBiasFar;
         lightData.range = (lightCache.type == LightType.Directional) ? float.MaxValue : lightCache.range;
         lightData.shadowDistance = shadowDistance;
         lightData.shadowSize = lightSize;
@@ -151,7 +166,7 @@ public class SqLight : MonoBehaviour
             return true;
         }
 
-        if (lightData.worldPos.w != shadowBias)
+        if (lightData.shadowBiasNear != shadowBiasNear || lightData.shadowBiasFar != shadowBiasFar)
         {
             return true;
         }
