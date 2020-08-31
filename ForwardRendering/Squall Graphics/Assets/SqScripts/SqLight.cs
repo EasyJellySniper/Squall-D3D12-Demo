@@ -60,13 +60,18 @@ public class SqLight : MonoBehaviour
     /// <summary>
     /// shadow bias
     /// </summary>
-    [Range(0.001f, 0.01f)]
+    [Range(0.001f, 1f)]
     public float shadowBias = 0.003f;
 
     /// <summary>
     /// shadow distance
     /// </summary>
     public float shadowDistance = 500;
+
+    /// <summary>
+    /// light size
+    /// </summary>
+    public float lightSize = 500;
 
     SqLightData lightData;
     Light lightCache;
@@ -120,7 +125,7 @@ public class SqLight : MonoBehaviour
         lightData.worldPos.w = shadowBias;
         lightData.range = (lightCache.type == LightType.Directional) ? float.MaxValue : lightCache.range;
         lightData.shadowDistance = shadowDistance;
-        lightData.shadowSize = lightCache.cookieSize;
+        lightData.shadowSize = lightSize;
     }
 
     void UpdateNativeLight()
@@ -161,7 +166,12 @@ public class SqLight : MonoBehaviour
             return true;
         }
 
-        if (lightData.shadowSize != lightCache.cookieSize)
+        if (lightData.shadowSize != lightSize)
+        {
+            return true;
+        }
+
+        if (lightData.range != lightCache.range)
         {
             return true;
         }

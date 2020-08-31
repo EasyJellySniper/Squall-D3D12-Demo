@@ -16,7 +16,8 @@ GlobalRootSignature RTShadowRootSig =
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
     "CBV( b1 ),"                        // system constant
     "SRV( t0, space = 2),"              // acceleration strutures
-    "SRV( t0, space = 1 ),"              // sqlight
+    "SRV( t0, space = 1 ),"              // sq dir light
+    "SRV( t1, space = 1 ),"             // sq point light
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, flags = DESCRIPTORS_VOLATILE) ),"     // tex table
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 3, flags = DESCRIPTORS_VOLATILE) ),"    //vertex start
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
@@ -60,6 +61,15 @@ struct RayPayload
     float padding;
 };
 
+struct RayResult
+{
+    float atten;
+    float distBlockToLight;
+    float distReceiverToLight;
+    float lightSize;
+    bool pointLightRange;
+};
+
 RaytracingAccelerationStructure _SceneAS : register(t0, space2);
 RWTexture2D<float4> _OutputShadow : register(u0);
 
@@ -68,33 +78,33 @@ StructuredBuffer<VertexInput> _Vertices[] : register(t0, space3);
 ByteAddressBuffer _Indices[] : register(t0, space4);
 StructuredBuffer<SubMesh> _SubMesh : register(t0, space5);
 
-void ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light)
+RayResult ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light, RayResult _result)
 {
     if (_Depth == 0.0f)
     {
         // early out
-        return;
+        _result.atten = 1.0f;
+        return _result;
     }
 
     // to world pos
     float3 wpos = DepthToWorldPos(_Depth, float4(_ScreenUV, 0, 1));
+    float3 lightPos = (_light.type == 1) ? -_light.world.xyz * _light.shadowDistance : _light.world.xyz;
     float distToCam = length(_CameraPos.xyz - wpos);
+    float receiverDistToLight = length(lightPos - wpos);
 
-    // setup ray, trace for main dir light
-
-    if (distToCam > _light.shadowDistance)
+    if (distToCam > _light.shadowDistance || receiverDistToLight > _light.range)
     {
         // save ray if distance is too far
-        return;
+        _result.atten = 1.0f;
+        return _result;
     }
-
-    float3 lightPos = -_light.world.xyz * _light.shadowDistance;
 
     RayDesc ray;
     ray.Origin = wpos;
-    ray.Direction = -_light.world.xyz;   // shoot a ray to light
+    ray.Direction = (_light.type == 1) ? -_light.world.xyz : -normalize(wpos - lightPos);   // shoot a ray to light according to light type
     ray.TMin = _light.world.w;           // use bias as t min
-    ray.TMax = _light.shadowDistance;
+    ray.TMax = (_light.type == 1) ? _light.shadowDistance : _light.range;
 
     // the data payload between ray tracing
     RayPayload payload = { 1.0f, 0, 0, 0 };
@@ -103,14 +113,19 @@ void ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light)
     // lerp between atten and strength
     payload.atten = lerp(1, payload.atten, _light.color.a);
 
-    // output shadow
-    float currAtten = _OutputShadow[DispatchRaysIndex().xy].r;
-    _OutputShadow[DispatchRaysIndex().xy].r = min(payload.atten, currAtten);
+    // output
+    if (payload.atten < _result.atten)
+    {
+        _result.atten = payload.atten;
+        _result.distBlockToLight = receiverDistToLight - payload.distBlockToLight;
+        _result.distReceiverToLight = receiverDistToLight;
+        _result.lightSize = _light.shadowSize;
+    }
 
-    float receiverDistToLight = length(lightPos - wpos); // receiver dist to light
-    _OutputShadow[DispatchRaysIndex().xy].g = receiverDistToLight - payload.distBlockToLight;  // blocker distance to light
-    _OutputShadow[DispatchRaysIndex().xy].b = receiverDistToLight;
-    _OutputShadow[DispatchRaysIndex().xy].a = _light.shadowSize;    // use as light size
+    if (_light.type == 2)
+        _result.pointLightRange = true;
+
+    return _result;
 }
 
 uint3 Load3x16BitIndices(uint offsetBytes, uint indexID)
@@ -163,6 +178,40 @@ float2 GetHitUV(uint pIdx, uint vertID, BuiltInTriangleIntersectionAttributes at
         attr.barycentrics.y * (uv[2] - uv[0]);
 }
 
+RayResult TraceDirLight(float opaqueDepth, float transDepth, float2 screenUV)
+{
+    RayResult result = { 1,0,0,0, false };
+
+    // dir light
+    SqLight light = _SqDirLight[0];
+    result = ShootRayFromDepth(opaqueDepth, screenUV, light, result);
+    if (opaqueDepth != transDepth)
+    {
+        // shoot ray for transparent object if necessary
+        result = ShootRayFromDepth(transDepth, screenUV, light, result);
+    }
+
+    return result;
+}
+
+RayResult TracePointLight(float opaqueDepth, float transDepth, float2 screenUV)
+{
+    RayResult result = { 1,0,0,0, false };
+
+    for (int i = 0; i < _NumPointLight; i++)
+    {
+        SqLight light = _SqPointLight[i];
+        result = ShootRayFromDepth(opaqueDepth, screenUV, light, result);
+        if (opaqueDepth != transDepth)
+        {
+            // shoot ray for transparent object if necessary
+            result = ShootRayFromDepth(transDepth, screenUV, light, result);
+        }
+    }
+
+    return result;
+}
+
 [shader("raygeneration")]
 void RTShadowRayGen()
 {
@@ -182,15 +231,14 @@ void RTShadowRayGen()
     float opaqueDepth = _TexTable[_DepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
     float transDepth = _TexTable[_TransDepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
 
+    RayResult dirResult = TraceDirLight(opaqueDepth, transDepth, screenUV);
+    RayResult pointResult = TracePointLight(opaqueDepth, transDepth, screenUV);
 
-    SqLight light = _SqDirLight[0];
+    if (pointResult.pointLightRange)
+        dirResult = pointResult;
 
-    ShootRayFromDepth(opaqueDepth, screenUV, light);
-    if (opaqueDepth != transDepth)
-    {
-        // shoot ray for transparent object if necessary
-        ShootRayFromDepth(transDepth, screenUV, light);
-    }
+    // final output
+    _OutputShadow[DispatchRaysIndex().xy] = float4(dirResult.atten, dirResult.distBlockToLight, dirResult.distReceiverToLight, dirResult.lightSize);
 }
 
 [shader("closesthit")]

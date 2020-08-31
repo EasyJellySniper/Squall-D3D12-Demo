@@ -81,7 +81,8 @@ public class SkyFallingObject : MonoBehaviour
 
         if (pos.y < resetHeight)
         {
-            transformCache.SetPositionAndRotation(new Vector3(0, initHeight, 0) + mainCamTrans.position, Quaternion.identity);
+            pos.y = initHeight;
+            transformCache.position = pos;
         }
     }
 }
