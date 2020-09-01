@@ -28,7 +28,6 @@ EXPORTS
    AddNativeTexture
    AddNativeSampler
    SetRenderMode
-   SetTransparentDepth
    AddNativeLight
    UpdateNativeLight
    SetPCFKernel

@@ -129,15 +129,6 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRenderMode(int _in
 	}
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetTransparentDepth(int _id, void* _debugDepth)
-{
-	Camera* c = CameraManager::Instance().GetCamera(_id);
-	if (c != nullptr)
-	{
-		c->SetTransparentDepth(_debugDepth);
-	}
-}
-
 extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeLight(int _instanceID, SqLightData _sqLightData)
 {
 	return LightManager::Instance().AddNativeLight(_instanceID, _sqLightData);

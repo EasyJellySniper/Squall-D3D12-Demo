@@ -22,9 +22,6 @@ public class SqCamera : MonoBehaviour
     static extern void SetViewPortScissorRect(int _instanceID, ViewPort _viewPort, RawRect _rawRect);
 
     [DllImport("SquallGraphics")]
-    static extern void SetTransparentDepth(int _instance, IntPtr _debugDepth);
-
-    [DllImport("SquallGraphics")]
     static extern void SetRenderMode(int _instance, int _renderMode);
 
     [DllImport("SquallGraphics")]
@@ -145,7 +142,6 @@ public class SqCamera : MonoBehaviour
 
         CreateRenderTarget();
         CreateCameraData();
-        SetTransparentDepth(attachedCam.GetInstanceID(), transparentDepth.GetNativeDepthBufferPtr());
         lastMsaaSample = msaaSample;
     }
 
@@ -251,6 +247,7 @@ public class SqCamera : MonoBehaviour
 
         camData.renderTarget = new IntPtr[8];
         camData.renderTarget[0] = renderTarget.GetNativeTexturePtr();
+        camData.renderTarget[1] = transparentDepth.GetNativeDepthBufferPtr();
         camData.depthTarget = renderTarget.GetNativeDepthBufferPtr();
 
         // add camera to native plugin

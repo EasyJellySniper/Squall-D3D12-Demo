@@ -44,6 +44,11 @@ enum RenderMode
 	None = 0, WireFrame, Depth, ForwardPass
 };
 
+enum RenderBufferUsage
+{
+	Color = 0, TransparentDepth
+};
+
 class Camera
 {
 public:
@@ -74,7 +79,6 @@ public:
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void SetRenderMode(int _mode);
-	void SetTransparentDepth(void *_src);
 
 	D3D12_VIEWPORT GetViewPort();
 	D3D12_RECT GetScissorRect();
@@ -95,6 +99,9 @@ public:
 
 private:
 	static const int MAX_RENDER_TARGETS = 8;
+	void InitColorBuffer();
+	void InitDepthBuffer();
+	void InitTransparentDepth();
 	bool CreatePipelineMaterial();
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS CheckMsaaQuality(int _sampleCount, DXGI_FORMAT _format);
 
@@ -102,7 +109,6 @@ private:
 	RenderMode renderMode = RenderMode::None;
 
 	// render targets
-	vector<shared_ptr<DefaultBuffer>> colorTarget;
 	vector<shared_ptr<DefaultBuffer>> msaaTarget;
 	shared_ptr<DefaultBuffer> msaaDepthTarget;
 
@@ -119,8 +125,8 @@ private:
 	RenderTargetData rtData;
 
 	// render texture
-	shared_ptr<Texture> cameraRT[MAX_RENDER_TARGETS];
-	shared_ptr<Texture> cameraRTMsaa[MAX_RENDER_TARGETS];
+	shared_ptr<Texture> cameraRT;
+	shared_ptr<Texture> cameraRTMsaa;
 	shared_ptr<Texture> transparentDepth;
 
 	D3D12_CLEAR_VALUE optClearColor;
