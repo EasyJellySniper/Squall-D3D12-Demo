@@ -62,6 +62,8 @@ cbuffer SystemConstant : register(b1)
 	int _MsaaCount;
 	int _DepthIndex;
 	int _TransDepthIndex;
+	int _ColorRTIndex;
+	int _NormalRTIndex;
 };
 
 cbuffer LightConstant : register(b2)

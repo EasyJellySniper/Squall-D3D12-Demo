@@ -52,5 +52,5 @@ float4 DepthPrePassPS(v2f i) : SV_Target
 
 	// return normal
 	float3 bumpNormal = GetBumpNormal(i.tex.xy, i.tex.zw, i.normal, i.worldToTangent);
-	return float4(bumpNormal * 0.5f + 0.5f, 1.0f);
+	return float4(bumpNormal, 1.0f);
 }

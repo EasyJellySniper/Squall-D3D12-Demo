@@ -203,12 +203,6 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 void ForwardRenderingPath::ShadowWork(Camera* _camera)
 {
 	LightManager::Instance().ShadowWork(targetCam);
-
-	LogIfFailedWithoutHR(currFrameResource->mainGfxList->Reset(currFrameResource->mainGfxAllocator, nullptr));
-
-	auto _cmdList = currFrameResource->mainGfxList;
-	_camera->ClearCamera(_cmdList, false);
-	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
 void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)

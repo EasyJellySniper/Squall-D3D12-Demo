@@ -75,7 +75,7 @@ void Camera::Release()
 	resolveDepthMaterial.Release();
 }
 
-void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList, bool _clearDepth)
+void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList)
 {
 	auto rtvSrc = (cameraData.allowMSAA > 1) ? GetMsaaRtvSrc() : GetRtvSrc();
 	auto dsvSrc = (cameraData.allowMSAA > 1) ? GetMsaaDsvSrc() : GetCameraDepth();
@@ -91,11 +91,7 @@ void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList, bool _clearDepth)
 
 	// clear render target view and depth view (reversed-z)
 	_cmdList->ClearRenderTargetView(hRtv, cameraData.clearColor, 0, nullptr);
-
-	if (_clearDepth)
-	{
-		_cmdList->ClearDepthStencilView(hDsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
-	}
+	_cmdList->ClearDepthStencilView(hDsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
 }
 
 void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx)
@@ -343,6 +339,8 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 	_sc.transDepthIndex = transDepthSrv;
 	_sc.screenSize.x = viewPort.Width;
 	_sc.screenSize.y = viewPort.Height;
+	_sc.colorRTIndex = colorBufferSrv;
+	_sc.normalRTIndex = normalBufferSrv;
 }
 
 void Camera::InitColorBuffer()

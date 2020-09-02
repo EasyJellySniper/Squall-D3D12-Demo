@@ -57,7 +57,7 @@ public:
 
 	bool Initialize(CameraData _cameraData);
 	void Release();
-	void ClearCamera(ID3D12GraphicsCommandList* _cmdList, bool _clearDepth = true);
+	void ClearCamera(ID3D12GraphicsCommandList* _cmdList);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx);
 
 	CameraData *GetCameraData();

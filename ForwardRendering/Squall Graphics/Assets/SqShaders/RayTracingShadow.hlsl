@@ -78,7 +78,7 @@ StructuredBuffer<VertexInput> _Vertices[] : register(t0, space3);
 ByteAddressBuffer _Indices[] : register(t0, space4);
 StructuredBuffer<SubMesh> _SubMesh : register(t0, space5);
 
-RayResult ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light, RayResult _result)
+RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLight _light, RayResult _result)
 {
     if (_Depth == 0.0f)
     {
@@ -98,6 +98,18 @@ RayResult ShootRayFromDepth(float _Depth, float2 _ScreenUV, SqLight _light, RayR
         // save ray if distance is too far
         _result.atten = 1.0f;
         return _result;
+    }
+
+    // normal check if it isn't dir light
+    if (_light.type != 1)
+    {
+        float3 dir = normalize(lightPos - wpos);
+        if (dot(dir, _Normal) < 0.0f)
+        {
+            // don't trace ray from back side
+            _result.atten = 1.0f;
+            return _result;
+        }
     }
 
     RayDesc ray;
@@ -184,28 +196,28 @@ RayResult TraceDirLight(float opaqueDepth, float transDepth, float2 screenUV)
 
     // dir light
     SqLight light = _SqDirLight[0];
-    result = ShootRayFromDepth(opaqueDepth, screenUV, light, result);
+    result = ShootRayFromDepth(opaqueDepth, 0, screenUV, light, result);
     if (opaqueDepth != transDepth)
     {
         // shoot ray for transparent object if necessary
-        result = ShootRayFromDepth(transDepth, screenUV, light, result);
+        result = ShootRayFromDepth(transDepth, 0, screenUV, light, result);
     }
 
     return result;
 }
 
-RayResult TracePointLight(float opaqueDepth, float transDepth, float2 screenUV)
+RayResult TracePointLight(float opaqueDepth, float transDepth, float3 opaqueNormal, float3 transNormal, float2 screenUV)
 {
     RayResult result = { 1,0,0,0, false };
 
     for (int i = 0; i < _NumPointLight; i++)
     {
         SqLight light = _SqPointLight[i];
-        result = ShootRayFromDepth(opaqueDepth, screenUV, light, result);
+        result = ShootRayFromDepth(opaqueDepth, opaqueNormal, screenUV, light, result);
         if (opaqueDepth != transDepth)
         {
             // shoot ray for transparent object if necessary
-            result = ShootRayFromDepth(transDepth, screenUV, light, result);
+            result = ShootRayFromDepth(transDepth, transNormal, screenUV, light, result);
         }
     }
 
@@ -230,9 +242,11 @@ void RTShadowRayGen()
     // shoot ray according to depth
     float opaqueDepth = _TexTable[_DepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
     float transDepth = _TexTable[_TransDepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
+    float3 opaqueNormal = _TexTable[_ColorRTIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).rgb;
+    float3 transNormal = _TexTable[_NormalRTIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).rgb;
 
     RayResult dirResult = TraceDirLight(opaqueDepth, transDepth, screenUV);
-    RayResult pointResult = TracePointLight(opaqueDepth, transDepth, screenUV);
+    RayResult pointResult = TracePointLight(opaqueDepth, transDepth, opaqueNormal, transNormal, screenUV);
 
     if (pointResult.pointLightRange)
         dirResult = pointResult;

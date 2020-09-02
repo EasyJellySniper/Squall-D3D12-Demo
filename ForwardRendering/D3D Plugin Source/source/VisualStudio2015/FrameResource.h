@@ -43,4 +43,6 @@ struct SystemConstant
 	int msaaCount;
 	int depthIndex;
 	int transDepthIndex;
+	int colorRTIndex;
+	int normalRTIndex;
 };

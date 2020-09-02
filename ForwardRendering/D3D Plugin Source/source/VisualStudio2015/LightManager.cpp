@@ -82,9 +82,11 @@ void LightManager::RayTracingShadow(Camera* _targetCam)
 	Material *mat = LightManager::Instance().GetRayShadow();
 	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
 
-	auto rayShadowSrc = LightManager::Instance().GetRayShadowSrc();
-	auto collectShadowSrc = LightManager::Instance().GetCollectShadowSrc();
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	D3D12_RESOURCE_BARRIER barriers[3];
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetNormalSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	_cmdList->ResourceBarrier(3, barriers);
 
 	// set state
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
@@ -117,7 +119,10 @@ void LightManager::RayTracingShadow(Camera* _targetCam)
 	dxrCmd->SetPipelineState1(mat->GetDxcPSO());
 	dxrCmd->DispatchRays(&dispatchDesc);
 
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
+	barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetNormalSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
+	_cmdList->ResourceBarrier(3, barriers);
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingShadow])
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
