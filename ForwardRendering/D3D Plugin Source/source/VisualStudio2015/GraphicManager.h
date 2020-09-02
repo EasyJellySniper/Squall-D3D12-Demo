@@ -55,6 +55,7 @@ public:
 	void ExecuteCreationList();
 	void ExecuteCommandList(ID3D12GraphicsCommandList* _cmdList);
 	void CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, D3D12_RESOURCE_STATES _beforeCopy[2], D3D12_RESOURCE_STATES _afterCopy[2]);
+	void ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, DXGI_FORMAT _format);
 
 	ID3D12Device *GetDevice();
 	ID3D12Device5* GetDxrDevice();

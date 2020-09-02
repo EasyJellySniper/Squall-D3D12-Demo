@@ -46,7 +46,7 @@ enum RenderMode
 
 enum RenderBufferUsage
 {
-	Color = 0, TransparentDepth, Normal
+	Color = 0, TransparentDepth, Normal, Result
 };
 
 class Camera
@@ -59,7 +59,6 @@ public:
 	void Release();
 	void ClearCamera(ID3D12GraphicsCommandList* _cmdList, bool _clearDepth = true);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx);
-	void ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList);
 
 	CameraData *GetCameraData();
 	ID3D12Resource *GetRtvSrc();
@@ -68,6 +67,7 @@ public:
 	ID3D12Resource *GetMsaaRtvSrc();
 	ID3D12Resource *GetMsaaDsvSrc();
 	ID3D12Resource* GetNormalSrc();
+	ID3D12Resource* GetResultSrc();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaRtv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsv();

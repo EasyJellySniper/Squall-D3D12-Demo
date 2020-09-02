@@ -187,6 +187,10 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 
 	// resolve color/depth for other application
 	// for now color buffer is normal buffer
+	if (_camera->GetCameraData()->allowMSAA > 1)
+	{
+		GraphicManager::Instance().ResolveColorBuffer(_cmdList, _camera->GetMsaaRtvSrc(), _camera->GetRtvSrc(), DXGI_FORMAT_R16G16B16A16_FLOAT);
+	}
 	_camera->ResolveDepthBuffer(_cmdList, frameIndex);
 
 	// draw transparent depth, useful for other application
@@ -620,12 +624,20 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 
 	CameraData* camData = _camera->GetCameraData();
 	auto _cmdList = currFrameResource->mainGfxList;
-	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
 
 	// resolve color buffer
-	_camera->ResolveColorBuffer(_cmdList);
+	if (camData->allowMSAA > 1)
+	{
+		GraphicManager::Instance().ResolveColorBuffer(_cmdList, _camera->GetMsaaRtvSrc(), _camera->GetResultSrc(), DXGI_FORMAT_R16G16B16A16_FLOAT);
+	}
+	else
+	{
+		D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COMMON };
+		GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, _camera->GetRtvSrc(), _camera->GetResultSrc(), before, before);
+	}
 
 	// close command list and execute
-	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::EndFrame])
-	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::EndFrame]);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }

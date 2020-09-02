@@ -128,29 +128,6 @@ void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameI
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 }
 
-void Camera::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList)
-{
-	if (cameraData.allowMSAA <= 1)
-	{
-		return;
-	}
-
-	// barrier
-	D3D12_RESOURCE_BARRIER resolveColor[2];
-	resolveColor[0] = CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
-	resolveColor[1] = CD3DX12_RESOURCE_BARRIER::Transition(GetRtvSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST);
-
-	// barrier
-	D3D12_RESOURCE_BARRIER finishResolve[2];
-	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(GetRtvSrc(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
-	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaRtvSrc(), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
-
-	// resolve to non-AA target if MSAA enabled
-	_cmdList->ResourceBarrier(2, resolveColor);
-	_cmdList->ResolveSubresource(GetRtvSrc(), 0, GetMsaaRtvSrc(), 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
-	_cmdList->ResourceBarrier(2, finishResolve);
-}
-
 CameraData *Camera::GetCameraData()
 {
 	return &cameraData;
@@ -179,6 +156,11 @@ ID3D12Resource * Camera::GetMsaaDsvSrc()
 ID3D12Resource* Camera::GetNormalSrc()
 {
 	return normalRT->GetRtvSrc(0);
+}
+
+ID3D12Resource* Camera::GetResultSrc()
+{
+	return renderTarget[RenderBufferUsage::Result];
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetRtv()

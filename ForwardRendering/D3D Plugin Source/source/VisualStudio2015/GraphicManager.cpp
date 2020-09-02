@@ -357,6 +357,24 @@ void GraphicManager::CopyResourceWithBarrier(ID3D12GraphicsCommandList* _cmdList
 	_cmdList->ResourceBarrier(2, copyAfter);
 }
 
+void GraphicManager::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, ID3D12Resource* _dst, DXGI_FORMAT _format)
+{
+	// barrier
+	D3D12_RESOURCE_BARRIER resolveColor[2];
+	resolveColor[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+	resolveColor[1] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+
+	// barrier
+	D3D12_RESOURCE_BARRIER finishResolve[2];
+	finishResolve[0] = CD3DX12_RESOURCE_BARRIER::Transition(_dst, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COMMON);
+	finishResolve[1] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+
+	// resolve to non-AA target if MSAA enabled
+	_cmdList->ResourceBarrier(2, resolveColor);
+	_cmdList->ResolveSubresource(_dst, 0, _src, 0, _format);
+	_cmdList->ResourceBarrier(2, finishResolve);
+}
+
 void GraphicManager::RenderThread()
 {
 	while (true)
