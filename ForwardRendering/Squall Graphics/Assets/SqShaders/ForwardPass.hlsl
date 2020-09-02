@@ -44,15 +44,17 @@ v2f ForwardPassVS(VertexInput i)
 	detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
 	o.tex.zw = detailUV;
 
-	// assume uniform scale, mul normal with world matrix directly
-	o.normal = LocalToWorldDir(i.normal);
-
 	float4 wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
 	o.worldPos = wpos.xyz;
 	o.vertex = mul(SQ_MATRIX_VP, wpos);
 
-#ifdef _NORMAL_MAP
-	o.worldToTangent = CreateTBN(o.normal, i.tangent);
+	// calc normal for transparent only
+#ifdef _TRANSPARENT_ON
+	// assume uniform scale, mul normal with world matrix directly
+	o.normal = LocalToWorldDir(i.normal);
+	#ifdef _NORMAL_MAP
+		o.worldToTangent = CreateTBN(o.normal, i.tangent);
+	#endif
 #endif
 
 	return o;
@@ -61,6 +63,8 @@ v2f ForwardPassVS(VertexInput i)
 [RootSignature(ForwardPassRS)]
 float4 ForwardPassPS(v2f i) : SV_Target
 {
+	float2 screenUV = i.vertex.xy / _ScreenSize;
+
 	// diffuse
 	float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
 #ifdef _CUTOFF_ON
@@ -71,12 +75,17 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	float4 specular = GetSpecular(i.tex.xy);
 	diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
 
+	// calc transparent normal only
+#if _TRANSPARENT_ON
 	// normal
 	float3 bumpNormal = GetBumpNormal(i.tex.xy, i.tex.zw, i.normal
-#ifdef _NORMAL_MAP
-		, i.worldToTangent
+	#ifdef _NORMAL_MAP
+			, i.worldToTangent
+	#endif
+			);
+#else
+	float3 bumpNormal = _TexTable[_ColorRTIndex].Sample(_SamplerTable[_CollectShadowSampler], screenUV).rgb;
 #endif
-		);
 
 	// occlusion 
 	float occlusion = GetOcclusion(i.tex.xy);
@@ -85,7 +94,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	SqGI gi = CalcGI(bumpNormal, occlusion);
 
 	// BRDF
-	float shadowAtten = _TexTable[_CollectShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], i.vertex.xy / _ScreenSize).r;
+	float shadowAtten = _TexTable[_CollectShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], screenUV).r;
 
 	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, shadowAtten, gi);
 
