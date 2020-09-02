@@ -187,8 +187,7 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 
 	// resolve color/depth for other application
 	// for now color buffer is normal buffer
-	_camera->ResolveColorBuffer(_cmdList);
-	_camera->ResolveDepthBuffer(_cmdList, frameIndex);
+	_camera->ResolveDepthNormalBuffer(_cmdList, frameIndex);
 
 	// draw transparent depth, useful for other application
 	DrawTransparentNormalDepth(_cmdList, _camera);
