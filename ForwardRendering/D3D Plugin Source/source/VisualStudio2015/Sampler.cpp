@@ -46,13 +46,3 @@ D3D12_FILTER Sampler::GetFilter()
 {
 	return filter;
 }
-
-ID3D12DescriptorHeap* Sampler::GetSamplerHeap()
-{
-	return samplerHeap.Get();
-}
-
-void Sampler::Release()
-{
-	samplerHeap.Reset();
-}

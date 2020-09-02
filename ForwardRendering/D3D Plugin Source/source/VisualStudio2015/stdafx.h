@@ -159,7 +159,7 @@ inline D3D12_CLEAR_VALUE GetD3D12ClearValue(FLOAT _color[4], DXGI_FORMAT _format
 inline size_t GetUniqueID()
 {
 	static int num = 0;
-	size_t id = std::hash<std::string>{}("SquallGraphic" + to_string(num));
+	size_t id = std::hash<std::string>{}("SqGfx" + to_string(num));
 	num++;
 
 	return num;

@@ -64,7 +64,7 @@ void GraphicManager::Release()
 
 	for (int i = 0; i < MAX_WORKER_THREAD_COUNT; i++)
 	{
-		CloseHandle(beginWorkerThread);
+		CloseHandle(beginWorkerThread[i]);
 		CloseHandle(workerThreadHandle[i]);
 		CloseHandle(workerThreadFinish[i]);
 	}

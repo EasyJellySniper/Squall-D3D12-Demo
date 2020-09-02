@@ -56,7 +56,10 @@ void Camera::Release()
 
 	msaaDepthTarget.reset();
 	msaaTarget.clear();
+	transparentDepth->Release();
 	transparentDepth.reset();
+	normalRT->Release();
+	normalRT.reset();
 	cameraRT->Release();
 	cameraRTMsaa->Release();
 	cameraRT.reset();

@@ -20,9 +20,6 @@ public:
 	TextureWrapMode GetWrapW();
 	int GetAnisoLevel();
 	D3D12_FILTER GetFilter();
-	ID3D12DescriptorHeap* GetSamplerHeap();
-
-	void Release();
 
 private:
 	TextureWrapMode wrapU;
@@ -30,6 +27,4 @@ private:
 	TextureWrapMode wrapW;
 	int anisoLevel;
 	D3D12_FILTER filter;
-
-	ComPtr<ID3D12DescriptorHeap> samplerHeap = nullptr;
 };

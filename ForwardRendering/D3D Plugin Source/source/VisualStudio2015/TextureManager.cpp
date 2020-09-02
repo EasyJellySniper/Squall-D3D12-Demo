@@ -27,6 +27,11 @@ void TextureManager::Release()
 {
 	texDescriptorHeap.Reset();
 	samplerDescriptorHeap.Reset();
+
+	for (size_t i = 0; i < textures.size(); i++)
+	{
+		textures[i].Release();
+	}
 	textures.clear();
 	samplers.clear();
 }
