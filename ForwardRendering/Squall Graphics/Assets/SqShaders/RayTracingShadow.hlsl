@@ -1,5 +1,7 @@
 // need assign relative path for dxc compiler with forward slash
 #include "Assets/SqShaders/SqInput.hlsl"
+#include "Assets/SqShaders/SqLight.hlsl"
+
 #pragma sq_rayrootsig RTShadowRootSig
 #pragma sq_rayrootsiglocal RTShadowRootSigLocal
 #pragma sq_raygen RTShadowRayGen
@@ -67,6 +69,7 @@ struct RayResult
     float distBlockToLight;
     float distReceiverToLight;
     float lightSize;
+    float lightAtten;
     bool pointLightRange;
 };
 
@@ -132,7 +135,10 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     }
 
     if (_light.type != 1)
+    {
         _result.pointLightRange = true;
+        _result.lightAtten = LightAtten(_light.type, receiverDistToLight, _light.range);
+    }
 
     return _result;
 }
@@ -189,7 +195,8 @@ float2 GetHitUV(uint pIdx, uint vertID, BuiltInTriangleIntersectionAttributes at
 
 RayResult TraceDirLight(float opaqueDepth, float transDepth, float2 screenUV)
 {
-    RayResult result = { 1,0,0,0, false };
+    RayResult result = (RayResult)0;
+    result.atten = 1.0f;
 
     // dir light
     SqLight light = _SqDirLight[0];
@@ -205,7 +212,8 @@ RayResult TraceDirLight(float opaqueDepth, float transDepth, float2 screenUV)
 
 RayResult TracePointLight(float opaqueDepth, float transDepth, float3 opaqueNormal, float3 transNormal, float2 screenUV)
 {
-    RayResult result = { 1,0,0,0, false };
+    RayResult result = (RayResult)0;
+    result.atten = 1.0f;
 
     for (int i = 0; i < _NumPointLight; i++)
     {
@@ -246,7 +254,12 @@ void RTShadowRayGen()
     RayResult pointResult = TracePointLight(opaqueDepth, transDepth, opaqueNormal, transNormal, screenUV);
 
     if (pointResult.pointLightRange)
-        dirResult = pointResult;
+    {
+        dirResult.atten = lerp(dirResult.atten, pointResult.atten, pointResult.lightAtten);
+        dirResult.distBlockToLight = lerp(dirResult.distBlockToLight, pointResult.distBlockToLight, pointResult.lightAtten);
+        dirResult.distReceiverToLight = lerp(dirResult.distReceiverToLight, pointResult.distReceiverToLight, pointResult.lightAtten);
+        dirResult.lightSize = lerp(dirResult.lightSize, pointResult.lightSize, pointResult.lightAtten);
+    }
 
     // final output
     _OutputShadow[DispatchRaysIndex().xy] = float4(dirResult.atten, dirResult.distBlockToLight, dirResult.distReceiverToLight, dirResult.lightSize);
