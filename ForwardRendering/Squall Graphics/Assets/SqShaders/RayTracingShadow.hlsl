@@ -83,7 +83,6 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     if (_Depth == 0.0f)
     {
         // early out
-        _result.atten = 1.0f;
         return _result;
     }
 
@@ -96,7 +95,6 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     if (distToCam > _light.shadowDistance || receiverDistToLight > _light.range)
     {
         // save ray if distance is too far
-        _result.atten = 1.0f;
         return _result;
     }
 
@@ -107,7 +105,6 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
         if (dot(dir, _Normal) < 0.0f)
         {
             // don't trace ray from back side
-            _result.atten = 1.0f;
             return _result;
         }
     }
