@@ -34,7 +34,7 @@ struct TextureInfo
 class Texture
 {
 public:
-	Texture(int _numRtvHeap, int _numDsvHeap, int _numCbvSrvUavHeap);
+	Texture(int _numRtvHeap, int _numDsvHeap);
 	void SetInstanceID(size_t _id);
 	size_t GetInstanceID();
 
@@ -49,16 +49,12 @@ public:
 
 	int InitRTV(ID3D12Resource* _rtv, DXGI_FORMAT _format, bool _msaa);
 	int InitDSV(ID3D12Resource* _dsv, DXGI_FORMAT _format, bool _msaa);
-	int InitSRV(ID3D12Resource* _srv, DXGI_FORMAT _format, bool _msaa, bool _isCube = false);
-	int InitUAV(ID3D12Resource* _uav, DXGI_FORMAT _format);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtvCPU(int _index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsvCPU(int _index);
-	ID3D12DescriptorHeap* GetSrv();
 
 	ID3D12Resource* GetRtvSrc(int _index);
 	ID3D12Resource* GetDsvSrc(int _index);
-	ID3D12Resource* GetSrvSrc(int _index);
 
 protected:
 	size_t instanceID;
@@ -71,13 +67,10 @@ protected:
 	// normally managed by manager, but allow indenpendent descriptor also
 	ComPtr<ID3D12DescriptorHeap> rtvHandle;
 	ComPtr<ID3D12DescriptorHeap> dsvHandle;
-	ComPtr<ID3D12DescriptorHeap> cbvSrvUavHandle;
 
 	vector<ID3D12Resource*> rtvSrc;
 	vector<ID3D12Resource*> dsvSrc;
-	vector<ID3D12Resource*> cbvSrvUavSrc;
 
 	int rtvCount;
 	int dsvCount;
-	int cbvSrvUavCount;
 };

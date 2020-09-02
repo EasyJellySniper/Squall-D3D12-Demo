@@ -30,8 +30,8 @@ bool Camera::Initialize(CameraData _cameraData)
 		return false;
 	}
 	depthTarget = (ID3D12Resource*)cameraData.depthTarget;
-	cameraRT = make_shared<Texture>(1, 1, 1);
-	cameraRTMsaa = make_shared<Texture>(1, 1, 1);
+	cameraRT = make_shared<Texture>(1, 1);
+	cameraRTMsaa = make_shared<Texture>(1, 1);
 
 	InitColorBuffer();
 	InitDepthBuffer();
@@ -385,7 +385,7 @@ void Camera::InitColorBuffer()
 
 	// need 1 srv
 	cameraRT->InitRTV(renderTarget[RenderBufferUsage::Color], renderTargetDesc[RenderBufferUsage::Color], false);
-	colorBufferSrv = cameraRT->InitSRV(renderTarget[RenderBufferUsage::Color], renderTargetDesc[RenderBufferUsage::Color], false, false);
+	colorBufferSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Color], TextureInfo(true, false, false, false, false));
 
 	if (cameraData.allowMSAA > 1)
 	{
@@ -437,7 +437,7 @@ void Camera::InitTransparentDepth()
 {
 	// create transparent depth
 	auto transparentDepthSrc = renderTarget[RenderBufferUsage::TransparentDepth];
-	transparentDepth = make_shared<Texture>(0, 1, 0);
+	transparentDepth = make_shared<Texture>(0, 1);
 	transparentDepth->InitDSV(transparentDepthSrc, depthTargetDesc, false);
 	transDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, TextureInfo(true, false, false, false, false));
 }
@@ -448,9 +448,9 @@ void Camera::InitNormalBuffer()
 	auto normalBufferSrc = renderTarget[RenderBufferUsage::Normal];
 	renderTargetDesc[RenderBufferUsage::Normal] = GetColorFormatFromTypeless(normalBufferSrc->GetDesc().Format);
 
-	normalRT = make_shared<Texture>(1, 0, 1);
+	normalRT = make_shared<Texture>(1, 0);
 	normalRT->InitRTV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::Normal], false);
-	normalBufferSrv = normalRT->InitSRV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::Normal], false, false);
+	normalBufferSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Normal], TextureInfo(true, false, false, false, false));
 }
 
 bool Camera::CreatePipelineMaterial()

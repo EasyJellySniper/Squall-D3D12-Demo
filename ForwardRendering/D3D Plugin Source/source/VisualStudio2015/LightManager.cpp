@@ -397,7 +397,7 @@ void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)
 	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format);
 
 	// register to texture manager
-	collectShadow = make_unique<Texture>(1, 0, 0);
+	collectShadow = make_unique<Texture>(1, 0);
 	collectShadow->InitRTV(opaqueShadowSrc, shadowFormat, false);
 	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, TextureInfo(true, false, false, false, false));
 

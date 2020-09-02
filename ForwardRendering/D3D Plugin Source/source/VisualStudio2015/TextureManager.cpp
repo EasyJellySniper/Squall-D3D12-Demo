@@ -42,7 +42,7 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo 
 		}
 	}
 
-	Texture t = Texture(0, 0, 0);
+	Texture t = Texture(0, 0);
 	t.SetInstanceID(_texId);
 	t.SetResource((ID3D12Resource*)_texData);
 
