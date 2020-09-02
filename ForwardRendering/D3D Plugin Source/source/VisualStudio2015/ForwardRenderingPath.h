@@ -43,12 +43,13 @@ private:
 	void BeginFrame(Camera* _camera);
 	void UploadWork(Camera* _camera);
 	void PrePassWork(Camera* _camera);
+	void ShadowWork(Camera* _camera);
 	void BindForwardState(Camera* _camera, int _threadIndex);
 	void BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh);
 	void DrawWireFrame(Camera* _camera, int _threadIndex);
-	void DrawOpaqueDepth(Camera* _camera, int _threadIndex);
-	void DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
+	void DrawOpaqueNormalDepth(Camera* _camera, int _threadIndex);
+	void DrawTransparentNormalDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera);
 	void DrawOpaquePass(Camera* _camera, int _threadIndex, bool _cutout = false);
 	void DrawCutoutPass(Camera* _camera, int _threadIndex);
 	void DrawSkyboxPass(Camera* _camera);

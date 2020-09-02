@@ -37,15 +37,6 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, RenderTarget
 	return result;
 }
 
-Material MaterialManager::CreateMaterialDepthOnly(Shader* _shader, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode, int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
-{
-	auto desc = CollectPsoDepth(_shader, _fillMode, _cullMode, _srcBlend, _dstBlend, _depthFunc, _zWrite);
-
-	Material result;
-	result.CreatePsoFromDesc(desc);
-	return result;
-}
-
 Material MaterialManager::CreateMaterialPost(Shader* _shader, bool _enableDepth, int _numRT, DXGI_FORMAT* _rtDesc, DXGI_FORMAT _dsDesc)
 {
 	// create pso

@@ -75,7 +75,7 @@ void Camera::Release()
 	resolveDepthMaterial.Release();
 }
 
-void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList)
+void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList, bool _clearDepth)
 {
 	auto rtvSrc = (cameraData.allowMSAA > 1) ? GetMsaaRtvSrc() : GetRtvSrc();
 	auto dsvSrc = (cameraData.allowMSAA > 1) ? GetMsaaDsvSrc() : GetCameraDepth();
@@ -91,7 +91,11 @@ void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList)
 
 	// clear render target view and depth view (reversed-z)
 	_cmdList->ClearRenderTargetView(hRtv, cameraData.clearColor, 0, nullptr);
-	_cmdList->ClearDepthStencilView(hDsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
+
+	if (_clearDepth)
+	{
+		_cmdList->ClearDepthStencilView(hDsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
+	}
 }
 
 void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx)
@@ -147,25 +151,9 @@ void Camera::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList)
 	_cmdList->ResourceBarrier(2, finishResolve);
 }
 
-void Camera::CopyRenderResult(ID3D12GraphicsCommandList* _cmdList)
-{
-	D3D12_RESOURCE_STATES beforeStates[2] = { D3D12_RESOURCE_STATE_RENDER_TARGET ,  D3D12_RESOURCE_STATE_COMMON };
-	D3D12_RESOURCE_STATES afterStates[2] = { D3D12_RESOURCE_STATE_COMMON ,D3D12_RESOURCE_STATE_COMMON };
-
-	GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, GetRtvSrc(), GetResultSrc(), beforeStates, afterStates);
-
-	// reset render target state
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COMMON));
-}
-
 CameraData *Camera::GetCameraData()
 {
 	return &cameraData;
-}
-
-ID3D12Resource* Camera::GetResultSrc()
-{
-	return renderTarget[RenderBufferUsage::Color];
 }
 
 ID3D12Resource * Camera::GetRtvSrc()
@@ -186,6 +174,11 @@ ID3D12Resource * Camera::GetMsaaRtvSrc()
 ID3D12Resource * Camera::GetMsaaDsvSrc()
 {
 	return msaaDepthTarget->Resource();
+}
+
+ID3D12Resource* Camera::GetNormalSrc()
+{
+	return normalRT->GetRtvSrc(0);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetRtv()
@@ -217,6 +210,11 @@ D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetMsaaSrv()
 {
 	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), msaaDepthSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	return handle;
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetNormalRtv()
+{
+	return normalRT->GetRtvCPU(0);
 }
 
 void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)

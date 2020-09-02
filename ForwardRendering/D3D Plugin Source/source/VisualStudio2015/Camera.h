@@ -57,24 +57,24 @@ public:
 
 	bool Initialize(CameraData _cameraData);
 	void Release();
-	void ClearCamera(ID3D12GraphicsCommandList* _cmdList);
+	void ClearCamera(ID3D12GraphicsCommandList* _cmdList, bool _clearDepth = true);
 	void ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx);
 	void ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList);
-	void CopyRenderResult(ID3D12GraphicsCommandList* _cmdList);
 
 	CameraData *GetCameraData();
-	ID3D12Resource* GetResultSrc();
 	ID3D12Resource *GetRtvSrc();
 	ID3D12Resource* GetCameraDepth();
 	ID3D12Resource* GetTransparentDepth();
 	ID3D12Resource *GetMsaaRtvSrc();
 	ID3D12Resource *GetMsaaDsvSrc();
+	ID3D12Resource* GetNormalSrc();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRtv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaRtv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDsv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetTransDsv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaDsv();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetMsaaSrv();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetNormalRtv();
 
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);

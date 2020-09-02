@@ -50,7 +50,7 @@ void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 	PrePassWork(_camera);
 
 	// shadow work
-	LightManager::Instance().ShadowWork(targetCam);
+	ShadowWork(_camera);
 
 	// opaque pass
 	workerType = WorkerType::OpaqueRendering;
@@ -102,12 +102,12 @@ void ForwardRenderingPath::WorkerThread(int _threadIndex)
 
 			if (targetCam->GetRenderMode() == RenderMode::Depth)
 			{
-				DrawOpaqueDepth(targetCam, _threadIndex);
+				DrawOpaqueNormalDepth(targetCam, _threadIndex);
 			}
 
 			if (targetCam->GetRenderMode() == RenderMode::ForwardPass)
 			{
-				DrawOpaqueDepth(targetCam, _threadIndex);
+				DrawOpaqueNormalDepth(targetCam, _threadIndex);
 			}
 
 			GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.renderThreadTime[_threadIndex])
@@ -158,7 +158,7 @@ void ForwardRenderingPath::BeginFrame(Camera* _camera)
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::BeginFrame])
 
 	// close command list and execute
-	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
 void ForwardRenderingPath::UploadWork(Camera *_camera)
@@ -185,14 +185,27 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 	workerType = WorkerType::PrePassRendering;
 	GraphicManager::Instance().WakeAndWaitWorker();
 
-	// resolve depth for other application
+	// resolve color/depth for other application
+	// for now color buffer is normal buffer
+	//_camera->ResolveColorBuffer(_cmdList);
 	_camera->ResolveDepthBuffer(_cmdList, frameIndex);
 
 	// draw transparent depth, useful for other application
-	DrawTransparentDepth(_cmdList, _camera);
+	DrawTransparentNormalDepth(_cmdList, _camera);
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::PrepassWork])
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
+}
+
+void ForwardRenderingPath::ShadowWork(Camera* _camera)
+{
+	LightManager::Instance().ShadowWork(targetCam);
+
+	LogIfFailedWithoutHR(currFrameResource->mainGfxList->Reset(currFrameResource->mainGfxAllocator, nullptr));
+
+	auto _cmdList = currFrameResource->mainGfxList;
+	_camera->ClearCamera(_cmdList, false);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
 void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
@@ -317,7 +330,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
-void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
+void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadIndex)
 {
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
@@ -364,15 +377,22 @@ void ForwardRenderingPath::DrawOpaqueDepth(Camera* _camera, int _threadIndex)
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
 }
 
-void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
+void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList* _cmdList, Camera* _camera)
 {
 	// copy resolved depth to transparent depth
 	D3D12_RESOURCE_STATES before[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_COMMON };
 	D3D12_RESOURCE_STATES after[2] = { D3D12_RESOURCE_STATE_DEPTH_WRITE ,D3D12_RESOURCE_STATE_DEPTH_WRITE };
 	GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, _camera->GetCameraDepth(), _camera->GetTransparentDepth(), before, after);
 
+	// copy normal buffer from color buffer (reuse color buffer)
+	before[0] = D3D12_RESOURCE_STATE_COMMON;
+	before[1] = D3D12_RESOURCE_STATE_COMMON;
+	after[0] = D3D12_RESOURCE_STATE_COMMON;
+	after[1] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	GraphicManager::Instance().CopyResourceWithBarrier(_cmdList, _camera->GetRtvSrc(), _camera->GetNormalSrc(), before, after);
+
 	// om set target
-	_cmdList->OMSetRenderTargets(0, nullptr, TRUE, &_camera->GetTransDsv());
+	_cmdList->OMSetRenderTargets(1, &_camera->GetNormalRtv(), TRUE, &_camera->GetTransDsv());
 	_cmdList->RSSetViewports(1, &_camera->GetViewPort());
 	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
 
@@ -411,6 +431,8 @@ void ForwardRenderingPath::DrawTransparentDepth(ID3D12GraphicsCommandList* _cmdL
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
 		}
 	}
+
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_camera->GetNormalSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
 }
 
 void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, bool _cutout)
@@ -603,9 +625,6 @@ void ForwardRenderingPath::EndFrame(Camera* _camera)
 
 	// resolve color buffer
 	_camera->ResolveColorBuffer(_cmdList);
-
-	// copy rendering result
-	_camera->CopyRenderResult(_cmdList);
 
 	// close command list and execute
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::EndFrame])
