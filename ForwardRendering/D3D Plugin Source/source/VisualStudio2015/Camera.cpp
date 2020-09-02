@@ -98,7 +98,7 @@ void Camera::ClearCamera(ID3D12GraphicsCommandList* _cmdList, bool _clearDepth)
 	}
 }
 
-void Camera::ResolveDepthNormalBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx)
+void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameIdx)
 {
 	if (cameraData.allowMSAA <= 1)
 	{
@@ -106,14 +106,13 @@ void Camera::ResolveDepthNormalBuffer(ID3D12GraphicsCommandList* _cmdList, int _
 	}
 
 	// prepare to resolve
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	// bind resolve depth pipeline
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() };
 	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
-	_cmdList->OMSetRenderTargets(1, &GetRtv(), true, &GetDsv());
+	_cmdList->OMSetRenderTargets(0, nullptr, true, &GetDsv());
 	_cmdList->RSSetViewports(1, &GetViewPort());
 	_cmdList->RSSetScissorRects(1, &GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -127,7 +126,6 @@ void Camera::ResolveDepthNormalBuffer(ID3D12GraphicsCommandList* _cmdList, int _
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
 
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaRtvSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 }
 
 void Camera::ResolveColorBuffer(ID3D12GraphicsCommandList* _cmdList)
