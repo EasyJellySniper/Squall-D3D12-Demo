@@ -229,11 +229,12 @@ public class SqCamera : MonoBehaviour
         // create camera data
         camData.instanceID = attachedCam.GetInstanceID();
 
+        // always use black clear
         camData.clearColor = new float[4];
-        camData.clearColor[0] = attachedCam.backgroundColor.linear.r;
-        camData.clearColor[1] = attachedCam.backgroundColor.linear.g;
-        camData.clearColor[2] = attachedCam.backgroundColor.linear.b;
-        camData.clearColor[3] = attachedCam.backgroundColor.linear.a;
+        camData.clearColor[0] = 0;
+        camData.clearColor[1] = 0;
+        camData.clearColor[2] = 0;
+        camData.clearColor[3] = 0;
 
         camData.camOrder = attachedCam.depth;
         camData.renderingPath = (int)attachedCam.renderingPath;
