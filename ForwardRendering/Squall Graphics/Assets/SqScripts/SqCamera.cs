@@ -45,7 +45,8 @@ public class SqCamera : MonoBehaviour
     {
         WireFrame = 1,
         Depth,
-        ForwardPass
+        ForwardPass,
+        Normal
     }
 
     /// <summary>
@@ -152,7 +153,7 @@ public class SqCamera : MonoBehaviour
     void Update()
     {
         int instanceID = attachedCam.GetInstanceID();
-        SetRenderMode(instanceID, (int)renderMode);
+        SetRenderMode(instanceID, Mathf.Clamp((int)renderMode, 0, (int)RenderMode.ForwardPass));
 
         // check aa change
         if (lastMsaaSample != msaaSample)
@@ -200,6 +201,10 @@ public class SqCamera : MonoBehaviour
         if (renderMode == RenderMode.Depth)
         {
             Graphics.Blit(transparentDepth, destination);
+        }
+        else if(renderMode == RenderMode.Normal)
+        {
+            Graphics.Blit(normalTarget, destination);
         }
         else
         {

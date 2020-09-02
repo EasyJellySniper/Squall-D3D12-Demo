@@ -59,11 +59,21 @@ float3 GetBumpNormal(float2 uv, float2 detailUV, float3 normal, float3x3 tbn = 0
 {
 #ifdef _NORMAL_MAP
 	float4 packNormal = _TexTable[_NormalIndex].Sample(_SamplerTable[_SamplerIndex], uv);
+
+	[branch]
+	if (dot(packNormal, float4(1, 1, 1, 1)) < FLOAT_EPSILON)
+		return normalize(normal);
+
 	float3 normalTangent = UnpackScaleNormalMap(packNormal, _BumpScale);
 
 #ifdef _DETAIL_NORMAL_MAP
 	float mask = _TexTable[_DetailMaskIndex].Sample(_SamplerTable[_SamplerIndex], uv).a;
 	float4 packDetailNormal = _TexTable[_DetailNormalIndex].Sample(_SamplerTable[_SamplerIndex], detailUV);
+
+	[branch]
+	if (dot(packDetailNormal, float4(1, 1, 1, 1)) < FLOAT_EPSILON)
+		return normalize(normal);
+
 	float3 detailNormalTangent = UnpackScaleNormalMap(packDetailNormal, _DetailBumpScale);
 
 	normalTangent = lerp(normalTangent, BlendNormals(normalTangent, detailNormalTangent), mask);
