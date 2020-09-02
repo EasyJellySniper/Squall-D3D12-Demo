@@ -114,6 +114,11 @@ public class SqCamera : MonoBehaviour
     /// </summary>
     RenderTexture transparentDepth;
 
+    /// <summary>
+    /// normal target
+    /// </summary>
+    RenderTexture normalTarget;
+
     Camera attachedCam;
     CameraData camData;
     MsaaFactor lastMsaaSample;
@@ -147,12 +152,9 @@ public class SqCamera : MonoBehaviour
 
     void OnDestroy()
     {
-        if (renderTarget)
-        {
-            renderTarget.Release();
-            DestroyImmediate(renderTarget);
-        }
-
+        SqUtility.SafeDestroyRT(ref renderTarget);
+        SqUtility.SafeDestroyRT(ref transparentDepth);
+        SqUtility.SafeDestroyRT(ref normalTarget);
         instance = null;
     }
 
@@ -217,17 +219,9 @@ public class SqCamera : MonoBehaviour
     void CreateRenderTarget()
     {
         // for receive result
-        renderTarget = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
-        renderTarget.name = name + " Target";
-        renderTarget.antiAliasing = 1;
-        renderTarget.bindTextureMS = false;
-
-        // actually create so that we have native resources
-        renderTarget.Create();
-
-        transparentDepth = new RenderTexture(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
-        transparentDepth.name = "Debug Depth";
-        transparentDepth.Create();
+        renderTarget = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR, "Color Target");
+        transparentDepth = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.Depth, "Transparent Depth");
+        normalTarget = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 0, RenderTextureFormat.DefaultHDR, "Normal Target");
     }
 
     void CreateCameraData()
@@ -248,6 +242,7 @@ public class SqCamera : MonoBehaviour
         camData.renderTarget = new IntPtr[8];
         camData.renderTarget[0] = renderTarget.GetNativeTexturePtr();
         camData.renderTarget[1] = transparentDepth.GetNativeDepthBufferPtr();
+        camData.renderTarget[2] = normalTarget.GetNativeTexturePtr();
         camData.depthTarget = renderTarget.GetNativeDepthBufferPtr();
 
         // add camera to native plugin

@@ -46,7 +46,7 @@ enum RenderMode
 
 enum RenderBufferUsage
 {
-	Color = 0, TransparentDepth
+	Color = 0, TransparentDepth, Normal
 };
 
 class Camera
@@ -102,6 +102,7 @@ private:
 	void InitColorBuffer();
 	void InitDepthBuffer();
 	void InitTransparentDepth();
+	void InitNormalBuffer();
 	bool CreatePipelineMaterial();
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS CheckMsaaQuality(int _sampleCount, DXGI_FORMAT _format);
 
@@ -114,10 +115,11 @@ private:
 
 	ID3D12Resource* renderTarget[MAX_RENDER_TARGETS];
 	ID3D12Resource* depthTarget;
-	ID3D12Resource* transparentDepthSrc;
 	int opaqueDepthSrv;
 	int transDepthSrv;
 	int msaaDepthSrv;
+	int colorBufferSrv;
+	int normalBufferSrv;
 
 	// rt desc cache
 	DXGI_FORMAT renderTargetDesc[MAX_RENDER_TARGETS];
@@ -128,6 +130,7 @@ private:
 	shared_ptr<Texture> cameraRT;
 	shared_ptr<Texture> cameraRTMsaa;
 	shared_ptr<Texture> transparentDepth;
+	shared_ptr<Texture> normalRT;
 
 	D3D12_CLEAR_VALUE optClearColor;
 	D3D12_CLEAR_VALUE optClearDepth;

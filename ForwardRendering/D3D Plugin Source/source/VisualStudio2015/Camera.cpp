@@ -30,10 +30,13 @@ bool Camera::Initialize(CameraData _cameraData)
 		return false;
 	}
 	depthTarget = (ID3D12Resource*)cameraData.depthTarget;
+	cameraRT = make_shared<Texture>(1, 1, 1);
+	cameraRTMsaa = make_shared<Texture>(1, 1, 1);
 
 	InitColorBuffer();
 	InitDepthBuffer();
 	InitTransparentDepth();
+	InitNormalBuffer();
 
 	if (!CreatePipelineMaterial())
 	{
@@ -58,6 +61,7 @@ void Camera::Release()
 	cameraRTMsaa->Release();
 	cameraRT.reset();
 	cameraRTMsaa.reset();
+	normalRT.reset();
 
 	for (auto& m : pipelineMaterials)
 	{
@@ -171,7 +175,7 @@ ID3D12Resource * Camera::GetRtvSrc()
 
 ID3D12Resource* Camera::GetTransparentDepth()
 {
-	return transparentDepthSrc;
+	return transparentDepth->GetDsvSrc(0);
 }
 
 ID3D12Resource * Camera::GetMsaaRtvSrc()
@@ -402,10 +406,9 @@ void Camera::InitColorBuffer()
 	}
 
 	// need 1 srv
-	cameraRT = make_shared<Texture>(1, 1, 1);
-	cameraRTMsaa = make_shared<Texture>(1, 1, 1);
-
 	cameraRT->InitRTV(renderTarget[RenderBufferUsage::Color], renderTargetDesc[RenderBufferUsage::Color], false);
+	colorBufferSrv = cameraRT->InitSRV(renderTarget[RenderBufferUsage::Color], renderTargetDesc[RenderBufferUsage::Color], false, false);
+
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa->InitRTV(msaaTarget[RenderBufferUsage::Color]->Resource(), renderTargetDesc[RenderBufferUsage::Color], true);
@@ -455,10 +458,21 @@ void Camera::InitDepthBuffer()
 void Camera::InitTransparentDepth()
 {
 	// create transparent depth
-	transparentDepthSrc = renderTarget[RenderBufferUsage::TransparentDepth];
+	auto transparentDepthSrc = renderTarget[RenderBufferUsage::TransparentDepth];
 	transparentDepth = make_shared<Texture>(0, 1, 0);
 	transparentDepth->InitDSV(transparentDepthSrc, depthTargetDesc, false);
 	transDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, TextureInfo(true, false, false, false, false));
+}
+
+void Camera::InitNormalBuffer()
+{
+	// normal buffer
+	auto normalBufferSrc = renderTarget[RenderBufferUsage::Normal];
+	renderTargetDesc[RenderBufferUsage::Normal] = GetColorFormatFromTypeless(normalBufferSrc->GetDesc().Format);
+
+	normalRT = make_shared<Texture>(1, 0, 1);
+	normalRT->InitRTV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::Normal], false);
+	normalBufferSrv = normalRT->InitSRV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::Normal], false, false);
 }
 
 bool Camera::CreatePipelineMaterial()
