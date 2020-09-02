@@ -76,7 +76,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
 
 	// calc transparent normal only
-#if _TRANSPARENT_ON
+#ifdef _TRANSPARENT_ON
 	// normal
 	float3 bumpNormal = GetBumpNormal(i.tex.xy, i.tex.zw, i.normal
 	#ifdef _NORMAL_MAP
