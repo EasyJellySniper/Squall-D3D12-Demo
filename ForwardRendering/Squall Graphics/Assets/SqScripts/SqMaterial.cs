@@ -81,6 +81,8 @@ public class SqMaterial
     /// </summary>
     Texture2D whiteTex;
 
+    Texture2D blackTex;
+
     /// <summary>
     /// get material constant
     /// </summary>
@@ -92,14 +94,14 @@ public class SqMaterial
 
         // get diffuse
         int dummy = 0;
-        SetupTexAndSampler(_mat, "_MainTex", ref mc._DiffuseIndex, ref mc._SamplerIndex);
-        SetupTexAndSampler(_mat, "_SpecGlossMap", ref mc._SpecularIndex, ref dummy);
-        SetupTexAndSampler(_mat, "_OcclusionMap", ref mc._OcclusionIndex, ref dummy);
-        SetupTexAndSampler(_mat, "_EmissionMap", ref mc._EmissionIndex, ref dummy);
-        SetupTexAndSampler(_mat, "_BumpMap", ref mc._NormalIndex, ref dummy);
-        SetupTexAndSampler(_mat, "_DetailMask", ref mc._DetailMaskIndex, ref dummy);
-        SetupTexAndSampler(_mat, "_DetailAlbedoMap", ref mc._DetailAlbedoIndex, ref dummy);
-        SetupTexAndSampler(_mat, "_DetailNormalMap", ref mc._DetailNormalIndex, ref dummy);
+        SetupTexAndSampler(_mat, "_MainTex", ref mc._DiffuseIndex, ref mc._SamplerIndex, whiteTex);
+        SetupTexAndSampler(_mat, "_SpecGlossMap", ref mc._SpecularIndex, ref dummy, whiteTex);
+        SetupTexAndSampler(_mat, "_OcclusionMap", ref mc._OcclusionIndex, ref dummy, whiteTex);
+        SetupTexAndSampler(_mat, "_EmissionMap", ref mc._EmissionIndex, ref dummy, whiteTex);
+        SetupTexAndSampler(_mat, "_BumpMap", ref mc._NormalIndex, ref dummy, blackTex);
+        SetupTexAndSampler(_mat, "_DetailMask", ref mc._DetailMaskIndex, ref dummy, whiteTex);
+        SetupTexAndSampler(_mat, "_DetailAlbedoMap", ref mc._DetailAlbedoIndex, ref dummy, whiteTex);
+        SetupTexAndSampler(_mat, "_DetailNormalMap", ref mc._DetailNormalIndex, ref dummy, blackTex);
 
         mc._MainTex_ST = new Vector4(_mat.mainTextureScale.x, _mat.mainTextureScale.y, _mat.mainTextureOffset.x, _mat.mainTextureOffset.y);
         mc._DetailAlbedoMap_ST = new Vector4(_mat.GetTextureScale("_DetailAlbedoMap").x, _mat.GetTextureScale("_DetailAlbedoMap").y
@@ -137,7 +139,7 @@ public class SqMaterial
         }
     }
 
-    void SetupTexAndSampler(Material _mat, string _texName, ref int _texIndex, ref int _samplerIndex)
+    void SetupTexAndSampler(Material _mat, string _texName, ref int _texIndex, ref int _samplerIndex, Texture2D _fallbackTex)
     {
         Texture2D _tex = null;
 
@@ -153,18 +155,24 @@ public class SqMaterial
         }
         else
         {
-            _texIndex = AddNativeTexture(whiteTex.GetInstanceID(), whiteTex.GetNativeTexturePtr());
-            _samplerIndex = AddNativeSampler(whiteTex.wrapModeU, whiteTex.wrapModeV, whiteTex.wrapModeW, SqGraphicManager.Instance.globalAnisoLevel);
+            _texIndex = AddNativeTexture(_fallbackTex.GetInstanceID(), _fallbackTex.GetNativeTexturePtr());
+            _samplerIndex = AddNativeSampler(_fallbackTex.wrapModeU, _fallbackTex.wrapModeV, _fallbackTex.wrapModeW, SqGraphicManager.Instance.globalAnisoLevel);
         }
     }
 
     void Init()
     {
         matConstantSize = Marshal.SizeOf(typeof(MaterialConstant));
+
         whiteTex = new Texture2D(1, 1);
         whiteTex.name = "Sq Default White";
         whiteTex.SetPixel(0, 0, Color.white);
         whiteTex.Apply();
+
+        blackTex = new Texture2D(1, 1);
+        blackTex.name = "Sq Default Black";
+        blackTex.SetPixel(0, 0, Color.clear);
+        blackTex.Apply();
     }
 
     void Release()
@@ -172,6 +180,11 @@ public class SqMaterial
         if (whiteTex)
         {
             GameObject.DestroyImmediate(whiteTex);
+        }
+
+        if(blackTex)
+        {
+            GameObject.DestroyImmediate(blackTex);
         }
     }
 }
