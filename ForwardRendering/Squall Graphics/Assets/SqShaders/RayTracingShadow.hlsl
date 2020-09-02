@@ -137,7 +137,7 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     if (_light.type != 1)
     {
         _result.pointLightRange = true;
-        _result.lightAtten = LightAtten(_light.type, receiverDistToLight, _light.range);
+        _result.lightAtten = LightAtten(_light.type, receiverDistToLight, _light.range, true);
     }
 
     return _result;

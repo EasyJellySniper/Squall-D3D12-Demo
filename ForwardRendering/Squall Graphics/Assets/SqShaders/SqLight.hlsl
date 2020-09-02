@@ -12,7 +12,7 @@ float3 LightDir(SqLight light, float3 worldPos)
 	return lerp(normalize(worldPos - light.world.xyz), light.world.xyz, light.type == 1);
 }
 
-float3 LightAtten(int lightType, float distToLight, float range)
+float3 LightAtten(int lightType, float distToLight, float range, bool isLinear = false)
 {
 	[branch]
 	if (lightType == 1)
@@ -22,7 +22,10 @@ float3 LightAtten(int lightType, float distToLight, float range)
 
 	// square atten
 	float atten = 1 - saturate(distToLight / range);
-	atten *= atten;
+
+	[branch]
+	if (!isLinear)
+		atten *= atten;
 
 	return atten;
 }
