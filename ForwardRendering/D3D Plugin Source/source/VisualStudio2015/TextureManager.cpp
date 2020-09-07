@@ -185,7 +185,7 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 			{
 				srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 				srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-				srvDesc.Buffer.NumElements = texInfo.numElement / 4;
+				srvDesc.Buffer.NumElements = texInfo.numElement;
 			}
 		}
 
@@ -196,6 +196,24 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 		uavDesc.Format = _texture.GetFormat();
+
+		if (texInfo.isBuffer)
+		{
+			// create srv buffer
+			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+			uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+			uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+			uavDesc.Buffer.NumElements = texInfo.numElement;
+			uavDesc.Buffer.StructureByteStride = texInfo.numStride;
+			uavDesc.Buffer.FirstElement = 0;
+
+			if (texInfo.numStride == 0)
+			{
+				uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+				uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+				uavDesc.Buffer.NumElements = texInfo.numElement;
+			}
+		}
 
 		GraphicManager::Instance().GetDevice()->CreateUnorderedAccessView(_texture.GetResource(), nullptr, &uavDesc, hTexture);
 	}

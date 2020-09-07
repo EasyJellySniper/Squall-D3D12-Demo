@@ -22,6 +22,7 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 
 	CreateCollectShadow(_opaqueShadowID, _opaqueShadows);
 	CreateRayTracingShadow();
+	CreateForwardPlusResource();
 }
 
 void LightManager::Release()
@@ -52,6 +53,7 @@ void LightManager::Release()
 	skyboxRenderer.Release();
 	rtShadowMat.Release();
 	rayTracingShadow.reset();
+	pointLightTiles.reset();
 }
 
 void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
@@ -432,4 +434,16 @@ void LightManager::CreateRayTracingShadow()
 	{
 		rtShadowMat = MaterialManager::Instance().CreateRayTracingMat(rtShadowShader);
 	}
+}
+
+void LightManager::CreateForwardPlusResource()
+{
+	int w, h;
+	GraphicManager::Instance().GetScreenSize(w, h);
+	tileCount = (int)(ceil((float)w / tileSize) * ceil((float)h / tileSize));
+
+	UINT totalSize = maxLightCount[LightType::Point] * 4 + 4;
+	totalSize *= tileCount;
+	pointLightTiles = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	//pointLightTileUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, true, false, true, 0, 0));
 }

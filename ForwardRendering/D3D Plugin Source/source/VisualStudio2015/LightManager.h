@@ -65,6 +65,7 @@ private:
 	int AddLight(int _instanceID, SqLightData _data);
 	void CreateCollectShadow(int _instanceID, void *_opaqueShadows);
 	void CreateRayTracingShadow();
+	void CreateForwardPlusResource();
 
 	// light data
 	int maxLightCount[LightType::LightCount];
@@ -95,4 +96,10 @@ private:
 	Material rtShadowMat;
 	int rtShadowUav;
 	int rtShadowSrv;
+
+	// forward+ component
+	unique_ptr<DefaultBuffer> pointLightTiles;
+	int tileSize = 32;
+	int tileCount;
+	int pointLightTileUav;
 };
