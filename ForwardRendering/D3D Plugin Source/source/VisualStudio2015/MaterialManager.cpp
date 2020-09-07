@@ -27,7 +27,7 @@ void MaterialManager::Init()
 	}
 }
 
-Material MaterialManager::CreateMaterialFromShader(Shader* _shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode
+Material MaterialManager::CreateGraphicMat(Shader* _shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode
 	, int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
 {
 	auto desc = CollectPsoDesc(_shader, _rtd, _fillMode, _cullMode, _srcBlend, _dstBlend, _depthFunc, _zWrite);
@@ -37,7 +37,7 @@ Material MaterialManager::CreateMaterialFromShader(Shader* _shader, RenderTarget
 	return result;
 }
 
-Material MaterialManager::CreateMaterialPost(Shader* _shader, bool _enableDepth, int _numRT, DXGI_FORMAT* _rtDesc, DXGI_FORMAT _dsDesc)
+Material MaterialManager::CreatePostMat(Shader* _shader, bool _enableDepth, int _numRT, DXGI_FORMAT* _rtDesc, DXGI_FORMAT _dsDesc)
 {
 	// create pso
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
@@ -174,12 +174,12 @@ Material* MaterialManager::AddMaterial(int _matInstanceId, int _renderQueue, int
 
 	if (forwardShader != nullptr)
 	{
-		tempMat = make_unique<Material>(CreateMaterialFromShader(forwardShader, c->GetRenderTargetData(), D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
+		tempMat = make_unique<Material>(CreateGraphicMat(forwardShader, c->GetRenderTargetData(), D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
 			, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER_EQUAL, false));
 	}
 	else
 	{
-		tempMat = make_unique<Material>(CreateMaterialFromShader(c->GetFallbackShader(), c->GetRenderTargetData(), D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
+		tempMat = make_unique<Material>(CreateGraphicMat(c->GetFallbackShader(), c->GetRenderTargetData(), D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(_cullMode + 1)
 			, _srcBlend, _dstBlend, (_renderQueue <= RenderQueue::OpaqueLast) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_GREATER_EQUAL, false));
 	}
 

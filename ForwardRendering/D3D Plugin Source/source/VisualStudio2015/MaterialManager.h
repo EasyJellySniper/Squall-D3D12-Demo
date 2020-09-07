@@ -23,10 +23,10 @@ public:
 
 	void Init();
 
-	Material CreateMaterialFromShader(Shader *_shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
+	Material CreateGraphicMat(Shader *_shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
 		int _srcBlend = 1, int _dstBlend = 0, D3D12_COMPARISON_FUNC _depthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL, bool _zWrite = true);
 
-	Material CreateMaterialPost(Shader* _shader, bool _enableDepth, int _numRT, DXGI_FORMAT *rtDesc, DXGI_FORMAT dsDesc);
+	Material CreatePostMat(Shader* _shader, bool _enableDepth, int _numRT, DXGI_FORMAT *rtDesc, DXGI_FORMAT dsDesc);
 	Material CreateComputeMat(Shader* _shader);
 	Material CreateRayTracingMat(Shader* _shader);
 

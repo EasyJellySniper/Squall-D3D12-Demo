@@ -263,7 +263,7 @@ void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMo
 	if (skyShader != nullptr)
 	{
 		auto rtd = CameraManager::Instance().GetCamera()->GetRenderTargetData();
-		skyboxMat = MaterialManager::Instance().CreateMaterialFromShader(skyShader, rtd, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, 1, 0, D3D12_COMPARISON_FUNC_GREATER_EQUAL, false);
+		skyboxMat = MaterialManager::Instance().CreateGraphicMat(skyShader, rtd, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, 1, 0, D3D12_COMPARISON_FUNC_GREATER_EQUAL, false);
 		skyboxRenderer.Init(_skyMesh);
 	}
 }
@@ -408,7 +408,7 @@ void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)
 	Shader *collectRayShader = ShaderManager::Instance().CompileShader(L"CollectRayShadow.hlsl");
 	if (collectRayShader != nullptr)
 	{
-		collectRayShadowMat = MaterialManager::Instance().CreateMaterialPost(collectRayShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
+		collectRayShadowMat = MaterialManager::Instance().CreatePostMat(collectRayShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
 
 	collectShadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, D3D12_FILTER_ANISOTROPIC);

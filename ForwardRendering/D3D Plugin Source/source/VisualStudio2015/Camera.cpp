@@ -469,7 +469,7 @@ bool Camera::CreatePipelineMaterial()
 	Shader* wireFrameShader = ShaderManager::Instance().CompileShader(L"DebugWireFrame.hlsl");
 	if (wireFrameShader != nullptr)
 	{
-		pipelineMaterials[MaterialType::DebugWireFrame][CullMode::Off] = MaterialManager::Instance().CreateMaterialFromShader(wireFrameShader, rtd, D3D12_FILL_MODE_WIREFRAME, D3D12_CULL_MODE_NONE);
+		pipelineMaterials[MaterialType::DebugWireFrame][CullMode::Off] = MaterialManager::Instance().CreateGraphicMat(wireFrameShader, rtd, D3D12_FILL_MODE_WIREFRAME, D3D12_CULL_MODE_NONE);
 		wireFrameDebug = wireFrameShader;
 	}
 
@@ -481,7 +481,7 @@ bool Camera::CreatePipelineMaterial()
 	{
 		for (int i = 0; i < CullMode::NumCullMode; i++)
 		{
-			pipelineMaterials[MaterialType::DepthPrePassOpaque][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassOpaque, rtd, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
+			pipelineMaterials[MaterialType::DepthPrePassOpaque][i] = MaterialManager::Instance().CreateGraphicMat(depthPrePassOpaque, rtd, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
 		}
 	}
 
@@ -489,14 +489,14 @@ bool Camera::CreatePipelineMaterial()
 	{
 		for (int i = 0; i < CullMode::NumCullMode; i++)
 		{
-			pipelineMaterials[MaterialType::DepthPrePassCutoff][i] = MaterialManager::Instance().CreateMaterialFromShader(depthPrePassCutoff, rtd, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
+			pipelineMaterials[MaterialType::DepthPrePassCutoff][i] = MaterialManager::Instance().CreateGraphicMat(depthPrePassCutoff, rtd, D3D12_FILL_MODE_SOLID, (D3D12_CULL_MODE)(i + 1));
 		}
 	}
 
 	Shader* resolveDepth = ShaderManager::Instance().CompileShader(L"ResolveDepth.hlsl", nullptr);
 	if (resolveDepth != nullptr)
 	{
-		resolveDepthMaterial = MaterialManager::Instance().CreateMaterialPost(resolveDepth, true, 0, nullptr, depthTargetDesc);
+		resolveDepthMaterial = MaterialManager::Instance().CreatePostMat(resolveDepth, true, 0, nullptr, depthTargetDesc);
 	}
 
 	return true;
