@@ -245,10 +245,10 @@ void RTShadowRayGen()
     screenUV = screenUV * 2.0f - 1.0f;
 
     // shoot ray according to depth
-    float opaqueDepth = _TexTable[_DepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
-    float transDepth = _TexTable[_TransDepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).r;
-    float3 opaqueNormal = _TexTable[_ColorRTIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).rgb;
-    float3 transNormal = _TexTable[_NormalRTIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], depthUV, 0).rgb;
+    float opaqueDepth = _TexTable[_DepthIndex][DispatchRaysIndex().xy].r;
+    float transDepth = _TexTable[_TransDepthIndex][DispatchRaysIndex().xy].r;
+    float3 opaqueNormal = _TexTable[_ColorRTIndex][DispatchRaysIndex().xy].rgb;
+    float3 transNormal = _TexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
 
     RayResult dirResult = TraceDirLight(opaqueDepth, transDepth, screenUV);
     RayResult pointResult = TracePointLight(opaqueDepth, transDepth, opaqueNormal, transNormal, screenUV);
