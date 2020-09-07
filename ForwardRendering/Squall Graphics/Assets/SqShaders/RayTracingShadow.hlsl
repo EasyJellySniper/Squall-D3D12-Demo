@@ -95,7 +95,18 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     float distToCam = length(_CameraPos.xyz - wpos);
     float receiverDistToLight = length(lightPos - wpos);
 
-    if (distToCam > _light.shadowDistance || receiverDistToLight > _light.range)
+    if (receiverDistToLight > _light.range)
+    {
+        return _result;
+    }
+
+    if (_light.type != 1)
+    {
+        _result.pointLightRange = true;
+        _result.lightAtten = LightAtten(_light.type, receiverDistToLight, _light.range, true);
+    }
+
+    if (distToCam > _light.shadowDistance)
     {
         // save ray if distance is too far
         return _result;
@@ -132,12 +143,6 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
         _result.distBlockToLight = receiverDistToLight - payload.distBlockToLight;
         _result.distReceiverToLight = receiverDistToLight;
         _result.lightSize = _light.shadowSize;
-    }
-
-    if (_light.type != 1)
-    {
-        _result.pointLightRange = true;
-        _result.lightAtten = LightAtten(_light.type, receiverDistToLight, _light.range, true);
     }
 
     return _result;

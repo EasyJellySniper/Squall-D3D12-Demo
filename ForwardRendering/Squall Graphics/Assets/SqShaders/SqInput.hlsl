@@ -2,6 +2,7 @@
 #define SQINPUT
 
 #define FLOAT_EPSILON 1.401298E-45
+#define UINT_MAX 0xffffffff
 
 struct VertexInput
 {
