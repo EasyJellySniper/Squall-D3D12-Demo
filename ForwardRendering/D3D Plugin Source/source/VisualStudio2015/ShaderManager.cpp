@@ -436,7 +436,7 @@ bool ShaderManager::ValidShader(Shader *_shader)
 	}
 
 	// or it is a compute shader
-	if (_shader->GetCS() != nullptr)
+	if (_shader->GetCS() != nullptr && _shader->GetRS() != nullptr)
 	{
 		return true;
 	}
