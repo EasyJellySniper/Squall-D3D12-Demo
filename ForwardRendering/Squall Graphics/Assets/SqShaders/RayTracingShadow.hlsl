@@ -29,7 +29,7 @@ GlobalRootSignature RTShadowRootSig =
 
 LocalRootSignature RTShadowRootSigLocal =
 {
-    "RootConstants( num32BitConstants = 64, b3 )"   // material constant
+    "RootConstants( num32BitConstants = 64, b2 )"   // material constant
 };
 
 TriangleHitGroup RTShadowGroup =

@@ -66,12 +66,7 @@ cbuffer SystemConstant : register(b1)
 	int _NormalRTIndex;
 };
 
-cbuffer LightConstant : register(b2)
-{
-	float4x4 SQ_MATRIX_SHADOW;
-};
-
-cbuffer MaterialConstant : register(b3)
+cbuffer MaterialConstant : register(b2)
 {
 	float4 _MainTex_ST;
 	float4 _DetailAlbedoMap_ST;

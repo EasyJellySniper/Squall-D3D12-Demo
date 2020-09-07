@@ -2,7 +2,6 @@
 "CBV(b0)," \
 "CBV(b1)," \
 "CBV(b2)," \
-"CBV(b3)," \
 "DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))," \
 "SRV(t0, space=1)," \

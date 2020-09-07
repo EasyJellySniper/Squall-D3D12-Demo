@@ -1,7 +1,7 @@
 #define DepthPrePassRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
 "CBV(b0)," \
 "CBV(b1)," \
-"CBV(b3)," \
+"CBV(b2)," \
 "DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
 
