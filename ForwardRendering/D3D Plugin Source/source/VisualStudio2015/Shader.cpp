@@ -13,6 +13,7 @@ void Shader::Release()
 	hullShader.Reset();
 	geometryShader.Reset();
 	raytracingShader.Reset();
+	computeShader.Reset();
 
 	for (int i = 0; i < MAX_KEYWORD; i++)
 	{
@@ -53,6 +54,12 @@ void Shader::SetGS(ComPtr<ID3DBlob> _input, string _entry)
 {
 	geometryShader = _input;
 	entryGS = _entry;
+}
+
+void Shader::SetCS(ComPtr<ID3DBlob> _input, string _entry)
+{
+	computeShader = _input;
+	entryCS = _entry;
 }
 
 void Shader::SetRTS(ComPtr<IDxcBlob> _input, RayTracingShaderEntry _rtsEntry)
@@ -113,6 +120,11 @@ ComPtr<ID3DBlob> Shader::GetHS()
 ComPtr<ID3DBlob> Shader::GetGS()
 {
 	return geometryShader;
+}
+
+ComPtr<ID3DBlob> Shader::GetCS()
+{
+	return computeShader;
 }
 
 ID3D12RootSignature* Shader::GetRS()

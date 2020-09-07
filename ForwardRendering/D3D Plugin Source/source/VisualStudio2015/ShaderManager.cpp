@@ -29,6 +29,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	entryDS = "";
 	entryGS = "";
 	entryRS = "";
+	entryCS = "";
 	entryRayGen = L"";
 	entryClosest = L"";
 	entryAny = L"";
@@ -50,6 +51,7 @@ Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 	newShader->SetHS(CompileFromFile(shaderPath + _fileName, macro, entryHS, "hs_5_1"), entryHS);
 	newShader->SetDS(CompileFromFile(shaderPath + _fileName, macro, entryDS, "ds_5_1"), entryDS);
 	newShader->SetGS(CompileFromFile(shaderPath + _fileName, macro, entryGS, "gs_5_1"), entryGS);
+	newShader->SetCS(CompileFromFile(shaderPath + _fileName, macro, entryCS, "cs_5_1"), entryCS);
 
 	// compile ray tracing shader (if we have)
 	if (dxcLibrary != nullptr)
@@ -297,6 +299,12 @@ void ShaderManager::ParseShaderLine(wstring _input)
 				is >> ps;
 				entryPS = WStringToAnsi(ps);
 			}
+			else if (ss == L"sq_compute")
+			{
+				wstring cs;
+				is >> cs;
+				entryCS = WStringToAnsi(cs);
+			}
 			else if (ss == L"sq_rootsig")
 			{
 				wstring rs;
@@ -423,6 +431,12 @@ bool ShaderManager::ValidShader(Shader *_shader)
 	// or it is a ray tracing shader
 	RayTracingShaderEntry rtse = _shader->GetRTSEntry();
 	if (_shader->GetRTS() != nullptr)
+	{
+		return true;
+	}
+
+	// or it is a compute shader
+	if (_shader->GetCS() != nullptr)
 	{
 		return true;
 	}

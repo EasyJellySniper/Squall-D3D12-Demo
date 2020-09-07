@@ -46,6 +46,7 @@ public:
 	void SetDS(ComPtr<ID3DBlob> _input, string _entry);
 	void SetHS(ComPtr<ID3DBlob> _input, string _entry);
 	void SetGS(ComPtr<ID3DBlob> _input, string _entry);
+	void SetCS(ComPtr<ID3DBlob> _input, string _entry);
 	void SetRTS(ComPtr<IDxcBlob> _input, RayTracingShaderEntry _rtsEntry);
 	void SetRS(ID3D12RootSignature* _rs);
 	void CollectAllKeyword(vector<string> _keywords, D3D_SHADER_MACRO* macro);
@@ -55,6 +56,7 @@ public:
 	ComPtr<ID3DBlob> GetDS();
 	ComPtr<ID3DBlob> GetHS();
 	ComPtr<ID3DBlob> GetGS();
+	ComPtr<ID3DBlob> GetCS();
 	ID3D12RootSignature* GetRS();
 	IDxcBlob* GetRTS();
 
@@ -71,6 +73,7 @@ private:
 	ComPtr<ID3DBlob> hullShader;
 	ComPtr<ID3DBlob> geometryShader;
 	ComPtr<IDxcBlob> raytracingShader;
+	ComPtr<ID3DBlob> computeShader;
 
 	string entryVS;
 	string entryPS;
@@ -78,6 +81,7 @@ private:
 	string entryDS;
 	string entryGS;
 	string entryRS;
+	string entryCS;
 	RayTracingShaderEntry entryRayTracing;
 
 	// rs will created by Shader Manager

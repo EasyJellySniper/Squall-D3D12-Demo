@@ -77,6 +77,21 @@ Material MaterialManager::CreateMaterialPost(Shader* _shader, bool _enableDepth,
 	return result;
 }
 
+Material MaterialManager::CreateComputeMat(Shader* _shader)
+{
+	D3D12_COMPUTE_PIPELINE_STATE_DESC computePSO = {};
+	computePSO.pRootSignature = _shader->GetRS();
+	computePSO.CS =
+	{
+		reinterpret_cast<BYTE*>(_shader->GetCS()->GetBufferPointer()),
+		_shader->GetCS()->GetBufferSize()
+	};
+
+	Material result;
+	result.CreatePsoFromDesc(computePSO);
+	return result;
+}
+
 Material MaterialManager::CreateRayTracingMat(Shader* _shader)
 {
 	CD3DX12_STATE_OBJECT_DESC rayPsoDesc{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };

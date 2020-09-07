@@ -102,4 +102,5 @@ private:
 	int tileSize = 32;
 	int tileCount;
 	int pointLightTileUav;
+	Material forwardPlusTileMat;
 };

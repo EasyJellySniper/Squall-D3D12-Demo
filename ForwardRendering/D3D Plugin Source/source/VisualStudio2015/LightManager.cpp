@@ -54,6 +54,7 @@ void LightManager::Release()
 	rtShadowMat.Release();
 	rayTracingShadow.reset();
 	pointLightTiles.reset();
+	forwardPlusTileMat.Release();
 }
 
 void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
@@ -446,4 +447,10 @@ void LightManager::CreateForwardPlusResource()
 	totalSize *= tileCount;
 	pointLightTiles = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	pointLightTileUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
+
+	auto tileShader = ShaderManager::Instance().CompileShader(L"ForwardPlusTile.hlsl", nullptr);
+	if (tileShader != nullptr)
+	{
+		forwardPlusTileMat = MaterialManager::Instance().CreateComputeMat(tileShader);
+	}
 }

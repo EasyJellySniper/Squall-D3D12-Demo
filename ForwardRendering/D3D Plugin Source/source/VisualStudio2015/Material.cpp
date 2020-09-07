@@ -5,13 +5,24 @@
 bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 {
 	HRESULT hr = S_OK;
-
 	psoDesc = _desc;
 	pso.Reset();
 
 	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&pso)), hr);
 	validMaterial = SUCCEEDED(hr);
+	isDirty = true;
 
+	return validMaterial;
+}
+
+bool Material::CreatePsoFromDesc(D3D12_COMPUTE_PIPELINE_STATE_DESC _desc)
+{
+	HRESULT hr = S_OK;
+	psoDescCompute = _desc;
+	pso.Reset();
+
+	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateComputePipelineState(&_desc, IID_PPV_ARGS(&pso)), hr);
+	validMaterial = SUCCEEDED(hr);
 	isDirty = true;
 
 	return validMaterial;

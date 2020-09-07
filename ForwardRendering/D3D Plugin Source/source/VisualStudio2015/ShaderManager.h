@@ -55,6 +55,7 @@ private:
 	string entryDS;
 	string entryGS;
 	string entryRS;
+	string entryCS;
 	wstring rtRootSig;
 	wstring entryRayGen;
 	wstring entryClosest;
