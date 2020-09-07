@@ -4,7 +4,7 @@
 "DescriptorTable( SRV( t0 , numDescriptors = unbounded) )," \
 "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) )"
 
-#pragma sq_compute TileCS
+#pragma sq_compute ForwardPlusTileCS
 #pragma sq_rootsig ForwardPlusTileRS
 #include "SqInput.hlsl"
 
@@ -14,7 +14,7 @@ RWByteAddressBuffer _TileResult : register(u0);
 // use 32x32 tiles for light culling
 [RootSignature(ForwardPlusTileRS)]
 [numthreads(32, 32, 1)]
-void TileCS()
+void ForwardPlusTileCS()
 {
 
 }
