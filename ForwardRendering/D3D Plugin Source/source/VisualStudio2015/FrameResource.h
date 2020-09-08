@@ -29,6 +29,7 @@ struct SystemConstant
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
 	XMFLOAT4 cameraPos;
+	XMFLOAT4 cameraDir;
 	XMFLOAT2 screenSize;
 	float farZ;
 	float nearZ;

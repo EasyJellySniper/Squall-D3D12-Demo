@@ -63,14 +63,22 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RemoveCamera(int _ins
 } 
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling
-	, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)
+	, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, XMFLOAT3 _direction, float _far, float _near)
 {
-	CameraManager::Instance().SetViewProjMatrix(_instanceID, _view, _proj, _projCulling, _invView, _invProj, _position, _far, _near);
+	Camera* c = CameraManager::Instance().GetCamera(_instanceID);
+	if (c != nullptr)
+	{
+		c->SetViewProj(_view, _proj, _projCulling, _invView, _invProj, _position, _direction, _far, _near);
+	}
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
 {
-	CameraManager::Instance().SetViewPortScissorRect(_instanceID, _viewPort, _scissorRect);
+	Camera* c = CameraManager::Instance().GetCamera(_instanceID);
+	if (c != nullptr)
+	{
+		c->SetViewPortScissorRect(_viewPort, _scissorRect);
+	}
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetWorldMatrix(int _instanceID, XMFLOAT4X4 _world)

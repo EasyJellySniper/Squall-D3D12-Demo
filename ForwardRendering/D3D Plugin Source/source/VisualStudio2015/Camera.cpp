@@ -198,7 +198,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetNormalRtv()
 	return normalRT->GetRtvCPU(0);
 }
 
-void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)
+void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, XMFLOAT3 _direction, float _far, float _near)
 {
 	// data from unity is column major, while d3d matrix use row major
 	viewMatrix = _view;
@@ -328,6 +328,10 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 	_sc.cameraPos.x = position.x;
 	_sc.cameraPos.y = position.y;
 	_sc.cameraPos.z = position.z;
+
+	_sc.cameraDir.x = direction.x;
+	_sc.cameraDir.y = direction.y;
+	_sc.cameraDir.z = direction.z;
 
 	XMMATRIX vp = XMLoadFloat4x4(&viewMatrix) * XMLoadFloat4x4(&projMatrix);
 	XMStoreFloat4x4(&_sc.sqMatrixViewProj, vp);

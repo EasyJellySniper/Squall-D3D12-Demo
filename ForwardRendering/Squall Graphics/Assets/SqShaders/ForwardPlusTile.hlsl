@@ -14,6 +14,44 @@ RWByteAddressBuffer _TileResult : register(u0);
 groupshared uint minDepthU;
 groupshared uint maxDepthU;
 
+// similiar to BoundingFrustum::CreateFromMatrix()
+void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, float maxZ, out Plane plane[6])
+{
+	float x = -1.0f + tileBias.x * tileX;
+	float y = -1.0f + tileBias.y * tileY;
+	float rx = x + tileBias.x;
+	float ry = y + tileBias.y;
+
+	// frustum corner in NDC space (at far plane) - LB RB LT RT
+	float4 corners[4];
+	corners[0] = float4(x, y, maxZ, 1.0f);
+	corners[1] = float4(rx, y, maxZ, 1.0f);
+	corners[2] = float4(x, ry, maxZ, 1.0f);
+	corners[3] = float4(rx, ry, maxZ, 1.0f);
+
+	// convert corners to world position
+	[unroll]
+	for (uint i = 0; i < 4; i++)
+	{
+		corners[i].xyz = DepthToWorldPos(maxZ, corners[i]);
+	}
+
+	// dir from camera to corners
+	[unroll]
+	for (i = 0; i < 4; i++)
+	{
+		corners[i].xyz = normalize(corners[i].xyz - _CameraPos.xyz);
+	}
+
+	// plane order: Left, Right, Bottom, Top, Near, Far
+	plane[0].normal = cross(corners[2].xyz, corners[0].xyz);
+	plane[1].normal = -cross(corners[3].xyz, corners[1].xyz);
+	plane[2].normal = cross(corners[0].xyz, corners[1].xyz);
+	plane[3].normal = -cross(corners[2].xyz, corners[3].xyz);
+	plane[4].normal = _CameraDir.xyz;
+	plane[5].normal = -_CameraDir.xyz;
+}
+
 // use 32x32 tiles for light culling
 [RootSignature(ForwardPlusTileRS)]
 [numthreads(32, 32, 1)]
@@ -52,4 +90,17 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 	float minDepthF = asfloat(minDepthU);
 	float maxDepthF = asfloat(maxDepthU);
+	if (maxDepthF - minDepthF < FLOAT_EPSILON)
+	{
+		// prevent zero range depth
+		maxDepthF = minDepthF + FLOAT_EPSILON;
+	}
+
+	uint tileCountX = ceil(_ScreenSize.x / 32);
+	uint tileCountY = ceil(_ScreenSize.y / 32);
+	uint tileIndex = _groupID.x + _groupID.y * tileCountX;
+	float2 tileBias = float2(2.0f / tileCountX, 2.0f / tileCountY);
+
+	Plane plane[6];
+	CalcFrustumPlanes(_groupID.x, _groupID.y, tileBias, maxDepthF, minDepthF, plane);
 }

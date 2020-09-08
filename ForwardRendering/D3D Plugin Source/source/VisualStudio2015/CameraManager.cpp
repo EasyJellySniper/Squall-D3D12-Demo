@@ -48,23 +48,6 @@ void CameraManager::RemoveCamera(int _instanceID)
 	cameraLookup.erase(_instanceID);
 }
 
-void CameraManager::SetViewProjMatrix(int _instanceID, XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near)
-{
-	// find camera and set
-	if (cameraLookup.find(_instanceID) != cameraLookup.end())
-	{
-		cameraLookup[_instanceID]->SetViewProj(_view, _proj, _projCulling, _invView, _invProj, _position, _far, _near);
-	}
-}
-
-void CameraManager::SetViewPortScissorRect(int _instanceID, D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect)
-{
-	if (cameraLookup.find(_instanceID) != cameraLookup.end())
-	{
-		cameraLookup[_instanceID]->SetViewPortScissorRect(_viewPort, _scissorRect);
-	}
-}
-
 void CameraManager::Release()
 {
 	for (size_t i = 0; i < cameras.size(); i++)

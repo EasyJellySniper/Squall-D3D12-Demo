@@ -15,7 +15,7 @@ public class SqCamera : MonoBehaviour
     static extern void RemoveCamera(int _instanceID);
 
     [DllImport("SquallGraphics")]
-    static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _view, Matrix4x4 _proj, Matrix4x4 _projCulling, Matrix4x4 _invView, Matrix4x4 _invProj, Vector3 _position, float _far, float _near);
+    static extern void SetViewProjMatrix(int _instanceID, Matrix4x4 _view, Matrix4x4 _proj, Matrix4x4 _projCulling, Matrix4x4 _invView, Matrix4x4 _invProj, Vector3 _position, Vector3 _direction, float _far, float _near);
 
 
     [DllImport("SquallGraphics")]
@@ -175,7 +175,7 @@ public class SqCamera : MonoBehaviour
             projCulling,
             invView,
             projRendering.inverse,
-            transform.position, attachedCam.farClipPlane, attachedCam.nearClipPlane);
+            transform.position, transform.forward, attachedCam.farClipPlane, attachedCam.nearClipPlane);
 
         Rect viewRect = attachedCam.pixelRect;
         ViewPort vp;

@@ -76,7 +76,7 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetMsaaSrv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetNormalRtv();
 
-	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, float _far, float _near);
+	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, XMFLOAT3 _direction, float _far, float _near);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);
 	void SetRenderMode(int _mode);
 
@@ -148,6 +148,7 @@ private:
 	XMFLOAT4X4 invViewMatrix;
 	XMFLOAT4X4 invProjMatrix;
 	XMFLOAT3 position;
+	XMFLOAT3 direction;
 	float farZ;
 	float nearZ;
 	BoundingFrustum camFrustum;

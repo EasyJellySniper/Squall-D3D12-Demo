@@ -37,6 +37,12 @@ struct SubMesh
 	float padding;
 };
 
+struct Plane
+{
+	float3 normal;
+	float distance;
+};
+
 cbuffer ObjectConstant : register(b0)
 {
 	float4x4 SQ_MATRIX_WORLD;
@@ -48,7 +54,8 @@ cbuffer SystemConstant : register(b1)
 	float4x4 SQ_MATRIX_INV_VP;
 	float4 _AmbientGround;
 	float4 _AmbientSky;
-	float4 _CameraPos;	// w is for padding 4 bytes
+	float4 _CameraPos;	// w for padding
+	float4 _CameraDir;	// w for padding
 	float2 _ScreenSize;
 	float _FarZ;
 	float _NearZ;
