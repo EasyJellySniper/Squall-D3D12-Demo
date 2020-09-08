@@ -23,17 +23,21 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	float ry = y + tileBias.y;
 
 	// frustum corner in NDC space (at far plane) - LB RB LT RT
-	float4 corners[4];
+	float4 corners[6];
 	corners[0] = float4(x, y, maxZ, 1.0f);
 	corners[1] = float4(rx, y, maxZ, 1.0f);
 	corners[2] = float4(x, ry, maxZ, 1.0f);
 	corners[3] = float4(rx, ry, maxZ, 1.0f);
 
+	// near far
+	corners[4] = float4(0, 0, minZ, 1.0f);
+	corners[5] = float4(0, 0, maxZ, 1.0f);
+
 	// convert corners to world position
 	[unroll]
-	for (uint i = 0; i < 4; i++)
+	for (uint i = 0; i < 6; i++)
 	{
-		corners[i].xyz = DepthToWorldPos(maxZ, corners[i]);
+		corners[i].xyz = DepthToWorldPos(corners[i].z, corners[i]);
 	}
 
 	// dir from camera to corners
@@ -45,11 +49,22 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
 	plane[0].normal = cross(corners[2].xyz, corners[0].xyz);
+	plane[0].distance = 0;
+
 	plane[1].normal = -cross(corners[3].xyz, corners[1].xyz);
+	plane[1].distance = 0;
+
 	plane[2].normal = cross(corners[0].xyz, corners[1].xyz);
+	plane[2].distance = 0;
+
 	plane[3].normal = -cross(corners[2].xyz, corners[3].xyz);
+	plane[3].distance = 0;
+
 	plane[4].normal = _CameraDir.xyz;
+	plane[4].distance = abs(_CameraPos.z - corners[4].z);
+
 	plane[5].normal = -_CameraDir.xyz;
+	plane[5].distance = abs(_CameraPos.z - corners[5].z);
 }
 
 // use 32x32 tiles for light culling
