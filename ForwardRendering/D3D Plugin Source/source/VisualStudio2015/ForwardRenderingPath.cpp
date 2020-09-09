@@ -49,8 +49,8 @@ void ForwardRenderingPath::RenderLoop(Camera* _camera, int _frameIdx)
 	// pre pass work
 	PrePassWork(_camera);
 
-	// shadow work
-	ShadowWork(_camera);
+	// light work
+	LightManager::Instance().LightWork(targetCam);
 
 	// opaque pass
 	workerType = WorkerType::OpaqueRendering;
@@ -198,11 +198,6 @@ void ForwardRenderingPath::PrePassWork(Camera* _camera)
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::PrepassWork])
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);;
-}
-
-void ForwardRenderingPath::ShadowWork(Camera* _camera)
-{
-	LightManager::Instance().ShadowWork(targetCam);
 }
 
 void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)

@@ -29,7 +29,7 @@ public:
 	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, int _opaqueShadowID);
 	void Release();
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
-	void ShadowWork(Camera *_targetCam);
+	void LightWork(Camera *_targetCam);
 	void RayTracingShadow(Camera* _targetCam);
 	void CollectRayShadow(Camera* _targetCam);
 

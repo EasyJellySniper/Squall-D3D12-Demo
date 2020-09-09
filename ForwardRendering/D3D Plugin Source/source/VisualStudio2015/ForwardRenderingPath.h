@@ -43,7 +43,6 @@ private:
 	void BeginFrame(Camera* _camera);
 	void UploadWork(Camera* _camera);
 	void PrePassWork(Camera* _camera);
-	void ShadowWork(Camera* _camera);
 	void BindForwardState(Camera* _camera, int _threadIndex);
 	void BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh);
 	void BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer *_renderer, Material *_mat, Mesh *_mesh);

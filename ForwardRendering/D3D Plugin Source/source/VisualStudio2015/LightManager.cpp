@@ -64,7 +64,7 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 	_cmdList->ClearRenderTargetView(LightManager::Instance().GetCollectShadowRtv(), c, 0, nullptr);
 }
 
-void LightManager::ShadowWork(Camera* _targetCam)
+void LightManager::LightWork(Camera* _targetCam)
 {
 	RayTracingShadow(_targetCam);
 	CollectRayShadow(_targetCam);
