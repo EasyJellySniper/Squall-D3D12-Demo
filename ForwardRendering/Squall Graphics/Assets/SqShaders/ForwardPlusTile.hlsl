@@ -13,6 +13,8 @@ RWByteAddressBuffer _TileResult : register(u0);
 
 groupshared uint minDepthU;
 groupshared uint maxDepthU;
+groupshared uint tilePointLightCount;
+groupshared uint tilePointLightArray[1024];
 
 // similiar to BoundingFrustum::CreateFromMatrix()
 void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, float maxZ, out Plane plane[6])
@@ -67,7 +69,7 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	plane[5].distance = abs(_CameraPos.z - corners[5].z);
 }
 
-// use 32x32 tiles for light culling
+// use 32x32 threads per group
 [RootSignature(ForwardPlusTileRS)]
 [numthreads(32, 32, 1)]
 void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : SV_GroupID, uint _threadIdx : SV_GroupIndex)
@@ -90,6 +92,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	{
 		minDepthU = UINT_MAX;
 		maxDepthU = 0;
+		tilePointLightCount = 0;
 	}
 	GroupMemoryBarrierWithGroupSync();
 
@@ -103,19 +106,59 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	}
 	GroupMemoryBarrierWithGroupSync();
 
-	float minDepthF = asfloat(minDepthU);
-	float maxDepthF = asfloat(maxDepthU);
-	if (maxDepthF - minDepthF < FLOAT_EPSILON)
-	{
-		// prevent zero range depth
-		maxDepthF = minDepthF + FLOAT_EPSILON;
-	}
-
+	// tile data
 	uint tileCountX = ceil(_ScreenSize.x / 32);
 	uint tileCountY = ceil(_ScreenSize.y / 32);
 	uint tileIndex = _groupID.x + _groupID.y * tileCountX;
 	float2 tileBias = float2(2.0f / tileCountX, 2.0f / tileCountY);
 
-	Plane plane[6];
-	CalcFrustumPlanes(_groupID.x, _groupID.y, tileBias, maxDepthF, minDepthF, plane);
+	// if thread not out-of-range
+	if (_threadIdx < _NumPointLight)
+	{
+		float minDepthF = asfloat(minDepthU);
+		float maxDepthF = asfloat(maxDepthU);
+		if (maxDepthF - minDepthF < FLOAT_EPSILON)
+		{
+			// prevent zero range depth
+			maxDepthF = minDepthF + FLOAT_EPSILON;
+		}
+
+		Plane plane[6];
+		CalcFrustumPlanes(_groupID.x, _groupID.y, tileBias, maxDepthF, minDepthF, plane);
+
+		// light overlap test
+		SqLight light = _SqPointLight[_threadIdx];
+
+		bool overlapping = true;
+		for (int n = 0; n < 6; n++)
+		{
+			float d = dot(light.world.xyz, plane[n].normal) + plane[n].distance;
+			if (d + light.range < 0)
+			{
+				overlapping = false;
+			}
+		}
+
+		if (overlapping)
+		{
+			uint idx = 0;
+			InterlockedAdd(tilePointLightCount, 1, idx);
+			tilePointLightArray[idx] = _threadIdx;
+		}
+	}
+	GroupMemoryBarrierWithGroupSync();
+
+	// output by 1st thread
+	if (_threadIdx == 0)
+	{
+		uint tileOffset = tileIndex * (_NumPointLight * 4 + 4);
+		_TileResult.Store(tileOffset, tilePointLightCount);
+
+		uint offset = tileOffset + 4;
+		for (uint i = 0; i < tilePointLightCount; i++)
+		{
+			_TileResult.Store(offset, tilePointLightArray[i]);
+			offset += 4;
+		}
+	}
 }
