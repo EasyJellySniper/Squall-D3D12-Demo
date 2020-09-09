@@ -102,6 +102,11 @@ ID3D12RootSignature* Material::GetRootSignature()
 	return psoDesc.pRootSignature;
 }
 
+ID3D12RootSignature* Material::GetRootSignatureCompute()
+{
+	return psoDescCompute.pRootSignature;
+}
+
 D3D12_GPU_VIRTUAL_ADDRESS Material::GetMaterialConstantGPU(int _frameIdx)
 {
 	return MaterialManager::Instance().GetMaterialConstantGPU(instanceID, _frameIdx);

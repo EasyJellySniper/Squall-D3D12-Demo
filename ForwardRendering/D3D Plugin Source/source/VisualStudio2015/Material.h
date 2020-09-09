@@ -52,6 +52,7 @@ public:
 	ID3D12PipelineState* GetPSO();
 	ID3D12StateObject* GetDxcPSO();
 	ID3D12RootSignature* GetRootSignature();
+	ID3D12RootSignature* GetRootSignatureCompute();
 	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _frameIdx);
 	int GetInstanceID();
 	int GetRenderQueue();

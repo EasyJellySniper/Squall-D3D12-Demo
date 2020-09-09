@@ -30,8 +30,6 @@ public:
 	void Release();
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
 	void LightWork(Camera *_targetCam);
-	void RayTracingShadow(Camera* _targetCam);
-	void CollectRayShadow(Camera* _targetCam);
 
 	int AddNativeLight(int _instanceID, SqLightData _data);
 	void UpdateNativeLight(int _nativeID, SqLightData _data);
@@ -59,6 +57,7 @@ public:
 	int GetSkyMeshID();
 
 	D3D12_GPU_DESCRIPTOR_HANDLE GetRTShadowUav();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetLightCullingUav();
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
@@ -66,6 +65,9 @@ private:
 	void CreateCollectShadow(int _instanceID, void *_opaqueShadows);
 	void CreateRayTracingShadow();
 	void CreateForwardPlusResource();
+	void TileLightCulling();
+	void RayTracingShadow(Camera* _targetCam);
+	void CollectRayShadow(Camera* _targetCam);
 
 	// light data
 	int maxLightCount[LightType::LightCount];
@@ -100,7 +102,8 @@ private:
 	// forward+ component
 	unique_ptr<DefaultBuffer> pointLightTiles;
 	int tileSize = 32;
-	int tileCount;
+	int tileCountX;
+	int tileCountY;
 	int pointLightTileUav;
 	Material forwardPlusTileMat;
 };

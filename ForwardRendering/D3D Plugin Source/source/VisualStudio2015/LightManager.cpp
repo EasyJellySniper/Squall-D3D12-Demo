@@ -66,122 +66,9 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 
 void LightManager::LightWork(Camera* _targetCam)
 {
+	TileLightCulling();
 	RayTracingShadow(_targetCam);
 	CollectRayShadow(_targetCam);
-}
-
-void LightManager::RayTracingShadow(Camera* _targetCam)
-{
-	// use pre gfx list
-	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
-	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
-	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
-
-	// bind root signature
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
-	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
-
-	Material *mat = LightManager::Instance().GetRayShadow();
-	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
-
-	D3D12_RESOURCE_BARRIER barriers[3];
-	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetNormalSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	_cmdList->ResourceBarrier(3, barriers);
-
-	// set state
-	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
-	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
-	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootShaderResourceView(2, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(3, GetLightDataGPU(LightType::Directional, frameIndex, 0));
-	_cmdList->SetComputeRootShaderResourceView(4, GetLightDataGPU(LightType::Point, frameIndex, 0));
-	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
-
-	// prepare dispatch desc
-	auto rtShadowSrc = rayTracingShadow->Resource();
-	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)rtShadowSrc->GetDesc().Width, rtShadowSrc->GetDesc().Height);
-
-	// copy hit group identifier
-	MaterialManager::Instance().CopyHitGroupIdentifier(mat, frameIndex);
-
-	// setup hit group table
-	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(frameIndex);
-	dispatchDesc.HitGroupTable.StartAddress = hitGroup->Resource()->GetGPUVirtualAddress();
-	dispatchDesc.HitGroupTable.SizeInBytes = hitGroup->Resource()->GetDesc().Width;
-	dispatchDesc.HitGroupTable.StrideInBytes = hitGroup->Stride();
-
-	// dispatch rays
-	auto dxrCmd = GraphicManager::Instance().GetDxrList();
-	dxrCmd->SetPipelineState1(mat->GetDxcPSO());
-	dxrCmd->DispatchRays(&dispatchDesc);
-
-	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
-	barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetNormalSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
-	_cmdList->ResourceBarrier(3, barriers);
-
-	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingShadow])
-	GraphicManager::Instance().ExecuteCommandList(_cmdList);
-}
-
-void LightManager::CollectRayShadow(Camera* _targetCam)
-{
-	auto currFrameResource = GraphicManager::Instance().GetFrameResource();
-	auto _cmdList = currFrameResource->mainGfxList;
-	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
-	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
-
-	// transition resource
-	D3D12_RESOURCE_BARRIER collect[3];
-	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	collect[2] = CD3DX12_RESOURCE_BARRIER::Transition(GetRayShadowSrc(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	_cmdList->ResourceBarrier(3, collect);
-
-	// set heap
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() , TextureManager::Instance().GetSamplerHeap() };
-	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
-
-	// set target
-	_cmdList->OMSetRenderTargets(1, &GetCollectShadowRtv(), true, nullptr);
-	
-	// set viewport
-	auto viewPort = _targetCam->GetViewPort();
-	auto scissor = _targetCam->GetScissorRect();
-	viewPort.Width = (FLOAT)GetCollectShadowSrc()->GetDesc().Width;
-	viewPort.Height = (FLOAT)GetCollectShadowSrc()->GetDesc().Height;
-	scissor.right = (LONG)viewPort.Width;
-	scissor.bottom = (LONG)viewPort.Height;
-
-	_cmdList->RSSetViewports(1, &viewPort);
-	_cmdList->RSSetScissorRects(1, &scissor);
-	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	// set material
-	_cmdList->SetPipelineState(collectRayShadowMat.GetPSO());
-	_cmdList->SetGraphicsRootSignature(collectRayShadowMat.GetRootSignature());
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(1, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-
-	_cmdList->DrawInstanced(6, 1, 0, 0);
-	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
-
-	// transition back
-	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
-	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	collect[2] = CD3DX12_RESOURCE_BARRIER::Transition(GetRayShadowSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	_cmdList->ResourceBarrier(3, collect);
-
-	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::CollectShadowMap]);
-	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -347,6 +234,12 @@ D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetRTShadowUav()
 	return handle;
 }
 
+D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingUav()
+{
+	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), pointLightTileUav, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	return handle;
+}
+
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)
 {
 	for (int i = 0; i < (int)_lights.size(); i++)
@@ -441,10 +334,12 @@ void LightManager::CreateForwardPlusResource()
 {
 	int w, h;
 	GraphicManager::Instance().GetScreenSize(w, h);
-	tileCount = (int)(ceil((float)w / tileSize) * ceil((float)h / tileSize));
+
+	tileCountX = (int)ceil((float)w / tileSize);
+	tileCountY = (int)ceil((float)h / tileSize);
 
 	UINT totalSize = maxLightCount[LightType::Point] * 4 + 4;
-	totalSize *= tileCount;
+	totalSize *= tileCountX * tileCountY;
 	pointLightTiles = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	pointLightTileUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
 
@@ -453,4 +348,146 @@ void LightManager::CreateForwardPlusResource()
 	{
 		forwardPlusTileMat = MaterialManager::Instance().CreateComputeMat(tileShader);
 	}
+}
+
+void LightManager::TileLightCulling()
+{
+	// use pre gfx list
+	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
+	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
+
+	// set heap
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	// set pso & root signature
+	_cmdList->SetPipelineState(forwardPlusTileMat.GetPSO());
+	_cmdList->SetComputeRootSignature(forwardPlusTileMat.GetRootSignatureCompute());
+	_cmdList->SetComputeRootDescriptorTable(0, GetLightCullingUav());
+	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootShaderResourceView(2, GetLightDataGPU(LightType::Point, frameIndex, 0));
+	_cmdList->SetComputeRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+
+	// compute work
+	_cmdList->Dispatch(tileCountX, tileCountY, 1);
+
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::TileLightCulling]);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
+}
+
+void LightManager::RayTracingShadow(Camera* _targetCam)
+{
+	// use pre gfx list
+	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
+	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
+
+	// bind root signature
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	Material* mat = LightManager::Instance().GetRayShadow();
+	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
+
+	D3D12_RESOURCE_BARRIER barriers[3];
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetNormalSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	_cmdList->ResourceBarrier(3, barriers);
+
+	// set state
+	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
+	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
+	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootShaderResourceView(2, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(3, GetLightDataGPU(LightType::Directional, frameIndex, 0));
+	_cmdList->SetComputeRootShaderResourceView(4, GetLightDataGPU(LightType::Point, frameIndex, 0));
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
+
+	// prepare dispatch desc
+	auto rtShadowSrc = rayTracingShadow->Resource();
+	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)rtShadowSrc->GetDesc().Width, rtShadowSrc->GetDesc().Height);
+
+	// copy hit group identifier
+	MaterialManager::Instance().CopyHitGroupIdentifier(mat, frameIndex);
+
+	// setup hit group table
+	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(frameIndex);
+	dispatchDesc.HitGroupTable.StartAddress = hitGroup->Resource()->GetGPUVirtualAddress();
+	dispatchDesc.HitGroupTable.SizeInBytes = hitGroup->Resource()->GetDesc().Width;
+	dispatchDesc.HitGroupTable.StrideInBytes = hitGroup->Stride();
+
+	// dispatch rays
+	auto dxrCmd = GraphicManager::Instance().GetDxrList();
+	dxrCmd->SetPipelineState1(mat->GetDxcPSO());
+	dxrCmd->DispatchRays(&dispatchDesc);
+
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
+	barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetNormalSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COMMON);
+	_cmdList->ResourceBarrier(3, barriers);
+
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingShadow]);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
+}
+
+void LightManager::CollectRayShadow(Camera* _targetCam)
+{
+	auto currFrameResource = GraphicManager::Instance().GetFrameResource();
+	auto _cmdList = currFrameResource->mainGfxList;
+	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
+
+	// transition resource
+	D3D12_RESOURCE_BARRIER collect[3];
+	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(GetCollectShadowSrc(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	collect[2] = CD3DX12_RESOURCE_BARRIER::Transition(GetRayShadowSrc(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	_cmdList->ResourceBarrier(3, collect);
+
+	// set heap
+	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() , TextureManager::Instance().GetSamplerHeap() };
+	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+
+	// set target
+	_cmdList->OMSetRenderTargets(1, &GetCollectShadowRtv(), true, nullptr);
+
+	// set viewport
+	auto viewPort = _targetCam->GetViewPort();
+	auto scissor = _targetCam->GetScissorRect();
+	viewPort.Width = (FLOAT)GetCollectShadowSrc()->GetDesc().Width;
+	viewPort.Height = (FLOAT)GetCollectShadowSrc()->GetDesc().Height;
+	scissor.right = (LONG)viewPort.Width;
+	scissor.bottom = (LONG)viewPort.Height;
+
+	_cmdList->RSSetViewports(1, &viewPort);
+	_cmdList->RSSetScissorRects(1, &scissor);
+	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// set material
+	_cmdList->SetPipelineState(collectRayShadowMat.GetPSO());
+	_cmdList->SetGraphicsRootSignature(collectRayShadowMat.GetRootSignature());
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
+	_cmdList->SetGraphicsRootDescriptorTable(1, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+
+	_cmdList->DrawInstanced(6, 1, 0, 0);
+	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
+
+	// transition back
+	collect[0] = CD3DX12_RESOURCE_BARRIER::Transition(GetCollectShadowSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+	collect[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	collect[2] = CD3DX12_RESOURCE_BARRIER::Transition(GetRayShadowSrc(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	_cmdList->ResourceBarrier(3, collect);
+
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::CollectShadowMap]);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }

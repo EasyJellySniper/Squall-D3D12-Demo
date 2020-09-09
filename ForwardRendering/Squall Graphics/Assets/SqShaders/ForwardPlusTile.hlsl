@@ -1,4 +1,5 @@
-#define ForwardPlusTileRS "DescriptorTable(UAV(u0, numDescriptors=1))," \
+#define ForwardPlusTileRS "RootFlags(0)," \
+"DescriptorTable(UAV(u0, numDescriptors=1))," \
 "CBV(b1)," \
 "SRV(t1, space=1)," \
 "DescriptorTable( SRV( t0 , numDescriptors = unbounded) )," \
