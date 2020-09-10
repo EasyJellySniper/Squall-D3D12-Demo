@@ -43,31 +43,24 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	}
 
 	// dir from camera to corners
+	float3 corners[4];
 	[unroll]
 	for (i = 0; i < 4; i++)
 	{
-		plane[i].xyz = normalize(plane[i].xyz - _CameraPos.xyz);
+		corners[i].xyz = normalize(plane[i].xyz - _CameraPos.xyz);
 	}
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
-	float3 p1 = plane[2].xyz;
-	float3 p2 = plane[0].xyz;
-	plane[0].xyz = cross(p1, p2);
+	plane[0].xyz = cross(corners[2], corners[0]);
 	plane[0].w = 0;
 
-	p1 = plane[3].xyz;
-	p2 = plane[1].xyz;
-	plane[1].xyz = -cross(p1, p2);
+	plane[1].xyz = -cross(corners[3], corners[1]);
 	plane[1].w = 0;
 
-	p1 = plane[0].xyz;
-	p2 = plane[1].xyz;
-	plane[2].xyz = cross(p1, p2);
+	plane[2].xyz = cross(corners[0], corners[1]);
 	plane[2].w = 0;
 
-	p1 = plane[2].xyz;
-	p2 = plane[3].xyz;
-	plane[3].xyz = -cross(p1, p2);
+	plane[3].xyz = -cross(corners[2], corners[3]);
 	plane[3].w = 0;
 
 	plane[4].xyz = _CameraDir.xyz;
