@@ -239,6 +239,11 @@ D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingUav()
 	return TextureManager::Instance().GetTexHandle(pointLightTileUav);
 }
 
+D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingSrv()
+{
+	return TextureManager::Instance().GetTexHandle(pointLightTileSrv);
+}
+
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)
 {
 	for (int i = 0; i < (int)_lights.size(); i++)

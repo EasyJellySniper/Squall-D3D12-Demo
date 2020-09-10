@@ -269,12 +269,13 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(1, _renderer->GetObjectConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootShaderResourceView(5, LightManager::Instance().GetLightDataGPU(LightType::Directional, frameIndex, 0));
-	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetLightDataGPU(LightType::Point, frameIndex, 0));
+	_cmdList->SetGraphicsRootDescriptorTable(1, LightManager::Instance().GetLightCullingSrv());
+	_cmdList->SetGraphicsRootConstantBufferView(2, _renderer->GetObjectConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetLightDataGPU(LightType::Directional, frameIndex, 0));
+	_cmdList->SetGraphicsRootShaderResourceView(7, LightManager::Instance().GetLightDataGPU(LightType::Point, frameIndex, 0));
 }
 
 void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)

@@ -1,5 +1,6 @@
 #define ForwardPassRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
 "CBV(b0)," \
+"DescriptorTable(SRV(t3, space = 1, numDescriptors=1))," \
 "CBV(b1)," \
 "CBV(b2)," \
 "DescriptorTable(SRV(t0, numDescriptors=unbounded))," \

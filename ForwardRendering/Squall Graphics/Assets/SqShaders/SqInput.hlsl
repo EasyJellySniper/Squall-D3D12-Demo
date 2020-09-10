@@ -101,6 +101,7 @@ SamplerState _SamplerTable[] : register(s0);
 StructuredBuffer<SqLight> _SqDirLight: register(t0, space1);
 StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
 //StructuredBuffer<SqLight> _SqSpotLight: register(t2, space1);
+ByteAddressBuffer _SqPointLightTile : register(t3, space1);
 
 float3 DepthToWorldPos(float depth, float4 screenPos)
 {

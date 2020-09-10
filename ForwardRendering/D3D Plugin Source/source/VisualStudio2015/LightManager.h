@@ -58,6 +58,7 @@ public:
 
 	D3D12_GPU_DESCRIPTOR_HANDLE GetRTShadowUav();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetLightCullingUav();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetLightCullingSrv();
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
