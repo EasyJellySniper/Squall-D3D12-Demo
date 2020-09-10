@@ -3,6 +3,7 @@
 
 #define FLOAT_EPSILON 1.175494351e-38F
 #define UINT_MAX 0xffffffff
+#define TILE_KERNEL 32
 
 struct VertexInput
 {

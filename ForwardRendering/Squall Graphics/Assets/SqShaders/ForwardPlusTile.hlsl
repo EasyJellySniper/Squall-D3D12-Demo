@@ -72,7 +72,7 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 
 // use 32x32 threads per group
 [RootSignature(ForwardPlusTileRS)]
-[numthreads(32, 32, 1)]
+[numthreads(TILE_KERNEL, TILE_KERNEL, 1)]
 void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : SV_GroupID, uint _threadIdx : SV_GroupIndex)
 {
 	float depth = -1;
