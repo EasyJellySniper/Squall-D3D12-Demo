@@ -39,21 +39,17 @@ v2f CollectRayShadowVS(uint vid : SV_VertexID)
 
 float PenumbraFilter(float2 uv, int innerLoop)
 {
-    uint2 d;
-    _TexTable[_RayShadowIndex].GetDimensions(d.x, d.y);
-
     float blockCount = 0;
     float avgBlockDepth = 0;
     float avgReceiverDepth = 0;
     float lightSize = 0;
 
-    float2 texelSize = 1.0f / d;
     for (int i = -innerLoop; i <= innerLoop; i++)
     {
         for (int j = -innerLoop; j <= innerLoop; j++)
         {
             // x for blocked, y for dist to blocker
-            float4 shadowData = _TexTable[_RayShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], uv + texelSize * float2(i, j)).rgba;
+            float4 shadowData = _TexTable[_RayShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], uv + _ScreenSize.zw * float2(i, j), 0);
 
             [branch]
             if (shadowData.x < 1)
@@ -84,7 +80,7 @@ float PenumbraFilter(float2 uv, int innerLoop)
 
 float BlurFilter(float2 uv, int innerLoop, float penumbra)
 {
-    float center = _TexTable[_RayShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], uv).r;
+    float center = _TexTable[_RayShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], uv, 0).r;
     [branch]
     if (penumbra < FLOAT_EPSILON)
     {
@@ -92,21 +88,15 @@ float BlurFilter(float2 uv, int innerLoop, float penumbra)
         return center;
     }
 
-    uint2 d;
-    _TexTable[_RayShadowIndex].GetDimensions(d.x, d.y);
-
     float atten = 0;
-    float2 texelSize = 1.0f / d;
     int count = 0;
 
-    [loop]
     for (int i = -innerLoop; i <= innerLoop; i++)
     {
-        [loop]
         for (int j = -innerLoop; j <= innerLoop; j++)
         {
             float w = (innerLoop - abs(i) + 1) * (innerLoop - abs(j) + 1);
-            atten += _TexTable[_RayShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], uv + float2(i, j) * texelSize * penumbra).r * w;
+            atten += _TexTable[_RayShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], uv + float2(i, j) * _ScreenSize.zw * penumbra, 0).r * w;
             count += w;
         }
     }
@@ -117,7 +107,7 @@ float BlurFilter(float2 uv, int innerLoop, float penumbra)
 [RootSignature(CollectRayShadowRS)]
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
-    float depth = _TexTable[_TransDepthIndex].Sample(_SamplerTable[_CollectShadowSampler], i.uv).r;
+    float depth = _TexTable[_TransDepthIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], i.uv, 0).r;
     float3 wpos = DepthToWorldPos(depth, i.screenPos);
     float distRatio = 1 - saturate(abs(wpos.z - _CameraPos.z) * 0.05f);
 

@@ -345,6 +345,8 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 	_sc.transDepthIndex = transDepthSrv;
 	_sc.screenSize.x = viewPort.Width;
 	_sc.screenSize.y = viewPort.Height;
+	_sc.screenSize.z = 1.0f / viewPort.Width;
+	_sc.screenSize.w = 1.0f / viewPort.Height;
 	_sc.colorRTIndex = colorBufferSrv;
 	_sc.normalRTIndex = normalBufferSrv;
 }

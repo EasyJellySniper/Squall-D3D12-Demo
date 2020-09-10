@@ -62,7 +62,7 @@ v2f ForwardPassVS(VertexInput i)
 [RootSignature(ForwardPassRS)]
 float4 ForwardPassPS(v2f i) : SV_Target
 {
-	float2 screenUV = i.vertex.xy / _ScreenSize;
+	float2 screenUV = i.vertex.xy / _ScreenSize.xy;
 
 	// diffuse
 	float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
