@@ -31,6 +31,7 @@ struct SystemConstant
 	XMFLOAT4 cameraPos;
 	XMFLOAT4 cameraDir;
 	XMFLOAT2 screenSize;
+	XMFLOAT2 tileBias;
 	float farZ;
 	float nearZ;
 	float skyIntensity;
@@ -46,4 +47,6 @@ struct SystemConstant
 	int transDepthIndex;
 	int colorRTIndex;
 	int normalRTIndex;
+	int tileCountX;
+	int tileCountY;
 };

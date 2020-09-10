@@ -26,48 +26,55 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	float ry = y + tileBias.y;
 
 	// frustum corner in NDC space (at far plane) - LB RB LT RT
-	float4 corners[6];
-	corners[0] = float4(x, y, maxZ, 1.0f);
-	corners[1] = float4(rx, y, maxZ, 1.0f);
-	corners[2] = float4(x, ry, maxZ, 1.0f);
-	corners[3] = float4(rx, ry, maxZ, 1.0f);
+	plane[0] = float4(x, y, maxZ, 1.0f);
+	plane[1] = float4(rx, y, maxZ, 1.0f);
+	plane[2] = float4(x, ry, maxZ, 1.0f);
+	plane[3] = float4(rx, ry, maxZ, 1.0f);
 
 	// near far
-	corners[4] = float4(0, 0, minZ, 1.0f);
-	corners[5] = float4(0, 0, maxZ, 1.0f);
+	plane[4] = float4(0, 0, minZ, 1.0f);
+	plane[5] = float4(0, 0, maxZ, 1.0f);
 
 	// convert corners to world position
 	[unroll]
 	for (uint i = 0; i < 6; i++)
 	{
-		corners[i].xyz = DepthToWorldPos(corners[i].z, corners[i]);
+		plane[i].xyz = DepthToWorldPos(plane[i].z, plane[i]);
 	}
 
 	// dir from camera to corners
 	[unroll]
 	for (i = 0; i < 4; i++)
 	{
-		corners[i].xyz = normalize(corners[i].xyz - _CameraPos.xyz);
+		plane[i].xyz = normalize(plane[i].xyz - _CameraPos.xyz);
 	}
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
-	plane[0].xyz = cross(corners[2].xyz, corners[0].xyz);
+	float3 p1 = plane[2].xyz;
+	float3 p2 = plane[0].xyz;
+	plane[0].xyz = cross(p1, p2);
 	plane[0].w = 0;
 
-	plane[1].xyz = -cross(corners[3].xyz, corners[1].xyz);
+	p1 = plane[3].xyz;
+	p2 = plane[1].xyz;
+	plane[1].xyz = -cross(p1, p2);
 	plane[1].w = 0;
 
-	plane[2].xyz = cross(corners[0].xyz, corners[1].xyz);
+	p1 = plane[0].xyz;
+	p2 = plane[1].xyz;
+	plane[2].xyz = cross(p1, p2);
 	plane[2].w = 0;
 
-	plane[3].xyz = -cross(corners[2].xyz, corners[3].xyz);
+	p1 = plane[2].xyz;
+	p2 = plane[3].xyz;
+	plane[3].xyz = -cross(p1, p2);
 	plane[3].w = 0;
 
 	plane[4].xyz = _CameraDir.xyz;
-	plane[4].w = abs(_CameraPos.z - corners[4].z);
+	plane[4].w = abs(_CameraPos.z - plane[4].z);
 
 	plane[5].xyz = -_CameraDir.xyz;
-	plane[5].w = abs(_CameraPos.z - corners[5].z);
+	plane[5].w = abs(_CameraPos.z - plane[5].z);
 }
 
 // use 32x32 threads per group
@@ -108,10 +115,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	GroupMemoryBarrierWithGroupSync();
 
 	// tile data
-	uint tileCountX = ceil(_ScreenSize.x / 32);
-	uint tileCountY = ceil(_ScreenSize.y / 32);
-	uint tileIndex = _groupID.x + _groupID.y * tileCountX;
-	float2 tileBias = float2(2.0f / tileCountX, 2.0f / tileCountY);
+	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
 
 	// if thread not out-of-range
 	if (_threadIdx < _NumPointLight)
@@ -124,8 +128,8 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 			maxDepthF = minDepthF + FLOAT_EPSILON;
 		}
 
-		float4 plane[6] = {(float4)0,(float4)0 ,(float4)0 ,(float4)0 ,(float4)0 ,(float4)0};
-		CalcFrustumPlanes(_groupID.x, _groupID.y, tileBias, maxDepthF, minDepthF, plane);
+		float4 plane[6];
+		CalcFrustumPlanes(_groupID.x, _groupID.y, _TileBias, maxDepthF, minDepthF, plane);
 
 		// light overlap test
 		SqLight light = _SqPointLight[_threadIdx];
