@@ -1,6 +1,6 @@
 // need assign relative path for dxc compiler with forward slash
-#include "Assets/SqShaders/SqInput.hlsl"
-#include "Assets/SqShaders/SqLight.hlsl"
+#include "SqInput.hlsl"
+#include "SqLight.hlsl"
 
 #pragma sq_rayrootsig RTShadowRootSig
 #pragma sq_rayrootsiglocal RTShadowRootSigLocal

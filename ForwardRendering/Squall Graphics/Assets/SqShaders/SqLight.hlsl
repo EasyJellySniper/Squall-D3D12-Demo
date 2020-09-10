@@ -12,7 +12,7 @@ float3 LightDir(SqLight light, float3 worldPos)
 	return lerp(normalize(worldPos - light.world.xyz), light.world.xyz, light.type == 1);
 }
 
-float3 LightAtten(int lightType, float distToLight, float range, bool isLinear = false)
+float LightAtten(int lightType, float distToLight, float range, bool isLinear = false)
 {
 	[branch]
 	if (lightType == 1)
@@ -51,7 +51,7 @@ float BlinnPhong(float m, float ndotH)
 float3 AccumulateLight(int numLight, StructuredBuffer<SqLight> light, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular, float shadowAtten)
 {
 	float roughness = 1 - smoothness;
-	float3 viewDir = -normalize(worldPos - _CameraPos);
+	float3 viewDir = -normalize(worldPos - _CameraPos.xyz);
 
 	float3 col = 0;
 	specular = 0;
