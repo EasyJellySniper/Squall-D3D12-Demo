@@ -105,5 +105,6 @@ private:
 	int tileCountX;
 	int tileCountY;
 	int pointLightTileUav;
+	int pointLightTileSrv;
 	Material forwardPlusTileMat;
 };
