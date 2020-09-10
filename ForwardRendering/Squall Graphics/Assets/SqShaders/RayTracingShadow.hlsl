@@ -16,7 +16,7 @@
 GlobalRootSignature RTShadowRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
-    "CBV( b1 ),"                        // system constant
+    "CBV( b0 ),"                        // system constant
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 ),"              // sq dir light
     "SRV( t1, space = 1 ),"             // sq point light

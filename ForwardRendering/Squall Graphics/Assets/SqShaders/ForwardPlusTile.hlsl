@@ -1,6 +1,6 @@
 #define ForwardPlusTileRS "RootFlags(0)," \
 "DescriptorTable(UAV(u0, numDescriptors=1))," \
-"CBV(b1)," \
+"CBV(b0)," \
 "SRV(t1, space=1)," \
 "DescriptorTable( SRV( t0 , numDescriptors = unbounded) )," \
 "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) )"

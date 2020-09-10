@@ -1,6 +1,6 @@
 #include "SqInput.hlsl"
 
-#define ResolveDepthRS "CBV(b1)," \
+#define ResolveDepthRS "CBV(b0)," \
 "DescriptorTable(SRV(t0, numDescriptors=1))" 
 
 #pragma sq_vertex ResolveDepthVS

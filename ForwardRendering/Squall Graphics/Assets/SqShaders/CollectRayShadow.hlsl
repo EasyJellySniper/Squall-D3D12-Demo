@@ -1,4 +1,4 @@
-#define CollectRayShadowRS "CBV(b1)," \
+#define CollectRayShadowRS "CBV(b0)," \
 "DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
 

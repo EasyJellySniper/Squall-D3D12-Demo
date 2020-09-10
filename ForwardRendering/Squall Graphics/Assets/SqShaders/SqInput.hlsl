@@ -43,12 +43,7 @@ struct Plane
 	float distance;
 };
 
-cbuffer ObjectConstant : register(b0)
-{
-	float4x4 SQ_MATRIX_WORLD;
-};
-
-cbuffer SystemConstant : register(b1)
+cbuffer SystemConstant : register(b0)
 {
 	float4x4 SQ_MATRIX_VP;
 	float4x4 SQ_MATRIX_INV_VP;
@@ -72,6 +67,11 @@ cbuffer SystemConstant : register(b1)
 	int _TransDepthIndex;
 	int _ColorRTIndex;
 	int _NormalRTIndex;
+};
+
+cbuffer ObjectConstant : register(b1)
+{
+	float4x4 SQ_MATRIX_WORLD;
 };
 
 cbuffer MaterialConstant : register(b2)

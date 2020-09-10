@@ -245,8 +245,8 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 	_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
 
 	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(1, _renderer->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
 
 	// setup descriptor table gpu
@@ -268,8 +268,8 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootSignature(_mat->GetRootSignature());
 
 	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, _renderer->GetObjectConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(1, _renderer->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
@@ -309,8 +309,8 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
 			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
 
 			// set system constant of renderer
-			_cmdList->SetGraphicsRootConstantBufferView(0, r.cache->GetObjectConstantGPU(frameIndex));
-			_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+			_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+			_cmdList->SetGraphicsRootConstantBufferView(1, r.cache->GetObjectConstantGPU(frameIndex));
 
 			// draw mesh
 			m->DrawSubMesh(_cmdList, r.submeshIndex);
@@ -528,8 +528,8 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	auto skyMat = LightManager::Instance().GetSkyboxMat();
 	_cmdList->SetPipelineState(skyMat->GetPSO());
 	_cmdList->SetGraphicsRootSignature(skyMat->GetRootSignature());
-	_cmdList->SetGraphicsRootConstantBufferView(0, LightManager::Instance().GetSkyboxRenderer()->GetObjectConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(1, LightManager::Instance().GetSkyboxRenderer()->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(2, LightManager::Instance().GetSkyboxTex());
 	_cmdList->SetGraphicsRootDescriptorTable(3, LightManager::Instance().GetSkyboxSampler());
 
