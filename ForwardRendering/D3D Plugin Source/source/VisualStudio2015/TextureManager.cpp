@@ -98,6 +98,18 @@ ID3D12DescriptorHeap* TextureManager::GetSamplerHeap()
 	return samplerDescriptorHeap.Get();
 }
 
+D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetTexHandle(int _id)
+{
+	CD3DX12_GPU_DESCRIPTOR_HANDLE tHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), _id, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	return tHandle;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSamplerHandle(int _id)
+{
+	CD3DX12_GPU_DESCRIPTOR_HANDLE sHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart(), _id, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
+	return sHandle;
+}
+
 void TextureManager::EnlargeTexDescriptorHeap()
 {
 	texHeapEnlargeCount++;

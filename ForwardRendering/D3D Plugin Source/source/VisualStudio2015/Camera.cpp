@@ -189,8 +189,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
 
 D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetMsaaSrv()
 {
-	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), msaaDepthSrv, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
-	return handle;
+	return TextureManager::Instance().GetTexHandle(msaaDepthSrv);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetNormalRtv()

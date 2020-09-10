@@ -213,14 +213,12 @@ Material* LightManager::GetSkyboxMat()
 
 D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetSkyboxTex()
 {
-	CD3DX12_GPU_DESCRIPTOR_HANDLE tHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), skyboxTexId, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
-	return tHandle;
+	return TextureManager::Instance().GetTexHandle(skyboxTexId);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetSkyboxSampler()
 {
-	CD3DX12_GPU_DESCRIPTOR_HANDLE sHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart(), skyboxSampleId, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
-	return sHandle;
+	return TextureManager::Instance().GetSamplerHandle(skyboxSampleId);
 }
 
 int LightManager::GetSkyMeshID()
@@ -230,14 +228,12 @@ int LightManager::GetSkyMeshID()
 
 D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetRTShadowUav()
 {
-	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), rtShadowUav, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
-	return handle;
+	return TextureManager::Instance().GetTexHandle(rtShadowUav);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingUav()
 {
-	auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), pointLightTileUav, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
-	return handle;
+	return TextureManager::Instance().GetTexHandle(pointLightTileUav);
 }
 
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)

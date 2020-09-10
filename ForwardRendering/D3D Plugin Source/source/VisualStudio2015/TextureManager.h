@@ -30,6 +30,8 @@ public:
 	int AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, D3D12_FILTER _filter);
 	ID3D12DescriptorHeap* GetTexHeap();
 	ID3D12DescriptorHeap* GetSamplerHeap();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTexHandle(int _id);
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerHandle(int _id);
 
 private:
 	void EnlargeTexDescriptorHeap();
