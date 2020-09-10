@@ -30,10 +30,8 @@ v2f DepthPrePassVS(VertexInput i)
 	float4 wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
 	o.vertex = mul(SQ_MATRIX_VP, wpos);
 	o.tex.xy = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
-
-	float2 detailUV = lerp(i.uv1, i.uv2, _DetailUV);
-	detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
-	o.tex.zw = detailUV;
+	o.tex.zw = lerp(i.uv1, i.uv2, _DetailUV);
+	o.tex.zw = o.tex.zw * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
 
 	// assume uniform scale, mul normal with world matrix directly
 	o.normal = LocalToWorldDir(i.normal);
