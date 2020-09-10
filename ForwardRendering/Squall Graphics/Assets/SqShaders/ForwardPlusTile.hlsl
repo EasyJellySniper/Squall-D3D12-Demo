@@ -18,7 +18,7 @@ groupshared uint tilePointLightCount;
 groupshared uint tilePointLightArray[1024];
 
 // similiar to BoundingFrustum::CreateFromMatrix()
-void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, float maxZ, out Plane plane[6])
+void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, float maxZ, out float4 plane[6])
 {
 	float x = -1.0f + tileBias.x * tileX;
 	float y = -1.0f + tileBias.y * tileY;
@@ -51,23 +51,23 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	}
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
-	plane[0].normal = cross(corners[2].xyz, corners[0].xyz);
-	plane[0].distance = 0;
+	plane[0].xyz = cross(corners[2].xyz, corners[0].xyz);
+	plane[0].w = 0;
 
-	plane[1].normal = -cross(corners[3].xyz, corners[1].xyz);
-	plane[1].distance = 0;
+	plane[1].xyz = -cross(corners[3].xyz, corners[1].xyz);
+	plane[1].w = 0;
 
-	plane[2].normal = cross(corners[0].xyz, corners[1].xyz);
-	plane[2].distance = 0;
+	plane[2].xyz = cross(corners[0].xyz, corners[1].xyz);
+	plane[2].w = 0;
 
-	plane[3].normal = -cross(corners[2].xyz, corners[3].xyz);
-	plane[3].distance = 0;
+	plane[3].xyz = -cross(corners[2].xyz, corners[3].xyz);
+	plane[3].w = 0;
 
-	plane[4].normal = _CameraDir.xyz;
-	plane[4].distance = abs(_CameraPos.z - corners[4].z);
+	plane[4].xyz = _CameraDir.xyz;
+	plane[4].w = abs(_CameraPos.z - corners[4].z);
 
-	plane[5].normal = -_CameraDir.xyz;
-	plane[5].distance = abs(_CameraPos.z - corners[5].z);
+	plane[5].xyz = -_CameraDir.xyz;
+	plane[5].w = abs(_CameraPos.z - corners[5].z);
 }
 
 // use 32x32 threads per group
@@ -124,7 +124,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 			maxDepthF = minDepthF + FLOAT_EPSILON;
 		}
 
-		Plane plane[6];
+		float4 plane[6] = {(float4)0,(float4)0 ,(float4)0 ,(float4)0 ,(float4)0 ,(float4)0};
 		CalcFrustumPlanes(_groupID.x, _groupID.y, tileBias, maxDepthF, minDepthF, plane);
 
 		// light overlap test
@@ -133,7 +133,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		bool overlapping = true;
 		for (int n = 0; n < 6; n++)
 		{
-			float d = dot(light.world.xyz, plane[n].normal) + plane[n].distance;
+			float d = dot(light.world.xyz, plane[n].xyz) + plane[n].w;
 			if (d + light.range < 0)
 			{
 				overlapping = false;

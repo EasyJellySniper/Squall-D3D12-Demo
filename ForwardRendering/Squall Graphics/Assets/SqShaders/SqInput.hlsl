@@ -37,12 +37,6 @@ struct SubMesh
 	float padding;
 };
 
-struct Plane
-{
-	float3 normal;
-	float distance;
-};
-
 cbuffer SystemConstant : register(b0)
 {
 	float4x4 SQ_MATRIX_VP;
