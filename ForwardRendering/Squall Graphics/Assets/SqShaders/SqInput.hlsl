@@ -42,10 +42,11 @@ cbuffer SystemConstant : register(b0)
 {
 	float4x4 SQ_MATRIX_VP;
 	float4x4 SQ_MATRIX_INV_VP;
+	float4x4 SQ_MATRIX_INV_P;
+	float4x4 SQ_MATRIX_V;
 	float4 _AmbientGround;
 	float4 _AmbientSky;
 	float4 _CameraPos;	// w for padding
-	float4 _CameraDir;	// w for padding
 	float4 _ScreenSize; // w,h,1/w,1/h
 	float2 _TileBias;	// forward+ tile bias in ndc space
 	float _FarZ;

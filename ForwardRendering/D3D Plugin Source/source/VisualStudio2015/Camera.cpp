@@ -328,15 +328,17 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 	_sc.cameraPos.y = position.y;
 	_sc.cameraPos.z = position.z;
 
-	_sc.cameraDir.x = direction.x;
-	_sc.cameraDir.y = direction.y;
-	_sc.cameraDir.z = direction.z;
-
-	XMMATRIX vp = XMLoadFloat4x4(&viewMatrix) * XMLoadFloat4x4(&projMatrix);
+	XMMATRIX v = XMLoadFloat4x4(&viewMatrix);
+	XMMATRIX p = XMLoadFloat4x4(&projMatrix);
+	XMMATRIX vp = v * p;
 	XMStoreFloat4x4(&_sc.sqMatrixViewProj, vp);
 
 	XMMATRIX invVP = XMMatrixInverse(&XMMatrixDeterminant(vp), vp);
 	XMStoreFloat4x4(&_sc.sqMatrixInvViewProj, invVP);
+
+	XMMATRIX invP = XMMatrixInverse(&XMMatrixDeterminant(p), p);
+	XMStoreFloat4x4(&_sc.sqMatrixInvProj, invP);
+	_sc.sqMatrixView = viewMatrix;
 
 	_sc.farZ = farZ;
 	_sc.nearZ = nearZ;

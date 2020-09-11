@@ -26,10 +26,11 @@ struct SystemConstant
 {
 	XMFLOAT4X4 sqMatrixViewProj;
 	XMFLOAT4X4 sqMatrixInvViewProj;
+	XMFLOAT4X4 sqMatrixInvProj;
+	XMFLOAT4X4 sqMatrixView;
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
 	XMFLOAT4 cameraPos;
-	XMFLOAT4 cameraDir;
 	XMFLOAT4 screenSize;
 	XMFLOAT2 tileBias;
 	float farZ;
