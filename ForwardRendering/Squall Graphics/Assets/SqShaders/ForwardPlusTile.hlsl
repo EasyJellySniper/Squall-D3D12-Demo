@@ -17,7 +17,7 @@ groupshared uint maxDepthU;
 groupshared uint tilePointLightCount;
 groupshared uint tilePointLightArray[1024];
 
-// similiar to BoundingFrustum::CreateFromMatrix()
+// calc view space frustum
 void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, float maxZ, out float4 plane[6])
 {
 	float x = -1.0f + tileBias.x * tileX;
@@ -35,19 +35,23 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	plane[4] = float4(0, 0, minZ, 1.0f);
 	plane[5] = float4(0, 0, maxZ, 1.0f);
 
-	// convert corners to world position
+	// convert corners to view position
 	[unroll]
 	for (uint i = 0; i < 6; i++)
 	{
-		plane[i].xyz = DepthToWorldPos(plane[i].z, plane[i]);
+		plane[i].xyz = DepthToViewPos(plane[i].z, plane[i]);
 	}
+
+	// update min/max eye-z
+	minZ = plane[4].z;
+	maxZ= plane[5].z;
 
 	// dir from camera to corners
 	float3 corners[4];
 	[unroll]
 	for (i = 0; i < 4; i++)
 	{
-		corners[i].xyz = normalize(plane[i].xyz - _CameraPos.xyz);
+		corners[i].xyz = normalize(plane[i].xyz);
 	}
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
@@ -63,11 +67,11 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	plane[3].xyz = -cross(corners[2], corners[3]);
 	plane[3].w = 0;
 
-	plane[4].xyz = _CameraDir.xyz;
-	plane[4].w = abs(_CameraPos.z - plane[4].z);
+	plane[4].xyz = float3(0, 0, 1);
+	plane[4].w = -minZ;
 
-	plane[5].xyz = -_CameraDir.xyz;
-	plane[5].w = abs(_CameraPos.z - plane[5].z);
+	plane[5].xyz = float3(0, 0, -1);
+	plane[5].w = maxZ;
 }
 
 // use 32x32 threads per group
@@ -115,9 +119,9 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	{
 		float minDepthF = asfloat(minDepthU);
 		float maxDepthF = asfloat(maxDepthU);
+
 		if (maxDepthF - minDepthF < FLOAT_EPSILON)
 		{
-			// prevent zero range depth
 			maxDepthF = minDepthF + FLOAT_EPSILON;
 		}
 
@@ -126,12 +130,13 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 		// light overlap test
 		SqLight light = _SqPointLight[_threadIdx];
+		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)) * float3(1, -1, -1);
 
 		bool overlapping = true;
 		for (int n = 0; n < 6; n++)
 		{
-			float d = dot(light.world.xyz, plane[n].xyz) + plane[n].w;
-			if (d + light.range < 0)
+			float d = dot(lightPosV, plane[n].xyz) + plane[n].w;
+			if (d < 0)
 			{
 				overlapping = false;
 			}

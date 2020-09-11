@@ -107,12 +107,22 @@ ByteAddressBuffer _SqPointLightTile : register(t3, space1);
 
 float3 DepthToWorldPos(float depth, float4 screenPos)
 {
-	// calc vpos
+	// calc wpos
 	screenPos.z = depth;
 	float4 wpos = mul(SQ_MATRIX_INV_VP, screenPos);
 	wpos /= wpos.w;
 
 	return wpos.xyz;
+}
+
+float3 DepthToViewPos(float depth, float4 screenPos)
+{
+	// calc vpos
+	screenPos.z = depth;
+	float4 vpos = mul(SQ_MATRIX_INV_P, screenPos);
+	vpos /= vpos.w;
+
+	return vpos.xyz * float3(1, -1, -1);
 }
 
 #endif
