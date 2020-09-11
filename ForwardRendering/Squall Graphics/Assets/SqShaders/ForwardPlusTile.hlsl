@@ -115,7 +115,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
 
 	// if thread not out-of-range
-	if (_threadIdx < _NumPointLight)
+	if (_threadIdx < _NumPointLight && asfloat(maxDepthU) > FLOAT_EPSILON)
 	{
 		float minDepthF = asfloat(minDepthU);
 		float maxDepthF = asfloat(maxDepthU);
