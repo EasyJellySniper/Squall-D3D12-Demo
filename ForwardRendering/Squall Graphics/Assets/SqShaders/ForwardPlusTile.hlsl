@@ -44,7 +44,7 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 
 	// update min/max eye-z
 	minZ = plane[4].z;
-	maxZ= plane[5].z;
+	maxZ = plane[5].z;
 
 	// dir from camera to corners
 	float3 corners[4];
@@ -55,16 +55,20 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	}
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
-	plane[0].xyz = cross(corners[2], corners[0]);
+	plane[0].xyz = cross(corners[0], corners[2]);
+	plane[0].xyz *= lerp(-1, 1, plane[0].x > 0);
 	plane[0].w = 0;
 
-	plane[1].xyz = -cross(corners[3], corners[1]);
+	plane[1].xyz = cross(corners[1], corners[3]);
+	plane[1].xyz *= lerp(1, -1, plane[1].x > 0);
 	plane[1].w = 0;
 
 	plane[2].xyz = cross(corners[0], corners[1]);
+	plane[2].xyz *= lerp(-1, 1, plane[2].y > 0);
 	plane[2].w = 0;
 
-	plane[3].xyz = -cross(corners[2], corners[3]);
+	plane[3].xyz = cross(corners[2], corners[3]);
+	plane[3].xyz *= lerp(1, -1, plane[3].y > 0);
 	plane[3].w = 0;
 
 	plane[4].xyz = float3(0, 0, 1);
@@ -131,7 +135,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 		// light overlap test
 		SqLight light = _SqPointLight[_threadIdx];
-		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)) * float3(1, -1, -1);
+		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)).xyz * float3(1, 1, -1);
 
 		bool overlapping = true;
 		for (int n = 0; n < 6; n++)

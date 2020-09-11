@@ -122,7 +122,7 @@ float3 DepthToViewPos(float depth, float4 screenPos)
 	float4 vpos = mul(SQ_MATRIX_INV_P, screenPos);
 	vpos /= vpos.w;
 
-	return vpos.xyz * float3(1, -1, -1);
+	return vpos.xyz * float3(1, 1, -1);
 }
 
 #endif
