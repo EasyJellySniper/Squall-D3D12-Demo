@@ -120,9 +120,10 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		float minDepthF = asfloat(minDepthU);
 		float maxDepthF = asfloat(maxDepthU);
 
-		if (maxDepthF - minDepthF < FLOAT_EPSILON)
+		// check invalid depth range
+		if (minDepthF < FLOAT_EPSILON || maxDepthF - minDepthF < FLOAT_EPSILON)
 		{
-			maxDepthF = minDepthF + FLOAT_EPSILON;
+			minDepthF = maxDepthF - FLOAT_EPSILON;
 		}
 
 		float4 plane[6];
