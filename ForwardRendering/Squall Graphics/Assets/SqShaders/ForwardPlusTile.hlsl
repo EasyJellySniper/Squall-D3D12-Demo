@@ -81,6 +81,22 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 	plane[5].w = maxZ;
 }
 
+// sphere inside frustum
+bool SphereInsideFrustum(float4 sphere, float4 plane[6])
+{
+	bool result = true;
+	for (int n = 0; n < 6; n++)
+	{
+		float d = dot(sphere.xyz, plane[n].xyz) + plane[n].w;
+		if (d < 0)
+		{
+			result = false;
+		}
+	}
+
+	return result;
+}
+
 // use 32x32 threads per group
 [RootSignature(ForwardPlusTileRS)]
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
@@ -140,16 +156,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		SqLight light = _SqPointLight[_threadIdx];
 		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)).xyz * float3(1, 1, -1);
 
-		bool overlapping = true;
-		for (int n = 0; n < 6; n++)
-		{
-			float d = dot(lightPosV, plane[n].xyz) + plane[n].w;
-			if (d < 0)
-			{
-				overlapping = false;
-			}
-		}
-
+		bool overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
 		if (overlapping)
 		{
 			uint idx = 0;
