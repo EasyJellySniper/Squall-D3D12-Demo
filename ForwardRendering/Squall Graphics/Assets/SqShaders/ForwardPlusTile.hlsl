@@ -121,16 +121,16 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	// tile data
 	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
 
-	// if thread not out-of-range
+	// if thread not out-of-range & mapdepth is valid
 	if (_threadIdx < _NumPointLight && asfloat(maxDepthU) > FLOAT_EPSILON)
 	{
 		float minDepthF = asfloat(minDepthU);
 		float maxDepthF = asfloat(maxDepthU);
 
-		// check invalid depth range
-		if (minDepthF < FLOAT_EPSILON || maxDepthF - minDepthF < FLOAT_EPSILON)
+		// prevent invalid depth range
+		if (maxDepthF - minDepthF < FLOAT_EPSILON)
 		{
-			minDepthF = maxDepthF - FLOAT_EPSILON;
+			maxDepthF = minDepthF + FLOAT_EPSILON;
 		}
 
 		float4 plane[6];
