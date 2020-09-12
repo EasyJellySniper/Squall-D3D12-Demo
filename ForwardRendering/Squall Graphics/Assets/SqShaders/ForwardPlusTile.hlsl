@@ -61,20 +61,17 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 	}
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
-	plane[0].xyz = cross(corners[0], corners[2]);
-	plane[0].xyz *= lerp(-1, 1, plane[0].x > 0);
+	// note the cross order: top-to-bottom left-to-right
+	plane[0].xyz = cross(corners[2], corners[0]);
 	plane[0].w = 0;
 
-	plane[1].xyz = cross(corners[1], corners[3]);
-	plane[1].xyz *= lerp(1, -1, plane[1].x > 0);
+	plane[1].xyz = -cross(corners[3], corners[1]);	// flip so right plane point inside frustum
 	plane[1].w = 0;
 
 	plane[2].xyz = cross(corners[0], corners[1]);
-	plane[2].xyz *= lerp(-1, 1, plane[2].y > 0);
 	plane[2].w = 0;
 
-	plane[3].xyz = cross(corners[2], corners[3]);
-	plane[3].xyz *= lerp(1, -1, plane[3].y > 0);
+	plane[3].xyz = -cross(corners[2], corners[3]);	// flip so top plane point inside frustum
 	plane[3].w = 0;
 
 	plane[4].xyz = float3(0, 0, 1);
