@@ -105,7 +105,6 @@ private:
 	int tileSize = 32;
 	int tileCountX;
 	int tileCountY;
-	XMFLOAT2 tileBias;
 	int pointLightTileUav;
 	int pointLightTileSrv;
 	Material forwardPlusTileMat;

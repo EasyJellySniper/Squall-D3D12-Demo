@@ -3,7 +3,7 @@
 
 #define FLOAT_EPSILON 1.175494351e-38F
 #define UINT_MAX 0xffffffff
-#define TILE_KERNEL 32
+#define TILE_SIZE 32
 
 struct VertexInput
 {
@@ -48,7 +48,6 @@ cbuffer SystemConstant : register(b0)
 	float4 _AmbientSky;
 	float4 _CameraPos;	// w for padding
 	float4 _ScreenSize; // w,h,1/w,1/h
-	float2 _TileBias;	// forward+ tile bias in ndc space
 	float _FarZ;
 	float _NearZ;
 	float _SkyIntensity;

@@ -125,7 +125,6 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.rayIndex = rtShadowSrv;
 	_sc.tileCountX = tileCountX;
 	_sc.tileCountY = tileCountY;
-	_sc.tileBias = tileBias;
 }
 
 void LightManager::SetPCFKernel(int _kernel)
@@ -341,8 +340,6 @@ void LightManager::CreateForwardPlusResource()
 
 	tileCountX = (int)ceil((float)w / tileSize);
 	tileCountY = (int)ceil((float)h / tileSize);
-	tileBias.x = 2.0f / tileCountX;
-	tileBias.y = 2.0f / tileCountY;
 
 	UINT totalSize = maxLightCount[LightType::Point] * 4 + 4;
 	totalSize *= tileCountX * tileCountY;

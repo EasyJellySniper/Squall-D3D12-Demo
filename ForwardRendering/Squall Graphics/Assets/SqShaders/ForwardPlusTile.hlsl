@@ -18,14 +18,15 @@ groupshared uint tilePointLightCount;
 groupshared uint tilePointLightArray[1024];
 
 // calc view space frustum
-void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, float maxZ, out float4 plane[6])
+void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float4 plane[6])
 {
-	float x = -1.0f + tileBias.x * tileX;
-	float y = -1.0f + tileBias.y * tileY;
-	float rx = x + tileBias.x;
-	float ry = y + tileBias.y;
+	// tile position in screen space
+	float x = tileX * TILE_SIZE;
+	float y = tileY * TILE_SIZE;
+	float rx = x + TILE_SIZE;
+	float ry = y + TILE_SIZE;
 
-	// frustum corner in NDC space (at far plane) - LB RB LT RT
+	// frustum corner (at far plane) - LB RB LT RT
 	plane[0] = float4(x, y, maxZ, 1.0f);
 	plane[1] = float4(rx, y, maxZ, 1.0f);
 	plane[2] = float4(x, ry, maxZ, 1.0f);
@@ -35,10 +36,15 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 	plane[4] = float4(0, 0, minZ, 1.0f);
 	plane[5] = float4(0, 0, maxZ, 1.0f);
 
-	// convert corners to view position
 	[unroll]
 	for (uint i = 0; i < 6; i++)
 	{
+		// convert corners to ndc space
+		plane[i].xy *= _ScreenSize.zw;
+		plane[i].xy = plane[i].xy * 2.0f - 1.0f;
+		plane[i].y = -plane[i].y;
+
+		// convert corners to view position
 		plane[i].xyz = DepthToViewPos(plane[i].z, plane[i]);
 	}
 
@@ -80,7 +86,7 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float2 tileBias, float minZ, floa
 
 // use 32x32 threads per group
 [RootSignature(ForwardPlusTileRS)]
-[numthreads(TILE_KERNEL, TILE_KERNEL, 1)]
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : SV_GroupID, uint _threadIdx : SV_GroupIndex)
 {
 	float depth = -1;
@@ -131,7 +137,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		}
 
 		float4 plane[6];
-		CalcFrustumPlanes(_groupID.x, _groupID.y, _TileBias, maxDepthF, minDepthF, plane);
+		CalcFrustumPlanes(_groupID.x, _groupID.y, maxDepthF, minDepthF, plane);
 
 		// light overlap test
 		SqLight light = _SqPointLight[_threadIdx];
