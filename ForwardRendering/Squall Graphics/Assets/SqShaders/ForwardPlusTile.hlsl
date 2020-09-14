@@ -17,7 +17,7 @@ groupshared uint maxDepthU;
 groupshared uint tilePointLightCount;
 groupshared uint tilePointLightArray[1024];
 
-// calc view space frustum
+// calc world space frustum
 void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float4 plane[6])
 {
 	// tile position in screen space
@@ -44,48 +44,49 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 		plane[i].xy = plane[i].xy * 2.0f - 1.0f;
 		plane[i].y = -plane[i].y;
 
-		// convert corners to view position
-		plane[i].xyz = DepthToViewPos(plane[i].z, plane[i]);
+		// convert corners to world position
+		plane[i].xyz = DepthToWorldPos(plane[i].z, plane[i]);
 	}
-
-	// update min/max eye-z
-	minZ = plane[4].z;
-	maxZ = plane[5].z;
 
 	// dir from camera to corners
 	float3 corners[4];
 	[unroll]
 	for (i = 0; i < 4; i++)
 	{
-		corners[i].xyz = normalize(plane[i].xyz);
+		corners[i].xyz = normalize(plane[i].xyz - _CameraPos.xyz);
 	}
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
 	// note the cross order: top-to-bottom left-to-right
 	plane[0].xyz = cross(corners[2], corners[0]);
-	plane[0].w = 0;
+	plane[0].w = -dot(plane[0].xyz, _CameraPos.xyz);
 
 	plane[1].xyz = -cross(corners[3], corners[1]);	// flip so right plane point inside frustum
-	plane[1].w = 0;
+	plane[1].w = -dot(plane[1].xyz, _CameraPos.xyz);
 
 	plane[2].xyz = cross(corners[0], corners[1]);
-	plane[2].w = 0;
+	plane[2].w = -dot(plane[2].xyz, _CameraPos.xyz);
 
 	plane[3].xyz = -cross(corners[2], corners[3]);	// flip so top plane point inside frustum
-	plane[3].w = 0;
+	plane[3].w = -dot(plane[3].xyz, _CameraPos.xyz);
 
-	plane[4].xyz = float3(0, 0, 1);
-	plane[4].w = -minZ;
-
-	plane[5].xyz = float3(0, 0, -1);
-	plane[5].w = maxZ;
+	plane[4].w = abs(plane[4].z - _CameraPos.z);	// near z
+	plane[5].w = abs(plane[5].z - _CameraPos.z);	// far z
 }
 
 // sphere inside frustum
 bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 {
 	bool result = true;
-	for (int n = 0; n < 6; n++)
+	float sz = abs(sphere.z - _CameraPos.z);
+
+	// depth check
+	if (sz < plane[4].w || sz > plane[5].w)
+	{
+		result = false;
+	}
+
+	for (int n = 0; n < 4; n++)
 	{
 		float d = dot(sphere.xyz, plane[n].xyz) + plane[n].w;
 		if (d < 0)
@@ -154,9 +155,8 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 		// light overlap test
 		SqLight light = _SqPointLight[_threadIdx];
-		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)).xyz * float3(1, 1, -1);
 
-		bool overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
+		bool overlapping = SphereInsideFrustum(float4(light.world.xyz, light.range), plane);
 		if (overlapping)
 		{
 			uint idx = 0;
