@@ -23,14 +23,14 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 	// tile position in screen space
 	float x = tileX * TILE_SIZE;
 	float y = tileY * TILE_SIZE;
-	float rx = x + TILE_SIZE;
-	float ry = y + TILE_SIZE;
+	float rx = (tileX + 1) * TILE_SIZE;
+	float ry = (tileY + 1) * TILE_SIZE;
 
 	// frustum corner (at far plane) - LB RB LT RT
-	plane[0] = float4(x, y, maxZ, 1.0f);
-	plane[1] = float4(rx, y, maxZ, 1.0f);
-	plane[2] = float4(x, ry, maxZ, 1.0f);
-	plane[3] = float4(rx, ry, maxZ, 1.0f);
+	plane[0] = float4(x, y, 0.0f, 1.0f);
+	plane[1] = float4(rx, y, 0.0f, 1.0f);
+	plane[2] = float4(x, ry, 0.0f, 1.0f);
+	plane[3] = float4(rx, ry, 0.0f, 1.0f);
 
 	// near far
 	plane[4] = float4(0, 0, minZ, 1.0f);
@@ -57,21 +57,21 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 	[unroll]
 	for (i = 0; i < 4; i++)
 	{
-		corners[i].xyz = normalize(plane[i].xyz);
+		corners[i].xyz = plane[i].xyz;
 	}
 
 	// plane order: Left, Right, Bottom, Top, Near, Far
 	// note the cross order: top-to-bottom left-to-right
-	plane[0].xyz = cross(corners[2], corners[0]);
+	plane[0].xyz = normalize(cross(corners[2], corners[0]));
 	plane[0].w = 0;
 
-	plane[1].xyz = -cross(corners[3], corners[1]);	// flip so right plane point inside frustum
+	plane[1].xyz = -normalize(cross(corners[3], corners[1]));	// flip so right plane point inside frustum
 	plane[1].w = 0;
 
-	plane[2].xyz = cross(corners[0], corners[1]);
+	plane[2].xyz = normalize(cross(corners[0], corners[1]));
 	plane[2].w = 0;
 
-	plane[3].xyz = -cross(corners[2], corners[3]);	// flip so top plane point inside frustum
+	plane[3].xyz = -normalize(cross(corners[2], corners[3]));	// flip so top plane point inside frustum
 	plane[3].w = 0;
 
 	plane[4].xyz = float3(0, 0, 1);
@@ -85,10 +85,11 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 {
 	bool result = true;
+
 	for (int n = 0; n < 6; n++)
 	{
 		float d = dot(sphere.xyz, plane[n].xyz) + plane[n].w;
-		if (d < 0)
+		if (d < -sphere.w)
 		{
 			result = false;
 		}
