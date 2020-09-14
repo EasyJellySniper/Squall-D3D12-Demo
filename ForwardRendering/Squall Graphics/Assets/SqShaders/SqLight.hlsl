@@ -112,6 +112,13 @@ float3 AccumulatePointLight(int tileIndex, int tileOffset, float3 normal, float3
 		tileOffset += 4;
 	}
 
+	//// old test
+	//[loop]
+	//for (uint i = 0; i < _NumPointLight; i++)
+	//{
+	//	col += AccumulateLight(_SqPointLight[i], normal, worldPos, specColor, smoothness, specular, shadowAtten);
+	//}
+
 	return col;
 }
 
