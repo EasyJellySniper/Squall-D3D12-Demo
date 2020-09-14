@@ -45,7 +45,10 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 		plane[i].y = -plane[i].y;
 
 		// convert corners to world position
-		plane[i].xyz = DepthToWorldPos(plane[i].z, plane[i]);
+		if (i < 4)
+			plane[i].xyz = DepthToWorldPos(plane[i].z, plane[i]);
+		else
+			plane[i].xyz = DepthToViewPos(plane[i].z, plane[i]);
 	}
 
 	// dir from camera to corners
@@ -70,18 +73,19 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 	plane[3].xyz = -cross(corners[2], corners[3]);	// flip so top plane point inside frustum
 	plane[3].w = -dot(plane[3].xyz, _CameraPos.xyz);
 
-	plane[4].w = abs(plane[4].z - _CameraPos.z);	// near z
-	plane[5].w = abs(plane[5].z - _CameraPos.z);	// far z
+	// view space near/far
+	plane[4].w = -plane[4].z;
+	plane[5].w = plane[5].z;
 }
 
 // sphere inside frustum
 bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 {
 	bool result = true;
-	float sz = abs(sphere.z - _CameraPos.z);
+	float sz = -mul(SQ_MATRIX_V, float4(sphere.xyz, 1.0f)).z;
 
 	// depth check
-	if (sz < plane[4].w || sz > plane[5].w)
+	if (sz + plane[4].w + sphere.w < 0 || -sz + plane[5].w + sphere.w < 0)
 	{
 		result = false;
 	}
