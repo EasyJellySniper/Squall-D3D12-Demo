@@ -103,19 +103,13 @@ float3 AccumulatePointLight(int tileIndex, int tileOffset, float3 normal, float3
 	uint tileCount = _SqPointLightTile.Load(tileOffset);
 	tileOffset += 4;
 
-	//// loop tile result only
-	//[loop]
-	//for (uint i = 0; i < tileCount; i++)
-	//{
-	//	uint idx = _SqPointLightTile.Load(tileOffset);
-	//	col += AccumulateLight(_SqPointLight[idx], normal, worldPos, specColor, smoothness, specular, shadowAtten);
-	//	tileOffset += 4;
-	//}
-
+	// loop tile result only
 	[loop]
-	for (uint i = 0; i < _NumPointLight; i++)
+	for (uint i = 0; i < tileCount; i++)
 	{
-		col += AccumulateLight(_SqPointLight[i], normal, worldPos, specColor, smoothness, specular, shadowAtten);
+		uint idx = _SqPointLightTile.Load(tileOffset);
+		col += AccumulateLight(_SqPointLight[idx], normal, worldPos, specColor, smoothness, specular, shadowAtten);
+		tileOffset += 4;
 	}
 
 	return col;

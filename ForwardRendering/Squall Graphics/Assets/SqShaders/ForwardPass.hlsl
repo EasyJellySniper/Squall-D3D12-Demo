@@ -96,7 +96,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// BRDF
 	float shadowAtten = _TexTable[_CollectShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], screenUV).r;
 
-	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, screenUV, shadowAtten, gi);
+	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, i.vertex.xy, shadowAtten, gi);
 
 	// emission
 	float3 emission = GetEmission(i.tex.xy);
