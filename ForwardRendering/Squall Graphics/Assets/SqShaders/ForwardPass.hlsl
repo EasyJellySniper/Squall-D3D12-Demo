@@ -65,15 +65,6 @@ float4 ForwardPassPS(v2f i) : SV_Target
 {
 	float2 screenUV = i.vertex.xy / _ScreenSize.xy;
 
-	// get tile value
-	uint tileX = (uint)i.vertex.x / TILE_SIZE;
-	uint tileY = (uint)(i.vertex.y) / TILE_SIZE;
-
-	uint tileIndex = tileX + tileY * _TileCountX;
-	int tileOffset = tileIndex * (_NumPointLight * 4 + 4);
-	uint tileCount = _SqPointLightTile.Load(tileOffset);
-	return tileCount;
-
 	// diffuse
 	float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
 #ifdef _CUTOFF_ON
@@ -105,7 +96,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// BRDF
 	float shadowAtten = _TexTable[_CollectShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], screenUV).r;
 
-	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, shadowAtten, gi);
+	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, screenUV, shadowAtten, gi);
 
 	// emission
 	float3 emission = GetEmission(i.tex.xy);
