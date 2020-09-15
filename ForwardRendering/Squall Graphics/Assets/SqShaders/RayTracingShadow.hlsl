@@ -18,6 +18,7 @@ GlobalRootSignature RTShadowRootSig =
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
     "CBV( b0 ),"                        // system constant
     "DescriptorTable(SRV(t3, space = 1, numDescriptors=1)),"    // point light tile result
+    "DescriptorTable(SRV(t4, space = 1, numDescriptors=1)),"    // point light tile result (transparent)
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 ),"              // sq dir light
     "SRV( t1, space = 1 ),"             // sq point light
@@ -222,21 +223,32 @@ RayResult TracePointLight(int tileOffset, float opaqueDepth, float transDepth, f
     result.atten = 1.0f;
 
     uint tileCount = _SqPointLightTile.Load(tileOffset);
-    tileOffset += 4;
+    int offset = tileOffset + 4;
 
+    // opaque point light
     for (uint i = 0; i < tileCount; i++)
     {
-        uint idx = _SqPointLightTile.Load(tileOffset);
-
+        uint idx = _SqPointLightTile.Load(offset);
         SqLight light = _SqPointLight[idx];
         result = ShootRayFromDepth(opaqueDepth, opaqueNormal, screenUV, light, result);
-        if (opaqueDepth != transDepth)
+        offset += 4;
+    }
+
+    // transparent point light
+    if (opaqueDepth != transDepth)
+    {
+        tileCount = _SqPointLightTransTile.Load(tileOffset);
+        offset = tileOffset + 4;
+
+        for (i = 0; i < tileCount; i++)
         {
+            uint idx = _SqPointLightTile.Load(offset);
+            SqLight light = _SqPointLight[idx];
+
             // shoot ray for transparent object if necessary
             result = ShootRayFromDepth(transDepth, transNormal, screenUV, light, result);
+            offset += 4;
         }
-
-        tileOffset += 4;
     }
 
     // old test code

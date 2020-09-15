@@ -105,7 +105,7 @@ bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 void CollectLight(uint2 _groupID, uint tileIndex, uint _threadIdx, uint minDepthU, uint maxDepthU)
 {
 	// if thread not out-of-range & mapdepth is valid
-	if (_threadIdx < _NumPointLight && asfloat(maxDepthU) > FLOAT_EPSILON)
+	if (_threadIdx < _NumPointLight)
 	{
 		float minDepthF = asfloat(minDepthU);
 		float maxDepthF = asfloat(maxDepthU);

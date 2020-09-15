@@ -431,14 +431,15 @@ void LightManager::RayTracingShadow(Camera* _targetCam)
 	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootDescriptorTable(2, GetLightCullingSrv());
-	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(4, GetLightDataGPU(LightType::Directional, frameIndex, 0));
-	_cmdList->SetComputeRootShaderResourceView(5, GetLightDataGPU(LightType::Point, frameIndex, 0));
-	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(3, GetLightCullingTransSrv());
+	_cmdList->SetComputeRootShaderResourceView(4, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(5, GetLightDataGPU(LightType::Directional, frameIndex, 0));
+	_cmdList->SetComputeRootShaderResourceView(6, GetLightDataGPU(LightType::Point, frameIndex, 0));
 	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(10, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(10, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(11, RayTracingManager::Instance().GetSubMeshInfoGPU());
 
 	// prepare dispatch desc
 	auto rtShadowSrc = rayTracingShadow->Resource();
