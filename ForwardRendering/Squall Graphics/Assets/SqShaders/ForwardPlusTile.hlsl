@@ -18,8 +18,8 @@ groupshared uint minDepthU;
 groupshared uint maxDepthU;
 groupshared uint tilePointLightCount;
 groupshared uint transTilePointLightCount;
-groupshared uint tilePointLightArray[1024];
-groupshared uint transTilePointLightArray[1024];
+groupshared bool tilePointLightArray[1024];
+groupshared bool transTilePointLightArray[1024];
 
 // calc view space frustum
 void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float4 plane[6])
@@ -90,6 +90,7 @@ bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 {
 	bool result = true;
 
+	[unroll]
 	for (int n = 0; n < 6; n++)
 	{
 		float d = dot(sphere.xyz, plane[n].xyz) + plane[n].w;
@@ -162,22 +163,25 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		SqLight light = _SqPointLight[_threadIdx];
 		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)).xyz * float3(1, 1, -1);
 
+		// test opaque
+		tilePointLightArray[_threadIdx] = false;
 		bool overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
 		if (overlapping)
 		{
 			uint idx = 0;
 			InterlockedAdd(tilePointLightCount, 1, idx);
-			tilePointLightArray[idx] = _threadIdx;
+			tilePointLightArray[_threadIdx] = true;
 		}
 
 		// test transparent
 		plane[4].w = 0.0f;
+		transTilePointLightArray[_threadIdx] = false;
 		overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
 		if (overlapping)
 		{
 			uint idx = 0;
 			InterlockedAdd(transTilePointLightCount, 1, idx);
-			transTilePointLightArray[idx] = _threadIdx;
+			transTilePointLightArray[_threadIdx] = false;
 		}
 	}
 	GroupMemoryBarrierWithGroupSync();
@@ -190,19 +194,25 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		// store opaque
 		_TileResult.Store(tileOffset, tilePointLightCount);
 		uint offset = tileOffset + 4;
-		for (uint i = 0; i < tilePointLightCount; i++)
+		for (uint i = 0; i < _NumPointLight; i++)
 		{
-			_TileResult.Store(offset, tilePointLightArray[i]);
-			offset += 4;
+			if (tilePointLightArray[i])
+			{
+				_TileResult.Store(offset, i);
+				offset += 4;
+			}
 		}
 
 		// store transparent
 		_TransTileResult.Store(tileOffset, transTilePointLightCount);
 		offset = tileOffset + 4;
-		for (i = 0; i < transTilePointLightCount; i++)
+		for (i = 0; i < _NumPointLight; i++)
 		{
-			_TransTileResult.Store(offset, transTilePointLightArray[i]);
-			offset += 4;
+			if (transTilePointLightArray[i])
+			{
+				_TransTileResult.Store(offset, i);
+				offset += 4;
+			}
 		}
 	}
 }
