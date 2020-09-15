@@ -143,6 +143,8 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 	// tile data
 	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
+	tilePointLightArray[_threadIdx] = false;
+	transTilePointLightArray[_threadIdx] = false;
 
 	// if thread not out-of-range & mapdepth is valid
 	if (_threadIdx < _NumPointLight)
@@ -164,7 +166,6 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)).xyz * float3(1, 1, -1);
 
 		// test opaque
-		tilePointLightArray[_threadIdx] = false;
 		bool overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
 		if (overlapping)
 		{
@@ -175,7 +176,6 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 		// test transparent
 		plane[4].w = 0.0f;
-		transTilePointLightArray[_threadIdx] = false;
 		overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
 		if (overlapping)
 		{
