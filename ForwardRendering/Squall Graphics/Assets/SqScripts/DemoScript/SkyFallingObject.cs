@@ -14,7 +14,7 @@ public class SkyFallingObject : MonoBehaviour
     /// <summary>
     /// object count
     /// </summary>
-    public int objectCount = 50;
+    public int lightGap = 20;
 
     /// <summary>
     /// init height
@@ -29,7 +29,7 @@ public class SkyFallingObject : MonoBehaviour
     /// <summary>
     /// max range
     /// </summary>
-    public float maxRange = 200f;
+    public int maxRange = 200;
 
     /// <summary>
     /// fall speed
@@ -41,7 +41,7 @@ public class SkyFallingObject : MonoBehaviour
     Transform mainCamTrans;
     Transform transformCache;
 
-    void Start()
+    void Awake()
     {
         if (!targetObj)
         {
@@ -53,19 +53,22 @@ public class SkyFallingObject : MonoBehaviour
         rng = new System.Random(Guid.NewGuid().GetHashCode());
         mainCamTrans = Camera.main.transform;
 
-        objPool = new GameObject[objectCount];
-        for (int i = 0; i < objectCount; i++)
+        int lightRowCount = maxRange / lightGap;
+        objPool = new GameObject[lightRowCount * lightRowCount];
+
+        for (int i = 0; i < lightRowCount; i++)
         {
-            objPool[i] = Instantiate(targetObj);
-            objPool[i].transform.SetParent(transform);
+            for (int j = 0; j < lightRowCount; j++)
+            {
+                int idx = j + i * lightRowCount;
+                objPool[idx] = Instantiate(targetObj);
+                objPool[idx].transform.SetParent(transform);
 
-            float sign_x = (rng.Next() & 1) == 0 ? 1f : -1f;
-            float sign_z = (rng.Next() & 1) == 0 ? 1f : -1f;
-            float rx = (float)rng.NextDouble() * maxRange * sign_x;
-            float rz = (float)rng.NextDouble() * maxRange * sign_z;
+                float rx = -maxRange / 2 + i * lightGap;
+                float rz = -maxRange / 2 + j * lightGap;
 
-            objPool[i].transform.position = new Vector3(rx, initHeight, rz) + mainCamTrans.position;
-            objPool[i].transform.rotation = Quaternion.Euler(rng.Next(-180, 180), rng.Next(-60, 60), 0);
+                objPool[idx].transform.position = new Vector3(rx, initHeight, rz) + mainCamTrans.position;
+            }
         }
 
         transformCache = transform;
