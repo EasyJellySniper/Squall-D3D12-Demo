@@ -271,10 +271,10 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 
 	// choose tile result for opaque/transparent obj
-	if (_mat->GetRenderQueue() <= RenderQueue::OpaqueLast)
+	//if (_mat->GetRenderQueue() <= RenderQueue::OpaqueLast)
 		_cmdList->SetGraphicsRootDescriptorTable(1, LightManager::Instance().GetLightCullingSrv());
-	else
-		_cmdList->SetGraphicsRootDescriptorTable(1, LightManager::Instance().GetLightCullingTransSrv());
+	//else
+	//	_cmdList->SetGraphicsRootDescriptorTable(1, LightManager::Instance().GetLightCullingTransSrv());
 
 	_cmdList->SetGraphicsRootConstantBufferView(2, _renderer->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(frameIndex));

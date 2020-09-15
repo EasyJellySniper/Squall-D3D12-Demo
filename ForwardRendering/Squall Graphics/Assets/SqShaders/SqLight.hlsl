@@ -95,7 +95,7 @@ float3 AccumulateDirLight(float3 normal, float3 worldPos, float3 specColor, floa
 	return col;
 }
 
-float3 AccumulatePointLight(int tileIndex, int tileOffset, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular, float shadowAtten)
+float3 AccumulatePointLight(int tileOffset, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular, float shadowAtten)
 {
 	float3 col = 0;
 	specular = 0;
@@ -125,8 +125,8 @@ float3 AccumulatePointLight(int tileIndex, int tileOffset, float3 normal, float3
 float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float2 screenPos, float shadowAtten, SqGI gi)
 {
 	// get forward+ tile
-	uint tileX = (screenPos.x + TILE_SIZE) / TILE_SIZE;
-	uint tileY = (screenPos.y + TILE_SIZE) / TILE_SIZE;
+	uint tileX = (uint)(screenPos.x) / TILE_SIZE;
+	uint tileY = (uint)(screenPos.y) / TILE_SIZE;
 
 	uint tileIndex = tileX + tileY * _TileCountX;
 	int tileOffset = GetPointLightOffset(tileIndex);
@@ -135,7 +135,7 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	float3 dirDiffuse = AccumulateDirLight(normal, worldPos, specColor, smoothness, dirSpecular, shadowAtten);
 
 	float3 pointSpecular = 0;
-	float3 pointDiffuse = AccumulatePointLight(tileIndex, tileOffset, normal, worldPos, specColor, smoothness, pointSpecular, shadowAtten);
+	float3 pointDiffuse = AccumulatePointLight(tileOffset, normal, worldPos, specColor, smoothness, pointSpecular, shadowAtten);
 
 	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular;
 }

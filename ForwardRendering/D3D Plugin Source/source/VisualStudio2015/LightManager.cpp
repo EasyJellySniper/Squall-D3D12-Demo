@@ -11,7 +11,7 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 	maxLightCount[LightType::Spot] = _numSpotLight;
 
 	// create srv buffer
-	ID3D12Device *device = GraphicManager::Instance().GetDevice();
+	ID3D12Device* device = GraphicManager::Instance().GetDevice();
 	for (int i = 0; i < LightType::LightCount; i++)
 	{
 		for (int j = 0; j < MAX_FRAME_COUNT; j++)
@@ -54,7 +54,6 @@ void LightManager::Release()
 	rtShadowMat.Release();
 	rayTracingShadow.reset();
 	pointLightTiles.reset();
-	pointLightTilesTrans.reset();
 	forwardPlusTileMat.Release();
 }
 
@@ -245,16 +244,6 @@ D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingSrv()
 	return TextureManager::Instance().GetTexHandle(pointLightTileSrv);
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingTransUav()
-{
-	return TextureManager::Instance().GetTexHandle(pointLightTransTileUav);
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingTransSrv()
-{
-	return TextureManager::Instance().GetTexHandle(pointLightTransTileSrv);
-}
-
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)
 {
 	for (int i = 0; i < (int)_lights.size(); i++)
@@ -313,7 +302,7 @@ void LightManager::CreateCollectShadow(int _instanceID, void* _opaqueShadows)
 	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, TextureInfo(true, false, false, false, false));
 
 	// create collect shadow material
-	Shader *collectRayShader = ShaderManager::Instance().CompileShader(L"CollectRayShadow.hlsl");
+	Shader* collectRayShader = ShaderManager::Instance().CompileShader(L"CollectRayShadow.hlsl");
 	if (collectRayShader != nullptr)
 	{
 		collectRayShadowMat = MaterialManager::Instance().CreatePostMat(collectRayShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
@@ -350,21 +339,14 @@ void LightManager::CreateForwardPlusResource()
 	int w, h;
 	GraphicManager::Instance().GetScreenSize(w, h);
 
-	tileCountX = (w + tileSize) / tileSize;
-	tileCountY = (h + tileSize) / tileSize;
+	tileCountX = (int)ceil((float)w / tileSize);
+	tileCountY = (int)ceil((float)h / tileSize);
 
 	UINT totalSize = maxLightCount[LightType::Point] * 4 + 4;
 	totalSize *= tileCountX * tileCountY;
-
-	// tile for point light opaque
 	pointLightTiles = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	pointLightTileUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
 	pointLightTileSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
-
-	// tile for point light transparent
-	pointLightTilesTrans = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	pointLightTransTileUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTilesTrans->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
-	pointLightTransTileSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTilesTrans->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
 
 	auto tileShader = ShaderManager::Instance().CompileShader(L"ForwardPlusTile.hlsl", nullptr);
 	if (tileShader != nullptr)
@@ -384,29 +366,18 @@ void LightManager::TileLightCulling()
 	// set heap
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
-<<<<<<< HEAD
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTiles->Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTilesTrans->Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-=======
->>>>>>> parent of 74c7376... Add tile result to ray tracing.
 
 	// set pso & root signature
 	_cmdList->SetPipelineState(forwardPlusTileMat.GetPSO());
 	_cmdList->SetComputeRootSignature(forwardPlusTileMat.GetRootSignatureCompute());
 	_cmdList->SetComputeRootDescriptorTable(0, GetLightCullingUav());
-	_cmdList->SetComputeRootDescriptorTable(1, GetLightCullingTransUav());
-	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootShaderResourceView(3, GetLightDataGPU(LightType::Point, frameIndex, 0));
-	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootShaderResourceView(2, GetLightDataGPU(LightType::Point, frameIndex, 0));
+	_cmdList->SetComputeRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 	// compute work
 	_cmdList->Dispatch(tileCountX, tileCountY, 1);
-<<<<<<< HEAD
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTiles->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTilesTrans->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-=======
->>>>>>> parent of 74c7376... Add tile result to ray tracing.
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::TileLightCulling]);
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
@@ -437,27 +408,15 @@ void LightManager::RayTracingShadow(Camera* _targetCam)
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
 	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-<<<<<<< HEAD
 	_cmdList->SetComputeRootDescriptorTable(2, GetLightCullingSrv());
-	_cmdList->SetComputeRootDescriptorTable(3, GetLightCullingTransSrv());
-	_cmdList->SetComputeRootShaderResourceView(4, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(5, GetLightDataGPU(LightType::Directional, frameIndex, 0));
-	_cmdList->SetComputeRootShaderResourceView(6, GetLightDataGPU(LightType::Point, frameIndex, 0));
-	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(10, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(11, RayTracingManager::Instance().GetSubMeshInfoGPU());
-=======
-	_cmdList->SetComputeRootShaderResourceView(2, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(3, GetLightDataGPU(LightType::Directional, frameIndex, 0));
-	_cmdList->SetComputeRootShaderResourceView(4, GetLightDataGPU(LightType::Point, frameIndex, 0));
-	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(4, GetLightDataGPU(LightType::Directional, frameIndex, 0));
+	_cmdList->SetComputeRootShaderResourceView(5, GetLightDataGPU(LightType::Point, frameIndex, 0));
 	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
->>>>>>> parent of 74c7376... Add tile result to ray tracing.
+	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(10, RayTracingManager::Instance().GetSubMeshInfoGPU());
 
 	// prepare dispatch desc
 	auto rtShadowSrc = rayTracingShadow->Resource();
