@@ -32,7 +32,6 @@ public class SqCamera : MonoBehaviour
     /// </summary>
     public enum MsaaFactor
     {
-        None = 1,
         Msaa2x = 2,
         Msaa4x = 4,
         Msaa8x = 8
@@ -103,7 +102,7 @@ public class SqCamera : MonoBehaviour
     /// <summary>
     /// msaa sample
     /// </summary>
-    public MsaaFactor msaaSample = MsaaFactor.None;
+    public MsaaFactor msaaSample = MsaaFactor.Msaa2x;
 
     RenderTexture renderTarget;
     RenderTexture transparentDepth;
