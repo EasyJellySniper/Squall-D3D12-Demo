@@ -12,12 +12,14 @@
 
 // result
 RWByteAddressBuffer _PointLightTile : register(u0);
-RWByteAddressBuffer _PointLightTransTile : register(u0);
+RWByteAddressBuffer _PointLightTransTile : register(u1);
 
 groupshared uint minDepthU;
 groupshared uint maxDepthU;
 groupshared uint tilePointLightCount;
+groupshared uint tilePointLightTransCount;
 groupshared uint tilePointLightArray[1024];
+groupshared uint tilePointLightTransArray[1024];
 
 // calc view space frustum
 void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float4 plane[6])
@@ -100,6 +102,49 @@ bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 	return result;
 }
 
+void CollectLight(uint2 _groupID, uint tileIndex, uint _threadIdx, uint minDepthU, uint maxDepthU)
+{
+	// if thread not out-of-range & mapdepth is valid
+	if (_threadIdx < _NumPointLight && asfloat(maxDepthU) > FLOAT_EPSILON)
+	{
+		float minDepthF = asfloat(minDepthU);
+		float maxDepthF = asfloat(maxDepthU);
+
+		// prevent invalid depth range
+		if (maxDepthF - minDepthF < FLOAT_EPSILON)
+		{
+			maxDepthF = minDepthF + FLOAT_EPSILON;
+		}
+
+		float4 plane[6];
+		CalcFrustumPlanes(_groupID.x, _groupID.y, maxDepthF, minDepthF, plane);
+
+		// light overlap test
+		SqLight light = _SqPointLight[_threadIdx];
+		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)).xyz * float3(1, 1, -1);
+		float4 sphere = float4(lightPosV, light.range);
+
+		bool overlapping = SphereInsideFrustum(sphere, plane);
+		if (overlapping)
+		{
+			uint idx = 0;
+			InterlockedAdd(tilePointLightCount, 1, idx);
+			tilePointLightArray[idx] = _threadIdx;
+		}
+
+		// transparent test, set near plane to 0
+		plane[4].w = 0.0f;
+		overlapping = SphereInsideFrustum(sphere, plane);
+		if (overlapping)
+		{
+			uint idx = 0;
+			InterlockedAdd(tilePointLightTransCount, 1, idx);
+			tilePointLightTransArray[idx] = _threadIdx;
+		}
+	}
+	GroupMemoryBarrierWithGroupSync();
+}
+
 // use 32x32 threads per group
 [RootSignature(ForwardPlusTileRS)]
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
@@ -124,6 +169,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		minDepthU = UINT_MAX;
 		maxDepthU = 0;
 		tilePointLightCount = 0;
+		tilePointLightTransCount = 0;
 	}
 	GroupMemoryBarrierWithGroupSync();
 
@@ -139,47 +185,31 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 	// tile data
 	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
+	CollectLight(_groupID.xy, tileIndex, _threadIdx, minDepthU, maxDepthU);
 
-	// if thread not out-of-range & mapdepth is valid
-	if (_threadIdx < _NumPointLight && asfloat(maxDepthU) > FLOAT_EPSILON)
-	{
-		float minDepthF = asfloat(minDepthU);
-		float maxDepthF = asfloat(maxDepthU);
-
-		// prevent invalid depth range
-		if (maxDepthF - minDepthF < FLOAT_EPSILON)
-		{
-			maxDepthF = minDepthF + FLOAT_EPSILON;
-		}
-
-		float4 plane[6];
-		CalcFrustumPlanes(_groupID.x, _groupID.y, maxDepthF, minDepthF, plane);
-
-		// light overlap test
-		SqLight light = _SqPointLight[_threadIdx];
-		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)).xyz * float3(1, 1, -1);
-
-		bool overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
-		if (overlapping)
-		{
-			uint idx = 0;
-			InterlockedAdd(tilePointLightCount, 1, idx);
-			tilePointLightArray[idx] = _threadIdx;
-		}
-	}
-	GroupMemoryBarrierWithGroupSync();
-
-	// output by 1st thread
+	// store opaque result and clear count for transparent collect
 	if (_threadIdx == 0)
 	{
 		uint tileOffset = tileIndex * (_NumPointLight * 4 + 4);
-		_PointLightTile.Store(tileOffset, tilePointLightCount);
 
-		uint offset = tileOffset + 4;
+		// store opaque
+		_PointLightTile.Store(tileOffset, tilePointLightCount);
+		tileOffset += 4;
 		for (uint i = 0; i < tilePointLightCount; i++)
 		{
-			_PointLightTile.Store(offset, tilePointLightArray[i]);
-			offset += 4;
+			_PointLightTile.Store(tileOffset, tilePointLightArray[i]);
+			tileOffset += 4;
+		}
+
+		// store transparent
+		tileOffset = tileIndex * (_NumPointLight * 4 + 4);
+		_PointLightTransTile.Store(tileOffset, tilePointLightTransCount);
+		tileOffset += 4;
+		for (i = 0; i < tilePointLightTransCount; i++)
+		{
+			_PointLightTransTile.Store(tileOffset, tilePointLightTransArray[i]);
+			tileOffset += 4;
 		}
 	}
+	GroupMemoryBarrierWithGroupSync();
 }
