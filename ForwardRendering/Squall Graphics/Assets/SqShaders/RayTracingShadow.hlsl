@@ -17,6 +17,7 @@ GlobalRootSignature RTShadowRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
     "CBV( b0 ),"                        // system constant
+    "DescriptorTable(SRV(t3, space = 1, numDescriptors=1)),"    // point light tile result
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 ),"              // sq dir light
     "SRV( t1, space = 1 ),"             // sq point light
@@ -215,21 +216,40 @@ RayResult TraceDirLight(float opaqueDepth, float transDepth, float2 screenUV)
     return result;
 }
 
-RayResult TracePointLight(float opaqueDepth, float transDepth, float3 opaqueNormal, float3 transNormal, float2 screenUV)
+RayResult TracePointLight(int tileOffset, float opaqueDepth, float transDepth, float3 opaqueNormal, float3 transNormal, float2 screenUV)
 {
     RayResult result = (RayResult)0;
     result.atten = 1.0f;
 
-    for (int i = 0; i < _NumPointLight; i++)
+    uint tileCount = _SqPointLightTile.Load(tileOffset);
+    tileOffset += 4;
+
+    for (uint i = 0; i < tileCount; i++)
     {
-        SqLight light = _SqPointLight[i];
+        uint idx = _SqPointLightTile.Load(tileOffset);
+
+        SqLight light = _SqPointLight[idx];
         result = ShootRayFromDepth(opaqueDepth, opaqueNormal, screenUV, light, result);
         if (opaqueDepth != transDepth)
         {
             // shoot ray for transparent object if necessary
             result = ShootRayFromDepth(transDepth, transNormal, screenUV, light, result);
         }
+
+        tileOffset += 4;
     }
+
+    // old test code
+    //for (int i = 0; i < _NumPointLight; i++)
+    //{
+    //    SqLight light = _SqPointLight[i];
+    //    result = ShootRayFromDepth(opaqueDepth, opaqueNormal, screenUV, light, result);
+    //    if (opaqueDepth != transDepth)
+    //    {
+    //        // shoot ray for transparent object if necessary
+    //        result = ShootRayFromDepth(transDepth, transNormal, screenUV, light, result);
+    //    }
+    //}
 
     return result;
 }
@@ -255,8 +275,14 @@ void RTShadowRayGen()
     float3 opaqueNormal = _TexTable[_ColorRTIndex][DispatchRaysIndex().xy].rgb;
     float3 transNormal = _TexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
 
+    // get forward+ tile
+    uint tileX = DispatchRaysIndex().x / TILE_SIZE;
+    uint tileY = DispatchRaysIndex().y / TILE_SIZE;
+    uint tileIndex = tileX + tileY * _TileCountX;
+    int tileOffset = tileIndex * (_NumPointLight * 4 + 4);
+
     RayResult dirResult = TraceDirLight(opaqueDepth, transDepth, screenUV);
-    RayResult pointResult = TracePointLight(opaqueDepth, transDepth, opaqueNormal, transNormal, screenUV);
+    RayResult pointResult = TracePointLight(tileOffset, opaqueDepth, transDepth, opaqueNormal, transNormal, screenUV);
 
     if (pointResult.pointLightRange)
     {

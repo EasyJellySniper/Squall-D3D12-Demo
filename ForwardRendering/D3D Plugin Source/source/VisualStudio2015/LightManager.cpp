@@ -365,6 +365,7 @@ void LightManager::TileLightCulling()
 	// set heap
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTiles->Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 
 	// set pso & root signature
 	_cmdList->SetPipelineState(forwardPlusTileMat.GetPSO());
@@ -377,6 +378,7 @@ void LightManager::TileLightCulling()
 
 	// compute work
 	_cmdList->Dispatch(tileCountX, tileCountY, 1);
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTiles->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::TileLightCulling]);
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
@@ -407,14 +409,15 @@ void LightManager::RayTracingShadow(Camera* _targetCam)
 	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
 	_cmdList->SetComputeRootDescriptorTable(0, LightManager::Instance().GetRTShadowUav());
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootShaderResourceView(2, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(3, GetLightDataGPU(LightType::Directional, frameIndex, 0));
-	_cmdList->SetComputeRootShaderResourceView(4, GetLightDataGPU(LightType::Point, frameIndex, 0));
-	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(2, GetLightCullingSrv());
+	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(4, GetLightDataGPU(LightType::Directional, frameIndex, 0));
+	_cmdList->SetComputeRootShaderResourceView(5, GetLightDataGPU(LightType::Point, frameIndex, 0));
 	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(10, RayTracingManager::Instance().GetSubMeshInfoGPU());
 
 	// prepare dispatch desc
 	auto rtShadowSrc = rayTracingShadow->Resource();
