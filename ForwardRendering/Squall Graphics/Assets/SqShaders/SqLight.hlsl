@@ -86,7 +86,6 @@ float3 AccumulateDirLight(float3 normal, float3 worldPos, float3 specColor, floa
 	float3 col = 0;
 	specular = 0;
 
-	[loop]
 	for (uint i = 0; i < _NumDirLight; i++)
 	{
 		col += AccumulateLight(_SqDirLight[i], normal, worldPos, specColor, smoothness, specular, shadowAtten);
@@ -104,7 +103,6 @@ float3 AccumulatePointLight(int tileOffset, float3 normal, float3 worldPos, floa
 	tileOffset += 4;
 
 	// loop tile result only
-	[loop]
 	for (uint i = 0; i < tileCount; i++)
 	{
 		uint idx = _SqPointLightTile.Load(tileOffset);
