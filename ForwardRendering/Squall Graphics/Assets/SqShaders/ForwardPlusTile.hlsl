@@ -181,7 +181,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		{
 			uint idx = 0;
 			InterlockedAdd(transTilePointLightCount, 1, idx);
-			transTilePointLightArray[_threadIdx] = false;
+			transTilePointLightArray[_threadIdx] = true;
 		}
 	}
 	GroupMemoryBarrierWithGroupSync();
