@@ -101,6 +101,7 @@ bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void CollectLight(uint2 _groupID, uint _threadIdx, uint minDepthU, uint maxDepthU)
 {
 	// if thread not out-of-range & mapdepth is valid
@@ -146,6 +147,8 @@ void CollectLight(uint2 _groupID, uint _threadIdx, uint minDepthU, uint maxDepth
 
 =======
 >>>>>>> parent of c9c2998... Store transparent point tile
+=======
+>>>>>>> parent of c9c2998... Store transparent point tile
 // use 32x32 threads per group
 [RootSignature(ForwardPlusTileRS)]
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
@@ -186,7 +189,10 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	// tile data
 	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	CollectLight(_groupID.xy, _threadIdx, minDepthU, maxDepthU);
+=======
+>>>>>>> parent of c9c2998... Store transparent point tile
 =======
 >>>>>>> parent of c9c2998... Store transparent point tile
 
@@ -194,7 +200,12 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	if (_threadIdx < _NumPointLight && asfloat(maxDepthU) > FLOAT_EPSILON)
 	{
 <<<<<<< HEAD
+<<<<<<< HEAD
 		uint tileOffset = GetPointLightOffset(tileIndex);
+=======
+		float minDepthF = asfloat(minDepthU);
+		float maxDepthF = asfloat(maxDepthU);
+>>>>>>> parent of c9c2998... Store transparent point tile
 =======
 		float minDepthF = asfloat(minDepthU);
 		float maxDepthF = asfloat(maxDepthU);
@@ -207,12 +218,15 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		// store transparent
 		tileOffset = GetPointLightOffset(tileIndex);
 		_PointLightTransTile.Store(tileOffset, tilePointLightTransCount);
 		tileOffset += 4;
 		for (i = 0; i < tilePointLightTransCount; i++)
 =======
+=======
+>>>>>>> parent of c9c2998... Store transparent point tile
 		float4 plane[6];
 		CalcFrustumPlanes(_groupID.x, _groupID.y, maxDepthF, minDepthF, plane);
 
@@ -222,6 +236,9 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 		bool overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
 		if (overlapping)
+<<<<<<< HEAD
+>>>>>>> parent of c9c2998... Store transparent point tile
+=======
 >>>>>>> parent of c9c2998... Store transparent point tile
 		{
 			uint idx = 0;
