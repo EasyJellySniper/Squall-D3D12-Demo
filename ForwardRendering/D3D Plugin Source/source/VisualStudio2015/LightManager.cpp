@@ -54,6 +54,7 @@ void LightManager::Release()
 	rtShadowMat.Release();
 	rayTracingShadow.reset();
 	pointLightTiles.reset();
+	pointLightTilesTrans.reset();
 	forwardPlusTileMat.Release();
 }
 
@@ -243,6 +244,16 @@ D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingSrv()
 	return TextureManager::Instance().GetTexHandle(pointLightTileSrv);
 }
 
+D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingTransUav()
+{
+	return TextureManager::Instance().GetTexHandle(pointLightTransTileUav);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetLightCullingTransSrv()
+{
+	return TextureManager::Instance().GetTexHandle(pointLightTransTileSrv);
+}
+
 int LightManager::FindLight(vector<Light> _lights, int _instanceID)
 {
 	for (int i = 0; i < (int)_lights.size(); i++)
@@ -343,9 +354,16 @@ void LightManager::CreateForwardPlusResource()
 
 	UINT totalSize = maxLightCount[LightType::Point] * 4 + 4;
 	totalSize *= tileCountX * tileCountY;
+
+	// tile for point light opaque
 	pointLightTiles = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	pointLightTileUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
 	pointLightTileSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
+
+	// tile for point light transparent
+	pointLightTilesTrans = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	pointLightTransTileUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTilesTrans->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
+	pointLightTransTileSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTilesTrans->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
 
 	auto tileShader = ShaderManager::Instance().CompileShader(L"ForwardPlusTile.hlsl", nullptr);
 	if (tileShader != nullptr)
@@ -366,19 +384,22 @@ void LightManager::TileLightCulling()
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTiles->Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTilesTrans->Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 
 	// set pso & root signature
 	_cmdList->SetPipelineState(forwardPlusTileMat.GetPSO());
 	_cmdList->SetComputeRootSignature(forwardPlusTileMat.GetRootSignatureCompute());
 	_cmdList->SetComputeRootDescriptorTable(0, GetLightCullingUav());
-	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootShaderResourceView(2, GetLightDataGPU(LightType::Point, frameIndex, 0));
-	_cmdList->SetComputeRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(1, GetLightCullingTransUav());
+	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootShaderResourceView(3, GetLightDataGPU(LightType::Point, frameIndex, 0));
+	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 	// compute work
 	_cmdList->Dispatch(tileCountX, tileCountY, 1);
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTiles->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(pointLightTilesTrans->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::TileLightCulling]);
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);

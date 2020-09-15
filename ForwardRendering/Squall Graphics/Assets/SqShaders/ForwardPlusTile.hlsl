@@ -1,5 +1,6 @@
 #define ForwardPlusTileRS "RootFlags(0)," \
 "DescriptorTable(UAV(u0, numDescriptors=1))," \
+"DescriptorTable(UAV(u1, numDescriptors=1))," \
 "CBV(b0)," \
 "SRV(t1, space=1)," \
 "DescriptorTable( SRV( t0 , numDescriptors = unbounded) )," \
@@ -10,7 +11,8 @@
 #include "SqInput.hlsl"
 
 // result
-RWByteAddressBuffer _TileResult : register(u0);
+RWByteAddressBuffer _PointLightTile : register(u0);
+RWByteAddressBuffer _PointLightTransTile : register(u0);
 
 groupshared uint minDepthU;
 groupshared uint maxDepthU;
@@ -171,12 +173,12 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	if (_threadIdx == 0)
 	{
 		uint tileOffset = tileIndex * (_NumPointLight * 4 + 4);
-		_TileResult.Store(tileOffset, tilePointLightCount);
+		_PointLightTile.Store(tileOffset, tilePointLightCount);
 
 		uint offset = tileOffset + 4;
 		for (uint i = 0; i < tilePointLightCount; i++)
 		{
-			_TileResult.Store(offset, tilePointLightArray[i]);
+			_PointLightTile.Store(offset, tilePointLightArray[i]);
 			offset += 4;
 		}
 	}
