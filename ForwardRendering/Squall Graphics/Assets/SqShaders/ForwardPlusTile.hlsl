@@ -1,5 +1,6 @@
 #define ForwardPlusTileRS "RootFlags(0)," \
 "DescriptorTable(UAV(u0, numDescriptors=1))," \
+"DescriptorTable(UAV(u1, numDescriptors=1))," \
 "CBV(b0)," \
 "SRV(t1, space=1)," \
 "DescriptorTable( SRV( t0 , numDescriptors = unbounded) )," \
@@ -11,11 +12,14 @@
 
 // result
 RWByteAddressBuffer _TileResult : register(u0);
+RWByteAddressBuffer _TransTileResult : register(u1);
 
 groupshared uint minDepthU;
 groupshared uint maxDepthU;
 groupshared uint tilePointLightCount;
+groupshared uint transTilePointLightCount;
 groupshared uint tilePointLightArray[1024];
+groupshared uint transTilePointLightArray[1024];
 
 // calc view space frustum
 void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float4 plane[6])
@@ -122,6 +126,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		minDepthU = UINT_MAX;
 		maxDepthU = 0;
 		tilePointLightCount = 0;
+		transTilePointLightCount = 0;
 	}
 	GroupMemoryBarrierWithGroupSync();
 
@@ -164,6 +169,16 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 			InterlockedAdd(tilePointLightCount, 1, idx);
 			tilePointLightArray[idx] = _threadIdx;
 		}
+
+		// test transparent
+		plane[4].w = 0.0f;
+		overlapping = SphereInsideFrustum(float4(lightPosV, light.range), plane);
+		if (overlapping)
+		{
+			uint idx = 0;
+			InterlockedAdd(transTilePointLightCount, 1, idx);
+			transTilePointLightArray[idx] = _threadIdx;
+		}
 	}
 	GroupMemoryBarrierWithGroupSync();
 
@@ -171,12 +186,22 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	if (_threadIdx == 0)
 	{
 		uint tileOffset = GetPointLightOffset(tileIndex);
-		_TileResult.Store(tileOffset, tilePointLightCount);
 
+		// store opaque
+		_TileResult.Store(tileOffset, tilePointLightCount);
 		uint offset = tileOffset + 4;
 		for (uint i = 0; i < tilePointLightCount; i++)
 		{
 			_TileResult.Store(offset, tilePointLightArray[i]);
+			offset += 4;
+		}
+
+		// store transparent
+		_TransTileResult.Store(tileOffset, transTilePointLightCount);
+		offset = tileOffset + 4;
+		for (i = 0; i < transTilePointLightCount; i++)
+		{
+			_TransTileResult.Store(offset, transTilePointLightArray[i]);
 			offset += 4;
 		}
 	}
