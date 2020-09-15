@@ -117,6 +117,7 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.numDirLight = (int)sqLights[LightType::Directional].size();
 	_sc.numPointLight = (int)sqLights[LightType::Point].size();
 	_sc.numSpotLight = (int)sqLights[LightType::Spot].size();
+	_sc.maxPointLight = maxLightCount[LightType::Point];
 	_sc.collectShadowIndex = collectShadowID;
 	_sc.pcfIndex = pcfKernel;
 	_sc.ambientGround = ambientGround;
@@ -349,8 +350,8 @@ void LightManager::CreateForwardPlusResource()
 	int w, h;
 	GraphicManager::Instance().GetScreenSize(w, h);
 
-	tileCountX = (int)ceil((float)w / tileSize);
-	tileCountY = (int)ceil((float)h / tileSize);
+	tileCountX = (w + tileSize) / tileSize;
+	tileCountY = (h + tileSize) / tileSize;
 
 	UINT totalSize = maxLightCount[LightType::Point] * 4 + 4;
 	totalSize *= tileCountX * tileCountY;

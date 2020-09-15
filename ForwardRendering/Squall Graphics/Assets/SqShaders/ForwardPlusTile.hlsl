@@ -102,7 +102,7 @@ bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 	return result;
 }
 
-void CollectLight(uint2 _groupID, uint tileIndex, uint _threadIdx, uint minDepthU, uint maxDepthU)
+void CollectLight(uint2 _groupID, uint _threadIdx, uint minDepthU, uint maxDepthU)
 {
 	// if thread not out-of-range & mapdepth is valid
 	if (_threadIdx < _NumPointLight)
@@ -185,12 +185,12 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 	// tile data
 	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
-	CollectLight(_groupID.xy, tileIndex, _threadIdx, minDepthU, maxDepthU);
+	CollectLight(_groupID.xy, _threadIdx, minDepthU, maxDepthU);
 
 	// store opaque result and clear count for transparent collect
 	if (_threadIdx == 0)
 	{
-		uint tileOffset = tileIndex * (_NumPointLight * 4 + 4);
+		uint tileOffset = GetPointLightOffset(tileIndex);
 
 		// store opaque
 		_PointLightTile.Store(tileOffset, tilePointLightCount);
@@ -202,7 +202,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		}
 
 		// store transparent
-		tileOffset = tileIndex * (_NumPointLight * 4 + 4);
+		tileOffset = GetPointLightOffset(tileIndex);
 		_PointLightTransTile.Store(tileOffset, tilePointLightTransCount);
 		tileOffset += 4;
 		for (i = 0; i < tilePointLightTransCount; i++)

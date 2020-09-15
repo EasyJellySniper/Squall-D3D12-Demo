@@ -288,10 +288,10 @@ void RTShadowRayGen()
     float3 transNormal = _TexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
 
     // get forward+ tile
-    uint tileX = DispatchRaysIndex().x / TILE_SIZE;
-    uint tileY = DispatchRaysIndex().y / TILE_SIZE;
+    uint tileX = (DispatchRaysIndex().x + TILE_SIZE) / TILE_SIZE;
+    uint tileY = (DispatchRaysIndex().y + TILE_SIZE) / TILE_SIZE;
     uint tileIndex = tileX + tileY * _TileCountX;
-    int tileOffset = tileIndex * (_NumPointLight * 4 + 4);
+    int tileOffset = GetPointLightOffset(tileIndex);
 
     RayResult dirResult = TraceDirLight(opaqueDepth, transDepth, screenUV);
     RayResult pointResult = TracePointLight(tileOffset, opaqueDepth, transDepth, opaqueNormal, transNormal, screenUV);

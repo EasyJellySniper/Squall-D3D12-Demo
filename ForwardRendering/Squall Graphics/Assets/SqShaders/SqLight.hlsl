@@ -125,11 +125,11 @@ float3 AccumulatePointLight(int tileOffset, float3 normal, float3 worldPos, floa
 float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float2 screenPos, float shadowAtten, SqGI gi)
 {
 	// get forward+ tile
-	uint tileX = (uint)screenPos.x / TILE_SIZE;
-	uint tileY = (uint)screenPos.y / TILE_SIZE;
+	uint tileX = (screenPos.x + TILE_SIZE) / TILE_SIZE;
+	uint tileY = (screenPos.y + TILE_SIZE) / TILE_SIZE;
 
 	uint tileIndex = tileX + tileY * _TileCountX;
-	int tileOffset = tileIndex * (_NumPointLight * 4 + 4);
+	int tileOffset = GetPointLightOffset(tileIndex);
 
 	float3 dirSpecular = 0;
 	float3 dirDiffuse = AccumulateDirLight(normal, worldPos, specColor, smoothness, dirSpecular, shadowAtten);

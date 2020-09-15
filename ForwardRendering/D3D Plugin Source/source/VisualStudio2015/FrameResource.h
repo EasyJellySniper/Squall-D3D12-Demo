@@ -38,6 +38,7 @@ struct SystemConstant
 	int numDirLight;
 	int numPointLight;
 	int numSpotLight;
+	int maxPointLight;
 	int collectShadowIndex;
 	int collectShadowSampler;
 	int rayIndex;

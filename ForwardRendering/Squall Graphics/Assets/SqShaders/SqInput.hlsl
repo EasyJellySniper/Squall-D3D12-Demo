@@ -54,6 +54,7 @@ cbuffer SystemConstant : register(b0)
 	int _NumDirLight;
 	int _NumPointLight;
 	int _NumSpotLight;
+	int _MaxPointLight;
 	int _CollectShadowIndex;
 	int _CollectShadowSampler;
 	int _RayShadowIndex;
@@ -123,6 +124,11 @@ float3 DepthToViewPos(float depth, float4 screenPos)
 	vpos /= vpos.w;
 
 	return vpos.xyz * float3(1, 1, -1);
+}
+
+int GetPointLightOffset(uint _index)
+{
+	return _index * (_MaxPointLight * 4 + 4);
 }
 
 #endif
