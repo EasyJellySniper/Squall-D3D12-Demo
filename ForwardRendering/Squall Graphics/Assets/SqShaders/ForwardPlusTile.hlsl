@@ -147,17 +147,11 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
 	uint tileOffset = GetPointLightOffset(tileIndex);
 
-	// if thread not out-of-range & mapdepth is valid
 	for (uint lightIndex = _threadIdx; lightIndex < _NumPointLight; lightIndex += TILE_SIZE * TILE_SIZE)
 	{
 		float minDepthF = asfloat(minDepthU);
 		float maxDepthF = asfloat(maxDepthU);
-
-		// prevent invalid depth range
-		if (maxDepthF - minDepthF < FLOAT_EPSILON)
-		{
-			maxDepthF = minDepthF + FLOAT_EPSILON;
-		}
+		maxDepthF = lerp(maxDepthF, minDepthF + FLOAT_EPSILON, (maxDepthF - minDepthF) < FLOAT_EPSILON);
 
 		float4 plane[6];
 		CalcFrustumPlanes(_groupID.x, _groupID.y, maxDepthF, minDepthF, plane);
