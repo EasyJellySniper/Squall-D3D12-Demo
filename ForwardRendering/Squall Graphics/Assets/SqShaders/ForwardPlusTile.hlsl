@@ -129,6 +129,8 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		tilePointLightCount = 0;
 		transTilePointLightCount = 0;
 	}
+	tilePointLightArray[_threadIdx] = false;
+	transTilePointLightArray[_threadIdx] = false;
 	GroupMemoryBarrierWithGroupSync();
 
 	// find min/max depth
@@ -143,11 +145,10 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 
 	// tile data
 	uint tileIndex = _groupID.x + _groupID.y * _TileCountX;
-	tilePointLightArray[_threadIdx] = false;
-	transTilePointLightArray[_threadIdx] = false;
+	uint tileOffset = GetPointLightOffset(tileIndex);
 
 	// if thread not out-of-range & mapdepth is valid
-	if (_threadIdx < _NumPointLight)
+	for (uint lightIndex = _threadIdx; lightIndex < _NumPointLight; lightIndex += TILE_SIZE * TILE_SIZE)
 	{
 		float minDepthF = asfloat(minDepthU);
 		float maxDepthF = asfloat(maxDepthU);
@@ -162,7 +163,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		CalcFrustumPlanes(_groupID.x, _groupID.y, maxDepthF, minDepthF, plane);
 
 		// light overlap test
-		SqLight light = _SqPointLight[_threadIdx];
+		SqLight light = _SqPointLight[lightIndex];
 		float3 lightPosV = mul(SQ_MATRIX_V, float4(light.world.xyz, 1.0f)).xyz * float3(1, 1, -1);
 
 		// test opaque
@@ -171,7 +172,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		{
 			uint idx = 0;
 			InterlockedAdd(tilePointLightCount, 1, idx);
-			tilePointLightArray[_threadIdx] = true;
+			tilePointLightArray[lightIndex] = true;
 		}
 
 		// test transparent
@@ -181,7 +182,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		{
 			uint idx = 0;
 			InterlockedAdd(transTilePointLightCount, 1, idx);
-			transTilePointLightArray[_threadIdx] = true;
+			transTilePointLightArray[lightIndex] = true;
 		}
 	}
 	GroupMemoryBarrierWithGroupSync();
@@ -189,8 +190,6 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	// output by 1st thread
 	if (_threadIdx == 0)
 	{
-		uint tileOffset = GetPointLightOffset(tileIndex);
-
 		// store opaque
 		_TileResult.Store(tileOffset, tilePointLightCount);
 		uint offset = tileOffset + 4;
