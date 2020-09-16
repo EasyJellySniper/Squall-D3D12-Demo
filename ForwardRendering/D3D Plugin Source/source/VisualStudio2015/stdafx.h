@@ -162,5 +162,5 @@ inline size_t GetUniqueID()
 	size_t id = std::hash<std::string>{}("SqGfx" + to_string(num));
 	num++;
 
-	return num;
+	return id;
 }
