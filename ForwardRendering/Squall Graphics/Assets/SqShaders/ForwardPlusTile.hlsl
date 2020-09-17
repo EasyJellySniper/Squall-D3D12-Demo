@@ -181,8 +181,8 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	}
 	GroupMemoryBarrierWithGroupSync();
 
-	// output by 1st thread
-	if (_threadIdx == 0)
+	// output by one thread
+	if (_threadIdx == _NumPointLight)
 	{
 		// store opaque
 		_TileResult.Store(tileOffset, tilePointLightCount);
