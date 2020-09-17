@@ -86,6 +86,7 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 }
 
 // sphere inside frustum
+// Source: Real-time collision detection, Christer Ericson (2005)
 bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 {
 	bool result = true;
