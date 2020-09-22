@@ -7,6 +7,12 @@ struct SqGI
 	float3 indirectDiffuse;
 };
 
+struct LightResult
+{
+	float3 diffuse;
+	float3 specular;
+};
+
 float3 LightDir(SqLight light, float3 worldPos)
 {
 	return lerp(normalize(worldPos - light.world.xyz), light.world.xyz, light.type == 1);
@@ -48,20 +54,19 @@ float BlinnPhong(float m, float ndotH)
 
 //   BRDF = Fresnel & Blinn Phong
 //   I = BRDF * NdotL
-float3 AccumulateLight(SqLight light, float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular, float shadowAtten)
+LightResult AccumulateLight(SqLight light, float3 normal, float3 worldPos, float3 specColor, float smoothness, float shadowAtten)
 {
 	float roughness = 1 - smoothness;
 	float3 viewDir = -normalize(worldPos - _CameraPos.xyz);
 
-	float3 col = 0;
-	specular = 0;
+	LightResult result = (LightResult)0;
 
 	float distToLight = length(worldPos - light.world.xyz);
 	[branch]
 	if (distToLight > light.range)
 	{
 		// early out if not in range
-		return 0;
+		return result;
 	}
 
 	float lightAtten = LightAtten(light.type, distToLight, light.range);
@@ -75,10 +80,10 @@ float3 AccumulateLight(SqLight light, float3 normal, float3 worldPos, float3 spe
 	float ldotH = saturate(dot(lightDir, halfDir));
 	float ndotH = saturate(dot(normal, halfDir));
 
-	col = lightColor * ndotL;
-	specular = lightColor * SchlickFresnel(specColor, ldotH) * BlinnPhong(roughness, ndotH) * ndotL * 0.25f;
+	result.diffuse = lightColor * ndotL;
+	result.specular = lightColor * SchlickFresnel(specColor, ldotH) * BlinnPhong(roughness, ndotH) * ndotL * 0.25f;
 
-	return col;
+	return result;
 }
 
 float3 AccumulateDirLight(float3 normal, float3 worldPos, float3 specColor, float smoothness, out float3 specular, float shadowAtten)
@@ -88,7 +93,9 @@ float3 AccumulateDirLight(float3 normal, float3 worldPos, float3 specColor, floa
 
 	for (uint i = 0; i < _NumDirLight; i++)
 	{
-		col += AccumulateLight(_SqDirLight[i], normal, worldPos, specColor, smoothness, specular, shadowAtten);
+		LightResult result = AccumulateLight(_SqDirLight[i], normal, worldPos, specColor, smoothness, shadowAtten);
+		col += result.diffuse;
+		specular += result.specular;
 	}
 
 	return col;
@@ -106,7 +113,10 @@ float3 AccumulatePointLight(int tileOffset, float3 normal, float3 worldPos, floa
 	for (uint i = 0; i < tileCount; i++)
 	{
 		uint idx = _SqPointLightTile.Load(tileOffset);
-		col += AccumulateLight(_SqPointLight[idx], normal, worldPos, specColor, smoothness, specular, shadowAtten);
+		LightResult result = AccumulateLight(_SqPointLight[idx], normal, worldPos, specColor, smoothness, shadowAtten);
+		col += result.diffuse;
+		specular += result.specular;
+
 		tileOffset += 4;
 	}
 
