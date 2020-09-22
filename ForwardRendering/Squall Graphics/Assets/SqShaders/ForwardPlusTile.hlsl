@@ -109,7 +109,7 @@ bool SphereInsideFrustum(float4 sphere, float4 plane[6])
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : SV_GroupID, uint _threadIdx : SV_GroupIndex)
 {
-	float depth = -1;
+	float depth = 0.0f;
 
 	if (_globalID.x >= _ScreenSize.x || _globalID.y >= _ScreenSize.y)
 	{
@@ -135,7 +135,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	GroupMemoryBarrierWithGroupSync();
 
 	// find min/max depth
-	if (depth != -1.0)
+	if (depth > 0.0f)
 	{
 		uint depthU = asuint(depth);
 
