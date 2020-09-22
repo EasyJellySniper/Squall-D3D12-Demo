@@ -18,8 +18,6 @@ groupshared uint minDepthU;
 groupshared uint maxDepthU;
 groupshared uint tilePointLightCount;
 groupshared uint transTilePointLightCount;
-groupshared bool tilePointLightArray[1024];
-groupshared bool transTilePointLightArray[1024];
 
 // calc view space frustum
 void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float4 plane[6])
@@ -130,8 +128,6 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		tilePointLightCount = 0;
 		transTilePointLightCount = 0;
 	}
-	tilePointLightArray[_threadIdx] = false;
-	transTilePointLightArray[_threadIdx] = false;
 	GroupMemoryBarrierWithGroupSync();
 
 	// find min/max depth
@@ -168,7 +164,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		{
 			uint idx = 0;
 			InterlockedAdd(tilePointLightCount, 1, idx);
-			tilePointLightArray[lightIndex] = true;
+			_TileResult.Store(tileOffset + 4 + idx * 4, lightIndex);
 		}
 
 		// test transparent
@@ -178,7 +174,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 		{
 			uint idx = 0;
 			InterlockedAdd(transTilePointLightCount, 1, idx);
-			transTilePointLightArray[lightIndex] = true;
+			_TransTileResult.Store(tileOffset + 4 + idx * 4, lightIndex);
 		}
 	}
 	GroupMemoryBarrierWithGroupSync();
@@ -188,26 +184,8 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	{
 		// store opaque
 		_TileResult.Store(tileOffset, tilePointLightCount);
-		uint offset = tileOffset + 4;
-		for (uint i = 0; i < _NumPointLight; i++)
-		{
-			if (tilePointLightArray[i])
-			{
-				_TileResult.Store(offset, i);
-				offset += 4;
-			}
-		}
 
 		// store transparent
 		_TransTileResult.Store(tileOffset, transTilePointLightCount);
-		offset = tileOffset + 4;
-		for (i = 0; i < _NumPointLight; i++)
-		{
-			if (transTilePointLightArray[i])
-			{
-				_TransTileResult.Store(offset, i);
-				offset += 4;
-			}
-		}
 	}
 }

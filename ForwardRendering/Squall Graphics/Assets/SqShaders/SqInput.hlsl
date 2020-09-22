@@ -2,6 +2,7 @@
 #define SQINPUT
 
 #define FLOAT_EPSILON 1.175494351e-38F
+#define FLOAT_MAX 3.40282347E+38
 #define UINT_MAX 0xffffffff
 #define TILE_SIZE 32
 

@@ -105,7 +105,7 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     if (_light.type != 1)
     {
         _result.pointLightRange = true;
-        _result.lightAtten = LightAtten(_light.type, receiverDistToLight, _light.range, true);
+        _result.lightAtten = min(LightAtten(_light.type, receiverDistToLight, _light.range, true), _result.lightAtten);
     }
 
     if (distToCam > _light.shadowDistance)
@@ -138,14 +138,11 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     // lerp between atten and strength
     payload.atten = lerp(1, payload.atten, _light.color.a);
 
-    // output
-    if (payload.atten < _result.atten)
-    {
-        _result.atten = payload.atten;
-        _result.distBlockToLight = receiverDistToLight - payload.distBlockToLight;
-        _result.distReceiverToLight = receiverDistToLight;
-        _result.lightSize = _light.shadowSize;
-    }
+    // output to result (use min/max to combine multi lights)
+    _result.atten = min(_result.atten, payload.atten);
+    _result.distBlockToLight = min(receiverDistToLight - payload.distBlockToLight, _result.distBlockToLight);
+    _result.distReceiverToLight = min(receiverDistToLight, _result.distReceiverToLight);
+    _result.lightSize = min(_light.shadowSize, _result.lightSize);
 
     return _result;
 }
@@ -200,10 +197,17 @@ float2 GetHitUV(uint pIdx, uint vertID, BuiltInTriangleIntersectionAttributes at
         attr.barycentrics.y * (uv[2] - uv[0]);
 }
 
+RayResult GetInitRayResult()
+{
+    RayResult result = (RayResult)FLOAT_MAX;
+    result.atten = 1.0f;
+    result.pointLightRange = false;
+    return result;
+}
+
 RayResult TraceDirLight(float opaqueDepth, float transDepth, float2 screenUV)
 {
-    RayResult result = (RayResult)0;
-    result.atten = 1.0f;
+    RayResult result = GetInitRayResult();
 
     // dir light
     SqLight light = _SqDirLight[0];
@@ -219,8 +223,7 @@ RayResult TraceDirLight(float opaqueDepth, float transDepth, float2 screenUV)
 
 RayResult TracePointLight(int tileOffset, float opaqueDepth, float transDepth, float3 opaqueNormal, float3 transNormal, float2 screenUV)
 {
-    RayResult result = (RayResult)0;
-    result.atten = 1.0f;
+    RayResult result = GetInitRayResult();
 
     uint tileCount = _SqPointLightTile.Load(tileOffset);
     uint offset = tileOffset + 4;
