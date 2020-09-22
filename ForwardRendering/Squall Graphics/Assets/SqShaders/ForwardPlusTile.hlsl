@@ -183,7 +183,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	}
 	GroupMemoryBarrierWithGroupSync();
 
-	// output by last thread
+	// output by one thread
 	if (_threadIdx == 0)
 	{
 		// store opaque
