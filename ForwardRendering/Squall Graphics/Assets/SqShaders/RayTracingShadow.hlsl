@@ -105,7 +105,7 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     if (_light.type != 1)
     {
         _result.pointLightRange = true;
-        _result.lightAtten = min(LightAtten(_light.type, receiverDistToLight, _light.range, true), _result.lightAtten);
+        _result.lightAtten = max(LightAtten(_light.type, receiverDistToLight, _light.range, true), _result.lightAtten);
     }
 
     if (distToCam > _light.shadowDistance)
@@ -202,6 +202,7 @@ RayResult GetInitRayResult()
     RayResult result = (RayResult)FLOAT_MAX;
     result.atten = 1.0f;
     result.pointLightRange = false;
+    result.lightAtten = 0.0f;
     return result;
 }
 
