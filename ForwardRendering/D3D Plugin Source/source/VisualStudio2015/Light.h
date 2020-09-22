@@ -25,7 +25,9 @@ struct SqLightData
 	float shadowSize;
 	float shadowDistance;
 	float range;	// point/spot light range
-	XMFLOAT3 padding;
+	float shadowBiasNear;
+	float shadowBiasFar;
+	float padding;
 };
 
 class Light
