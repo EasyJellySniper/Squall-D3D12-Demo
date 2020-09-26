@@ -10,7 +10,7 @@ using namespace DirectX;
 class Renderer
 {
 public:
-	void Init(int _meshID);
+	void Init(int _meshID, bool _isDynamic);
 	void Release();
 	void UpdateObjectConstant(ObjectConstant _sc, int _frameIdx);
 	void UpdateBound(float _cx,float _cy, float _cz, float _ex, float _ey, float _ez);
@@ -29,6 +29,7 @@ public:
 	bool GetShadowVisible();
 	bool GetActive();
 	bool IsDirty(int _frameIdx);
+	bool IsDynamic();
 	int GetInstanceID();
 	int GetNumMaterials();
 	const vector<Material*> GetMaterials();
@@ -45,6 +46,7 @@ private:
 	bool isShadowVisible;
 	bool isActive;
 	bool isDirty[MAX_FRAME_COUNT];
+	bool isDynamic;
 	int instanceID = -1;
 
 	vector<Material*> materials;

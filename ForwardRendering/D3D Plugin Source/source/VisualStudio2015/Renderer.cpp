@@ -1,7 +1,7 @@
 #include "Renderer.h"
 #include "GraphicManager.h"
 
-void Renderer::Init(int _meshID)
+void Renderer::Init(int _meshID, bool _isDynamic)
 {
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
@@ -13,6 +13,7 @@ void Renderer::Init(int _meshID)
 	isVisible = true;
 	isShadowVisible = true;
 	isActive = true;
+	isDynamic = _isDynamic;
 }
 
 void Renderer::Release()
@@ -113,6 +114,11 @@ bool Renderer::GetActive()
 bool Renderer::IsDirty(int _frameIdx)
 {
 	return isDirty[_frameIdx];
+}
+
+bool Renderer::IsDynamic()
+{
+	return isDynamic;
 }
 
 int Renderer::GetInstanceID()

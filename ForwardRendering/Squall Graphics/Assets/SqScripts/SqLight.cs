@@ -105,6 +105,7 @@ public class SqLight : MonoBehaviour
         mainCam = Camera.main;
         mainCamTrans = mainCam.transform;
         InitNativeLight();
+        UpdateNativeLight();
     }
 
     void Update()
@@ -145,6 +146,11 @@ public class SqLight : MonoBehaviour
 
     void UpdateNativeLight()
     {
+        if (gameObject.isStatic)
+        {
+            return;
+        }
+
         if (transform.hasChanged || LightChanged() || CascadeChanged() || (transform.parent && transform.parent.hasChanged))
         {
             SetupLightData();

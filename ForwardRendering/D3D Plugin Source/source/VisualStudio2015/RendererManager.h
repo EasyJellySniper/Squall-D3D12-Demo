@@ -42,7 +42,7 @@ public:
 	~RendererManager() {}
 
 	void Init();
-	int AddRenderer(int _instanceID, int _meshInstanceID);
+	int AddRenderer(int _instanceID, int _meshInstanceID, bool _isDynamic);
 	void AddCreatedMaterial(int _instanceID, Material *_mat);
 	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 	void UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex, int _numThreads);

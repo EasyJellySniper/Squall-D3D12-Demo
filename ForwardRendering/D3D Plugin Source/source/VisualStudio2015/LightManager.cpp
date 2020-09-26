@@ -155,7 +155,7 @@ void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMo
 	{
 		auto rtd = CameraManager::Instance().GetCamera()->GetRenderTargetData();
 		skyboxMat = MaterialManager::Instance().CreateGraphicMat(skyShader, rtd, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, 1, 0, D3D12_COMPARISON_FUNC_GREATER_EQUAL, false);
-		skyboxRenderer.Init(_skyMesh);
+		skyboxRenderer.Init(_skyMesh, false);
 	}
 }
 

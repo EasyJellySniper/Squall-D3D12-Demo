@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 public class SqMeshRenderer : MonoBehaviour
 {
     [DllImport("SquallGraphics")]
-    static extern int AddNativeRenderer(int _instanceID, int _meshInstanceID);
+    static extern int AddNativeRenderer(int _instanceID, int _meshInstanceID, bool _isDynamic);
 
     [DllImport("SquallGraphics", CharSet = CharSet.Ansi)]
     static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode, int _srcBlend, int _dstBlend, string _nativeShader, int _numMacro, string []_macro);
@@ -63,6 +63,11 @@ public class SqMeshRenderer : MonoBehaviour
 
     void Update()
     {
+        if (gameObject.isStatic)
+        {
+            return;
+        }
+
         if (transform.hasChanged)
         {
             UpdateNativeTransform();
@@ -72,7 +77,7 @@ public class SqMeshRenderer : MonoBehaviour
     void InitRenderer()
     {
         rendererCache = GetComponent<MeshRenderer>();
-        rendererNativeID = AddNativeRenderer(GetInstanceID(), GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
+        rendererNativeID = AddNativeRenderer(GetInstanceID(), GetComponent<SqMeshFilter>().MainMesh.GetInstanceID(), !gameObject.isStatic);
 
         Bounds b = rendererCache.bounds;
         UpdateRendererBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);

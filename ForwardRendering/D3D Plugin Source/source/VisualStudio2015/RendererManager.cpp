@@ -12,7 +12,7 @@ void RendererManager::Init()
 	queuedRenderers[RenderQueue::Transparent].reserve(TRANSPARENT_CAPACITY);
 }
 
-int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
+int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID, bool _isDynamic)
 {
 	int id = -1;
 	for (int i = 0; i < (int)renderers.size(); i++)
@@ -26,7 +26,7 @@ int RendererManager::AddRenderer(int _instanceID, int _meshInstanceID)
 
 	renderers.push_back(std::move(make_shared<Renderer>()));
 	id = (int)renderers.size() - 1;
-	renderers[id]->Init(_meshInstanceID);
+	renderers[id]->Init(_meshInstanceID, _isDynamic);
 	renderers[id]->SetInstanceID(_instanceID);
 
 	return id;

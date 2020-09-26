@@ -91,9 +91,9 @@ extern "C" bool UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMesh(int _in
 	return MeshManager::Instance().AddMesh(_instanceID, _MeshData);
 }
 
-extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeRenderer(int _instanceID, int _meshInstanceID)
+extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeRenderer(int _instanceID, int _meshInstanceID, bool _isDynamic)
 {
-	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID);
+	return RendererManager::Instance().AddRenderer(_instanceID, _meshInstanceID, _isDynamic);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetNativeRendererActive(int _id, bool _active)
