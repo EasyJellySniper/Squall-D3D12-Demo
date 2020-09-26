@@ -61,7 +61,7 @@ D3D12_GPU_VIRTUAL_ADDRESS RayTracingManager::GetSubMeshInfoGPU()
 
 void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
-	CollectRayTracingDesc(allTopAS.instanceDescs, RayInstanceType::All);
+	CollectRayTracingDesc(allTopAS.instanceDescs);
 
 	// create dynamic top as (prefer fast build)
 	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
@@ -70,13 +70,13 @@ void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList
 void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	// collect instance descs
-	CollectRayTracingDesc(allTopAS.instanceDescs, RayInstanceType::All);
+	CollectRayTracingDesc(allTopAS.instanceDescs);
 
 	// create all top as (prefer fast trace)
 	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
 }
 
-void RayTracingManager::CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_DESC>& _input, RayInstanceType _type)
+void RayTracingManager::CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_DESC>& _input)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
 
@@ -84,18 +84,6 @@ void RayTracingManager::CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_D
 	_input.clear();
 	for (auto& r : renderers)
 	{
-		if (_type == RayInstanceType::Static && r->IsDynamic())
-		{
-			// strip dynamic renderer if we want static
-			continue;
-		}
-
-		if (_type == RayInstanceType::Dynamic && !r->IsDynamic())
-		{
-			// strip static renderer if we want dynamic
-			continue;
-		}
-
 		// build all submesh use by the renderer
 		for (int i = 0; i < r->GetNumMaterials(); i++)
 		{

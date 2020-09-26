@@ -6,11 +6,6 @@
 
 #pragma once
 
-enum RayInstanceType
-{
-	All = 0, Static, Dynamic, RayInstanceTypeCount
-};
-
 struct TopLevelAS
 {
 	TopLevelAS()
@@ -61,10 +56,9 @@ public:
 
 private:
 	void CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
-	void CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_DESC> &_input, RayInstanceType _type);
+	void CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_DESC> &_input);
 	void CreateTopASWork(ID3D12GraphicsCommandList5* _dxrList, TopLevelAS &_topLevelAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS _buildFlag);
-	TopLevelAS allTopAS;
 
-	//unique_ptr<UploadBufferAny> rayTracingInstance;
+	TopLevelAS allTopAS;
 	unique_ptr<UploadBuffer<SubMesh>> subMeshInfo;
 };
