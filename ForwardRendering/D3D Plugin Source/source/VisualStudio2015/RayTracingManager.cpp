@@ -61,7 +61,15 @@ D3D12_GPU_VIRTUAL_ADDRESS RayTracingManager::GetSubMeshInfoGPU()
 
 void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
-	CollectRayTracingDesc(allTopAS.instanceDescs);
+	// update dynamic transform only
+	for (size_t i = 0; i < allTopAS.instanceDescs.size(); i++)
+	{
+		Renderer* r = allTopAS.rendererCache[i];
+		if (r->IsDynamic())
+		{
+			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(allTopAS.instanceDescs[i].Transform), XMLoadFloat4x4(&r->GetWorld()));
+		}
+	}
 
 	// create dynamic top as (prefer fast build)
 	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
@@ -70,18 +78,20 @@ void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList
 void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	// collect instance descs
-	CollectRayTracingDesc(allTopAS.instanceDescs);
+	CollectRayTracingDesc(allTopAS);
 
 	// create all top as (prefer fast trace)
 	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
 }
 
-void RayTracingManager::CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_DESC>& _input)
+void RayTracingManager::CollectRayTracingDesc(TopLevelAS& _input)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
 
 	// prepare ray tracing instance desc
-	_input.clear();
+	_input.instanceDescs.clear();
+	_input.rendererCache.clear();
+
 	for (auto& r : renderers)
 	{
 		// build all submesh use by the renderer
@@ -109,7 +119,8 @@ void RayTracingManager::CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_D
 			// transform to world space
 			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(rtInstancedesc.Transform), XMLoadFloat4x4(&r->GetWorld()));
 
-			_input.push_back(rtInstancedesc);
+			_input.instanceDescs.push_back(rtInstancedesc);
+			_input.rendererCache.push_back(r.get());
 		}
 	}
 }

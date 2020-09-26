@@ -3,6 +3,7 @@
 #include "UploadBuffer.h"
 #include "stdafx.h"
 #include "Mesh.h"
+#include "Renderer.h"
 
 #pragma once
 
@@ -19,11 +20,14 @@ struct TopLevelAS
 	void Release() 
 	{
 		instanceDescs.clear();
+		rendererCache.clear();
 		scratchTop.reset();
 		topLevelAS.reset();
 		rayTracingInstance.reset();
 	}
+
 	vector<D3D12_RAYTRACING_INSTANCE_DESC> instanceDescs;
+	vector<Renderer*> rendererCache;
 	unique_ptr<DefaultBuffer> scratchTop;
 	unique_ptr<DefaultBuffer> topLevelAS;
 	unique_ptr<UploadBufferAny> rayTracingInstance;
@@ -56,7 +60,7 @@ public:
 
 private:
 	void CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
-	void CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_DESC> &_input);
+	void CollectRayTracingDesc(TopLevelAS& _input);
 	void CreateTopASWork(ID3D12GraphicsCommandList5* _dxrList, TopLevelAS &_topLevelAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS _buildFlag);
 
 	TopLevelAS allTopAS;
