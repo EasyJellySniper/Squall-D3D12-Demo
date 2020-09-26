@@ -10,7 +10,7 @@ void RayTracingManager::Release()
 	topLevelAS.reset();
 	rayTracingInstance.reset();
 	subMeshInfo.reset();
-	instanceDescs.clear();
+	rayInstanceDescs.clear();
 }
 
 void RayTracingManager::InitRayTracingInstance()
@@ -29,15 +29,13 @@ void RayTracingManager::InitRayTracingInstance()
 	GraphicManager::Instance().WaitForGPU();
 
 	// release temporary resources
-	scratchTop.reset();
-	rayTracingInstance.reset();
 	MeshManager::Instance().ReleaseScratch();
 }
 
 void RayTracingManager::CreateSubMeshInfoForTopAS()
 {
 	// create enough buffer
-	int numTopASInstance = (int)instanceDescs.size();
+	int numTopASInstance = (int)rayInstanceDescs.size();
 	subMeshInfo = make_unique<UploadBuffer<SubMesh>>(GraphicManager::Instance().GetDevice(), numTopASInstance, false);
 
 	int count = 0;
@@ -62,19 +60,77 @@ D3D12_GPU_VIRTUAL_ADDRESS RayTracingManager::GetSubMeshInfoGPU()
 	return subMeshInfo->Resource()->GetGPUVirtualAddress();
 }
 
-void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
+void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
 
+	// update by rebuliding list
+	// use fast build for updating
+	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
+	topLevelInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD;
+
+	// update ray tracing desc transform
+	int index = 0;
+	for (auto& r : renderers)
+	{
+		for (int i = 0; i < r->GetNumMaterials(); i++)
+		{
+			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(rayInstanceDescs[index++].Transform), XMLoadFloat4x4(&r->GetWorld()));
+		}
+	}
+
+	// upload ray instance data & build
+	// we don't need to reallocate buffer
+	rayTracingInstance->CopyData(0, rayInstanceDescs.data());
+	_dxrList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
+}
+
+void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
+{
 	// prepare top level AS build
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
+	topLevelBuildDesc = {};
 	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
 	topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
 	topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 	topLevelInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
 
+	CollectRayTracingDesc();
+
+	topLevelInputs.NumDescs = (UINT)rayInstanceDescs.size();
+
+	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
+	GraphicManager::Instance().GetDxrDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
+
+	if (topLevelPrebuildInfo.ResultDataMaxSizeInBytes == 0)
+	{
+		LogMessage(L"[SqGraphic Error]: Create Top Acc Struct Failed.");
+		return;
+	}
+
+	// create scratch & AS
+	scratchTop = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), topLevelPrebuildInfo.ScratchDataSizeInBytes, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	topLevelAS = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), topLevelPrebuildInfo.ResultDataMaxSizeInBytes, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+	// create upload buffer
+	UINT bufferSize = static_cast<UINT>(rayInstanceDescs.size() * sizeof(rayInstanceDescs[0]));
+	rayTracingInstance = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), (UINT)rayInstanceDescs.size(), false, bufferSize);
+	rayTracingInstance->CopyData(0, rayInstanceDescs.data());
+
+	// fill descs
+	topLevelBuildDesc.DestAccelerationStructureData = topLevelAS->Resource()->GetGPUVirtualAddress();
+	topLevelInputs.InstanceDescs = rayTracingInstance->Resource()->GetGPUVirtualAddress();
+	topLevelBuildDesc.ScratchAccelerationStructureData = scratchTop->Resource()->GetGPUVirtualAddress();
+
+	// Build acceleration structure.
+	_dxrList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
+}
+
+void RayTracingManager::CollectRayTracingDesc()
+{
+	auto renderers = RendererManager::Instance().GetRenderers();
+
 	// prepare ray tracing instance desc
-	instanceDescs.clear();
+	rayInstanceDescs.clear();
 	for (auto& r : renderers)
 	{
 		// build all submesh use by the renderer
@@ -102,35 +158,7 @@ void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList
 			// transform to world space
 			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(rtInstancedesc.Transform), XMLoadFloat4x4(&r->GetWorld()));
 
-			instanceDescs.push_back(rtInstancedesc);
+			rayInstanceDescs.push_back(rtInstancedesc);
 		}
 	}
-
-	topLevelInputs.NumDescs = (UINT)instanceDescs.size();
-
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
-	GraphicManager::Instance().GetDxrDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
-
-	if (topLevelPrebuildInfo.ResultDataMaxSizeInBytes == 0)
-	{
-		LogMessage(L"[SqGraphic Error]: Create Top Acc Struct Failed.");
-		return;
-	}
-
-	// create scratch & AS
-	scratchTop = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), topLevelPrebuildInfo.ScratchDataSizeInBytes, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	topLevelAS = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), topLevelPrebuildInfo.ResultDataMaxSizeInBytes, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-
-	// create upload buffer
-	UINT bufferSize = static_cast<UINT>(instanceDescs.size() * sizeof(instanceDescs[0]));
-	rayTracingInstance = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), (UINT)instanceDescs.size(), false, bufferSize);
-	rayTracingInstance->CopyData(0, instanceDescs.data());
-
-	// fill descs
-	topLevelBuildDesc.DestAccelerationStructureData = topLevelAS->Resource()->GetGPUVirtualAddress();
-	topLevelInputs.InstanceDescs = rayTracingInstance->Resource()->GetGPUVirtualAddress();
-	topLevelBuildDesc.ScratchAccelerationStructureData = scratchTop->Resource()->GetGPUVirtualAddress();
-
-	// Build acceleration structure.
-	_dxrList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
 }

@@ -173,6 +173,16 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 
 	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
 	LightManager::Instance().UploadPerLightBuffer(frameIndex);
+
+	// update ray tracing top level AS
+	auto _dxrList = GraphicManager::Instance().GetDxrList();
+	LogIfFailedWithoutHR(_dxrList->Reset(currFrameResource->mainGfxAllocator, nullptr));
+
+	GPU_TIMER_START(_dxrList, GraphicManager::Instance().GetGpuTimeQuery());
+	RayTracingManager::Instance().UpdateTopAccelerationStructure(_dxrList);
+	GPU_TIMER_STOP(_dxrList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::UpdateTopLevelAS]);
+	GraphicManager::Instance().ExecuteCommandList(_dxrList);
+
 	GRAPHIC_TIMER_STOP(GameTimerManager::Instance().gameTime.uploadTime)
 }
 

@@ -135,6 +135,7 @@ void GameTimerManager::PrintGameTime()
 		cout << "GPU Time: " << totalGpuMs << endl;
 		cout << "Begin Frame (Clear Target) : " << gpuTimeMs[GpuTimeType::BeginFrame] << endl;
 		cout << "Prepass Work (Depth) : " << gpuTimeMs[GpuTimeType::PrepassWork] + gpuTimeDepthMs << endl;
+		cout << "Update Top Level AS: " << gpuTimeMs[GpuTimeType::UpdateTopLevelAS] << endl;
 		cout << "Forward+ Light Culling: " << gpuTimeMs[GpuTimeType::TileLightCulling] << endl;
 		cout << "Collect Shadow Map: " << gpuTimeMs[GpuTimeType::CollectShadowMap] << endl;
 		cout << "Ray Tracing Shadow : " << gpuTimeMs[GpuTimeType::RayTracingShadow] << endl;
