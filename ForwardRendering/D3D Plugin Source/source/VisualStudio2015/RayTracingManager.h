@@ -6,6 +6,35 @@
 
 #pragma once
 
+enum RayInstanceType
+{
+	All = 0, Static, Dynamic, RayInstanceTypeCount
+};
+
+struct TopLevelAS
+{
+	TopLevelAS()
+	{
+		scratchTop = nullptr;
+		topLevelAS = nullptr;
+		rayTracingInstance = nullptr;
+		resultDataMaxSizeInBytes = 0;
+	}
+
+	void Release() 
+	{
+		instanceDescs.clear();
+		scratchTop.reset();
+		topLevelAS.reset();
+		rayTracingInstance.reset();
+	}
+	vector<D3D12_RAYTRACING_INSTANCE_DESC> instanceDescs;
+	unique_ptr<DefaultBuffer> scratchTop;
+	unique_ptr<DefaultBuffer> topLevelAS;
+	unique_ptr<UploadBufferAny> rayTracingInstance;
+	UINT64 resultDataMaxSizeInBytes;
+};
+
 class RayTracingManager
 {
 public:
@@ -32,14 +61,10 @@ public:
 
 private:
 	void CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
-	void CollectRayTracingDesc();
+	void CollectRayTracingDesc(vector<D3D12_RAYTRACING_INSTANCE_DESC> &_input, RayInstanceType _type);
+	void CreateTopASWork(ID3D12GraphicsCommandList5* _dxrList, TopLevelAS &_topLevelAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS _buildFlag);
+	TopLevelAS allTopAS;
 
-	unique_ptr<DefaultBuffer> scratchTop;
-	unique_ptr<DefaultBuffer> topLevelAS;
-	unique_ptr<UploadBufferAny> rayTracingInstance;
+	//unique_ptr<UploadBufferAny> rayTracingInstance;
 	unique_ptr<UploadBuffer<SubMesh>> subMeshInfo;
-	vector<D3D12_RAYTRACING_INSTANCE_DESC> rayInstanceDescs;
-
-	// ray tracing desc
-	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc;
 };
