@@ -57,9 +57,13 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 void LightManager::LightWork(Camera* _targetCam)
 {
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
-	forwardPlus.TileLightCulling(GetLightDataGPU(LightType::Point, frameIndex, 0));
-	rayShadow.RayTracingShadow(_targetCam, GetForwardPlus(), GetLightDataGPU(LightType::Directional, frameIndex, 0), GetLightDataGPU(LightType::Point, frameIndex, 0));
+	auto dirLightGPU = GetLightDataGPU(LightType::Directional, frameIndex, 0);
+	auto pointLightGPU = GetLightDataGPU(LightType::Point, frameIndex, 0);
+
+	forwardPlus.TileLightCulling(pointLightGPU);
+	rayShadow.RayTracingShadow(_targetCam, GetForwardPlus(), dirLightGPU, pointLightGPU);
 	rayShadow.CollectRayShadow(_targetCam);
+	//rayReflection.Trace(_targetCam, GetForwardPlus(), dirLightGPU, pointLightGPU);
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)

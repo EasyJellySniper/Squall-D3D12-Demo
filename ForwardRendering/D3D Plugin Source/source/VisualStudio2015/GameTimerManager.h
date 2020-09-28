@@ -17,7 +17,7 @@ struct GameTime
 
 enum GpuTimeType
 {
-	BeginFrame = 0, PrepassWork, UpdateTopLevelAS, TileLightCulling, CollectShadowMap, RayTracingShadow, SkyboxPass, TransparentPass, EndFrame, Count
+	BeginFrame = 0, PrepassWork, UpdateTopLevelAS, TileLightCulling, CollectShadowMap, RayTracingShadow, RayTracingReflection, SkyboxPass, TransparentPass, EndFrame, Count
 };
 
 class GameTimerManager
