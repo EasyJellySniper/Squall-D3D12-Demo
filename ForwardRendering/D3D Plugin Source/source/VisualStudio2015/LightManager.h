@@ -8,6 +8,7 @@
 #include "Renderer.h"
 #include "Skybox.h"
 #include "ForwardPlus.h"
+#include "RayShadow.h"
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
@@ -44,48 +45,25 @@ public:
 
 	Light *GetDirLights();
 	int GetNumDirLights();
-	Material* GetRayShadow();
-	ID3D12Resource* GetRayShadowSrc();
-	int GetShadowIndex();
-
-	ID3D12Resource* GetCollectShadowSrc();
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCollectShadowRtv();
 	D3D12_GPU_VIRTUAL_ADDRESS GetLightDataGPU(LightType _type, int _frameIdx, int _offset);
 
 	Skybox* GetSkybox();
 	ForwardPlus* GetForwardPlus();
 
-	D3D12_GPU_DESCRIPTOR_HANDLE GetRTShadowUav();
-
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
 	int AddLight(int _instanceID, SqLightData _data);
-	void CreateCollectShadow(int _instanceID, void *_opaqueShadows);
-	void CreateRayTracingShadow();
-	void RayTracingShadow(Camera* _targetCam);
-	void CollectRayShadow(Camera* _targetCam);
 
 	// light data
 	int maxLightCount[LightType::LightCount];
 	vector<Light> sqLights[LightType::LightCount];
 	unique_ptr<UploadBuffer<SqLightData>> lightDataGPU[LightType::LightCount][MAX_FRAME_COUNT];
 
-	unique_ptr<Texture> collectShadow;
-	unique_ptr<DefaultBuffer> rayTracingShadow;
-
 	// skybox
 	Skybox skybox;
 
-	// shadow material
-	Material collectRayShadowMat;
-	int collectShadowID;
-	int collectShadowSampler;
-	int pcfKernel;
-
-	// ray tracing material
-	Material rtShadowMat;
-	int rtShadowUav;
-	int rtShadowSrv;
+	// ray shadow
+	RayShadow rayShadow;
 
 	// forward+ component
 	ForwardPlus forwardPlus;
