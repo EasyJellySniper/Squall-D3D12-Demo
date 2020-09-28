@@ -16,7 +16,7 @@ struct RayShadowData
 class RayShadow
 {
 public:
-	void Init(int _instanceID, void* _collectShadows);
+	void Init(void* _collectShadows);
 	void Relesae();
 	void RayTracingShadow(Camera* _targetCam, ForwardPlus *_forwardPlus, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU);
 	void CollectRayShadow(Camera* _targetCam);

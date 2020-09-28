@@ -5,7 +5,7 @@
 #include "GraphicManager.h"
 #include "RayTracingManager.h"
 
-void RayShadow::Init(int _instanceID, void* _collectShadows)
+void RayShadow::Init(void* _collectShadows)
 {
 	if (_collectShadows == nullptr)
 	{
@@ -20,7 +20,7 @@ void RayShadow::Init(int _instanceID, void* _collectShadows)
 	// register to texture manager
 	collectShadow = make_unique<Texture>(1, 0);
 	collectShadow->InitRTV(opaqueShadowSrc, shadowFormat, false);
-	collectShadowID = TextureManager::Instance().AddNativeTexture(_instanceID, opaqueShadowSrc, TextureInfo(true, false, false, false, false));
+	collectShadowID = TextureManager::Instance().AddNativeTexture(GetUniqueID(), opaqueShadowSrc, TextureInfo(true, false, false, false, false));
 
 	// create collect shadow material
 	Shader* collectRayShader = ShaderManager::Instance().CompileShader(L"CollectRayShadow.hlsl");

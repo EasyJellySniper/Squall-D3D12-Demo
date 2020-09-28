@@ -9,6 +9,7 @@
 #include "Skybox.h"
 #include "ForwardPlus.h"
 #include "RayShadow.h"
+#include "RayReflection.h"
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
@@ -29,7 +30,7 @@ public:
 	LightManager() {}
 	~LightManager() {}
 
-	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, int _opaqueShadowID);
+	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, void *_reflectionSrc);
 	void Release();
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
 	void LightWork(Camera *_targetCam);
@@ -62,8 +63,9 @@ private:
 	// skybox
 	Skybox skybox;
 
-	// ray shadow
+	// ray tracing 
 	RayShadow rayShadow;
+	RayReflection rayReflection;
 
 	// forward+ component
 	ForwardPlus forwardPlus;

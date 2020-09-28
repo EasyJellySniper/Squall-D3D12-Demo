@@ -6,7 +6,7 @@ using UnityEngine;
 public class SqLightManager : MonoBehaviour
 {
     [DllImport("SquallGraphics")]
-    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, int _instance);
+    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, IntPtr _reflectionRT);
 
     [DllImport("SquallGraphics")]
     static extern void SetPCFKernel(int _kernel);
@@ -38,6 +38,11 @@ public class SqLightManager : MonoBehaviour
     public RenderTexture collectShadows;
 
     /// <summary>
+    /// reflection RT
+    /// </summary>
+    public RenderTexture reflectionRT;
+
+    /// <summary>
     /// instance
     /// </summary>
     public static SqLightManager Instace { get; private set; }
@@ -58,11 +63,8 @@ public class SqLightManager : MonoBehaviour
 
     void OnDestroy()
     {
-        if (collectShadows != null)
-        {
-            collectShadows.Release();
-            DestroyImmediate(collectShadows);
-        }
+        SqUtility.SafeDestroyRT(ref collectShadows);
+        SqUtility.SafeDestroyRT(ref reflectionRT);
     }
 
     void InitLights()
@@ -74,7 +76,13 @@ public class SqLightManager : MonoBehaviour
         collectShadows.name = "Collect Shadows";
         collectShadows.Create();
 
-        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, collectShadows.GetNativeTexturePtr(), collectShadows.GetInstanceID());
+        // create reflection rt
+        reflectionRT = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        reflectionRT.enableRandomWrite = true;  // can be both UAV/SRV
+        reflectionRT.name = "Reflection RT";
+        reflectionRT.Create();
+
+        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, collectShadows.GetNativeTexturePtr(), reflectionRT.GetNativeTexturePtr());
     }
 
     void SetPCF()

@@ -4,7 +4,7 @@
 #include "TextureManager.h"
 #include "RayTracingManager.h"
 
-void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _collectShadows, int _collectShadowID)
+void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _collectShadows, void* _reflectionSrc)
 {
 	maxLightCount[LightType::Directional] = _numDirLight;
 	maxLightCount[LightType::Point] = _numPointLight;
@@ -20,7 +20,8 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 		}
 	}
 
-	rayShadow.Init(_collectShadowID, _collectShadows);
+	rayShadow.Init(_collectShadows);
+	rayReflection.Init((ID3D12Resource*)_reflectionSrc);
 	forwardPlus.Init(maxLightCount[LightType::Point]);
 }
 
@@ -42,6 +43,7 @@ void LightManager::Release()
 
 	skybox.Release();
 	rayShadow.Relesae();
+	rayReflection.Release();
 	forwardPlus.Release();
 }
 
