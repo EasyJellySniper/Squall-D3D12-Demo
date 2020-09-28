@@ -63,7 +63,7 @@ void LightManager::LightWork(Camera* _targetCam)
 	forwardPlus.TileLightCulling(pointLightGPU);
 	rayShadow.RayTracingShadow(_targetCam, GetForwardPlus(), dirLightGPU, pointLightGPU);
 	rayShadow.CollectRayShadow(_targetCam);
-	//rayReflection.Trace(_targetCam, GetForwardPlus(), dirLightGPU, pointLightGPU);
+	rayReflection.Trace(_targetCam, GetForwardPlus(), dirLightGPU, pointLightGPU);
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)

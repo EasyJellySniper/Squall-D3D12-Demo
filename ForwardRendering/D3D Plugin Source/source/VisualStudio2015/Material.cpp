@@ -163,3 +163,8 @@ Shader* Material::GetShaderCache()
 {
 	return shaderCache;
 }
+
+bool Material::IsValid()
+{
+	return validMaterial;
+}

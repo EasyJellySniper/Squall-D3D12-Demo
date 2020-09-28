@@ -61,6 +61,7 @@ public:
 	D3D12_DISPATCH_RAYS_DESC GetDispatchRayDesc(UINT _width, UINT _height);
 	bool IsRayTracingMat();
 	Shader* GetShaderCache();
+	bool IsValid();
 
 private:
 	int instanceID;
