@@ -7,6 +7,7 @@
 #include "Sampler.h"
 #include "Renderer.h"
 #include "Skybox.h"
+#include "ForwardPlus.h"
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
@@ -52,20 +53,15 @@ public:
 	D3D12_GPU_VIRTUAL_ADDRESS GetLightDataGPU(LightType _type, int _frameIdx, int _offset);
 
 	Skybox* GetSkybox();
+	ForwardPlus* GetForwardPlus();
 
 	D3D12_GPU_DESCRIPTOR_HANDLE GetRTShadowUav();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetLightCullingUav();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetLightCullingSrv();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetLightCullingTransUav();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetLightCullingTransSrv();
 
 private:
 	int FindLight(vector<Light> _lights, int _instanceID);
 	int AddLight(int _instanceID, SqLightData _data);
 	void CreateCollectShadow(int _instanceID, void *_opaqueShadows);
 	void CreateRayTracingShadow();
-	void CreateForwardPlusResource();
-	void TileLightCulling();
 	void RayTracingShadow(Camera* _targetCam);
 	void CollectRayShadow(Camera* _targetCam);
 
@@ -92,14 +88,5 @@ private:
 	int rtShadowSrv;
 
 	// forward+ component
-	unique_ptr<DefaultBuffer> pointLightTiles;
-	unique_ptr<DefaultBuffer> pointLightTilesTrans;
-	int tileSize = 32;
-	int tileCountX;
-	int tileCountY;
-	int pointLightTileUav;
-	int pointLightTileSrv;
-	int pointLightTransTileUav;
-	int pointLightTransTileSrv;
-	Material forwardPlusTileMat;
+	ForwardPlus forwardPlus;
 };
