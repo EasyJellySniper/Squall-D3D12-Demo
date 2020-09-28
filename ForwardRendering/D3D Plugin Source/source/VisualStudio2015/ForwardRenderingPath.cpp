@@ -517,7 +517,9 @@ void ForwardRenderingPath::DrawCutoutPass(Camera* _camera, int _threadIndex)
 
 void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 {
-	if (!LightManager::Instance().GetSkyboxRenderer()->GetActive())
+	auto skybox = LightManager::Instance().GetSkybox();
+
+	if (!skybox->GetRenderer()->GetActive())
 	{
 		return;
 	}
@@ -542,16 +544,16 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// bind root signature
-	auto skyMat = LightManager::Instance().GetSkyboxMat();
+	auto skyMat = skybox->GetMaterial();
 	_cmdList->SetPipelineState(skyMat->GetPSO());
 	_cmdList->SetGraphicsRootSignature(skyMat->GetRootSignature());
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(1, LightManager::Instance().GetSkyboxRenderer()->GetObjectConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(2, LightManager::Instance().GetSkyboxTex());
-	_cmdList->SetGraphicsRootDescriptorTable(3, LightManager::Instance().GetSkyboxSampler());
+	_cmdList->SetGraphicsRootConstantBufferView(1, skybox->GetRenderer()->GetObjectConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootDescriptorTable(2, skybox->GetSkyboxTex());
+	_cmdList->SetGraphicsRootDescriptorTable(3, skybox->GetSkyboxSampler());
 
 	// bind mesh and draw
-	Mesh* m = MeshManager::Instance().GetMesh(LightManager::Instance().GetSkyMeshID());
+	Mesh* m = MeshManager::Instance().GetMesh(skybox->GetSkyMeshID());
 	_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
 	_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
 

@@ -49,8 +49,7 @@ void LightManager::Release()
 		collectShadow.reset();
 	}
 
-	skyboxMat.Release();
-	skyboxRenderer.Release();
+	skybox.Release();
 	rtShadowMat.Release();
 	rayTracingShadow.reset();
 	pointLightTiles.reset();
@@ -104,25 +103,27 @@ void LightManager::UploadPerLightBuffer(int _frameIdx)
 
 	// upload skybox constant
 	ObjectConstant oc;
-	oc.sqMatrixWorld = skyboxRenderer.GetWorld();
+	oc.sqMatrixWorld = skybox.GetRenderer()->GetWorld();
 
-	if (skyboxRenderer.IsDirty(_frameIdx))
+	if (skybox.GetRenderer()->IsDirty(_frameIdx))
 	{
-		skyboxRenderer.UpdateObjectConstant(oc, _frameIdx);
+		skybox.GetRenderer()->UpdateObjectConstant(oc, _frameIdx);
 	}
 }
 
 void LightManager::FillSystemConstant(SystemConstant& _sc)
 {
+	auto skyData = skybox.GetSkyboxData();
+
 	_sc.numDirLight = (int)sqLights[LightType::Directional].size();
 	_sc.numPointLight = (int)sqLights[LightType::Point].size();
 	_sc.numSpotLight = (int)sqLights[LightType::Spot].size();
 	_sc.maxPointLight = maxLightCount[LightType::Point];
 	_sc.collectShadowIndex = collectShadowID;
 	_sc.pcfIndex = pcfKernel;
-	_sc.ambientGround = ambientGround;
-	_sc.ambientSky = ambientSky;
-	_sc.skyIntensity = skyIntensity;
+	_sc.ambientGround = skyData.ambientGround;
+	_sc.ambientSky = skyData.ambientSky;
+	_sc.skyIntensity = skyData.skyIntensity;
 	_sc.collectShadowSampler = collectShadowSampler;
 	_sc.rayIndex = rtShadowSrv;
 	_sc.tileCountX = tileCountX;
@@ -136,32 +137,19 @@ void LightManager::SetPCFKernel(int _kernel)
 
 void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity)
 {
-	ambientGround = _ag;
-	ambientSky = _as;
-	skyIntensity = _skyIntensity;
+	skybox.SetSkyboxData(_ag, _as, _skyIntensity);
 }
 
 void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)
 {
 	auto skyboxSrc = (ID3D12Resource*)_skybox;
 	auto desc = skyboxSrc->GetDesc();
-
-	skyboxTexId = TextureManager::Instance().AddNativeTexture(GetUniqueID(), skyboxSrc, TextureInfo(false, true, false, false, false));
-	skyboxSampleId = TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
-	skyMeshId = _skyMesh;
-
-	Shader* skyShader = ShaderManager::Instance().CompileShader(L"Skybox.hlsl");
-	if (skyShader != nullptr)
-	{
-		auto rtd = CameraManager::Instance().GetCamera()->GetRenderTargetData();
-		skyboxMat = MaterialManager::Instance().CreateGraphicMat(skyShader, rtd, D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, 1, 0, D3D12_COMPARISON_FUNC_GREATER_EQUAL, false);
-		skyboxRenderer.Init(_skyMesh, false);
-	}
+	skybox.Init(skyboxSrc, wrapU, wrapV, wrapW, _anisoLevel, _skyMesh);
 }
 
 void LightManager::SetSkyWorld(XMFLOAT4X4 _world)
 {
-	skyboxRenderer.SetWorld(_world);
+	skybox.GetRenderer()->SetWorld(_world);
 }
 
 Light* LightManager::GetDirLights()
@@ -205,29 +193,9 @@ D3D12_GPU_VIRTUAL_ADDRESS LightManager::GetLightDataGPU(LightType _type, int _fr
 	return lightDataGPU[_type][_frameIdx]->Resource()->GetGPUVirtualAddress() + lightSize * _offset;
 }
 
-Renderer* LightManager::GetSkyboxRenderer()
+Skybox* LightManager::GetSkybox()
 {
-	return &skyboxRenderer;
-}
-
-Material* LightManager::GetSkyboxMat()
-{
-	return &skyboxMat;
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetSkyboxTex()
-{
-	return TextureManager::Instance().GetTexHandle(skyboxTexId);
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetSkyboxSampler()
-{
-	return TextureManager::Instance().GetSamplerHandle(skyboxSampleId);
-}
-
-int LightManager::GetSkyMeshID()
-{
-	return skyMeshId;
+	return &skybox;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE LightManager::GetRTShadowUav()

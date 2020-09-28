@@ -6,6 +6,7 @@
 #include "MaterialManager.h"
 #include "Sampler.h"
 #include "Renderer.h"
+#include "Skybox.h"
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
@@ -50,11 +51,7 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCollectShadowRtv();
 	D3D12_GPU_VIRTUAL_ADDRESS GetLightDataGPU(LightType _type, int _frameIdx, int _offset);
 
-	Renderer* GetSkyboxRenderer();
-	Material* GetSkyboxMat();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSkyboxTex();
-	D3D12_GPU_DESCRIPTOR_HANDLE GetSkyboxSampler();
-	int GetSkyMeshID();
+	Skybox* GetSkybox();
 
 	D3D12_GPU_DESCRIPTOR_HANDLE GetRTShadowUav();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetLightCullingUav();
@@ -80,16 +77,8 @@ private:
 	unique_ptr<Texture> collectShadow;
 	unique_ptr<DefaultBuffer> rayTracingShadow;
 
-	// gi 
-	XMFLOAT4 ambientGround;
-	XMFLOAT4 ambientSky;
-
-	int skyboxTexId;
-	int skyboxSampleId;
-	int skyMeshId;
-	Material skyboxMat;
-	Renderer skyboxRenderer;
-	float skyIntensity;
+	// skybox
+	Skybox skybox;
 
 	// shadow material
 	Material collectRayShadowMat;
