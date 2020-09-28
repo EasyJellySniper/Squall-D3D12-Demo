@@ -1,6 +1,6 @@
+#pragma once
 #include "DefaultBuffer.h"
 #include "Material.h"
-#pragma once
 
 class ForwardPlus
 {

@@ -1,11 +1,10 @@
+#pragma once
 #include <d3d12.h>
 #include "DefaultBuffer.h"
 #include "UploadBuffer.h"
 #include "stdafx.h"
 #include "Mesh.h"
 #include "Renderer.h"
-
-#pragma once
 
 struct TopLevelAS
 {
