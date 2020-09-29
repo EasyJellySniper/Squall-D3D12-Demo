@@ -1,17 +1,15 @@
 // need assign relative path for dxc compiler with forward slash
+#define _RAYSHADER
 #include "Assets/SqShaders/SqInput.hlsl"
 #include "Assets/SqShaders/SqLight.hlsl"
 
 #pragma sq_rayrootsig RTShadowRootSig
-#pragma sq_rayrootsiglocal RTShadowRootSigLocal
 #pragma sq_raygen RTShadowRayGen
 #pragma sq_closesthit RTShadowClosestHit
 #pragma sq_anyhit RTShadowAnyHit
 #pragma sq_miss RTShadowMiss
-#pragma sq_hitgroup RTShadowGroup
 #pragma sq_rtshaderconfig RTShadowConfig
 #pragma sq_rtpipelineconfig RTShadowPipelineConfig
-#pragma sq_rayrootsigassociation LocalRootSignatureAssociation
 
 GlobalRootSignature RTShadowRootSig =
 {
@@ -29,21 +27,10 @@ GlobalRootSignature RTShadowRootSig =
     "SRV( t0, space = 5)"       // submesh data
 };
 
-LocalRootSignature RTShadowRootSigLocal =
-{
-    "RootConstants( num32BitConstants = 64, b2 )"   // material constant
-};
-
-TriangleHitGroup RTShadowGroup =
+TriangleHitGroup SqRayHitGroup =
 {
     "RTShadowAnyHit",      // AnyHit
     "RTShadowClosestHit"   // ClosestHit
-};
-
-SubobjectToExportsAssociation LocalRootSignatureAssociation =
-{
-    "RTShadowRootSigLocal",  // subobject name
-    "RTShadowGroup"          // export association 
 };
 
 RaytracingShaderConfig RTShadowConfig =

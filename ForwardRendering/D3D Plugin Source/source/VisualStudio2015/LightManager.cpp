@@ -124,6 +124,11 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.rayIndex = rayShadowData.rtShadowSrv;
 
 	forwardPlus.GetTileCount(_sc.tileCountX, _sc.tileCountY);
+
+	// copy hit group data (choose one material, all hitgroup is shared)
+	// copy hit group identifier
+	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
+	MaterialManager::Instance().CopyHitGroupIdentifier(rayShadow.GetRayShadow(), frameIndex);
 }
 
 void LightManager::SetPCFKernel(int _kernel)

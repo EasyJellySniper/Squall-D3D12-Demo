@@ -105,9 +105,6 @@ void RayShadow::RayTracingShadow(Camera* _targetCam, ForwardPlus* _forwardPlus, 
 	auto rtShadowSrc = rayTracingShadow->Resource();
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = mat->GetDispatchRayDesc((UINT)rtShadowSrc->GetDesc().Width, rtShadowSrc->GetDesc().Height);
 
-	// copy hit group identifier
-	MaterialManager::Instance().CopyHitGroupIdentifier(mat, frameIndex);
-
 	// setup hit group table
 	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(frameIndex);
 	dispatchDesc.HitGroupTable.StartAddress = hitGroup->Resource()->GetGPUVirtualAddress();

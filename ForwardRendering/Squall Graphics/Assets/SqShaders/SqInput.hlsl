@@ -6,6 +6,26 @@
 #define UINT_MAX 0xffffffff
 #define TILE_SIZE 32
 
+#if defined(_RAYSHADER)
+	// ray tracing hit group, shared for all ray tracing shader
+	#pragma sq_hitgroup SqRayHitGroup
+	#pragma sq_rayrootsiglocal SqRootSigLocal
+	#pragma sq_rayrootsigassociation SqLocalRootSignatureAssociation
+
+	// ray tracing local root signature
+	LocalRootSignature SqRootSigLocal =
+	{
+		"RootConstants( num32BitConstants = 64, b2 )"   // material constant
+	};
+
+	// link local root signature
+	SubobjectToExportsAssociation SqLocalRootSignatureAssociation =
+	{
+		"SqRootSigLocal",  // subobject name
+		"SqRayHitGroup"          // export association 
+	};
+#endif
+
 struct VertexInput
 {
 	float3 vertex : POSITION;
