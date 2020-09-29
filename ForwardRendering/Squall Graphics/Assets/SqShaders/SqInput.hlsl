@@ -87,6 +87,7 @@ cbuffer SystemConstant : register(b0)
 	int _NormalRTIndex;
 	int _TileCountX;	// forward+ tile
 	int _TileCountY;
+	float _ReflectionDistance;
 };
 
 cbuffer ObjectConstant : register(b1)

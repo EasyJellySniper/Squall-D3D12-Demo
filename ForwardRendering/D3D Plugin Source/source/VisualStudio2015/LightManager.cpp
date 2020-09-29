@@ -130,6 +130,7 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.skyIntensity = skyData.skyIntensity;
 	_sc.collectShadowSampler = rayShadowData.collectShadowSampler;
 	_sc.rayIndex = rayShadowData.rtShadowSrv;
+	_sc.reflectionDistance = reflectionDistance;
 
 	forwardPlus.GetTileCount(_sc.tileCountX, _sc.tileCountY);
 
@@ -143,9 +144,10 @@ void LightManager::SetPCFKernel(int _kernel)
 	rayShadow.SetPCFKernel(_kernel);
 }
 
-void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity)
+void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity, float _reflectionDistance)
 {
 	skybox.SetSkyboxData(_ag, _as, _skyIntensity);
+	reflectionDistance = _reflectionDistance;
 }
 
 void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)

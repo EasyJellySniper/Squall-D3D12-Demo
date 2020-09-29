@@ -125,7 +125,7 @@ RayPayload ShootReflectionRay(float3 normal, float depth, float2 screenUV)
     ray.Origin = wpos;
     ray.Direction = reflect(incident, normal);   // shoot a reflection ray
     ray.TMin = 0.01f;
-    ray.TMax = 500;
+    ray.TMax = _ReflectionDistance;
 
     // define ray
     TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);

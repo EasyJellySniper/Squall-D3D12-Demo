@@ -50,4 +50,5 @@ struct SystemConstant
 	int normalRTIndex;
 	int tileCountX;
 	int tileCountY;
+	float reflectionDistance;
 };

@@ -24,11 +24,19 @@ public class SqSkybox : MonoBehaviour
     /// </summary>
     public Cubemap skybox;
 
+    /// <summary>
+    /// sky intensity
+    /// </summary>
     [Range(0f, 5f)]
     public float skyIntensity = 1;
 
+    /// <summary>
+    /// reflection distance
+    /// </summary>
+    public float reflectionDistance = 300;
+
     [DllImport("SquallGraphics")]
-    static extern void SetAmbientLight(Vector4 _ag, Vector4 _as, float _skyIntensity);
+    static extern void SetAmbientLight(Vector4 _ag, Vector4 _as, float _skyIntensity, float _reflectionDistance);
 
     [DllImport("SquallGraphics")]
     static extern void SetSkybox(IntPtr _skybox, TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel, int _meshId);
@@ -38,7 +46,7 @@ public class SqSkybox : MonoBehaviour
 
     void Start()
     {
-        SetAmbientLight(ambientGround, ambientSky, skyIntensity);
+        SetAmbientLight(ambientGround, ambientSky, skyIntensity, reflectionDistance);
         SetSkybox(skybox.GetNativeTexturePtr(), skybox.wrapModeU, skybox.wrapModeV, skybox.wrapModeW, SqGraphicManager.Instance.globalAnisoLevel, GetComponent<SqMeshFilter>().MainMesh.GetInstanceID());
         transform.hasChanged = true;
     }
@@ -46,7 +54,7 @@ public class SqSkybox : MonoBehaviour
 #if UNITY_EDITOR
     void OnValidate()
     {
-        SetAmbientLight(ambientGround, ambientSky, skyIntensity);
+        SetAmbientLight(ambientGround, ambientSky, skyIntensity, reflectionDistance);
     }
 #endif
 
