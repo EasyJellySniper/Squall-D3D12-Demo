@@ -185,5 +185,5 @@ void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersection
 void RTReflectionMiss(inout RayPayload payload)
 {
     // failed to reflect any thing sample sky color
-
+    payload.reflectionColor = _SkyCube.SampleLevel(_SkySampler, WorldRayDirection(), 0).rgb * _SkyIntensity;
 }
