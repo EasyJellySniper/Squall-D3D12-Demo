@@ -127,6 +127,10 @@ StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
 ByteAddressBuffer _SqPointLightTile : register(t3, space1);
 ByteAddressBuffer _SqPointLightTransTile : register(t4, space1);
 
+// skybox
+TextureCube _SkyCube : register(t0, space6);
+SamplerState _SkySampler : register(s0, space6);
+
 float3 DepthToWorldPos(float depth, float4 screenPos)
 {
 	// calc wpos

@@ -26,7 +26,7 @@ void RayReflection::Release()
 	rayReflectionMat.Release();
 }
 
-void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
+void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox* _skybox, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
 {
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
@@ -61,6 +61,8 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, D3D12_G
 	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(10, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootShaderResourceView(11, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootDescriptorTable(12, _skybox->GetSkyboxTex());
+	_cmdList->SetComputeRootDescriptorTable(13, _skybox->GetSkyboxSampler());
 
 	// prepare dispatch desc
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = rayReflectionMat.GetDispatchRayDesc((UINT)rayReflectionSrc->GetDesc().Width, rayReflectionSrc->GetDesc().Height);

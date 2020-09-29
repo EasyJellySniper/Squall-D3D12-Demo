@@ -24,7 +24,9 @@ GlobalRootSignature RTReflectionRootSig =
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 3, flags = DESCRIPTORS_VOLATILE) ),"    //vertex start
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
     "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) ),"     // tex sampler
-    "SRV( t0, space = 5)"       // submesh data
+    "SRV( t0, space = 5),"       // submesh data
+    "DescriptorTable( SRV( t0, space = 6, numDescriptors = 1) ),"
+    "DescriptorTable( Sampler( s0, space = 6, numDescriptors = 1) )"
 };
 
 TriangleHitGroup SqRayHitGroup =
@@ -128,12 +130,15 @@ void RTReflectionRayGen()
     float transDepth = _TexTable[_TransDepthIndex][DispatchRaysIndex().xy].r;
     float3 opaqueNormal = _TexTable[_ColorRTIndex][DispatchRaysIndex().xy].rgb;
     float3 transNormal = _TexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
+
+    RayPayload payload = (RayPayload)0;
+
 }
 
 [shader("closesthit")]
 void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-
+    payload.reflectionColor = 0;
 }
 
 [shader("anyhit")]
@@ -149,5 +154,6 @@ void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersection
 [shader("miss")]
 void RTReflectionMiss(inout RayPayload payload)
 {
-    // sample sky color
+    // failed to reflect any thing sample sky color
+
 }

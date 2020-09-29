@@ -1,8 +1,8 @@
 #define SkyboxRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
 "CBV(b0)," \
 "CBV(b1)," \
-"DescriptorTable(SRV(t0, numDescriptors=1))," \
-"DescriptorTable(Sampler(s0, numDescriptors=1))" \
+"DescriptorTable(SRV(t0, space = 6, numDescriptors=1))," \
+"DescriptorTable(Sampler(s0, space = 6, numDescriptors=1))" \
 
 #include "SqInput.hlsl"
 #pragma sq_vertex SkyboxVS
@@ -14,9 +14,6 @@ struct v2f
 	float4 vertex : SV_POSITION;
 	float3 lpos : TEXCOORD0;
 };
-
-TextureCube _SkyCube : register(t0);
-SamplerState _SkySampler : register(s0);
 
 [RootSignature(SkyboxRS)]
 v2f SkyboxVS(VertexInput v)
