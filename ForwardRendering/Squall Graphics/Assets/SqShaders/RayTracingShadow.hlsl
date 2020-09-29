@@ -259,9 +259,10 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
         uint ibStride = 2;
         uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
         uint vertID = InstanceID();
+        const uint3 indices = Load3x16BitIndices(pIdx, vertID + 1);
 
         // get interpolated uv and tiling it
-        float2 uvHit = GetHitUV(pIdx, vertID, attr);
+        float2 uvHit = GetHitUV(indices, vertID, attr);
         uvHit = uvHit * _MainTex_ST.xy + _MainTex_ST.zw;
         alpha = _TexTable[_DiffuseIndex].SampleLevel(_SamplerTable[_SamplerIndex], uvHit, 0).a * _Color.a;
     }

@@ -56,13 +56,8 @@ uint3 Load3x16BitIndices(uint offsetBytes, uint indexID)
     return indices;
 }
 
-float2 GetHitUV(uint pIdx, uint vertID, BuiltInTriangleIntersectionAttributes attr)
+float2 GetHitUV(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttributes attr)
 {
-    uint indexID = vertID + 1;
-
-    // get indices
-    const uint3 indices = Load3x16BitIndices(pIdx, indexID);
-
     // get uv
     float2 uv[3];
     uv[0] = _Vertices[vertID][indices[0]].uv1;
@@ -73,6 +68,34 @@ float2 GetHitUV(uint pIdx, uint vertID, BuiltInTriangleIntersectionAttributes at
     return uv[0] +
         attr.barycentrics.x * (uv[1] - uv[0]) +
         attr.barycentrics.y * (uv[2] - uv[0]);
+}
+
+float3 GetHitNormal(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttributes attr)
+{
+    // get uv
+    float3 normal[3];
+    normal[0] = _Vertices[vertID][indices[0]].normal;
+    normal[1] = _Vertices[vertID][indices[1]].normal;
+    normal[2] = _Vertices[vertID][indices[2]].normal;
+
+    // interpolate normal according to barycentric coordinate
+    return normal[0] +
+        attr.barycentrics.x * (normal[1] - normal[0]) +
+        attr.barycentrics.y * (normal[2] - normal[0]);
+}
+
+float4 GetHitTangent(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttributes attr)
+{
+    // get uv
+    float4 tangent[3];
+    tangent[0] = _Vertices[vertID][indices[0]].tangent;
+    tangent[1] = _Vertices[vertID][indices[1]].tangent;
+    tangent[2] = _Vertices[vertID][indices[2]].tangent;
+
+    // interpolate tangent according to barycentric coordinate
+    return tangent[0] +
+        attr.barycentrics.x * (tangent[1] - tangent[0]) +
+        attr.barycentrics.y * (tangent[2] - tangent[0]);
 }
 
 #endif
