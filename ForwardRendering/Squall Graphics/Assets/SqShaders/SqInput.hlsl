@@ -7,7 +7,7 @@
 #define TILE_SIZE 32
 
 #if defined(_RAYSHADER)
-	// ray tracing hit group, shared for all ray tracing shader
+	// ray tracing hit group & local rootsignature, share definition for all ray tracing shader
 	#pragma sq_hitgroup SqRayHitGroup
 	#pragma sq_rayrootsiglocal SqRootSigLocal
 	#pragma sq_rayrootsigassociation SqLocalRootSignatureAssociation

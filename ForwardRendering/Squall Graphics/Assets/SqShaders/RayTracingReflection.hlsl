@@ -110,6 +110,29 @@ float2 GetHitUV(uint pIdx, uint vertID, BuiltInTriangleIntersectionAttributes at
         attr.barycentrics.y * (uv[2] - uv[0]);
 }
 
+RayPayload ShootReflectionRay(float3 normal, float depth, float2 screenUV)
+{
+    RayPayload payload = (RayPayload)0;
+    if (depth == 0.0f)
+    {
+        return payload;
+    }
+
+    float3 wpos = DepthToWorldPos(depth, float4(screenUV, 0, 1));
+    float3 incident = normalize(wpos - _CameraPos.xyz);
+
+    RayDesc ray;
+    ray.Origin = wpos;
+    ray.Direction = reflect(incident, normal);   // shoot a reflection ray
+    ray.TMin = 0.01f;
+    ray.TMax = 500;
+
+    // define ray
+    TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
+
+    return payload;
+}
+
 [shader("raygeneration")]
 void RTReflectionRayGen()
 {
@@ -131,8 +154,15 @@ void RTReflectionRayGen()
     float3 opaqueNormal = _TexTable[_ColorRTIndex][DispatchRaysIndex().xy].rgb;
     float3 transNormal = _TexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
 
-    RayPayload payload = (RayPayload)0;
+    RayPayload opaqueResult = ShootReflectionRay(opaqueNormal, opaqueDepth, screenUV);
+    //RayPayload transResult = (RayPayload)0;
+    //if (opaqueDepth != transDepth)
+    //{
+    //    transResult = ShootReflectionRay(transNormal, transDepth, screenUV);
+    //}
 
+    // output
+    _OutputReflection[DispatchRaysIndex().xy].rgb = opaqueResult.reflectionColor;
 }
 
 [shader("closesthit")]

@@ -4,6 +4,11 @@
 #include "Material.h"
 #include "UploadBuffer.h"
 
+enum HitGroupType
+{
+	Shadow = 0, Reflection, HitGroupCount
+};
+
 class MaterialManager
 {
 public:
@@ -36,9 +41,9 @@ public:
 	void ResetNativeMaterial(Camera* _camera);
 	void Release();
 
-	void CopyHitGroupIdentifier(Material *_dxrMat, int _frameIdx);
 	D3D12_GPU_VIRTUAL_ADDRESS GetMaterialConstantGPU(int _id, int _frameIdx);
-	UploadBufferAny *GetHitGroupGPU(int _frameIdx);
+	void CopyHitGroupIdentifier(Material *_dxrMat, HitGroupType _groupType);
+	UploadBufferAny *GetHitGroupGPU(HitGroupType _groupType);
 	int GetMatIndexFromID(int _id);
 
 private:
@@ -56,6 +61,6 @@ private:
 	unordered_map<int, int> matIndexTable;
 
 	D3D12_BLEND blendTable[NUM_BLEND_MODE];
-	unique_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];
-	wstring hitGroupName[MAX_FRAME_COUNT];
+	unique_ptr<UploadBufferAny> materialConstant[HitGroupType::HitGroupCount];
+	wstring hitGroupName[HitGroupType::HitGroupCount];
 };

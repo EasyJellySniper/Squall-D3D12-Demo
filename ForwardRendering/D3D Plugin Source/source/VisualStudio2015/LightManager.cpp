@@ -61,8 +61,16 @@ void LightManager::LightWork(Camera* _targetCam)
 	auto pointLightGPU = GetLightDataGPU(LightType::Point, frameIndex, 0);
 
 	forwardPlus.TileLightCulling(pointLightGPU);
+
+	// copy hit group data
+	MaterialManager::Instance().CopyHitGroupIdentifier(rayShadow.GetRayShadow(), HitGroupType::Shadow);
+	MaterialManager::Instance().CopyHitGroupIdentifier(rayReflection.GetMaterial(), HitGroupType::Reflection);
+
+	// ray tracing shadow
 	rayShadow.RayTracingShadow(_targetCam, GetForwardPlus(), dirLightGPU, pointLightGPU);
 	rayShadow.CollectRayShadow(_targetCam);
+
+	// ay tracing reflection
 	rayReflection.Trace(_targetCam, GetForwardPlus(), GetSkybox(), dirLightGPU, pointLightGPU);
 }
 
@@ -128,7 +136,6 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	// copy hit group data (choose one material, all hitgroup is shared)
 	// copy hit group identifier
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
-	MaterialManager::Instance().CopyHitGroupIdentifier(rayShadow.GetRayShadow(), frameIndex);
 }
 
 void LightManager::SetPCFKernel(int _kernel)

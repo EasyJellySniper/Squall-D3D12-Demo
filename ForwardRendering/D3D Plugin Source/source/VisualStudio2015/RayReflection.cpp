@@ -67,11 +67,8 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	// prepare dispatch desc
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = rayReflectionMat.GetDispatchRayDesc((UINT)rayReflectionSrc->GetDesc().Width, rayReflectionSrc->GetDesc().Height);
 
-	// copy hit group identifier
-	MaterialManager::Instance().CopyHitGroupIdentifier(&rayReflectionMat, frameIndex);
-
 	// setup hit group table
-	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(frameIndex);
+	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(HitGroupType::Reflection);
 	dispatchDesc.HitGroupTable.StartAddress = hitGroup->Resource()->GetGPUVirtualAddress();
 	dispatchDesc.HitGroupTable.SizeInBytes = hitGroup->Resource()->GetDesc().Width;
 	dispatchDesc.HitGroupTable.StrideInBytes = hitGroup->Stride();
@@ -91,6 +88,11 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingReflection]);
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
+}
+
+Material* RayReflection::GetMaterial()
+{
+	return &rayReflectionMat;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetReflectionUav()
