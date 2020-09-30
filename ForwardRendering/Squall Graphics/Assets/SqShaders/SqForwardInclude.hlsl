@@ -19,13 +19,15 @@ float4 GetAlbedo(float2 uv, float2 detailUV)
 
 float4 GetSpecular(float2 uv)
 {
+	float4 specular = float4(_SpecColor.rgb, _Smoothness);
+
 #ifdef _SPEC_GLOSS_MAP
 	float4 glossMap = _TexTable[_SpecularIndex].Sample(_SamplerTable[_SamplerIndex], uv);
 	glossMap.a *= _Smoothness;
 
-	return glossMap;
+	return lerp(glossMap, specular, dot(glossMap, float4(1, 1, 1, 1)) < FLOAT_EPSILON);
 #else
-	return float4(_SpecColor.rgb, _Smoothness);
+	return specular;
 #endif
 }
 
