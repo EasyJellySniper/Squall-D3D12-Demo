@@ -119,7 +119,39 @@ void RTReflectionRayGen()
 [shader("closesthit")]
 void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    payload.reflectionColor = 0;
+    // calc hit pos
+    float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
+
+    // read indices
+    uint ibStride = 2;
+    uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
+    uint vertID = InstanceID();
+    const uint3 indices = Load3x16BitIndices(pIdx, vertID + 1);
+
+    // init v2f 
+    RayV2F v2f = (RayV2F)0;
+    v2f.vertex = DispatchRaysIndex().xy + 0.5f;
+
+    // uv
+    v2f.tex.xy = GetHitUV(indices, vertID, attr);
+    v2f.tex.zw = GetHitUV2(indices, vertID, attr);
+
+    // calc detail uv
+    float2 detailUV = lerp(v2f.tex.xy, v2f.tex.zw, _DetailUV);
+    detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
+    v2f.tex.zw = detailUV;
+    v2f.tex.xy = v2f.tex.xy *_MainTex_ST.xy + _MainTex_ST.zw;
+
+    // world position & normal
+    v2f.worldPos = hitPos;
+    v2f.normal = GetHitNormal(indices, vertID, attr);
+
+    // calc TBN for bump mapping
+    float4 tangent = GetHitTangent(indices, vertID, attr);
+    v2f.worldToTangent = CreateTBN(v2f.normal, tangent);
+
+    float4 result = RayForwardPass(v2f, payload.isTransparent);
+    payload.reflectionColor = result.rgb;
 }
 
 [shader("anyhit")]

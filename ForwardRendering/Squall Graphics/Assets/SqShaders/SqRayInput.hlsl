@@ -1,6 +1,8 @@
 #ifndef SQRAYINPUT
 #define SQRAYINPUT
 
+#include "Assets/SqShaders/SqForwardInclude.hlsl"
+
 // ray tracing hit group & local rootsignature, share definition for all ray tracing shader
 #pragma sq_hitgroup SqRayHitGroup
 #pragma sq_rayrootsiglocal SqRootSigLocal
@@ -24,6 +26,15 @@ RaytracingAccelerationStructure _SceneAS : register(t0, space2);
 StructuredBuffer<VertexInput> _Vertices[] : register(t0, space3);
 ByteAddressBuffer _Indices[] : register(t0, space4);
 StructuredBuffer<SubMesh> _SubMesh : register(t0, space5);
+
+struct RayV2F
+{
+    float2 vertex;
+    float4 tex;
+    float3 worldPos;
+    float3 normal;
+    float3x3 worldToTangent;
+};
 
 uint3 Load3x16BitIndices(uint offsetBytes, uint indexID)
 {
@@ -110,6 +121,14 @@ float4 GetHitTangent(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttr
     return tangent[0] +
         attr.barycentrics.x * (tangent[1] - tangent[0]) +
         attr.barycentrics.y * (tangent[2] - tangent[0]);
+}
+
+// forward pass for ray tracing
+float4 RayForwardPass(RayV2F _v2f, int _isTransparent)
+{
+    float4 output = 0;
+
+    return output;
 }
 
 #endif
