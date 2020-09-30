@@ -11,6 +11,13 @@
 #pragma sq_rtshaderconfig RTReflectionConfig
 #pragma sq_rtpipelineconfig RTReflectionPipelineConfig
 
+// keyword
+#pragma sq_keyword _SPEC_GLOSS_MAP
+#pragma sq_keyword _EMISSION
+#pragma sq_keyword _NORMAL_MAP
+#pragma sq_keyword _DETAIL_MAP
+#pragma sq_keyword _DETAIL_NORMAL_MAP
+
 GlobalRootSignature RTReflectionRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output

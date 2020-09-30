@@ -14,7 +14,14 @@ void RayReflection::Init(ID3D12Resource* _rayReflection)
 	rayReflectionSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, false, false, false));
 
 	// compile shader & material
-	Shader* rayReflectionShader = ShaderManager::Instance().CompileShader(L"RayTracingReflection.hlsl");
+	D3D_SHADER_MACRO rayReflectionMacro[] = { "_SPEC_GLOSS_MAP","1"
+		,"_EMISSION","1"
+		,"_NORMAL_MAP","1"
+		,"_DETAIL_MAP","1"
+		,"_DETAIL_NORMAL_MAP","1"
+		,NULL,NULL };
+
+	Shader* rayReflectionShader = ShaderManager::Instance().CompileShader(L"RayTracingReflection.hlsl", rayReflectionMacro);
 	if (rayReflectionShader != nullptr)
 	{
 		rayReflectionMat = MaterialManager::Instance().CreateRayTracingMat(rayReflectionShader);

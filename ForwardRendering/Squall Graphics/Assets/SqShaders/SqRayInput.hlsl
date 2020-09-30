@@ -70,6 +70,20 @@ float2 GetHitUV(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttribute
         attr.barycentrics.y * (uv[2] - uv[0]);
 }
 
+float2 GetHitUV2(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttributes attr)
+{
+    // get uv
+    float2 uv[3];
+    uv[0] = _Vertices[vertID][indices[0]].uv2;
+    uv[1] = _Vertices[vertID][indices[1]].uv2;
+    uv[2] = _Vertices[vertID][indices[2]].uv2;
+
+    // interpolate uv according to barycentric coordinate
+    return uv[0] +
+        attr.barycentrics.x * (uv[1] - uv[0]) +
+        attr.barycentrics.y * (uv[2] - uv[0]);
+}
+
 float3 GetHitNormal(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttributes attr)
 {
     // get uv
