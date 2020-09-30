@@ -47,7 +47,7 @@ cbuffer SystemConstant : register(b0)
 	float4x4 SQ_MATRIX_V;
 	float4 _AmbientGround;
 	float4 _AmbientSky;
-	float4 _CameraPos;	// w for padding
+	float4 _CameraPos;	// w for reflection distance
 	float4 _ScreenSize; // w,h,1/w,1/h
 	float _FarZ;
 	float _NearZ;
@@ -67,7 +67,6 @@ cbuffer SystemConstant : register(b0)
 	int _NormalRTIndex;
 	int _TileCountX;	// forward+ tile
 	int _TileCountY;
-	float _ReflectionDistance;
 };
 
 cbuffer ObjectConstant : register(b1)

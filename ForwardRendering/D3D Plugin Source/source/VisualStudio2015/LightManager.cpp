@@ -130,7 +130,7 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.skyIntensity = skyData.skyIntensity;
 	_sc.collectShadowSampler = rayShadowData.collectShadowSampler;
 	_sc.rayIndex = rayShadowData.rtShadowSrv;
-	_sc.reflectionDistance = reflectionDistance;
+	_sc.cameraPos.w = reflectionDistance;
 
 	forwardPlus.GetTileCount(_sc.tileCountX, _sc.tileCountY);
 
