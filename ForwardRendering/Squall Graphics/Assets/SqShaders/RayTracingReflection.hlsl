@@ -1,3 +1,5 @@
+#define RAY_SHADER
+
 // need assign relative path for dxc compiler with forward slash
 #include "Assets/SqShaders/SqInput.hlsl"
 #include "Assets/SqShaders/SqRayInput.hlsl"

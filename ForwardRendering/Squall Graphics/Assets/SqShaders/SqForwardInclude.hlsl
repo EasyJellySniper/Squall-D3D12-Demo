@@ -4,11 +4,11 @@
 
 float4 GetAlbedo(float2 uv, float2 detailUV)
 {
-	float4 albedo = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_SamplerIndex], uv) * _Color;
+	float4 albedo = SQ_SAMPLE_TEXTURE(_DiffuseIndex, _SamplerIndex, uv) * _Color;
 
 #ifdef _DETAIL_MAP
-	float mask = _TexTable[_DetailMaskIndex].Sample(_SamplerTable[_SamplerIndex], uv).a;
-	float4 detailAlbedo = _TexTable[_DetailAlbedoIndex].Sample(_SamplerTable[_SamplerIndex], detailUV);
+	float mask = SQ_SAMPLE_TEXTURE(_DetailMaskIndex, _SamplerIndex, uv).a;
+	float4 detailAlbedo = SQ_SAMPLE_TEXTURE(_DetailAlbedoIndex, _SamplerIndex, detailUV);
 
 	float4 colorSpaceDouble = float4(4.59479380, 4.59479380, 4.59479380, 2.0);
 	albedo.rgb *= lerp(float3(1, 1, 1), detailAlbedo.rgb * colorSpaceDouble.rgb, mask);
@@ -22,7 +22,7 @@ float4 GetSpecular(float2 uv)
 	float4 specular = float4(_SpecColor.rgb, _Smoothness);
 
 #ifdef _SPEC_GLOSS_MAP
-	float4 glossMap = _TexTable[_SpecularIndex].Sample(_SamplerTable[_SamplerIndex], uv);
+	float4 glossMap = SQ_SAMPLE_TEXTURE(_SpecularIndex, _SamplerIndex, uv);
 	glossMap.a *= _Smoothness;
 
 	return lerp(glossMap, specular, dot(glossMap, float4(1, 1, 1, 1)) < FLOAT_EPSILON);
@@ -60,7 +60,7 @@ float3 BlendNormals(float3 n1, float3 n2)
 float3 GetBumpNormal(float2 uv, float2 detailUV, float3 normal, float3x3 tbn = 0)
 {
 #ifdef _NORMAL_MAP
-	float4 packNormal = _TexTable[_NormalIndex].Sample(_SamplerTable[_SamplerIndex], uv);
+	float4 packNormal = SQ_SAMPLE_TEXTURE(_NormalIndex, _SamplerIndex, uv);
 
 	[branch]
 	if (dot(packNormal, float4(1, 1, 1, 1)) < FLOAT_EPSILON)
@@ -69,8 +69,8 @@ float3 GetBumpNormal(float2 uv, float2 detailUV, float3 normal, float3x3 tbn = 0
 	float3 normalTangent = UnpackScaleNormalMap(packNormal, _BumpScale);
 
 #ifdef _DETAIL_NORMAL_MAP
-	float mask = _TexTable[_DetailMaskIndex].Sample(_SamplerTable[_SamplerIndex], uv).a;
-	float4 packDetailNormal = _TexTable[_DetailNormalIndex].Sample(_SamplerTable[_SamplerIndex], detailUV);
+	float mask = SQ_SAMPLE_TEXTURE(_DetailMaskIndex, _SamplerIndex, uv).a;
+	float4 packDetailNormal = SQ_SAMPLE_TEXTURE(_DetailNormalIndex, _SamplerIndex, detailUV);
 
 	[branch]
 	if (dot(packDetailNormal, float4(1, 1, 1, 1)) < FLOAT_EPSILON)
@@ -89,14 +89,14 @@ float3 GetBumpNormal(float2 uv, float2 detailUV, float3 normal, float3x3 tbn = 0
 
 float GetOcclusion(float2 uv)
 {
-	float o = lerp(1, _TexTable[_OcclusionIndex].Sample(_SamplerTable[_SamplerIndex], uv).g, _OcclusionIndex > 0);
+	float o = lerp(1, SQ_SAMPLE_TEXTURE(_OcclusionIndex, _SamplerIndex, uv).g, _OcclusionIndex > 0);
 	return lerp(1, o, _OcclusionStrength);
 }
 
 float3 GetEmission(float2 uv)
 {
 #ifdef _EMISSION
-	float3 emission = _TexTable[_EmissionIndex].Sample(_SamplerTable[_SamplerIndex], uv).rgb;
+	float3 emission = SQ_SAMPLE_TEXTURE(_EmissionIndex, _SamplerIndex, uv).rgb;
 	return emission * _EmissionColor.rgb;
 #else
 	return 0;

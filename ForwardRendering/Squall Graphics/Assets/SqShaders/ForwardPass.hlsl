@@ -84,7 +84,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	#endif
 			);
 #else
-	float3 bumpNormal = _TexTable[_ColorRTIndex].Sample(_SamplerTable[_CollectShadowSampler], screenUV).rgb;
+	float3 bumpNormal = SQ_SAMPLE_TEXTURE(_ColorRTIndex, _CollectShadowSampler, screenUV).rgb;
 #endif
 
 	// occlusion 
@@ -94,7 +94,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	SqGI gi = CalcGI(bumpNormal, occlusion);
 
 	// BRDF
-	float shadowAtten = _TexTable[_CollectShadowIndex].Sample(_SamplerTable[_CollectShadowSampler], screenUV).r;
+	float shadowAtten = SQ_SAMPLE_TEXTURE(_CollectShadowIndex, _CollectShadowSampler, screenUV).r;
 
 	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, i.vertex.xy, shadowAtten, gi);
 

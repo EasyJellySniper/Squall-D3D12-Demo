@@ -2,6 +2,7 @@
 #define SQRAYINPUT
 
 #include "Assets/SqShaders/SqForwardInclude.hlsl"
+#include "Assets/SqShaders/SqLight.hlsl"
 
 // ray tracing hit group & local rootsignature, share definition for all ray tracing shader
 #pragma sq_hitgroup SqRayHitGroup
@@ -124,10 +125,35 @@ float4 GetHitTangent(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttr
 }
 
 // forward pass for ray tracing
-float4 RayForwardPass(RayV2F _v2f, int _isTransparent)
+// the calculation should be sync with ForwardPass.hlsl
+float4 RayForwardPass(RayV2F i, int _isTransparent)
 {
-    float4 output = 0;
+    float2 screenUV = i.vertex.xy * _ScreenSize.zw;
+    float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
 
+    // no clip function here , return 0 instead
+    [branch]
+    if (diffuse.a - _CutOff < 0)
+        return 0;
+
+    // specular
+    float4 specular = GetSpecular(i.tex.xy);
+    diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
+
+    // normal
+    float3 bumpNormal = GetBumpNormal(i.tex.xy, i.tex.zw, i.normal, i.worldToTangent);
+    float occlusion = GetOcclusion(i.tex.xy);
+    SqGI gi = CalcGI(bumpNormal, occlusion);
+
+    // BRDF
+    float shadowAtten = _TexTable[_CollectShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], screenUV, 0).r;
+    diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, i.vertex.xy, shadowAtten, gi);
+
+    // emission
+    float3 emission = GetEmission(i.tex.xy);
+
+    float4 output = diffuse;
+    output.rgb += emission;
     return output;
 }
 

@@ -137,4 +137,12 @@ int GetPointLightOffset(uint _index)
 	return _index * (_MaxPointLight * 4 + 4);
 }
 
+#define SQ_SAMPLE_TEXTURE_LEVEL(x,y,z,w) _TexTable[x].SampleLevel(_SamplerTable[y], z, w)
+
+#if defined(RAY_SHADER)
+	#define SQ_SAMPLE_TEXTURE(x,y,z) SQ_SAMPLE_TEXTURE_LEVEL(x,y,z,0)
+#else
+	#define SQ_SAMPLE_TEXTURE(x,y,z) _TexTable[x].Sample(_SamplerTable[y], z)
+#endif
+
 #endif
