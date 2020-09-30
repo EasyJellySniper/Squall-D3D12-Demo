@@ -148,6 +148,15 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular;
 }
 
+float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float shadowAtten, SqGI gi)
+{
+	// directional light only
+	float3 dirSpecular = 0;
+	float3 dirDiffuse = AccumulateDirLight(normal, worldPos, specColor, smoothness, dirSpecular, shadowAtten);
+
+	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular;
+}
+
 SqGI CalcGI(float3 normal, float occlusion)
 {
 	SqGI gi = (SqGI)0;

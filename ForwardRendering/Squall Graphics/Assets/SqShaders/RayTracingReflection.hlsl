@@ -132,7 +132,6 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
 
     // init v2f 
     RayV2F v2f = (RayV2F)0;
-    v2f.vertex = DispatchRaysIndex().xy + 0.5f;
 
     // uv
     v2f.tex.xy = GetHitUV(indices, vertID, attr);

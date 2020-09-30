@@ -30,7 +30,6 @@ StructuredBuffer<SubMesh> _SubMesh : register(t0, space5);
 
 struct RayV2F
 {
-    float2 vertex;
     float4 tex;
     float3 worldPos;
     float3 normal;
@@ -128,7 +127,6 @@ float4 GetHitTangent(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttr
 // the calculation should be sync with ForwardPass.hlsl
 float4 RayForwardPass(RayV2F i, int _isTransparent)
 {
-    float2 screenUV = i.vertex.xy * _ScreenSize.zw;
     float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
 
     // no clip function here , return 0 instead
@@ -146,8 +144,7 @@ float4 RayForwardPass(RayV2F i, int _isTransparent)
     SqGI gi = CalcGI(bumpNormal, occlusion);
 
     // BRDF
-    float shadowAtten = _TexTable[_CollectShadowIndex].SampleLevel(_SamplerTable[_CollectShadowSampler], screenUV, 0).r;
-    diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, i.vertex.xy, shadowAtten, gi);
+    diffuse.rgb = LightBRDFSimple(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, 1, gi);
 
     // emission
     float3 emission = GetEmission(i.tex.xy);
