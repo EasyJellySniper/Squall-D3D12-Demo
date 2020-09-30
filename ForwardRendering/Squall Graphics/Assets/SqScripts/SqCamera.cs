@@ -45,7 +45,8 @@ public class SqCamera : MonoBehaviour
         WireFrame = 1,
         Depth,
         ForwardPass,
-        Normal
+        Normal,
+        Reflection
     }
 
     /// <summary>
@@ -204,6 +205,10 @@ public class SqCamera : MonoBehaviour
         else if(renderMode == RenderMode.Normal)
         {
             Graphics.Blit(normalTarget, destination);
+        }
+        else if(renderMode == RenderMode.Reflection)
+        {
+            Graphics.Blit(SqLightManager.Instace.reflectionRT, destination);
         }
         else
         {
