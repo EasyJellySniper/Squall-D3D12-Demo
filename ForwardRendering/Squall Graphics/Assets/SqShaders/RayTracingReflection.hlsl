@@ -8,7 +8,6 @@
 #pragma sq_rayrootsig RTReflectionRootSig
 #pragma sq_raygen RTReflectionRayGen
 #pragma sq_closesthit RTReflectionClosestHit
-#pragma sq_anyhit RTReflectionAnyHit
 #pragma sq_miss RTReflectionMiss
 #pragma sq_rtshaderconfig RTReflectionConfig
 #pragma sq_rtpipelineconfig RTReflectionPipelineConfig
@@ -40,7 +39,7 @@ GlobalRootSignature RTReflectionRootSig =
 
 TriangleHitGroup SqRayHitGroup =
 {
-    "RTReflectionAnyHit",      // AnyHit
+    "",      // AnyHit
     "RTReflectionClosestHit"   // ClosestHit
 };
 
@@ -156,13 +155,6 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
 
     // lerp between sky color & reflection color by alpha
     payload.reflectionColor = lerp(sky, result.rgb, result.a);
-}
-
-[shader("anyhit")]
-void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
-{
-    // accept hit so that system goes to closet hit
-    AcceptHitAndEndSearch();
 }
 
 [shader("miss")]
