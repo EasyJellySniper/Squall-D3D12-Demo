@@ -153,7 +153,10 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
     v2f.worldToTangent = CreateTBN(v2f.normal, tangent);
 
     float4 result = RayForwardPass(v2f, payload.isTransparent);
-    payload.reflectionColor = result.rgb;
+    float3 sky = _SkyCube.SampleLevel(_SkySampler, WorldRayDirection(), 0).rgb * _SkyIntensity;
+
+    // lerp between sky color & reflection color by alpha
+    payload.reflectionColor = lerp(sky, result.rgb, result.a);
 }
 
 [shader("anyhit")]
