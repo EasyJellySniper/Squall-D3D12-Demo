@@ -49,14 +49,16 @@ float3 SchlickFresnel(float3 specColor, float ldotH)
 
 float BlinnPhong(float m, float ndotH)
 {
-	return pow(ndotH, m);
+	m *= 256.0f;
+	float n = (m + 4.0f) / 4.0f;
+
+	return pow(ndotH, m) * n;
 }
 
 //   BRDF = Fresnel & Blinn Phong
 //   I = BRDF * NdotL
 LightResult AccumulateLight(SqLight light, float3 normal, float3 worldPos, float3 specColor, float smoothness, float shadowAtten)
 {
-	float roughness = 1 - smoothness;
 	float3 viewDir = -normalize(worldPos - _CameraPos.xyz);
 
 	LightResult result = (LightResult)0;
@@ -74,14 +76,14 @@ LightResult AccumulateLight(SqLight light, float3 normal, float3 worldPos, float
 	// calc fresnel & blinn phong
 	float3 lightColor = light.color.rgb * light.intensity * shadowAtten * lightAtten;
 	float3 lightDir = -LightDir(light, worldPos);
-	float3 halfDir = (viewDir + lightDir) / (length(viewDir + lightDir) + 0.00001f);	// safe normalize
+	float3 halfDir = (viewDir + lightDir) / (length(viewDir + lightDir) + FLOAT_EPSILON);	// safe normalize
 
 	float ndotL = saturate(dot(normal, lightDir));
 	float ldotH = saturate(dot(lightDir, halfDir));
 	float ndotH = saturate(dot(normal, halfDir));
 
 	result.diffuse = lightColor * ndotL;
-	result.specular = lightColor * SchlickFresnel(specColor, ldotH) * BlinnPhong(roughness, ndotH) * ndotL * 0.25f;
+	result.specular = lightColor * SchlickFresnel(specColor, ldotH) * BlinnPhong(smoothness, ndotH) * ndotL * 0.25f;
 
 	return result;
 }
