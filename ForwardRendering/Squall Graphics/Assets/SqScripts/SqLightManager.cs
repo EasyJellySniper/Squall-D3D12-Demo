@@ -72,15 +72,10 @@ public class SqLightManager : MonoBehaviour
         int downSample = 1;
 
         // create collect shadows 
-        collectShadows = new RenderTexture(Screen.width >> downSample, Screen.height >> downSample, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear); 
-        collectShadows.name = "Collect Shadows";
-        collectShadows.Create();
+        collectShadows = SqUtility.CreateRT(Screen.width >> downSample, Screen.height >> downSample, 0, RenderTextureFormat.ARGBHalf, "Collect Shadows");
 
         // create reflection rt
-        reflectionRT = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-        reflectionRT.enableRandomWrite = true;  // can be both UAV/SRV
-        reflectionRT.name = "Reflection RT";
-        reflectionRT.Create();
+        reflectionRT = SqUtility.CreateRT(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBHalf, "Reflection RT", true);
 
         InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, collectShadows.GetNativeTexturePtr(), reflectionRT.GetNativeTexturePtr());
     }

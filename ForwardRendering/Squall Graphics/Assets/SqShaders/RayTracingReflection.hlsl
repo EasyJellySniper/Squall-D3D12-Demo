@@ -46,7 +46,7 @@ TriangleHitGroup SqRayHitGroup =
 
 RaytracingShaderConfig RTReflectionConfig =
 {
-    16, // max payload size - 4float
+    12, // max payload size - 3float
     8   // max attribute size - 2float
 };
 
@@ -58,7 +58,6 @@ RaytracingPipelineConfig RTReflectionPipelineConfig =
 struct RayPayload
 {
     float3 reflectionColor;
-    int isTransparent;
 };
 
 RWTexture2D<float4> _OutputReflection : register(u0);
@@ -152,7 +151,7 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
     tangent.xyz = mul((float3x3)ObjectToWorld3x4(), tangent.xyz);
     v2f.worldToTangent = CreateTBN(v2f.normal, tangent);
 
-    float4 result = RayForwardPass(v2f, payload.isTransparent);
+    float4 result = RayForwardPass(v2f);
     float3 sky = _SkyCube.SampleLevel(_SkySampler, WorldRayDirection(), 0).rgb * _SkyIntensity;
 
     // lerp between sky color & reflection color by alpha
@@ -162,9 +161,6 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
 [shader("anyhit")]
 void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // mark hit transparent
-    payload.isTransparent = 1;
-
     // accept hit so that system goes to closet hit
     AcceptHitAndEndSearch();
 }

@@ -25,10 +25,11 @@ public class SqUtility
     /// <param name="_h">height</param>
     /// <param name="_d">depth</param>
     /// <param name="_format">format</param>
-    public static RenderTexture CreateRT(int _w, int _h, int _d, RenderTextureFormat _format, string _name)
+    public static RenderTexture CreateRT(int _w, int _h, int _d, RenderTextureFormat _format, string _name, bool _uav = false)
     {
         RenderTexture rt = new RenderTexture(_w, _h, _d, _format, RenderTextureReadWrite.Linear);
         rt.name = _name;
+        rt.enableRandomWrite = _uav;
         rt.Create();
 
         return rt;
