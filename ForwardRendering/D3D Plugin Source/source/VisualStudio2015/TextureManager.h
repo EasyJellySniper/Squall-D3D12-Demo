@@ -7,6 +7,13 @@ using namespace Microsoft::WRL;
 #include "Texture.h"
 #include "Sampler.h"
 
+struct DescriptorHeapData
+{
+	int uav;
+	int srv;
+	int sampler;
+};
+
 class TextureManager
 {
 public:

@@ -1,6 +1,7 @@
 #pragma once
 #include "DefaultBuffer.h"
 #include "Material.h"
+#include "TextureManager.h"
 
 class ForwardPlus
 {
@@ -25,9 +26,8 @@ private:
 	int tileSize = 32;
 	int tileCountX;
 	int tileCountY;
-	int pointLightTileUav;
-	int pointLightTileSrv;
-	int pointLightTransTileUav;
-	int pointLightTransTileSrv;
+	DescriptorHeapData pointLightTileSrv;
+	DescriptorHeapData pointLightTransTileSrv;
 	Material forwardPlusTileMat;
+
 };

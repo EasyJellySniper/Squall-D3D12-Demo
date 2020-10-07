@@ -17,6 +17,5 @@ private:
 
 	ID3D12Resource* rayReflectionSrc;
 	Material rayReflectionMat;
-	int rayReflectionUav;
-	int rayReflectionSrv;
+	DescriptorHeapData rayReflectoinSrv;
 };

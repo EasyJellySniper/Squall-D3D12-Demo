@@ -4,6 +4,7 @@
 #include "DefaultBuffer.h"
 #include "Camera.h"
 #include "ForwardPlus.h"
+#include "TextureManager.h"
 
 struct RayShadowData
 {
@@ -36,12 +37,10 @@ private:
 
 	// shadow material
 	Material collectRayShadowMat;
-	int collectShadowID;
-	int collectShadowSampler;
+	DescriptorHeapData collectShadowSrv;
 	int pcfKernel;
 
 	// ray tracing material
 	Material rtShadowMat;
-	int rtShadowUav;
-	int rtShadowSrv;
+	DescriptorHeapData rtShadowSrv;
 };

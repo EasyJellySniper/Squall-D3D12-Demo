@@ -1,13 +1,12 @@
 #include "Skybox.h"
-#include "TextureManager.h"
 #include "ShaderManager.h"
 #include "CameraManager.h"
 #include "MaterialManager.h"
 
 void Skybox::Init(ID3D12Resource* _skyboxSrc, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)
 {
-	skyboxTexId = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _skyboxSrc, TextureInfo(false, true, false, false, false));
-	skyboxSampleId = TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
+	skyboxSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _skyboxSrc, TextureInfo(false, true, false, false, false));
+	skyboxSrv.sampler = TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
 	skyMeshId = _skyMesh;
 
 	Shader* skyShader = ShaderManager::Instance().CompileShader(L"Skybox.hlsl");
@@ -49,12 +48,12 @@ SkyboxData Skybox::GetSkyboxData()
 
 D3D12_GPU_DESCRIPTOR_HANDLE Skybox::GetSkyboxTex()
 {
-	return TextureManager::Instance().GetTexHandle(skyboxTexId);
+	return TextureManager::Instance().GetTexHandle(skyboxSrv.srv);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE Skybox::GetSkyboxSampler()
 {
-	return TextureManager::Instance().GetSamplerHandle(skyboxSampleId);
+	return TextureManager::Instance().GetSamplerHandle(skyboxSrv.sampler);
 }
 
 int Skybox::GetSkyMeshID()

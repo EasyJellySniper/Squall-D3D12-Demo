@@ -10,8 +10,8 @@ void RayReflection::Init(ID3D12Resource* _rayReflection)
 	rayReflectionSrc = _rayReflection;
 
 	// register uav & srv
-	rayReflectionUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, true, false, false));
-	rayReflectionSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, false, false, false));
+	rayReflectoinSrv.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, true, false, false));
+	rayReflectoinSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, false, false, false));
 
 	// compile shader & material
 	D3D_SHADER_MACRO rayReflectionMacro[] = { "_SPEC_GLOSS_MAP","1"
@@ -104,5 +104,5 @@ Material* RayReflection::GetMaterial()
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetReflectionUav()
 {
-	return TextureManager::Instance().GetTexHandle(rayReflectionUav);
+	return TextureManager::Instance().GetTexHandle(rayReflectoinSrv.uav);
 }

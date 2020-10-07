@@ -9,6 +9,8 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "DefaultBuffer.h"
+#include "TextureManager.h"
+
 using namespace Microsoft::WRL;
 using namespace std;
 using namespace DirectX;
@@ -115,11 +117,11 @@ private:
 
 	ID3D12Resource* renderTarget[MAX_RENDER_TARGETS];
 	ID3D12Resource* depthTarget;
-	int opaqueDepthSrv;
-	int transDepthSrv;
-	int msaaDepthSrv;
-	int colorBufferSrv;
-	int normalBufferSrv;
+	DescriptorHeapData opaqueDepthSrv;
+	DescriptorHeapData transDepthSrv;
+	DescriptorHeapData msaaDepthSrv;
+	DescriptorHeapData colorBufferSrv;
+	DescriptorHeapData normalBufferSrv;
 
 	// rt desc cache
 	DXGI_FORMAT renderTargetDesc[MAX_RENDER_TARGETS];

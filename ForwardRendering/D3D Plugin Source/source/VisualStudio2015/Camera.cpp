@@ -5,7 +5,6 @@
 #include "MeshManager.h"
 #include "ShaderManager.h"
 #include "MaterialManager.h"
-#include "TextureManager.h"
 
 bool Camera::Initialize(CameraData _cameraData)
 {
@@ -189,7 +188,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
 
 D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetMsaaSrv()
 {
-	return TextureManager::Instance().GetTexHandle(msaaDepthSrv);
+	return TextureManager::Instance().GetTexHandle(msaaDepthSrv.srv);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetNormalRtv()
@@ -343,14 +342,14 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 	_sc.farZ = farZ;
 	_sc.nearZ = nearZ;
 	_sc.msaaCount = cameraData.allowMSAA;
-	_sc.depthIndex = opaqueDepthSrv;
-	_sc.transDepthIndex = transDepthSrv;
+	_sc.depthIndex = opaqueDepthSrv.srv;
+	_sc.transDepthIndex = transDepthSrv.srv;
 	_sc.screenSize.x = viewPort.Width;
 	_sc.screenSize.y = viewPort.Height;
 	_sc.screenSize.z = 1.0f / viewPort.Width;
 	_sc.screenSize.w = 1.0f / viewPort.Height;
-	_sc.colorRTIndex = colorBufferSrv;
-	_sc.normalRTIndex = normalBufferSrv;
+	_sc.colorRTIndex = colorBufferSrv.srv;
+	_sc.normalRTIndex = normalBufferSrv.srv;
 }
 
 void Camera::InitColorBuffer()
@@ -395,7 +394,7 @@ void Camera::InitColorBuffer()
 
 	// need 1 srv
 	cameraRT->InitRTV(renderTarget[RenderBufferUsage::Color], renderTargetDesc[RenderBufferUsage::Color], false);
-	colorBufferSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Color], TextureInfo(true, false, false, false, false));
+	colorBufferSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Color], TextureInfo(true, false, false, false, false));
 
 	if (cameraData.allowMSAA > 1)
 	{
@@ -435,11 +434,11 @@ void Camera::InitDepthBuffer()
 	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
 
 	cameraRT->InitDSV(depthTarget, depthTargetDesc, false);
-	opaqueDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), depthTarget, TextureInfo(true, false, false, false, false));
+	opaqueDepthSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), depthTarget, TextureInfo(true, false, false, false, false));
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa->InitDSV(msaaDepthTarget->Resource(), depthTargetDesc, true);
-		msaaDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), msaaDepthTarget->Resource(), TextureInfo(true, false, false, true, false));
+		msaaDepthSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), msaaDepthTarget->Resource(), TextureInfo(true, false, false, true, false));
 	}
 }
 
@@ -449,7 +448,7 @@ void Camera::InitTransparentDepth()
 	auto transparentDepthSrc = renderTarget[RenderBufferUsage::TransparentDepth];
 	transparentDepth = make_shared<Texture>(0, 1);
 	transparentDepth->InitDSV(transparentDepthSrc, depthTargetDesc, false);
-	transDepthSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, TextureInfo(true, false, false, false, false));
+	transDepthSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, TextureInfo(true, false, false, false, false));
 }
 
 void Camera::InitNormalBuffer()
@@ -460,7 +459,7 @@ void Camera::InitNormalBuffer()
 
 	normalRT = make_shared<Texture>(1, 0);
 	normalRT->InitRTV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::Normal], false);
-	normalBufferSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Normal], TextureInfo(true, false, false, false, false));
+	normalBufferSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Normal], TextureInfo(true, false, false, false, false));
 }
 
 bool Camera::CreatePipelineMaterial()

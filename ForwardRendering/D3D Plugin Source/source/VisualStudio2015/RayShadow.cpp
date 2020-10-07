@@ -1,5 +1,4 @@
 #include "RayShadow.h"
-#include "TextureManager.h"
 #include "ShaderManager.h"
 #include "MaterialManager.h"
 #include "GraphicManager.h"
@@ -20,7 +19,7 @@ void RayShadow::Init(void* _collectShadows)
 	// register to texture manager
 	collectShadow = make_unique<Texture>(1, 0);
 	collectShadow->InitRTV(opaqueShadowSrc, shadowFormat, false);
-	collectShadowID = TextureManager::Instance().AddNativeTexture(GetUniqueID(), opaqueShadowSrc, TextureInfo(true, false, false, false, false));
+	collectShadowSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), opaqueShadowSrc, TextureInfo(true, false, false, false, false));
 
 	// create collect shadow material
 	Shader* collectRayShader = ShaderManager::Instance().CompileShader(L"CollectRayShadow.hlsl");
@@ -29,7 +28,7 @@ void RayShadow::Init(void* _collectShadows)
 		collectRayShadowMat = MaterialManager::Instance().CreatePostMat(collectRayShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
 
-	collectShadowSampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, D3D12_FILTER_ANISOTROPIC);
+	collectShadowSrv.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, D3D12_FILTER_ANISOTROPIC);
 
 	// create ray tracing shadow uav
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
@@ -42,8 +41,8 @@ void RayShadow::Init(void* _collectShadows)
 	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// create ray tracing texture
-	rtShadowUav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadow->Resource(), TextureInfo(false, false, true, false, false));
-	rtShadowSrv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadow->Resource(), TextureInfo());
+	rtShadowSrv.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadow->Resource(), TextureInfo(false, false, true, false, false));
+	rtShadowSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadow->Resource(), TextureInfo());
 
 	// create shader & material
 	Shader* rtShadowShader = ShaderManager::Instance().CompileShader(L"RayTracingShadow.hlsl", nullptr);
@@ -190,10 +189,10 @@ void RayShadow::SetPCFKernel(int _kernel)
 RayShadowData RayShadow::GetRayShadowData()
 {
 	RayShadowData rsd;
-	rsd.collectShadowID = collectShadowID;
-	rsd.collectShadowSampler = collectShadowSampler;
+	rsd.collectShadowID = collectShadowSrv.srv;
+	rsd.collectShadowSampler = collectShadowSrv.sampler;
 	rsd.pcfKernel = pcfKernel;
-	rsd.rtShadowSrv = rtShadowSrv;
+	rsd.rtShadowSrv = rtShadowSrv.srv;
 
 	return rsd;
 }
@@ -210,7 +209,7 @@ ID3D12Resource* RayShadow::GetRayShadowSrc()
 
 int RayShadow::GetShadowIndex()
 {
-	return collectShadowID;
+	return collectShadowSrv.srv;
 }
 
 ID3D12Resource* RayShadow::GetCollectShadowSrc()
@@ -225,5 +224,5 @@ D3D12_CPU_DESCRIPTOR_HANDLE RayShadow::GetCollectShadowRtv()
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayShadow::GetRTShadowUav()
 {
-	return TextureManager::Instance().GetTexHandle(rtShadowUav);;
+	return TextureManager::Instance().GetTexHandle(rtShadowSrv.uav);
 }

@@ -4,6 +4,7 @@
 #include <vector>
 #include <wrl.h>
 #include "DefaultBuffer.h"
+#include "TextureManager.h"
 using namespace DirectX;
 using namespace std;
 using namespace Microsoft::WRL;
@@ -46,8 +47,8 @@ public:
 private:
 	MeshData meshData;
 	int instanceID;
-	int vertexBufferSrv;
-	int indexBufferSrv;
+	DescriptorHeapData vertexSrv;
+	DescriptorHeapData indexSrv;
 
 	vector<SubMesh> submeshes;
 
