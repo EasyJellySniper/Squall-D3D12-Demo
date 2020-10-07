@@ -47,6 +47,7 @@ float3 SchlickFresnel(float3 specColor, float ldotH)
 	return reflectPercent;
 }
 
+// formula from (Introduction to 3D Game Programming with DirectX 12 by Frank Luna)
 float BlinnPhong(float m, float ndotH)
 {
 	m *= 256.0f;
