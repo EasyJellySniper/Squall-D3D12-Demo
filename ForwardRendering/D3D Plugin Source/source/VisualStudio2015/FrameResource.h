@@ -50,4 +50,7 @@ struct SystemConstant
 	int normalRTIndex;
 	int tileCountX;
 	int tileCountY;
+	int reflectionRTIndex;
+	int transReflectionRTIndex;
+	int linearSampler;
 };

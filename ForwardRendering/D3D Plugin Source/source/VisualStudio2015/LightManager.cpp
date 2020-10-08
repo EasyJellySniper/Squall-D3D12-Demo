@@ -23,6 +23,8 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 	rayShadow.Init(_collectShadows);
 	rayReflection.Init((ID3D12Resource*)_reflectionSrc);
 	forwardPlus.Init(maxLightCount[LightType::Point]);
+
+	linearSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
 }
 
 void LightManager::Release()
@@ -131,6 +133,9 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.collectShadowSampler = rayShadowData.collectShadowSampler;
 	_sc.rayIndex = rayShadowData.rtShadowSrv;
 	_sc.cameraPos.w = reflectionDistance;
+	_sc.reflectionRTIndex = rayReflection.GetRayReflectionHeap().srv;
+	_sc.transReflectionRTIndex = rayReflection.GetTransRayReflectionHeap().srv;
+	_sc.linearSampler = linearSampler.sampler;
 
 	forwardPlus.GetTileCount(_sc.tileCountX, _sc.tileCountY);
 

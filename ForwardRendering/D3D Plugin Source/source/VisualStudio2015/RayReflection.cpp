@@ -13,7 +13,6 @@ void RayReflection::Init(ID3D12Resource* _rayReflection)
 	// register uav & srv & sampler
 	rayReflectoinSrv.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, true, false, false), true);
 	rayReflectoinSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, false, false, false));
-	rayReflectoinSrv.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
 
 	transRayReflectionHeap.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transRayReflection->Resource(), TextureInfo(true, false, true, false, false), true);
 	transRayReflectionHeap.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transRayReflection->Resource(), TextureInfo(true, false, false, false, false));
@@ -107,6 +106,16 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 Material* RayReflection::GetMaterial()
 {
 	return &rayReflectionMat;
+}
+
+DescriptorHeapData RayReflection::GetRayReflectionHeap()
+{
+	return rayReflectoinSrv;
+}
+
+DescriptorHeapData RayReflection::GetTransRayReflectionHeap()
+{
+	return transRayReflectionHeap;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetReflectionUav()

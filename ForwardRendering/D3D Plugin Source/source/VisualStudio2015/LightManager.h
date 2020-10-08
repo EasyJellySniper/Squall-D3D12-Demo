@@ -67,6 +67,7 @@ private:
 	RayShadow rayShadow;
 	RayReflection rayReflection;
 	float reflectionDistance;
+	DescriptorHeapData linearSampler;
 
 	// forward+ component
 	ForwardPlus forwardPlus;

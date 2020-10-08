@@ -12,6 +12,8 @@ public:
 	void Release();
 	void Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox* _skybox, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU);
 	Material* GetMaterial();
+	DescriptorHeapData GetRayReflectionHeap();
+	DescriptorHeapData GetTransRayReflectionHeap();
 
 private:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetReflectionUav();
