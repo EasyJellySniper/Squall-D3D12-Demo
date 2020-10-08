@@ -264,7 +264,7 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
         // get interpolated uv and tiling it
         float2 uvHit = GetHitUV(indices, vertID, attr);
         uvHit = uvHit * _MainTex_ST.xy + _MainTex_ST.zw;
-        alpha = _TexTable[_DiffuseIndex].SampleLevel(_SamplerTable[_SamplerIndex], uvHit, 0).a * _Color.a;
+        alpha = SQ_SAMPLE_TEXTURE_LEVEL(_DiffuseIndex, _SamplerIndex, uvHit, 0).a * _Color.a;
     }
 
     // cutoff

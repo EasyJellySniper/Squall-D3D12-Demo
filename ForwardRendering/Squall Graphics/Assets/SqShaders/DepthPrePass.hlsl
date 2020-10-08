@@ -44,7 +44,7 @@ v2f DepthPrePassVS(VertexInput i)
 float4 DepthPrePassPS(v2f i) : SV_Target
 {
 #ifdef _CUTOFF_ON
-	float alpha = _TexTable[_DiffuseIndex].Sample(_SamplerTable[_SamplerIndex], i.tex.xy).a;
+	float alpha = SQ_SAMPLE_TEXTURE(_DiffuseIndex, _SamplerIndex, i.tex.xy).a;
 	clip(alpha - _CutOff);
 #endif
 
