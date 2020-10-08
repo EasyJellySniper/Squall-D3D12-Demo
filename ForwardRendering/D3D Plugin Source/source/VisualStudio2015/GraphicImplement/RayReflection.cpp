@@ -1,9 +1,9 @@
 #include "RayReflection.h"
-#include "TextureManager.h"
-#include "ShaderManager.h"
-#include "MaterialManager.h"
-#include "GraphicManager.h"
-#include "RayTracingManager.h"
+#include "../TextureManager.h"
+#include "../ShaderManager.h"
+#include "../MaterialManager.h"
+#include "../GraphicManager.h"
+#include "../RayTracingManager.h"
 
 void RayReflection::Init(ID3D12Resource* _rayReflection)
 {

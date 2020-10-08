@@ -7,6 +7,7 @@
 
 #include "SqInput.hlsl"
 #pragma sq_compute GenerateMipmapCS
+#pragma sq_rootsig GenerateMipmapRS
 
 RWTexture2D<float4> _OutMip : register(u0);
 Texture2D<float4> _SrcMip : register(t0, space5);

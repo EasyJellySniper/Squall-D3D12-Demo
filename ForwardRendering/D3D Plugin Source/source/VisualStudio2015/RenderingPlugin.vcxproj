@@ -34,11 +34,14 @@
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DefaultBuffer.h" />
-    <ClInclude Include="ForwardPlus.h" />
     <ClInclude Include="ForwardRenderingPath.h" />
     <ClInclude Include="FrameResource.h" />
     <ClInclude Include="GameTime.h" />
     <ClInclude Include="GameTimerManager.h" />
+    <ClInclude Include="GraphicImplement\ForwardPlus.h" />
+    <ClInclude Include="GraphicImplement\RayReflection.h" />
+    <ClInclude Include="GraphicImplement\RayShadow.h" />
+    <ClInclude Include="GraphicImplement\Skybox.h" />
     <ClInclude Include="GraphicManager.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightManager.h" />
@@ -46,8 +49,6 @@
     <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshManager.h" />
-    <ClInclude Include="RayReflection.h" />
-    <ClInclude Include="RayShadow.h" />
     <ClInclude Include="RayTracingManager.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererManager.h" />
@@ -55,7 +56,6 @@
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderManager.h" />
-    <ClInclude Include="Skybox.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureManager.h" />
@@ -68,9 +68,12 @@
     <ClCompile Include="..\..\source\RenderingPlugin.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraManager.cpp" />
-    <ClCompile Include="ForwardPlus.cpp" />
     <ClCompile Include="ForwardRenderingPath.cpp" />
     <ClCompile Include="GameTimerManager.cpp" />
+    <ClCompile Include="GraphicImplement\ForwardPlus.cpp" />
+    <ClCompile Include="GraphicImplement\RayReflection.cpp" />
+    <ClCompile Include="GraphicImplement\RayShadow.cpp" />
+    <ClCompile Include="GraphicImplement\Skybox.cpp" />
     <ClCompile Include="GraphicManager.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightManager.cpp" />
@@ -78,15 +81,12 @@
     <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshManager.cpp" />
-    <ClCompile Include="RayReflection.cpp" />
-    <ClCompile Include="RayShadow.cpp" />
     <ClCompile Include="RayTracingManager.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererManager.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
-    <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureManager.cpp" />
   </ItemGroup>

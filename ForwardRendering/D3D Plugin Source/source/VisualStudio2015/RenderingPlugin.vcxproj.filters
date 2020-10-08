@@ -56,16 +56,16 @@
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="DefaultBuffer.h" />
     <ClInclude Include="RayTracingManager.h" />
-    <ClInclude Include="Skybox.h">
+    <ClInclude Include="GraphicImplement\ForwardPlus.h">
       <Filter>GraphicImplement</Filter>
     </ClInclude>
-    <ClInclude Include="ForwardPlus.h">
+    <ClInclude Include="GraphicImplement\RayReflection.h">
       <Filter>GraphicImplement</Filter>
     </ClInclude>
-    <ClInclude Include="RayShadow.h">
+    <ClInclude Include="GraphicImplement\RayShadow.h">
       <Filter>GraphicImplement</Filter>
     </ClInclude>
-    <ClInclude Include="RayReflection.h">
+    <ClInclude Include="GraphicImplement\Skybox.h">
       <Filter>GraphicImplement</Filter>
     </ClInclude>
   </ItemGroup>
@@ -95,16 +95,16 @@
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="GameTimerManager.cpp" />
     <ClCompile Include="RayTracingManager.cpp" />
-    <ClCompile Include="Skybox.cpp">
+    <ClCompile Include="GraphicImplement\ForwardPlus.cpp">
       <Filter>GraphicImplement</Filter>
     </ClCompile>
-    <ClCompile Include="ForwardPlus.cpp">
+    <ClCompile Include="GraphicImplement\RayReflection.cpp">
       <Filter>GraphicImplement</Filter>
     </ClCompile>
-    <ClCompile Include="RayShadow.cpp">
+    <ClCompile Include="GraphicImplement\RayShadow.cpp">
       <Filter>GraphicImplement</Filter>
     </ClCompile>
-    <ClCompile Include="RayReflection.cpp">
+    <ClCompile Include="GraphicImplement\Skybox.cpp">
       <Filter>GraphicImplement</Filter>
     </ClCompile>
   </ItemGroup>

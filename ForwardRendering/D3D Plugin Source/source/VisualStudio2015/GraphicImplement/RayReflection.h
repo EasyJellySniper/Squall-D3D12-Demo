@@ -1,9 +1,9 @@
 #pragma once
-#include "Material.h"
-#include "Camera.h"
+#include "../Material.h"
+#include "../Camera.h"
 #include "ForwardPlus.h"
 #include "Skybox.h"
-#include "DefaultBuffer.h"
+#include "../DefaultBuffer.h"
 
 class RayReflection
 {

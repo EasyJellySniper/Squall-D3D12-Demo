@@ -1,7 +1,7 @@
 #include "Skybox.h"
-#include "ShaderManager.h"
-#include "CameraManager.h"
-#include "MaterialManager.h"
+#include "../ShaderManager.h"
+#include "../CameraManager.h"
+#include "../MaterialManager.h"
 
 void Skybox::Init(ID3D12Resource* _skyboxSrc, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)
 {

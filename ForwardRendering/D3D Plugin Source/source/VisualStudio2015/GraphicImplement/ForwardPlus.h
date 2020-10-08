@@ -1,7 +1,7 @@
 #pragma once
-#include "DefaultBuffer.h"
-#include "Material.h"
-#include "TextureManager.h"
+#include "../DefaultBuffer.h"
+#include "../Material.h"
+#include "../TextureManager.h"
 
 class ForwardPlus
 {

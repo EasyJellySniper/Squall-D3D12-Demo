@@ -1,7 +1,7 @@
 #include "ForwardPlus.h"
-#include "GraphicManager.h"
-#include "ShaderManager.h"
-#include "MaterialManager.h"
+#include "../GraphicManager.h"
+#include "../ShaderManager.h"
+#include "../MaterialManager.h"
 
 void ForwardPlus::Init(int _maxPointLight)
 {

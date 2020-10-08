@@ -1,10 +1,10 @@
 #pragma once
 #include <DirectXMath.h>
 using namespace DirectX;
-#include "Material.h"
-#include "Renderer.h"
-#include "Sampler.h"
-#include "TextureManager.h"
+#include "../Material.h"
+#include "../Renderer.h"
+#include "../Sampler.h"
+#include "../TextureManager.h"
 
 struct SkyboxData
 {

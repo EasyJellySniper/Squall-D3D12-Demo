@@ -1,10 +1,10 @@
 #pragma once
-#include "Material.h"
-#include "Texture.h"
-#include "DefaultBuffer.h"
-#include "Camera.h"
+#include "../Material.h"
+#include "../Texture.h"
+#include "../DefaultBuffer.h"
+#include "../Camera.h"
 #include "ForwardPlus.h"
-#include "TextureManager.h"
+#include "../TextureManager.h"
 
 struct RayShadowData
 {
