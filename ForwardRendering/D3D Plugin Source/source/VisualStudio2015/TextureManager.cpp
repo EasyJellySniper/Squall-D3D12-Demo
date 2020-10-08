@@ -77,7 +77,7 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo 
 			if (i == 0)
 				nativeId = (int)textures.size() - 1;
 
-			AddTexToHeap(nativeId + i, t);
+			AddTexToHeap(nativeId + i, t, i);
 		}
 	}
 
@@ -163,7 +163,7 @@ void TextureManager::EnlargeSamplerDescriptorHeap()
 	}
 }
 
-void TextureManager::AddTexToHeap(int _index, Texture _texture)
+void TextureManager::AddTexToHeap(int _index, Texture _texture, int _mipSlice)
 {
 	// check if we need to enlarge heap
 	if (_index >= MAX_TEXTURE_NUMBER * (texHeapEnlargeCount + 1))
@@ -225,6 +225,7 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture)
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 		uavDesc.Format = _texture.GetFormat();
+		uavDesc.Texture2D.MipSlice = _mipSlice;
 
 		if (texInfo.isBuffer)
 		{

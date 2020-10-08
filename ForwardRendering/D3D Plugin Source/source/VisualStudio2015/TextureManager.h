@@ -43,7 +43,7 @@ public:
 private:
 	void EnlargeTexDescriptorHeap();
 	void EnlargeSamplerDescriptorHeap();
-	void AddTexToHeap(int _index, Texture _texture);
+	void AddTexToHeap(int _index, Texture _texture, int _mipSlice = 0);
 	void AddSamplerToHeap(int _index, Sampler _sampler);
 
 	static const int MAX_TEXTURE_NUMBER = 1000;
