@@ -36,7 +36,7 @@ void TextureManager::Release()
 	samplers.clear();
 }
 
-int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo _info)
+int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo _info, bool _uavMipmap)
 {
 	// check duplicate add
 	for (size_t i = 0; i < textures.size(); i++)
@@ -59,10 +59,27 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo 
 	t.SetFormat(desc.Format);
 	t.SetInfo(_info);
 
-	textures.push_back(t);
+	int nativeId = -1;
 
-	int nativeId = (int)textures.size() - 1;
-	AddTexToHeap(nativeId, t);
+	if (!_uavMipmap)
+	{
+		textures.push_back(t);
+		nativeId = (int)textures.size() - 1;
+		AddTexToHeap(nativeId, t);
+	}
+	else
+	{
+		// mip map chain
+		for (int i = 0; i < (int)desc.MipLevels; i++)
+		{
+			textures.push_back(t);
+
+			if (i == 0)
+				nativeId = (int)textures.size() - 1;
+
+			AddTexToHeap(nativeId + i, t);
+		}
+	}
 
 	return nativeId;
 }

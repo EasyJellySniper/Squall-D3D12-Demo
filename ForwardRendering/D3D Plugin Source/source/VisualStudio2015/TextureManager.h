@@ -33,7 +33,7 @@ public:
 
 	void Init(ID3D12Device* _device);
 	void Release();
-	int AddNativeTexture(size_t _texId, void* _texData, TextureInfo _info);
+	int AddNativeTexture(size_t _texId, void* _texData, TextureInfo _info, bool _uavMipmap = false);
 	int AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, D3D12_FILTER _filter);
 	ID3D12DescriptorHeap* GetTexHeap();
 	ID3D12DescriptorHeap* GetSamplerHeap();
