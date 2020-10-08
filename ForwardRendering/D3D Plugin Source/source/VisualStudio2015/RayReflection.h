@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "ForwardPlus.h"
 #include "Skybox.h"
+#include "DefaultBuffer.h"
 
 class RayReflection
 {
@@ -14,8 +15,12 @@ public:
 
 private:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetReflectionUav();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTransReflectionUav();
 
+	unique_ptr<DefaultBuffer> transRayReflection;
 	ID3D12Resource* rayReflectionSrc;
+
 	Material rayReflectionMat;
 	DescriptorHeapData rayReflectoinSrv;
+	DescriptorHeapData transRayReflectionHeap;
 };

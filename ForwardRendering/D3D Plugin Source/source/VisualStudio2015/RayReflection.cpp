@@ -8,10 +8,14 @@
 void RayReflection::Init(ID3D12Resource* _rayReflection)
 {
 	rayReflectionSrc = _rayReflection;
+	transRayReflection = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), rayReflectionSrc->GetDesc(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// register uav & srv
 	rayReflectoinSrv.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, true, false, false));
 	rayReflectoinSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, false, false, false));
+
+	transRayReflectionHeap.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transRayReflection->Resource(), TextureInfo(true, false, true, false, false));
+	transRayReflectionHeap.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transRayReflection->Resource(), TextureInfo(true, false, false, false, false));
 
 	// compile shader & material
 	D3D_SHADER_MACRO rayReflectionMacro[] = { "_SPEC_GLOSS_MAP","1"
@@ -31,6 +35,7 @@ void RayReflection::Init(ID3D12Resource* _rayReflection)
 void RayReflection::Release()
 {
 	rayReflectionMat.Release();
+	transRayReflection.reset();
 }
 
 void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox* _skybox, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
@@ -57,19 +62,20 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	// set material
 	_cmdList->SetComputeRootSignature(rayReflectionMat.GetRootSignature());
 	_cmdList->SetComputeRootDescriptorTable(0, GetReflectionUav());
-	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootDescriptorTable(2, _forwardPlus->GetLightCullingSrv());
-	_cmdList->SetComputeRootDescriptorTable(3, _forwardPlus->GetLightCullingTransSrv());
-	_cmdList->SetComputeRootShaderResourceView(4, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(5, _dirLightGPU);
-	_cmdList->SetComputeRootShaderResourceView(6, _pointLightGPU);
-	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(1, GetTransReflectionUav());
+	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootDescriptorTable(3, _forwardPlus->GetLightCullingSrv());
+	_cmdList->SetComputeRootDescriptorTable(4, _forwardPlus->GetLightCullingTransSrv());
+	_cmdList->SetComputeRootShaderResourceView(5, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(6, _dirLightGPU);
+	_cmdList->SetComputeRootShaderResourceView(7, _pointLightGPU);
 	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(10, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(11, RayTracingManager::Instance().GetSubMeshInfoGPU());
-	_cmdList->SetComputeRootDescriptorTable(12, _skybox->GetSkyboxTex());
-	_cmdList->SetComputeRootDescriptorTable(13, _skybox->GetSkyboxSampler());
+	_cmdList->SetComputeRootDescriptorTable(10, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(11, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(12, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootDescriptorTable(13, _skybox->GetSkyboxTex());
+	_cmdList->SetComputeRootDescriptorTable(14, _skybox->GetSkyboxSampler());
 
 	// prepare dispatch desc
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = rayReflectionMat.GetDispatchRayDesc((UINT)rayReflectionSrc->GetDesc().Width, rayReflectionSrc->GetDesc().Height);
@@ -105,4 +111,9 @@ Material* RayReflection::GetMaterial()
 D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetReflectionUav()
 {
 	return TextureManager::Instance().GetTexHandle(rayReflectoinSrv.uav);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetTransReflectionUav()
+{
+	return TextureManager::Instance().GetTexHandle(transRayReflectionHeap.uav);
 }

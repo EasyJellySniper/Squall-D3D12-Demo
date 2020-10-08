@@ -22,6 +22,7 @@
 GlobalRootSignature RTReflectionRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
+    "DescriptorTable( UAV( u1 , numDescriptors = 1) ),"     // raytracing output (transparent
     "CBV( b0 ),"                        // system constant
     "DescriptorTable(SRV(t3, space = 1, numDescriptors=1)),"    // point light tile result (opaque)
     "DescriptorTable(SRV(t4, space = 1, numDescriptors=1)),"    // point light tile result (transparent)
@@ -60,6 +61,7 @@ struct RayPayload
 };
 
 RWTexture2D<float4> _OutputReflection : register(u0);
+RWTexture2D<float4> _OutputReflectionTrans : register(u1);
 
 RayPayload ShootReflectionRay(float3 normal, float depth, float2 screenUV)
 {
@@ -106,14 +108,15 @@ void RTReflectionRayGen()
     float3 transNormal = _TexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
 
     RayPayload opaqueResult = ShootReflectionRay(opaqueNormal, opaqueDepth, screenUV);
-    //RayPayload transResult = (RayPayload)0;
-    //if (opaqueDepth != transDepth)
-    //{
-    //    transResult = ShootReflectionRay(transNormal, transDepth, screenUV);
-    //}
+    RayPayload transResult = (RayPayload)0;
+    if (opaqueDepth != transDepth)
+    {
+        transResult = ShootReflectionRay(transNormal, transDepth, screenUV);
+    }
 
     // output
     _OutputReflection[DispatchRaysIndex().xy].rgb = opaqueResult.reflectionColor;
+    _OutputReflectionTrans[DispatchRaysIndex().xy].rgb = transResult.reflectionColor;
 }
 
 [shader("closesthit")]
