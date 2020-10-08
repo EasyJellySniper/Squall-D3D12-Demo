@@ -76,7 +76,7 @@ public class SqLightManager : MonoBehaviour
 
         // create reflection rt
         int reflSize = Mathf.ClosestPowerOfTwo(Screen.width) >> 1;
-        reflectionRT = SqUtility.CreateRT(reflSize, reflSize, 0, RenderTextureFormat.ARGBHalf, "Reflection RT", true);
+        reflectionRT = SqUtility.CreateRT(reflSize, reflSize, 0, RenderTextureFormat.ARGBHalf, "Reflection RT", true, true);
 
         InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, collectShadows.GetNativeTexturePtr(), reflectionRT.GetNativeTexturePtr());
     }
