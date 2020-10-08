@@ -186,19 +186,6 @@ RayResult TracePointLight(int tileOffset, float opaqueDepth, float transDepth, f
         }
     }
 
-
-    // old test code
-    //for (int i = 0; i < _NumPointLight; i++)
-    //{
-    //    SqLight light = _SqPointLight[i];
-    //    result = ShootRayFromDepth(opaqueDepth, opaqueNormal, screenUV, light, result);
-    //    if (opaqueDepth != transDepth)
-    //    {
-    //        // shoot ray for transparent object if necessary
-    //        result = ShootRayFromDepth(transDepth, transNormal, screenUV, light, result);
-    //    }
-    //}
-
     return result;
 }
 
