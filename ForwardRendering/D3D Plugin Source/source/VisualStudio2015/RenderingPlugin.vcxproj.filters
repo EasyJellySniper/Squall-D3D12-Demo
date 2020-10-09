@@ -110,7 +110,9 @@
     <ClCompile Include="GraphicImplement\Skybox.cpp">
       <Filter>GraphicImplement</Filter>
     </ClCompile>
-    <ClCompile Include="GraphicImplement\GenerateMipmap.cpp" />
+    <ClCompile Include="GraphicImplement\GenerateMipmap.cpp">
+      <Filter>GraphicImplement</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLEW">

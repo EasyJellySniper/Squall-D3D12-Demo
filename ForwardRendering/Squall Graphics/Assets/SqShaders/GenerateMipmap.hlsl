@@ -23,6 +23,9 @@ void GenerateMipmapCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : SV
 	float2 uv = _globalID.xy + 0.5f;
 	uv /= float2(w, h);
 
-	float4 src = _SrcMip.SampleLevel(_SamplerTable[_LinearSampler], uv, 1);
-	_OutMip[1][_globalID.xy / 2] = src;
+	float4 src = _SrcMip.SampleLevel(_SamplerTable[_LinearSampler], uv, 0);
+	for (int n = 1; n < _NumMipLevel; n++)
+	{
+		_OutMip[n][_globalID.xy >> n] = src;
+	}
 }

@@ -4,6 +4,7 @@
 #include "../MaterialManager.h"
 #include "../GraphicManager.h"
 #include "../RayTracingManager.h"
+#include "GenerateMipmap.h"
 
 void RayReflection::Init(ID3D12Resource* _rayReflection)
 {
@@ -51,13 +52,14 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// resource transition (normal/transnormal/depth/transdepth/uav
-	D3D12_RESOURCE_BARRIER barriers[5];
+	D3D12_RESOURCE_BARRIER barriers[6];
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetNormalSrc(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	barriers[3] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	barriers[4] = CD3DX12_RESOURCE_BARRIER::Transition(rayReflectionSrc, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	_cmdList->ResourceBarrier(5, barriers);
+	barriers[4] = CD3DX12_RESOURCE_BARRIER::Transition(rayReflectionSrc, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	barriers[5] = CD3DX12_RESOURCE_BARRIER::Transition(transRayReflection->Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	_cmdList->ResourceBarrier(6, barriers);
 
 	// set material
 	_cmdList->SetComputeRootSignature(rayReflectionMat.GetRootSignature());
@@ -91,13 +93,22 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	dxrCmd->SetPipelineState1(rayReflectionMat.GetDxcPSO());
 	dxrCmd->DispatchRays(&dispatchDesc);
 
+	// generate mipmap for reflection rt
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(rayReflectionSrc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(transRayReflection->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	_cmdList->ResourceBarrier(2, barriers);
+
+	GenerateMipmap::Generate(_cmdList, rayReflectionSrc->GetDesc(), TextureManager::Instance().GetTexHandle(rayReflectoinSrv.srv), TextureManager::Instance().GetTexHandle(rayReflectoinSrv.uav));
+	GenerateMipmap::Generate(_cmdList, rayReflectionSrc->GetDesc(), TextureManager::Instance().GetTexHandle(transRayReflectionHeap.srv), TextureManager::Instance().GetTexHandle(transRayReflectionHeap.uav));
+
 	// resource transition back
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetNormalSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	barriers[3] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetTransparentDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	barriers[4] = CD3DX12_RESOURCE_BARRIER::Transition(rayReflectionSrc, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	_cmdList->ResourceBarrier(5, barriers);
+	barriers[5] = CD3DX12_RESOURCE_BARRIER::Transition(transRayReflection->Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	_cmdList->ResourceBarrier(6, barriers);
 
 	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingReflection]);
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
