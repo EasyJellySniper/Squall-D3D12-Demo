@@ -31,15 +31,20 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 	_cmdList->SetComputeRootSignature(generateMat.GetRootSignatureCompute());
 	_cmdList->SetComputeRootDescriptorTable(0, _outMip);
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRoot32BitConstant(2, _srcDesc.MipLevels, 0);
 	_cmdList->SetComputeRootDescriptorTable(3, _input);
 	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 	// compute work
 	UINT computeKernel = 8;
 
-	if (_srcDesc.Width < computeKernel || _srcDesc.Height < computeKernel)
-		_cmdList->Dispatch(1, 1, 1);
-	else
-		_cmdList->Dispatch((UINT)_srcDesc.Width / computeKernel, (UINT)_srcDesc.Height / computeKernel, 1);
+	for (int i = 0; i < _srcDesc.MipLevels; i += 3)
+	{
+		// setup start mip level
+		_cmdList->SetComputeRoot32BitConstant(2, i, 0);
+
+		if ((_srcDesc.Width >> i) < computeKernel || (_srcDesc.Height >> i) < computeKernel)
+			_cmdList->Dispatch(1, 1, 1);
+		else
+			_cmdList->Dispatch((UINT)(_srcDesc.Width >> i) / computeKernel, (UINT)(_srcDesc.Height >> i) / computeKernel, 1);
+	}
 }
