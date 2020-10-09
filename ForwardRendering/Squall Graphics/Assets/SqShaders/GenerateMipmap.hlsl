@@ -37,6 +37,8 @@ void GenerateMipmapCS(uint3 _globalID : SV_DispatchThreadID, uint _groupIdx : SV
 {
 	uint w, h;
 	_SrcMip.GetDimensions(w, h);
+	w = w >> _StartMip;
+	h = h >> _StartMip;
 
 	float2 uv = _globalID.xy + 0.5f;
 	uv /= float2(w, h);
