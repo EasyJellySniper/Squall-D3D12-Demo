@@ -139,6 +139,11 @@ public class SqMeshRenderer : MonoBehaviour
                 macro.Add("_DETAIL_NORMAL_MAP");
             }
 
+            if (mats[i].GetFloat("_UseFresnel") > 0)
+            {
+                macro.Add("_FRESNEL_EFFECT");
+            }
+
             AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode, srcBlend, dstBlend, "ForwardPass.hlsl", macro.Count, macro.ToArray());
             macro.Clear();
         }

@@ -162,7 +162,12 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	float nv = abs(dot(normal, view));
 
 	float specFade = smoothness * smoothness;
+
+#if defined(_FRESNEL_EFFECT)
 	float3 giSpec = specFade * SchlickFresnelLerp(specColor, gi.indirectSpecular, nv);
+#else
+	float3 giSpec = specFade * gi.indirectSpecular * SchlickFresnel(specColor, nv);
+#endif
 
 	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular + giSpec;
 }

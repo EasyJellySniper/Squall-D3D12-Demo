@@ -22,6 +22,7 @@
 #pragma sq_keyword _DETAIL_MAP
 #pragma sq_keyword _DETAIL_NORMAL_MAP
 #pragma sq_keyword _TRANSPARENT_ON
+#pragma sq_keyword _FRESNEL_EFFECT
 
 struct v2f
 {

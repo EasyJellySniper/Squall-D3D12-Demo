@@ -29,6 +29,7 @@ Shader "Custom Standard (Specular setup)"
 
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
+        [ToggleOff]_UseFresnel("Use Fresnel", Float) = 0
 
         _DetailMask("Detail Mask", 2D) = "white" {}
 
