@@ -136,13 +136,20 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	uint tileIndex = tileX + tileY * _TileCountX;
 	int tileOffset = GetPointLightOffset(tileIndex);
 
+	// dir light
 	float3 dirSpecular = 0;
 	float3 dirDiffuse = AccumulateDirLight(normal, worldPos, specColor, smoothness, dirSpecular, shadowAtten);
 
+	// point light
 	float3 pointSpecular = 0;
 	float3 pointDiffuse = AccumulatePointLight(tileOffset, normal, worldPos, specColor, smoothness, pointSpecular, shadowAtten);
 
-	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular;
+	// GI specular
+	float3 incident = normalize(worldPos - _CameraPos.xyz);
+	float3 r = reflect(incident, normal);
+	float3 giSpec = smoothness * gi.indirectSpecular * SchlickFresnel(specColor, saturate(dot(normal, r)));
+
+	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular + giSpec;
 }
 
 float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float shadowAtten, SqGI gi)

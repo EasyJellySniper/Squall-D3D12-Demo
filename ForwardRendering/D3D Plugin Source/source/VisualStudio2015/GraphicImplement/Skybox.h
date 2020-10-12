@@ -8,6 +8,7 @@ using namespace DirectX;
 
 struct SkyboxData
 {
+	XMFLOAT4X4 worldMatrix;
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
 	float skyIntensity;

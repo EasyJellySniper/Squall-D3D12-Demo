@@ -43,6 +43,7 @@ Material* Skybox::GetMaterial()
 
 SkyboxData Skybox::GetSkyboxData()
 {
+	skyboxData.worldMatrix = skyboxRenderer.GetWorld();
 	return skyboxData;
 }
 

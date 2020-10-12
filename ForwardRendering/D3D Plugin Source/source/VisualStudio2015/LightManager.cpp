@@ -136,6 +136,7 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.reflectionRTIndex = rayReflection.GetRayReflectionHeap().srv;
 	_sc.transReflectionRTIndex = rayReflection.GetTransRayReflectionHeap().srv;
 	_sc.linearSampler = linearSampler.sampler;
+	_sc.sqSkyboxWorld = skyData.worldMatrix;
 
 	forwardPlus.GetTileCount(_sc.tileCountX, _sc.tileCountY);
 

@@ -165,5 +165,6 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
 void RTReflectionMiss(inout RayPayload payload)
 {
     // failed to reflect any thing sample sky color
-    payload.reflectionColor = _SkyCube.SampleLevel(_SkySampler, WorldRayDirection(), 0).rgb * _SkyIntensity;
+    float3 dir = mul((float3x3)SQ_SKYBOX_WORLD, WorldRayDirection());
+    payload.reflectionColor = _SkyCube.SampleLevel(_SkySampler, dir, 0).rgb * _SkyIntensity;
 }

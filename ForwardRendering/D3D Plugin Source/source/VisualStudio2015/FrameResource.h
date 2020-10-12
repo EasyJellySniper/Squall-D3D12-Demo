@@ -28,6 +28,7 @@ struct SystemConstant
 	XMFLOAT4X4 sqMatrixInvViewProj;
 	XMFLOAT4X4 sqMatrixInvProj;
 	XMFLOAT4X4 sqMatrixView;
+	XMFLOAT4X4 sqSkyboxWorld;
 	XMFLOAT4 ambientGround;
 	XMFLOAT4 ambientSky;
 	XMFLOAT4 cameraPos;

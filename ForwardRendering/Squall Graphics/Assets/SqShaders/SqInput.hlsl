@@ -45,6 +45,7 @@ cbuffer SystemConstant : register(b0)
 	float4x4 SQ_MATRIX_INV_VP;
 	float4x4 SQ_MATRIX_INV_P;
 	float4x4 SQ_MATRIX_V;
+	float4x4 SQ_SKYBOX_WORLD;
 	float4 _AmbientGround;
 	float4 _AmbientSky;
 	float4 _CameraPos;	// w for reflection distance
