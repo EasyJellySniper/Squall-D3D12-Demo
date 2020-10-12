@@ -23,7 +23,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern void SetWorldMatrix(int _instanceID, Matrix4x4 _world);
 
     [DllImport("SquallGraphics")]
-    static extern void AddNativeMaterialProp(int _instanceID, uint _byteSize, MaterialConstant _mc);
+    static extern void UpdateNativeMaterialProp(int _instanceID, uint _byteSize, MaterialConstant _mc);
 
     [DllImport("SquallGraphics")]
     static extern void SetNativeRendererActive(int _id, bool _active);
@@ -115,7 +115,7 @@ public class SqMeshRenderer : MonoBehaviour
                 macro.Add("_SHADOW_CUTOFF_ON");
             }
 
-            if(isTransparent)
+            if (isTransparent)
             {
                 macro.Add("_TRANSPARENT_ON");
             }
@@ -145,8 +145,12 @@ public class SqMeshRenderer : MonoBehaviour
 
         for (int i = 0; i < mats.Length; i++)
         {
-            MaterialConstant mc = SqMaterial.Instance.GetMaterialConstant(mats[i]);
-            AddNativeMaterialProp(mats[i].GetInstanceID(), (uint)SqMaterial.Instance.matConstantSize, mc);
+            if (!SqMaterial.Instance.HasMaterial(mats[i]))
+            {
+                MaterialConstant mc = SqMaterial.Instance.GetMaterialConstant(mats[i]);
+                UpdateNativeMaterialProp(mats[i].GetInstanceID(), (uint)SqMaterial.Instance.matConstantSize, mc);
+                SqMaterial.Instance.CacheMaterial(mats[i], mc);
+            }
         }
     }
 }

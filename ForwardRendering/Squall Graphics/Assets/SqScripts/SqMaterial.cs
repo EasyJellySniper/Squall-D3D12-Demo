@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 /// <summary>
 /// material constant
@@ -40,6 +39,9 @@ public class SqMaterial
     [DllImport("SquallGraphics")]
     static extern int AddNativeSampler(TextureWrapMode _wrapModeU, TextureWrapMode _wrapModeV, TextureWrapMode _wrapModeW, int _anisoLevel);
 
+    [DllImport("SquallGraphics")]
+    static extern void UpdateNativeMaterialProp(int _instanceID, uint _byteSize, MaterialConstant _mc);
+
     /// <summary>
     /// instance
     /// </summary>
@@ -75,6 +77,11 @@ public class SqMaterial
     /// constant size
     /// </summary>
     public int matConstantSize;
+
+    /// <summary>
+    /// material cache
+    /// </summary>
+    Dictionary<int, Material> materialCache;
 
     /// <summary>
     /// white tex
@@ -139,6 +146,32 @@ public class SqMaterial
         }
     }
 
+    public void CacheMaterial(Material _mat, MaterialConstant _mc)
+    {
+        int id = _mat.GetInstanceID();
+        if (!materialCache.ContainsKey(id))
+        {
+            materialCache.Add(id, _mat);
+        }
+    }
+
+    public bool HasMaterial(Material _mat)
+    {
+        return materialCache.ContainsKey(_mat.GetInstanceID());
+    }
+
+    public void UpdateMaterial(Material _mat)
+    {
+        int id = _mat.GetInstanceID();
+        if (!materialCache.ContainsKey(id))
+        {
+            return;
+        }
+
+        var mc = GetMaterialConstant(_mat);
+        UpdateNativeMaterialProp(id, (uint)matConstantSize, mc);
+    }
+
     void SetupTexAndSampler(Material _mat, string _texName, ref int _texIndex, ref int _samplerIndex, Texture2D _fallbackTex)
     {
         Texture2D _tex = null;
@@ -173,6 +206,8 @@ public class SqMaterial
         blackTex.name = "Sq Default Black";
         blackTex.SetPixel(0, 0, Color.clear);
         blackTex.Apply();
+
+        materialCache = new Dictionary<int, Material>();
     }
 
     void Release()
@@ -186,5 +221,7 @@ public class SqMaterial
         {
             GameObject.DestroyImmediate(blackTex);
         }
+
+        materialCache.Clear();
     }
 }

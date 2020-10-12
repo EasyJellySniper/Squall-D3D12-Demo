@@ -36,7 +36,7 @@ public:
 	Material CreateRayTracingMat(Shader* _shader);
 
 	Material* AddMaterial(int _matInstanceId, int _renderQueue, int _cullMode, int _srcBlend, int _dstBlend, char* _nativeShader, int _numMacro, char** _macro);
-	void AddMaterialProp(int _matId, UINT _byteSize, void* _data);
+	void UpdateMaterialProp(int _matId, UINT _byteSize, void* _data);
 
 	void ResetNativeMaterial(Camera* _camera);
 	void Release();
