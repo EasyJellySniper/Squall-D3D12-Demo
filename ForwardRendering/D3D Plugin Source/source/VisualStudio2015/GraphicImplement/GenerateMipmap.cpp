@@ -31,8 +31,9 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 	_cmdList->SetComputeRootSignature(generateMat.GetRootSignatureCompute());
 	_cmdList->SetComputeRootDescriptorTable(0, _outMip);
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootDescriptorTable(3, _input);
-	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRoot32BitConstant(3, _srcDesc.MipLevels, 0);
+	_cmdList->SetComputeRootDescriptorTable(4, _input);
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 	// compute work
 	UINT computeKernel = 8;

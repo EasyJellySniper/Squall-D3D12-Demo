@@ -2,6 +2,7 @@
 "DescriptorTable(UAV(u0, numDescriptors=unbounded))," \
 "CBV(b0)," \
 "RootConstants(num32BitConstants=1, b1)," \
+"RootConstants(num32BitConstants=1, b2)," \
 "DescriptorTable( SRV( t0 ,space = 5, numDescriptors = 1) )," \
 "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) )"
 
@@ -12,6 +13,7 @@
 RWTexture2D<float4> _OutMip[] : register(u0);
 Texture2D<float4> _SrcMip : register(t0, space5);
 int _StartMip : register(b1);
+int _TotalMip : register(b2);
 
 groupshared float g_R[64];
 groupshared float g_G[64];
@@ -60,6 +62,12 @@ void GenerateMipmapCS(uint3 _globalID : SV_DispatchThreadID, uint _groupIdx : SV
 		_OutMip[_StartMip + 1][_globalID.xy / 2] = src1;
 		CacheColor(_groupIdx, src1);
 	}
+
+	if (_TotalMip == 2 + _StartMip)
+	{
+		return;
+	}
+
 	GroupMemoryBarrierWithGroupSync();
 
 	// calc mip 2 - for 4x xy
@@ -74,6 +82,12 @@ void GenerateMipmapCS(uint3 _globalID : SV_DispatchThreadID, uint _groupIdx : SV
 		_OutMip[_StartMip + 2][_globalID.xy / 4] = src1;
 		CacheColor(_groupIdx, src1);
 	}
+
+	if (_TotalMip == 3 + _StartMip)
+	{
+		return;
+	}
+
 	GroupMemoryBarrierWithGroupSync();
 
 	// calc mip 3 - for 8x xy, now thread is 8x8 so only 1 thread enter here
