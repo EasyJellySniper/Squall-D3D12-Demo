@@ -332,7 +332,7 @@ namespace UnityEditor
             }
 
             int indentation = 2; // align with labels of texture properties
-            m_MaterialEditor.ShaderProperty(showSmoothnessScale ? smoothnessScale : smoothness, showSmoothnessScale ? Styles.smoothnessScaleText : Styles.smoothnessText, indentation);
+            m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText, indentation);
 
             ++indentation;
             if (smoothnessMapChannel != null)
