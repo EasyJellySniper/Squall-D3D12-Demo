@@ -5,6 +5,7 @@
 struct SqGI
 {
 	float3 indirectDiffuse;
+	float3 indirectSpecular;
 };
 
 struct LightResult
@@ -153,7 +154,7 @@ float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, flo
 	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular;
 }
 
-SqGI CalcGI(float3 normal, float occlusion)
+SqGI CalcGI(float3 normal, float2 screenUV, float occlusion, bool isTransparent)
 {
 	SqGI gi = (SqGI)0;
 
@@ -161,6 +162,18 @@ SqGI CalcGI(float3 normal, float occlusion)
 	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
 	gi.indirectDiffuse = _AmbientGround.rgb + up * _AmbientSky.rgb;
 	gi.indirectDiffuse *= occlusion;
+
+#if defined(RAY_SHADER)
+	// ray shader only calc diffuse
+	return gi;
+#endif
+
+	// sample indirect specular
+	if(!isTransparent)
+		gi.indirectSpecular = SQ_SAMPLE_TEXTURE(_ReflectionRTIndex, _LinearSampler, screenUV).rgb;
+	else
+		gi.indirectSpecular = SQ_SAMPLE_TEXTURE(_TransReflectionRTIndex, _LinearSampler, screenUV).rgb;
+	gi.indirectSpecular *= occlusion;
 
 	return gi;
 }

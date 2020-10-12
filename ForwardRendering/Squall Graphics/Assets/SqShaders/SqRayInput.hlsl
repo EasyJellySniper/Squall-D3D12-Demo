@@ -141,7 +141,7 @@ float4 RayForwardPass(RayV2F i)
     // normal
     float3 bumpNormal = GetBumpNormal(i.tex.xy, i.tex.zw, i.normal, i.worldToTangent);
     float occlusion = GetOcclusion(i.tex.xy);
-    SqGI gi = CalcGI(bumpNormal, occlusion);
+    SqGI gi = CalcGI(bumpNormal, 0, occlusion, false);
 
     // BRDF
     diffuse.rgb = LightBRDFSimple(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, 1, gi);

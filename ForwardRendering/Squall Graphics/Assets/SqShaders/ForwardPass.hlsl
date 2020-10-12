@@ -91,7 +91,11 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	float occlusion = GetOcclusion(i.tex.xy);
 
 	// GI
-	SqGI gi = CalcGI(bumpNormal, occlusion);
+#ifdef _TRANSPARENT_ON
+	SqGI gi = CalcGI(bumpNormal, screenUV, occlusion, true);
+#else
+	SqGI gi = CalcGI(bumpNormal, screenUV, occlusion, false);
+#endif
 
 	// BRDF
 	float shadowAtten = SQ_SAMPLE_TEXTURE(_CollectShadowIndex, _CollectShadowSampler, screenUV).r;
