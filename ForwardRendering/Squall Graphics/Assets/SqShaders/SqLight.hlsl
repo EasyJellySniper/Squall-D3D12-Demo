@@ -48,6 +48,17 @@ float3 SchlickFresnel(float3 specColor, float ldotH)
 	return reflectPercent;
 }
 
+float3 SchlickFresnelLerp(float3 F0, float3 F90, float ldotH)
+{
+	float cosIncidentAngle = ldotH;
+
+	// pow5
+	float f0 = 1.0f - cosIncidentAngle;
+	float3 reflectPercent = lerp(F0, F90, (f0 * f0 * f0 * f0 * f0));
+
+	return reflectPercent;
+}
+
 // formula from (Introduction to 3D Game Programming with DirectX 12 by Frank Luna)
 float BlinnPhong(float m, float ndotH)
 {
@@ -147,11 +158,11 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	float3 pointDiffuse = AccumulatePointLight(tileOffset, normal, worldPos, specColor, smoothness, pointSpecular, shadowAtten);
 
 	// GI specular
-	float3 incident = normalize(worldPos - _CameraPos.xyz);
-	float3 r = reflect(incident, normal);
+	float3 view = -normalize(worldPos - _CameraPos.xyz);
+	float nv = abs(dot(normal, view));
 
 	float specFade = smoothness * smoothness;
-	float3 giSpec = specFade * gi.indirectSpecular * SchlickFresnel(specColor, saturate(dot(normal, r)));
+	float3 giSpec = specFade * SchlickFresnelLerp(specColor, gi.indirectSpecular, nv);
 
 	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular + giSpec;
 }
