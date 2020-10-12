@@ -54,6 +54,7 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 	// clear target
 	FLOAT c[] = { 1,1,1,1 };
 	_cmdList->ClearRenderTargetView(rayShadow.GetCollectShadowRtv(), c, 0, nullptr);
+	_cmdList->ClearRenderTargetView(rayShadow.GetCollectTransShadowRtv(), c, 0, nullptr);
 }
 
 void LightManager::LightWork(Camera* _targetCam)
@@ -126,12 +127,12 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.numSpotLight = (int)sqLights[LightType::Spot].size();
 	_sc.maxPointLight = maxLightCount[LightType::Point];
 	_sc.collectShadowIndex = rayShadowData.collectShadowID;
+	_sc.collectTransShadowIndex = rayShadowData.collectTransShadowID;
 	_sc.pcfIndex = rayShadowData.pcfKernel;
 	_sc.ambientGround = skyData.ambientGround;
 	_sc.ambientSky = skyData.ambientSky;
 	_sc.skyIntensity = skyData.skyIntensity;
 	_sc.collectShadowSampler = rayShadowData.collectShadowSampler;
-	_sc.rayIndex = rayShadowData.rtShadowSrv;
 	_sc.cameraPos.w = reflectionDistance;
 	_sc.reflectionRTIndex = rayReflection.GetRayReflectionHeap().srv;
 	_sc.transReflectionRTIndex = rayReflection.GetTransRayReflectionHeap().srv;

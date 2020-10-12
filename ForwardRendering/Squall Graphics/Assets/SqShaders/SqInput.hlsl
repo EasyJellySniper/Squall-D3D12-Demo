@@ -58,8 +58,8 @@ cbuffer SystemConstant : register(b0)
 	int _NumSpotLight;
 	int _MaxPointLight;
 	int _CollectShadowIndex;
+	int _CollectTransShadowIndex;
 	int _CollectShadowSampler;
-	int _RayShadowIndex;
 	int _PCFIndex;
 	int _MsaaCount;
 	int _DepthIndex;

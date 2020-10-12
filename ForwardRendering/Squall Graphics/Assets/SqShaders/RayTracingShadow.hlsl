@@ -14,6 +14,7 @@
 GlobalRootSignature RTShadowRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
+    "DescriptorTable( UAV( u1 , numDescriptors = 1) ),"     // raytracing output transparent
     "CBV( b0 ),"                        // system constant
     "DescriptorTable(SRV(t3, space = 1, numDescriptors=1)),"    // point light tile result (opaque)
     "DescriptorTable(SRV(t4, space = 1, numDescriptors=1)),"    // point light tile result (transparent)
@@ -63,6 +64,7 @@ struct RayResult
 };
 
 RWTexture2D<float4> _OutputShadow : register(u0);
+RWTexture2D<float4> _OutputShadowTrans : register(u1);
 
 RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLight _light, RayResult _result)
 {
@@ -137,53 +139,32 @@ RayResult GetInitRayResult()
     return result;
 }
 
-RayResult TraceDirLight(float opaqueDepth, float transDepth, float2 screenUV)
+RayResult TraceDirLight(float depth, float2 screenUV)
 {
     RayResult result = GetInitRayResult();
 
     // dir light
     SqLight light = _SqDirLight[0];
-    result = ShootRayFromDepth(opaqueDepth, 0, screenUV, light, result);
-    if (opaqueDepth != transDepth)
-    {
-        // shoot ray for transparent object if necessary
-        result = ShootRayFromDepth(transDepth, 0, screenUV, light, result);
-    }
+    result = ShootRayFromDepth(depth, 0, screenUV, light, result);
 
     return result;
 }
 
-RayResult TracePointLight(int tileOffset, float opaqueDepth, float transDepth, float3 opaqueNormal, float3 transNormal, float2 screenUV)
+RayResult TracePointLight(ByteAddressBuffer tileData, int tileOffset, float depth, float3 normal, float2 screenUV)
 {
     RayResult result = GetInitRayResult();
 
-    uint tileCount = _SqPointLightTile.Load(tileOffset);
+    uint tileCount = tileData.Load(tileOffset);
     uint offset = tileOffset + 4;
 
     // trace opaque
     for (uint i = 0; i < tileCount; i++)
     {
-        uint idx = _SqPointLightTile.Load(offset);
+        uint idx = tileData.Load(offset);
         SqLight light = _SqPointLight[idx];
 
-        result = ShootRayFromDepth(opaqueDepth, opaqueNormal, screenUV, light, result);
+        result = ShootRayFromDepth(depth, normal, screenUV, light, result);
         offset += 4;
-    }
-
-    if (opaqueDepth != transDepth)
-    {
-        tileCount = _SqPointLightTransTile.Load(tileOffset);
-        offset = tileOffset + 4;
-
-        for (i = 0; i < tileCount; i++)
-        {
-            uint idx = _SqPointLightTransTile.Load(offset);
-            SqLight light = _SqPointLight[idx];
-
-            // shoot ray for transparent object if necessary
-            result = ShootRayFromDepth(transDepth, transNormal, screenUV, light, result);
-            offset += 4;
-        }
     }
 
     return result;
@@ -194,6 +175,7 @@ void RTShadowRayGen()
 {
     // reset value
     _OutputShadow[DispatchRaysIndex().xy] = 1;
+    _OutputShadowTrans[DispatchRaysIndex().xy] = 1;
 
     // center in the middle of the pixel, it's half-offset rule of D3D
     float2 xy = DispatchRaysIndex().xy + 0.5f;
@@ -216,8 +198,9 @@ void RTShadowRayGen()
     uint tileIndex = tileX + tileY * _TileCountX;
     int tileOffset = GetPointLightOffset(tileIndex);
 
-    RayResult dirResult = TraceDirLight(opaqueDepth, transDepth, screenUV);
-    RayResult pointResult = TracePointLight(tileOffset, opaqueDepth, transDepth, opaqueNormal, transNormal, screenUV);
+    // trace opaque
+    RayResult dirResult = TraceDirLight(opaqueDepth, screenUV);
+    RayResult pointResult = TracePointLight(_SqPointLightTile, tileOffset, opaqueDepth, opaqueNormal, screenUV);
 
     if (pointResult.pointLightRange)
     {
@@ -227,8 +210,26 @@ void RTShadowRayGen()
         dirResult.lightSize = lerp(dirResult.lightSize, pointResult.lightSize, pointResult.lightAtten);
     }
 
-    // final output
+    // output opaque
     _OutputShadow[DispatchRaysIndex().xy] = float4(dirResult.atten, dirResult.distBlockToLight, dirResult.distReceiverToLight, dirResult.lightSize);
+
+    // trace transparent if necessary
+    if (opaqueDepth != transDepth)
+    {
+        dirResult = TraceDirLight(transDepth, screenUV);
+        pointResult = TracePointLight(_SqPointLightTransTile, tileOffset, transDepth, transNormal, screenUV);
+
+        if (pointResult.pointLightRange)
+        {
+            dirResult.atten = lerp(dirResult.atten, pointResult.atten, pointResult.lightAtten);
+            dirResult.distBlockToLight = lerp(dirResult.distBlockToLight, pointResult.distBlockToLight, pointResult.lightAtten);
+            dirResult.distReceiverToLight = lerp(dirResult.distReceiverToLight, pointResult.distReceiverToLight, pointResult.lightAtten);
+            dirResult.lightSize = lerp(dirResult.lightSize, pointResult.lightSize, pointResult.lightAtten);
+        }
+
+        // output transparent
+        _OutputShadowTrans[DispatchRaysIndex().xy] = float4(dirResult.atten, dirResult.distBlockToLight, dirResult.distReceiverToLight, dirResult.lightSize);
+    }
 }
 
 [shader("closesthit")]

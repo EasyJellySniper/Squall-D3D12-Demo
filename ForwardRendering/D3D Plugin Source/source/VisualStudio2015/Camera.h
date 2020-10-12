@@ -77,6 +77,8 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetMsaaDsv();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetMsaaSrv();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetNormalRtv();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetDsvGPU();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTransDsvGPU();
 
 	void SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, XMFLOAT3 _direction, float _far, float _near);
 	void SetViewPortScissorRect(D3D12_VIEWPORT _viewPort, D3D12_RECT _scissorRect);

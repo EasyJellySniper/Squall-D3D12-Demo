@@ -97,9 +97,14 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, false);
 #endif
 
-	// BRDF
+	// shadow
+#ifdef _TRANSPARENT_ON
+	float shadowAtten = SQ_SAMPLE_TEXTURE(_CollectTransShadowIndex, _CollectShadowSampler, screenUV).r;
+#else
 	float shadowAtten = SQ_SAMPLE_TEXTURE(_CollectShadowIndex, _CollectShadowSampler, screenUV).r;
+#endif
 
+	// BRDF
 	diffuse.rgb = LightBRDF(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, i.vertex.xy, shadowAtten, gi);
 
 	// emission
