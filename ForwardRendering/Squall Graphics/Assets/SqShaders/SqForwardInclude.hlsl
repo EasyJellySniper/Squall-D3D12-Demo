@@ -74,7 +74,7 @@ float3 GetBumpNormal(float2 uv, float2 detailUV, float3 normal, float3x3 tbn = 0
 
 	[branch]
 	if (dot(packDetailNormal, float4(1, 1, 1, 1)) < FLOAT_EPSILON)
-		return normalize(normal);
+		mask = 0;
 
 	float3 detailNormalTangent = UnpackScaleNormalMap(packDetailNormal, _DetailBumpScale);
 
