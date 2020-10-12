@@ -149,7 +149,7 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	float3 r = reflect(incident, normal);
 	float3 giSpec = smoothness * gi.indirectSpecular * SchlickFresnel(specColor, saturate(dot(normal, r)));
 
-	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular + giSpec;
+	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular + saturate(giSpec);
 }
 
 float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float shadowAtten, SqGI gi)
@@ -161,7 +161,7 @@ float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, flo
 	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular;
 }
 
-SqGI CalcGI(float3 normal, float2 screenUV, float occlusion, bool isTransparent)
+SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, bool isTransparent)
 {
 	SqGI gi = (SqGI)0;
 
@@ -175,11 +175,17 @@ SqGI CalcGI(float3 normal, float2 screenUV, float occlusion, bool isTransparent)
 	return gi;
 #endif
 
+	// smooth to mip map
+	float roughness = 1 - smoothness;
+	roughness *= roughness;
+	float specMip = roughness * 7;
+
 	// sample indirect specular
 	if(!isTransparent)
-		gi.indirectSpecular = SQ_SAMPLE_TEXTURE(_ReflectionRTIndex, _LinearSampler, screenUV).rgb;
+		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_ReflectionRTIndex, _LinearSampler, screenUV, specMip).rgb;
 	else
-		gi.indirectSpecular = SQ_SAMPLE_TEXTURE(_TransReflectionRTIndex, _LinearSampler, screenUV).rgb;
+		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_TransReflectionRTIndex, _LinearSampler, screenUV, specMip).rgb;
+
 	gi.indirectSpecular *= occlusion;
 
 	return gi;

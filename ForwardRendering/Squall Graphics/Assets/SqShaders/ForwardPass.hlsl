@@ -92,9 +92,9 @@ float4 ForwardPassPS(v2f i) : SV_Target
 
 	// GI
 #ifdef _TRANSPARENT_ON
-	SqGI gi = CalcGI(bumpNormal, screenUV, occlusion, true);
+	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, true);
 #else
-	SqGI gi = CalcGI(bumpNormal, screenUV, occlusion, false);
+	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, false);
 #endif
 
 	// BRDF
