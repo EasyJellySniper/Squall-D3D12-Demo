@@ -51,6 +51,8 @@ float3 SchlickFresnel(float3 specColor, float ldotH)
 // formula from (Introduction to 3D Game Programming with DirectX 12 by Frank Luna)
 float BlinnPhong(float m, float ndotH)
 {
+	m *= m;
+	m = max(m, FLOAT_EPSILON);
 	m *= 256.0f;
 	float n = (m + 4.0f) / 4.0f;
 
@@ -147,9 +149,11 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	// GI specular
 	float3 incident = normalize(worldPos - _CameraPos.xyz);
 	float3 r = reflect(incident, normal);
-	float3 giSpec = smoothness * gi.indirectSpecular * SchlickFresnel(specColor, saturate(dot(normal, r)));
 
-	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular + saturate(giSpec);
+	float specFade = smoothness * smoothness;
+	float3 giSpec = specFade * gi.indirectSpecular * SchlickFresnel(specColor, saturate(dot(normal, r)));
+
+	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular + giSpec;
 }
 
 float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float shadowAtten, SqGI gi)
@@ -176,9 +180,8 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 #endif
 
 	// smooth to mip map
-	float roughness = 1 - smoothness;
-	roughness *= roughness;
-	float specMip = roughness * 7;
+	float roughness = 1 - smoothness * smoothness;
+	float specMip = roughness * 10;
 
 	// sample indirect specular
 	if(!isTransparent)
