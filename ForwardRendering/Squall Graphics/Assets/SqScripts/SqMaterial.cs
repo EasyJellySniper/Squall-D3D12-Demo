@@ -132,6 +132,7 @@ public class SqMaterial
         mc._BumpScale = _mat.GetFloat("_BumpScale");
         mc._DetailBumpScale = _mat.GetFloat("_DetailNormalMapScale");
         mc._DetailUV = _mat.GetFloat("_UVSec");
+        mc._ReflectionCount = _mat.GetInt("_ReflectionCount");
 
         return mc;
     }

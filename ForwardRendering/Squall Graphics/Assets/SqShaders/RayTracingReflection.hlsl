@@ -1,4 +1,5 @@
 #define RAY_SHADER
+#define MAX_REFLECT_RESURSION 3
 
 // need assign relative path for dxc compiler with forward slash
 #include "Assets/SqShaders/SqInput.hlsl"
@@ -7,6 +8,7 @@
 
 #pragma sq_rayrootsig RTReflectionRootSig
 #pragma sq_raygen RTReflectionRayGen
+#pragma sq_anyhit RTReflectionAnyHit
 #pragma sq_closesthit RTReflectionClosestHit
 #pragma sq_miss RTReflectionMiss
 #pragma sq_rtshaderconfig RTReflectionConfig
@@ -40,36 +42,38 @@ GlobalRootSignature RTReflectionRootSig =
 
 TriangleHitGroup SqRayHitGroup =
 {
-    "",      // AnyHit
+    "RTReflectionAnyHit",      // AnyHit
     "RTReflectionClosestHit"   // ClosestHit
 };
 
 RaytracingShaderConfig RTReflectionConfig =
 {
-    12, // max payload size - 3float
+    16, // max payload size - 4float
     8   // max attribute size - 2float
 };
 
 RaytracingPipelineConfig RTReflectionPipelineConfig =
 {
-    2 // max trace recursion depth
+    MAX_REFLECT_RESURSION // max trace recursion depth
 };
 
 struct RayPayload
 {
     float3 reflectionColor;
+    int reflectionDepth;
 };
 
 RWTexture2D<float4> _OutputReflection : register(u0);
 RWTexture2D<float4> _OutputReflectionTrans : register(u1);
 
-RayPayload ShootReflectionRay(float3 normal, float depth, float2 screenUV)
+RayPayload ShootReflectionRay(float3 normal, float depth, float2 screenUV, bool _transparent)
 {
     RayPayload payload = (RayPayload)0;
     if (depth == 0.0f)
     {
         return payload;
     }
+    payload.reflectionDepth = (_transparent) ? MAX_REFLECT_RESURSION : 0;
 
     float3 wpos = DepthToWorldPos(depth, float4(screenUV, 0, 1));
     float3 incident = normalize(wpos - _CameraPos.xyz);
@@ -80,7 +84,8 @@ RayPayload ShootReflectionRay(float3 normal, float depth, float2 screenUV)
     ray.TMin = 0;
     ray.TMax = _CameraPos.w;
 
-    // define ray
+    // shoot ray & add reflection depth
+    payload.reflectionDepth++;
     TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
 
     return payload;
@@ -108,11 +113,11 @@ void RTReflectionRayGen()
     float3 opaqueNormal = SQ_SAMPLE_TEXTURE_LEVEL(_ColorRTIndex, _CollectShadowSampler, depthUV, 0).rgb;
     float3 transNormal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _CollectShadowSampler, depthUV, 0).rgb;
 
-    RayPayload opaqueResult = ShootReflectionRay(opaqueNormal, opaqueDepth, screenUV);
+    RayPayload opaqueResult = ShootReflectionRay(opaqueNormal, opaqueDepth, screenUV, false);
     RayPayload transResult = (RayPayload)0;
     if (opaqueDepth != transDepth)
     {
-        transResult = ShootReflectionRay(transNormal, transDepth, screenUV);
+        transResult = ShootReflectionRay(transNormal, transDepth, screenUV, true);
     }
 
     // output
@@ -154,11 +159,47 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
     tangent.xyz = mul((float3x3)ObjectToWorld3x4(), tangent.xyz);
     v2f.worldToTangent = CreateTBN(v2f.normal, tangent);
 
-    float4 result = RayForwardPass(v2f);
-    float3 sky = _SkyCube.SampleLevel(_SkySampler, WorldRayDirection(), 0).rgb * _SkyIntensity;
+    // bump normal
+    float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
+
+    // -------------------------------- recursive ray if necessary ------------------------------ //
+    RayPayload recursiveResult = (RayPayload)0;
+    recursiveResult.reflectionColor = float3(0, 0, 0);
+
+    if (payload.reflectionDepth < MAX_REFLECT_RESURSION && payload.reflectionDepth < _ReflectionCount)
+    {
+        RayDesc recursiveRay;
+        recursiveRay.Origin = hitPos;
+        recursiveRay.Direction = reflect(WorldRayDirection(), bumpNormal);   // shoot a reflection ray
+        recursiveRay.TMin = 0;
+        recursiveRay.TMax = _CameraPos.w;
+
+        recursiveResult.reflectionDepth = payload.reflectionDepth + 1;
+        TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, ~0, 0, 1, 0, recursiveRay, recursiveResult);
+    }
+
+    float4 result = RayForwardPass(v2f, bumpNormal);
+
+    // prepare sky for blending
+    float4x4 mat = SQ_SKYBOX_WORLD;
+    mat._13 *= -1;
+    mat._31 *= -1;
+
+    float3 dir = mul((float3x3)mat, WorldRayDirection());
+    float3 sky = _SkyCube.SampleLevel(_SkySampler, dir, 0).rgb * _SkyIntensity;
 
     // lerp between sky color & reflection color by alpha
-    payload.reflectionColor = lerp(sky, result.rgb, result.a);
+    payload.reflectionColor = lerp(sky, result.rgb, result.a) + recursiveResult.reflectionColor;
+}
+
+[shader("anyhit")]
+void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+{
+    // set max reflection resursion, I don't resursive transparent
+    payload.reflectionDepth = MAX_REFLECT_RESURSION;
+
+    // accept hit so that system goes to closet hit
+    AcceptHitAndEndSearch();
 }
 
 [shader("miss")]

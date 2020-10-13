@@ -125,7 +125,7 @@ float4 GetHitTangent(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttr
 
 // forward pass for ray tracing
 // the calculation should be sync with ForwardPass.hlsl
-float4 RayForwardPass(RayV2F i)
+float4 RayForwardPass(RayV2F i, float3 bumpNormal)
 {
     float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
 
@@ -139,7 +139,6 @@ float4 RayForwardPass(RayV2F i)
     diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
 
     // normal
-    float3 bumpNormal = GetBumpNormal(i.tex.xy, i.tex.zw, i.normal, i.worldToTangent);
     float occlusion = GetOcclusion(i.tex.xy);
     SqGI gi = CalcGI(bumpNormal, 0, 0, occlusion, false);
 
