@@ -1,8 +1,7 @@
 #define GenerateMipmapRS "RootFlags(0)," \
 "DescriptorTable(UAV(u0, numDescriptors=unbounded))," \
 "CBV(b0)," \
-"RootConstants(num32BitConstants=1, b1)," \
-"RootConstants(num32BitConstants=1, b2)," \
+"RootConstants(num32BitConstants=2, b1)," \
 "DescriptorTable( SRV( t0 ,space = 5, numDescriptors = 1) )," \
 "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) )"
 
@@ -12,8 +11,12 @@
 
 RWTexture2D<float4> _OutMip[] : register(u0);
 Texture2D<float4> _SrcMip : register(t0, space5);
-int _StartMip : register(b1);
-int _TotalMip : register(b2);
+
+cbuffer MipData : register(b1)
+{
+	int _StartMip;
+	int _TotalMip;
+};
 
 groupshared float g_R[64];
 groupshared float g_G[64];
@@ -37,6 +40,11 @@ float4 FetchColor(uint idx)
 [numthreads(8, 8, 1)]
 void GenerateMipmapCS(uint3 _globalID : SV_DispatchThreadID, uint _groupIdx : SV_GroupIndex)
 {
+	if (_TotalMip == 1 + _StartMip)
+	{
+		return;
+	}
+
 	uint w, h;
 	_SrcMip.GetDimensions(w, h);
 	w = w >> _StartMip;
