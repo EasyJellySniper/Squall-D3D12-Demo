@@ -111,7 +111,7 @@ void RayTracingManager::CollectRayTracingDesc(TopLevelAS& _input)
 			rtInstancedesc.InstanceID = r->GetMesh()->GetVertexSrv();
 
 			// non-opaque flags, force transparent object use any-hit shader
-			if (r->GetMaterial(i)->GetRenderQueue() > RenderQueue::OpaqueLast)
+			if (r->GetMaterial(i)->GetRenderQueue() >= RenderQueue::CutoffStart)
 			{
 				rtInstancedesc.Flags |= D3D12_RAYTRACING_INSTANCE_FLAG_FORCE_NON_OPAQUE;
 			}

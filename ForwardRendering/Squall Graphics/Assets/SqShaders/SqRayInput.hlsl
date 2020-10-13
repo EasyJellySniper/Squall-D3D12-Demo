@@ -129,11 +129,6 @@ float4 RayForwardPass(RayV2F i, float3 bumpNormal, float3 indirectSpecular, floa
 {
     float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
 
-    // no clip function here , return 0 instead
-    [branch]
-    if (diffuse.a - _CutOff < 0)
-        return 0;
-
     // specular
     float4 specular = GetSpecular(i.tex.xy);
     diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);

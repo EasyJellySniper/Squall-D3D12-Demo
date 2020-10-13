@@ -234,12 +234,7 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
     }
 
     float4 result = RayForwardPass(v2f, bumpNormal, recursiveResult.reflectionColor, shadowResult.atten);
-
-    // prepare sky for blending
-    float3 sky = SampleSkyForRay(WorldRayDirection());
-
-    // lerp between sky color & reflection color by alpha
-    payload.reflectionColor = lerp(sky, result.rgb, result.a);
+    payload.reflectionColor = result.rgb * result.a;
 }
 
 [shader("anyhit")]
@@ -247,6 +242,39 @@ void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersection
 {
     // set max reflection resursion, I don't resursive transparent
     payload.reflectionDepth = MAX_REFLECT_RESURSION;
+
+    // read indices
+    uint ibStride = 2;
+    uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
+    uint vertID = InstanceID();
+    const uint3 indices = Load3x16BitIndices(pIdx, vertID + 1);
+
+    // init ray v2f
+    RayV2F v2f = (RayV2F)0;
+
+    // uv
+    v2f.tex.xy = GetHitUV(indices, vertID, attr);
+    v2f.tex.zw = GetHitUV2(indices, vertID, attr);
+
+    // calc detail uv
+    float2 detailUV = lerp(v2f.tex.xy, v2f.tex.zw, _DetailUV);
+    detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
+    v2f.tex.zw = detailUV;
+    v2f.tex.xy = v2f.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+
+    // alpha test here
+    float4 diffuse = GetAlbedo(v2f.tex.xy, v2f.tex.zw);
+    if (diffuse.a - _CutOff < 0 && _RenderQueue == 1)
+    {
+        // cutoff case, discard search
+        IgnoreHit();
+    }
+
+    if (diffuse.a < FLOAT_EPSILON && _RenderQueue == 2)
+    {
+        // discard transparent zero
+        IgnoreHit();
+    }
 
     // accept hit so that system goes to closet hit
     AcceptHitAndEndSearch();
