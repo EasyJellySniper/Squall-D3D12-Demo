@@ -150,7 +150,7 @@ RayPayload TraceShadowRay(float3 hitPos)
     shadowRay.TMin = light.shadowBiasNear;
     shadowRay.TMax = light.shadowDistance;
 
-    TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, shadowRay, shadowResult);
+    TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, shadowRay, shadowResult);
 
     shadowResult.atten = lerp(1.0f, shadowResult.atten, light.color.a);
     return shadowResult;
@@ -160,7 +160,7 @@ RayPayload TraceShadowRay(float3 hitPos)
 void ReceiveShadow(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
     // mark receive opaque shadow only (for performance)
-    payload.atten = lerp(1.0f, 0.0f, _RenderQueue == 0);
+    payload.atten = 0.0f;
 }
 
 [shader("closesthit")]
@@ -212,6 +212,8 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
     recursiveResult.reflectionColor = float3(0, 0, 0);
 
     RayPayload shadowResult = (RayPayload)0;
+    shadowResult.atten = 1.0f;
+
     if (payload.reflectionDepth < MAX_REFLECT_RESURSION && payload.reflectionDepth < _ReflectionCount)
     {
         // shadow ray
@@ -240,9 +242,6 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
 [shader("anyhit")]
 void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // set max reflection resursion, I don't resursive transparent
-    payload.reflectionDepth = MAX_REFLECT_RESURSION;
-
     // read indices
     uint ibStride = 2;
     uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
