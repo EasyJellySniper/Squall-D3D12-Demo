@@ -1,6 +1,7 @@
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 
 using System;
+using System.Data;
 using UnityEngine;
 
 namespace UnityEditor
@@ -84,6 +85,7 @@ namespace UnityEditor
         MaterialProperty detailNormalMap = null;
         MaterialProperty uvSetSecondary = null;
         MaterialProperty useFresnel = null;
+        MaterialProperty reflectionCount = null;
 
         MaterialEditor m_MaterialEditor;
         WorkflowMode m_WorkflowMode = WorkflowMode.Specular;
@@ -127,6 +129,7 @@ namespace UnityEditor
             detailNormalMap = FindProperty("_DetailNormalMap", props);
             uvSetSecondary = FindProperty("_UVSec", props);
             useFresnel = FindProperty("_UseFresnel", props);
+            reflectionCount = FindProperty("_ReflectionCount", props);
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -187,6 +190,8 @@ namespace UnityEditor
                     m_MaterialEditor.ShaderProperty(highlights, Styles.highlightsText);
                 if (reflections != null)
                     m_MaterialEditor.ShaderProperty(reflections, Styles.reflectionsText);
+
+                m_MaterialEditor.ShaderProperty(reflectionCount, "Ray Reflection Count");
             }
             if (EditorGUI.EndChangeCheck())
             {

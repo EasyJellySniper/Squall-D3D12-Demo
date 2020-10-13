@@ -100,6 +100,7 @@ cbuffer MaterialConstant : register(b2)
 	int _DetailMaskIndex;
 	int _DetailAlbedoIndex;
 	int _DetailNormalIndex;
+	int _ReflectionCount;
 };
 
 // need /enable_unbounded_descriptor_tables when compiling

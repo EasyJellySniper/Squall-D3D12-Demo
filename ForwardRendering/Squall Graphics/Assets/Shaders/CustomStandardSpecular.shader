@@ -38,6 +38,7 @@ Shader "Custom Standard (Specular setup)"
         _DetailNormalMap("Normal Map", 2D) = "bump" {}
 
         [Enum(UV0,0,UV1,1)] _UVSec ("UV Set for secondary textures", Float) = 0
+        _ReflectionCount ("Ray Tracing Reflection Count", Float) = 1
 
 
         // Blending state

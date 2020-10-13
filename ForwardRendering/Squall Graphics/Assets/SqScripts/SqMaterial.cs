@@ -29,6 +29,7 @@ public struct MaterialConstant
     public int _DetailMaskIndex;
     public int _DetailAlbedoIndex;
     public int _DetailNormalIndex;
+    public int _ReflectionCount;
 };
 
 public class SqMaterial
