@@ -66,18 +66,15 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	_cmdList->SetComputeRootDescriptorTable(0, GetReflectionUav());
 	_cmdList->SetComputeRootDescriptorTable(1, GetTransReflectionUav());
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootDescriptorTable(3, _forwardPlus->GetLightCullingSrv());
-	_cmdList->SetComputeRootDescriptorTable(4, _forwardPlus->GetLightCullingTransSrv());
-	_cmdList->SetComputeRootShaderResourceView(5, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(6, _dirLightGPU);
-	_cmdList->SetComputeRootShaderResourceView(7, _pointLightGPU);
-	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(10, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(11, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(12, RayTracingManager::Instance().GetSubMeshInfoGPU());
-	_cmdList->SetComputeRootDescriptorTable(13, _skybox->GetSkyboxTex());
-	_cmdList->SetComputeRootDescriptorTable(14, _skybox->GetSkyboxSampler());
+	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(4, _dirLightGPU);
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootDescriptorTable(10, _skybox->GetSkyboxTex());
+	_cmdList->SetComputeRootDescriptorTable(11, _skybox->GetSkyboxSampler());
 
 	// prepare dispatch desc
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = rayReflectionMat.GetDispatchRayDesc((UINT)rayReflectionSrc->GetDesc().Width, rayReflectionSrc->GetDesc().Height);

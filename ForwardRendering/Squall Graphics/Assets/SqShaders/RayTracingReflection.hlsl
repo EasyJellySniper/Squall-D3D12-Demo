@@ -26,11 +26,8 @@ GlobalRootSignature RTReflectionRootSig =
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
     "DescriptorTable( UAV( u1 , numDescriptors = 1) ),"     // raytracing output (transparent
     "CBV( b0 ),"                        // system constant
-    "DescriptorTable(SRV(t3, space = 1, numDescriptors=1)),"    // point light tile result (opaque)
-    "DescriptorTable(SRV(t4, space = 1, numDescriptors=1)),"    // point light tile result (transparent)
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 ),"              // sq dir light
-    "SRV( t1, space = 1 ),"             // sq point light
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, flags = DESCRIPTORS_VOLATILE) ),"     // tex table
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 3, flags = DESCRIPTORS_VOLATILE) ),"    //vertex start
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
