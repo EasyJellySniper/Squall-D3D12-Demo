@@ -125,7 +125,7 @@ float4 GetHitTangent(uint3 indices, uint vertID, BuiltInTriangleIntersectionAttr
 
 // forward pass for ray tracing
 // the calculation should be sync with ForwardPass.hlsl
-float4 RayForwardPass(RayV2F i, float3 bumpNormal, float3 indirectSpecular)
+float4 RayForwardPass(RayV2F i, float3 bumpNormal, float3 indirectSpecular, float atten)
 {
     float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
 
@@ -144,7 +144,7 @@ float4 RayForwardPass(RayV2F i, float3 bumpNormal, float3 indirectSpecular)
     gi.indirectSpecular = indirectSpecular * occlusion;
 
     // BRDF
-    diffuse.rgb = LightBRDFSimple(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, 1, gi);
+    diffuse.rgb = LightBRDFSimple(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten, gi);
 
     // emission
     float3 emission = GetEmission(i.tex.xy);

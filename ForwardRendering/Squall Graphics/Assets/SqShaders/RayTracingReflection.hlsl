@@ -48,7 +48,7 @@ TriangleHitGroup SqRayHitGroup =
 
 RaytracingShaderConfig RTReflectionConfig =
 {
-    16, // max payload size - 4float
+    24, // max payload size - 6float
     8   // max attribute size - 2float
 };
 
@@ -60,6 +60,8 @@ RaytracingPipelineConfig RTReflectionPipelineConfig =
 struct RayPayload
 {
     float3 reflectionColor;
+    float atten;
+    float testShadow;
     int reflectionDepth;
 };
 
@@ -136,9 +138,44 @@ float3 SampleSkyForRay(float3 dir)
     return _SkyCube.SampleLevel(_SkySampler, dir, 0).rgb * _SkyIntensity;
 }
 
+RayPayload TraceShadowRay(float3 hitPos)
+{
+    RayPayload shadowResult = (RayPayload)0;
+    shadowResult.atten = 1.0f;
+    shadowResult.testShadow = 1.0f;
+
+    // shadow ray, dir light only
+    SqLight light = _SqDirLight[0];
+    RayDesc shadowRay;
+
+    shadowRay.Origin = hitPos;
+    shadowRay.Direction = -light.world.xyz;
+    shadowRay.TMin = light.shadowBiasNear;
+    shadowRay.TMax = light.shadowDistance;
+
+    TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, shadowRay, shadowResult);
+
+    shadowResult.atten = lerp(1.0f, shadowResult.atten, light.color.a);
+    return shadowResult;
+}
+
+// the implement is the same as RayTracingShadow.hlsl
+void ReceiveShadow(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+{
+    // mark receive opaque shadow only (for performance)
+    payload.atten = lerp(1.0f, 0.0f, _RenderQueue == 0);
+}
+
 [shader("closesthit")]
 void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
+    // if test shadow, early out
+    if (payload.testShadow > 0.0f)
+    {
+        ReceiveShadow(payload, attr);
+        return;
+    }
+
     // calc hit pos
     float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
 
@@ -177,8 +214,13 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
     RayPayload recursiveResult = (RayPayload)0;
     recursiveResult.reflectionColor = float3(0, 0, 0);
 
+    RayPayload shadowResult = (RayPayload)0;
     if (payload.reflectionDepth < MAX_REFLECT_RESURSION && payload.reflectionDepth < _ReflectionCount)
     {
+        // shadow ray
+        shadowResult = TraceShadowRay(hitPos);
+
+        // recursive ray
         RayDesc recursiveRay;
         recursiveRay.Origin = hitPos;
         recursiveRay.Direction = reflect(WorldRayDirection(), bumpNormal);   // shoot a reflection ray
@@ -188,8 +230,13 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
         recursiveResult.reflectionDepth = payload.reflectionDepth + 1;
         TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, ~0, 0, 1, 0, recursiveRay, recursiveResult);
     }
+    else if (payload.reflectionDepth == 1)
+    {
+        // trace shadow ray if no recursive
+        shadowResult = TraceShadowRay(hitPos);
+    }
 
-    float4 result = RayForwardPass(v2f, bumpNormal, recursiveResult.reflectionColor);
+    float4 result = RayForwardPass(v2f, bumpNormal, recursiveResult.reflectionColor, shadowResult.atten);
 
     // prepare sky for blending
     float3 sky = SampleSkyForRay(WorldRayDirection());
