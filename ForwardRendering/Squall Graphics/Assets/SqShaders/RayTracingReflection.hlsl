@@ -125,6 +125,17 @@ void RTReflectionRayGen()
     _OutputReflectionTrans[DispatchRaysIndex().xy].rgb = transResult.reflectionColor;
 }
 
+float3 SampleSkyForRay(float3 dir)
+{
+    // prepare sky for blending
+    float4x4 mat = SQ_SKYBOX_WORLD;
+    mat._13 *= -1;
+    mat._31 *= -1;
+
+    dir = mul((float3x3)mat, dir);
+    return _SkyCube.SampleLevel(_SkySampler, dir, 0).rgb * _SkyIntensity;
+}
+
 [shader("closesthit")]
 void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
@@ -181,12 +192,7 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
     float4 result = RayForwardPass(v2f, bumpNormal);
 
     // prepare sky for blending
-    float4x4 mat = SQ_SKYBOX_WORLD;
-    mat._13 *= -1;
-    mat._31 *= -1;
-
-    float3 dir = mul((float3x3)mat, WorldRayDirection());
-    float3 sky = _SkyCube.SampleLevel(_SkySampler, dir, 0).rgb * _SkyIntensity;
+    float3 sky = SampleSkyForRay(WorldRayDirection());
 
     // lerp between sky color & reflection color by alpha
     payload.reflectionColor = lerp(sky, result.rgb, result.a) + recursiveResult.reflectionColor;
@@ -205,11 +211,5 @@ void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersection
 [shader("miss")]
 void RTReflectionMiss(inout RayPayload payload)
 {
-    // failed to reflect any thing sample sky color
-    float4x4 mat = SQ_SKYBOX_WORLD;
-    mat._13 *= -1;
-    mat._31 *= -1;
-
-    float3 dir = mul((float3x3)mat, WorldRayDirection());
-    payload.reflectionColor = _SkyCube.SampleLevel(_SkySampler, dir, 0).rgb * _SkyIntensity;
+    payload.reflectionColor = SampleSkyForRay(WorldRayDirection());
 }
