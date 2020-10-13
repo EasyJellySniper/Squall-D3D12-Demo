@@ -267,12 +267,14 @@ void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersection
     {
         // cutoff case, discard search
         IgnoreHit();
+        return;
     }
 
     if (diffuse.a < FLOAT_EPSILON && _RenderQueue == 2)
     {
         // discard transparent zero
         IgnoreHit();
+        return;
     }
 
     // accept hit so that system goes to closet hit

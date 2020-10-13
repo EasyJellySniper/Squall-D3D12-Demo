@@ -36,7 +36,7 @@ TriangleHitGroup SqRayHitGroup =
 
 RaytracingShaderConfig RTShadowConfig =
 {
-    16, // max payload size - 4float
+    12, // max payload size - 4float
     8   // max attribute size - 2float
 };
 
@@ -48,7 +48,6 @@ RaytracingPipelineConfig RTShadowPipelineConfig =
 struct RayPayload
 {
     float atten;
-    int isTransparent;
     float distBlockToLight;
     float padding;
 };
@@ -115,7 +114,7 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     ray.TMax = (_light.type == 1) ? _light.shadowDistance : receiverDistToLight - _light.shadowBiasFar;
 
     // the data payload between ray tracing
-    RayPayload payload = { 1.0f, 0, 0, 0 };
+    RayPayload payload = { 1.0f, 0, 0 };
     TraceRay(_SceneAS, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, ray, payload);
 
     // lerp between atten and strength
@@ -238,42 +237,38 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
     // mark atten to 0
     payload.atten = 0.0f;
     payload.distBlockToLight = RayTCurrent();
-
-    float alpha = 1;
-    if (payload.isTransparent > 0 || _CutOff > 0)
-    {
-        // get primitive index
-        // offset 3 * sizeof(index) = 6, also consider the startindexlocation
-        uint ibStride = 2;
-        uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
-        uint vertID = InstanceID();
-        const uint3 indices = Load3x16BitIndices(pIdx, vertID + 1);
-
-        // get interpolated uv and tiling it
-        float2 uvHit = GetHitUV(indices, vertID, attr);
-        uvHit = uvHit * _MainTex_ST.xy + _MainTex_ST.zw;
-        alpha = SQ_SAMPLE_TEXTURE_LEVEL(_DiffuseIndex, _SamplerIndex, uvHit, 0).a * _Color.a;
-    }
-
-    // cutoff
-    if (_CutOff > 0)
-    {
-        // clip shadow
-        payload.atten = lerp(1.0f, payload.atten, alpha >= _CutOff);
-    }
-
-    // transparent, use invert alpha as shadow atten
-    if (payload.isTransparent > 0)
-    {
-        payload.atten = 1 - alpha;
-    }
 }
 
 [shader("anyhit")]
 void RTShadowAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // mark hit transparent
-    payload.isTransparent = 1;
+    float alpha = 1;
+
+    // get primitive index
+    // offset 3 * sizeof(index) = 6, also consider the startindexlocation
+    uint ibStride = 2;
+    uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
+    uint vertID = InstanceID();
+    const uint3 indices = Load3x16BitIndices(pIdx, vertID + 1);
+
+    // get interpolated uv and tiling it
+    float2 uvHit = GetHitUV(indices, vertID, attr);
+    uvHit = uvHit * _MainTex_ST.xy + _MainTex_ST.zw;
+    alpha = SQ_SAMPLE_TEXTURE_LEVEL(_DiffuseIndex, _SamplerIndex, uvHit, 0).a * _Color.a;
+
+    // cutoff
+    if (alpha - _CutOff < 0 && _RenderQueue == 1)
+    {
+        IgnoreHit();
+        return;
+    }
+
+    // transparent
+    if (alpha < FLOAT_EPSILON && _RenderQueue == 2)
+    {
+        IgnoreHit();
+        return;
+    }
 
     // accept hit so that system goes to closet hit
     AcceptHitAndEndSearch();
