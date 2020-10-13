@@ -96,60 +96,7 @@ public class SqMeshRenderer : MonoBehaviour
         Material[] mats = rendererCache.sharedMaterials;
         for (int i = 0; i < mats.Length; i++)
         {
-            int cullMode = (mats[i].HasProperty("_CullMode")) ? (int)mats[i].GetFloat("_CullMode") : 2;
-            int srcBlend = (mats[i].HasProperty("_SrcBlend")) ? (int)mats[i].GetFloat("_SrcBlend") : 1;
-            int dstBlend = (mats[i].HasProperty("_DstBlend")) ? (int)mats[i].GetFloat("_DstBlend") : 0;
-            bool isCutOff = (mats[i].renderQueue <= (int)RenderQueue.GeometryLast) && (mats[i].renderQueue >= 2226);
-            bool isTransparent = (mats[i].renderQueue > (int)RenderQueue.GeometryLast);
-
-            List<string> macro = new List<string>();
-
-            if (isCutOff)
-            {
-                macro.Add("_CUTOFF_ON");
-            }
-
-            if (isTransparent)
-            {
-                macro.Add("_TRANSPARENT_ON");
-            }
-
-            SqMaterial.Instance.AddTexKeyword(mats[i], ref macro, "_SpecGlossMap", "_SPEC_GLOSS_MAP");
-            SqMaterial.Instance.AddTexKeyword(mats[i], ref macro, "_BumpMap", "_NORMAL_MAP");
-
-            bool shouldEmissionBeEnabled = (mats[i].globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
-            if (shouldEmissionBeEnabled)
-            {
-                macro.Add("_EMISSION");
-            }
-
-            if (mats[i].GetTexture("_DetailAlbedoMap"))
-            {
-                macro.Add("_DETAIL_MAP");
-            }
-
-            if (mats[i].GetTexture("_DetailNormalMap"))
-            {
-                macro.Add("_DETAIL_NORMAL_MAP");
-            }
-
-            if (mats[i].GetFloat("_UseFresnel") > 0)
-            {
-                macro.Add("_FRESNEL_EFFECT");
-            }
-
-            AddNativeMaterial(rendererNativeID, mats[i].GetInstanceID(), mats[i].renderQueue, cullMode, srcBlend, dstBlend, "ForwardPass.hlsl", macro.Count, macro.ToArray());
-            macro.Clear();
-        }
-
-        for (int i = 0; i < mats.Length; i++)
-        {
-            if (!SqMaterial.Instance.HasMaterial(mats[i]))
-            {
-                MaterialConstant mc = SqMaterial.Instance.GetMaterialConstant(mats[i]);
-                UpdateNativeMaterialProp(mats[i].GetInstanceID(), (uint)SqMaterial.Instance.matConstantSize, mc);
-                SqMaterial.Instance.CacheMaterial(mats[i], mc);
-            }
+            SqMaterial.Instance.ExtractMaterialData(mats[i], rendererNativeID);
         }
     }
 }

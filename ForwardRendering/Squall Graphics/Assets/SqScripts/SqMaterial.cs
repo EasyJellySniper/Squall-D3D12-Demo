@@ -45,6 +45,9 @@ public class SqMaterial
     [DllImport("SquallGraphics")]
     static extern void UpdateNativeMaterialProp(int _instanceID, uint _byteSize, MaterialConstant _mc);
 
+    [DllImport("SquallGraphics", CharSet = CharSet.Ansi)]
+    static extern int AddNativeMaterial(int _nRendererId, int _matInstanceId, int _queue, int _cullMode, int _srcBlend, int _dstBlend, string _nativeShader, int _numMacro, string[] _macro);
+
     /// <summary>
     /// instance
     /// </summary>
@@ -147,6 +150,54 @@ public class SqMaterial
             mc._RenderQueue = 0;
 
         return mc;
+    }
+
+    public void ExtractMaterialData(Material _mat, int _rendererID)
+    {
+        int cullMode = (_mat.HasProperty("_CullMode")) ? (int)_mat.GetFloat("_CullMode") : 2;
+        int srcBlend = (_mat.HasProperty("_SrcBlend")) ? (int)_mat.GetFloat("_SrcBlend") : 1;
+        int dstBlend = (_mat.HasProperty("_DstBlend")) ? (int)_mat.GetFloat("_DstBlend") : 0;
+        bool isCutOff = (_mat.renderQueue <= (int)RenderQueue.GeometryLast) && (_mat.renderQueue >= 2226);
+        bool isTransparent = (_mat.renderQueue > (int)RenderQueue.GeometryLast);
+
+        List<string> macro = new List<string>();
+
+        if (isCutOff)
+        {
+            macro.Add("_CUTOFF_ON");
+        }
+
+        if (isTransparent)
+        {
+            macro.Add("_TRANSPARENT_ON");
+        }
+
+        AddTexKeyword(_mat, ref macro, "_SpecGlossMap", "_SPEC_GLOSS_MAP");
+        AddTexKeyword(_mat, ref macro, "_BumpMap", "_NORMAL_MAP");
+        AddTexKeyword(_mat, ref macro, "_DetailAlbedoMap", "_DETAIL_MAP");
+        AddTexKeyword(_mat, ref macro, "_DetailNormalMap", "_DETAIL_NORMAL_MAP");
+
+        bool shouldEmissionBeEnabled = (_mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+        if (shouldEmissionBeEnabled)
+        {
+            macro.Add("_EMISSION");
+        }
+
+        if (_mat.GetFloat("_UseFresnel") > 0)
+        {
+            macro.Add("_FRESNEL_EFFECT");
+        }
+
+        AddNativeMaterial(_rendererID, _mat.GetInstanceID(), _mat.renderQueue, cullMode, srcBlend, dstBlend, "ForwardPass.hlsl", macro.Count, macro.ToArray());
+        macro.Clear();
+
+        // cache and update props
+        if (!HasMaterial(_mat))
+        {
+            MaterialConstant mc = GetMaterialConstant(_mat);
+            UpdateNativeMaterialProp(_mat.GetInstanceID(), (uint)matConstantSize, mc);
+            CacheMaterial(_mat, mc);
+        }
     }
 
     public void AddTexKeyword(Material _mat, ref List<string> _macro, string _texName, string _keyName)
