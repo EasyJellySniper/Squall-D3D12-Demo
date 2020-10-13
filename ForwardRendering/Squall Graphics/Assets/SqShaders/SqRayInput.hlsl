@@ -150,6 +150,10 @@ float4 RayForwardPass(RayV2F i, float3 bumpNormal)
 
     float4 output = diffuse;
     output.rgb += emission;
+
+    // adjust alpha
+    output.a = lerp(output.a, 1, _RenderQueue < 2);
+
     return output;
 }
 

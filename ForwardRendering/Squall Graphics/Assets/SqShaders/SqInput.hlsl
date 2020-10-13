@@ -101,6 +101,7 @@ cbuffer MaterialConstant : register(b2)
 	int _DetailAlbedoIndex;
 	int _DetailNormalIndex;
 	int _ReflectionCount;
+	int _RenderQueue;	// render queue (opaque cutoff transparent) : 0 1 2
 };
 
 // need /enable_unbounded_descriptor_tables when compiling

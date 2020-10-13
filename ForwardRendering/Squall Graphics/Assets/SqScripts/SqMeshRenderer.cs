@@ -100,7 +100,6 @@ public class SqMeshRenderer : MonoBehaviour
             int srcBlend = (mats[i].HasProperty("_SrcBlend")) ? (int)mats[i].GetFloat("_SrcBlend") : 1;
             int dstBlend = (mats[i].HasProperty("_DstBlend")) ? (int)mats[i].GetFloat("_DstBlend") : 0;
             bool isCutOff = (mats[i].renderQueue <= (int)RenderQueue.GeometryLast) && (mats[i].renderQueue >= 2226);
-            bool isShadowCutoff = (mats[i].renderQueue >= 2226);
             bool isTransparent = (mats[i].renderQueue > (int)RenderQueue.GeometryLast);
 
             List<string> macro = new List<string>();
@@ -108,11 +107,6 @@ public class SqMeshRenderer : MonoBehaviour
             if (isCutOff)
             {
                 macro.Add("_CUTOFF_ON");
-            }
-
-            if (isShadowCutoff)
-            {
-                macro.Add("_SHADOW_CUTOFF_ON");
             }
 
             if (isTransparent)

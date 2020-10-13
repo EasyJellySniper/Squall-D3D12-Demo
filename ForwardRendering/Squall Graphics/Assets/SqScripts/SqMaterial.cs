@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// material constant
@@ -30,6 +31,7 @@ public struct MaterialConstant
     public int _DetailAlbedoIndex;
     public int _DetailNormalIndex;
     public int _ReflectionCount;
+    public int _RenderQueue;
 };
 
 public class SqMaterial
@@ -133,6 +135,16 @@ public class SqMaterial
         mc._DetailBumpScale = _mat.GetFloat("_DetailNormalMapScale");
         mc._DetailUV = _mat.GetFloat("_UVSec");
         mc._ReflectionCount = _mat.GetInt("_ReflectionCount");
+
+        bool isCutOff = (_mat.renderQueue <= (int)RenderQueue.GeometryLast) && (_mat.renderQueue >= 2226);
+        bool isTransparent = (_mat.renderQueue > (int)RenderQueue.GeometryLast);
+
+        if (isCutOff)
+            mc._RenderQueue = 1;
+        else if (isTransparent)
+            mc._RenderQueue = 2;
+        else
+            mc._RenderQueue = 0;
 
         return mc;
     }
