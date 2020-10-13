@@ -178,7 +178,12 @@ float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, flo
 	float3 dirSpecular = 0;
 	float3 dirDiffuse = AccumulateDirLight(normal, worldPos, specColor, smoothness, dirSpecular, shadowAtten);
 
-	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular;
+	float3 view = -normalize(worldPos - _CameraPos.xyz);
+	float nv = abs(dot(normal, view));
+	float specFade = smoothness * smoothness;
+	float3 giSpec = specFade * gi.indirectSpecular * SchlickFresnel(specColor, nv);
+
+	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular + giSpec;
 }
 
 SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, bool isTransparent)

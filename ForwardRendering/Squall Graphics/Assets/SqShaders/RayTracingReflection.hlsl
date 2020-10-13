@@ -189,13 +189,13 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
         TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, ~0, 0, 1, 0, recursiveRay, recursiveResult);
     }
 
-    float4 result = RayForwardPass(v2f, bumpNormal);
+    float4 result = RayForwardPass(v2f, bumpNormal, recursiveResult.reflectionColor);
 
     // prepare sky for blending
     float3 sky = SampleSkyForRay(WorldRayDirection());
 
     // lerp between sky color & reflection color by alpha
-    payload.reflectionColor = lerp(sky, result.rgb, result.a) + recursiveResult.reflectionColor;
+    payload.reflectionColor = lerp(sky, result.rgb, result.a);
 }
 
 [shader("anyhit")]
