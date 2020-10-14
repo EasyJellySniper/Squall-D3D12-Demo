@@ -3,6 +3,7 @@
 #include <iomanip>
 using namespace std;
 #include "GraphicManager.h"
+#include "RayTracingManager.h"
 
 void GameTimerManager::Init()
 {
@@ -130,6 +131,7 @@ void GameTimerManager::PrintGameTime()
 		}
 
 		cout << "Total DrawCall: " << totalDrawCall << endl;
+		cout << "Total ray tracing instance (Top Level): " << RayTracingManager::Instance().GetTopLevelAsCount() << endl;
 
 		cout << "\n-------------- GPU Profile(ms) --------------\n";
 		cout << "GPU Time: " << totalGpuMs << endl;

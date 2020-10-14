@@ -75,6 +75,11 @@ void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList
 	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
 }
 
+int RayTracingManager::GetTopLevelAsCount()
+{
+	return (int)allTopAS.instanceDescs.size();
+}
+
 void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	// collect instance descs

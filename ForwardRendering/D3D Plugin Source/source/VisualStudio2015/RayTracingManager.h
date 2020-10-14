@@ -57,6 +57,8 @@ public:
 	D3D12_GPU_VIRTUAL_ADDRESS GetSubMeshInfoGPU();
 	void UpdateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
 
+	int GetTopLevelAsCount();
+
 private:
 	void CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
 	void CollectRayTracingDesc(TopLevelAS& _input);
