@@ -23,6 +23,11 @@ void MaterialManager::Init()
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		materialConstant[i] = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), MAX_MATERIAL_COUNT, true, MATERIAL_STRIDE);
+	}
+
+	for (int i = 0; i < HitGroupType::HitGroupCount; i++)
+	{
+		hitGroupConstant[i] = make_unique<UploadBufferAny>(GraphicManager::Instance().GetDevice(), MAX_MATERIAL_COUNT, true, MATERIAL_STRIDE);
 		hitGroupName[i] = L"";
 	}
 }
@@ -199,7 +204,13 @@ void MaterialManager::UpdateMaterialProp(int _matId, UINT _byteSize, void* _data
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
 		// copy starts at 32-bytes location and copy with a length of [elementBytes-32]
-		materialConstant[i]->CopyDataOffset(idx, _data, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, -D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+		materialConstant[i]->CopyData(idx, _data);
+	}
+
+	for (int i = 0; i < HitGroupType::HitGroupCount; i++)
+	{
+		// copy data to hit group with 32 byte alignment
+		hitGroupConstant[i]->CopyDataOffset(idx, _data, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, -D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 	}
 }
 
@@ -235,6 +246,11 @@ void MaterialManager::Release()
 		materialConstant[i].reset();
 	}
 
+	for (int i = 0; i < HitGroupType::HitGroupCount; i++)
+	{
+		hitGroupConstant[i].reset();
+	}
+
 	matIndexTable.clear();
 }
 
@@ -255,7 +271,7 @@ void MaterialManager::CopyHitGroupIdentifier(Material* _dxrMat, HitGroupType _gr
 	for (size_t i = 0; i < materialList.size(); i++)
 	{
 		// copy only first 32 bytes data to constant
-		materialConstant[_groupType]->CopyDataByteSize((int)i, hitGroupIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+		hitGroupConstant[_groupType]->CopyDataByteSize((int)i, hitGroupIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 	}
 
 	hitGroupName[_groupType] = rtse.entryHitGroup;
@@ -269,12 +285,12 @@ D3D12_GPU_VIRTUAL_ADDRESS MaterialManager::GetMaterialConstantGPU(int _id, int _
 		LogMessage(L"[SqGraphic Error] : Reach max material limit, " + to_wstring(idx) + L"is ignored.");
 	}
 
-	return materialConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + idx * MATERIAL_STRIDE + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+	return materialConstant[_frameIdx]->Resource()->GetGPUVirtualAddress() + idx * MATERIAL_STRIDE;
 }
 
 UploadBufferAny* MaterialManager::GetHitGroupGPU(HitGroupType _groupType)
 {
-	return materialConstant[_groupType].get();
+	return hitGroupConstant[_groupType].get();
 }
 
 int MaterialManager::GetMatIndexFromID(int _id)

@@ -61,6 +61,7 @@ private:
 	unordered_map<int, int> matIndexTable;
 
 	D3D12_BLEND blendTable[NUM_BLEND_MODE];
-	unique_ptr<UploadBufferAny> materialConstant[HitGroupType::HitGroupCount];
+	unique_ptr<UploadBufferAny> materialConstant[MAX_FRAME_COUNT];
+	unique_ptr<UploadBufferAny> hitGroupConstant[HitGroupType::HitGroupCount];
 	wstring hitGroupName[HitGroupType::HitGroupCount];
 };
