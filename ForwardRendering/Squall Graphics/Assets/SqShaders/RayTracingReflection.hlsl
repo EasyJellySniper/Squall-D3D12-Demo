@@ -197,11 +197,10 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
 
     // world position & normal
     v2f.worldPos = hitPos;
-    v2f.normal = mul((float3x3)ObjectToWorld3x4(), GetHitNormal(indices, vertID, attr));
+    v2f.normal = GetHitNormal(indices, vertID, attr);
 
     // calc TBN for bump mapping
     float4 tangent = GetHitTangent(indices, vertID, attr);
-    tangent.xyz = mul((float3x3)ObjectToWorld3x4(), tangent.xyz);
     v2f.worldToTangent = CreateTBN(v2f.normal, tangent);
 
     // bump normal
