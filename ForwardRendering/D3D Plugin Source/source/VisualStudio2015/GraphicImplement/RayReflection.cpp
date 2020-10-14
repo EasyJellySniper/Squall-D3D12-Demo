@@ -39,7 +39,7 @@ void RayReflection::Release()
 	transRayReflection.reset();
 }
 
-void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox* _skybox, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
+void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox* _skybox, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU)
 {
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
