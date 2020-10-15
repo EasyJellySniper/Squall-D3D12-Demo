@@ -45,6 +45,9 @@ public:
 	void CopyHitGroupIdentifier(Material *_dxrMat, HitGroupType _groupType);
 	UploadBufferAny *GetHitGroupGPU(HitGroupType _groupType);
 	int GetMatIndexFromID(int _id);
+	bool SetGraphicPass(ID3D12GraphicsCommandList* _cmdList, Material* _mat);
+	bool SetComputePass(ID3D12GraphicsCommandList* _cmdList, Material* _mat);
+	bool SetRayTracingPass(ID3D12GraphicsCommandList5* _cmdList, Material* _mat);
 
 private:
 	static const int NUM_BLEND_MODE = 11;

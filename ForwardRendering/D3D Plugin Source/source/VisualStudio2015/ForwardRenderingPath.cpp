@@ -279,8 +279,10 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
 	
 	// set debug wire frame material
 	Material *mat = _camera->GetPipelineMaterial(MaterialType::DebugWireFrame, CullMode::Off);
-	_cmdList->SetPipelineState(mat->GetPSO());
-	_cmdList->SetGraphicsRootSignature(mat->GetRootSignature());
+	if (!MaterialManager::Instance().SetGraphicPass(_cmdList, mat))
+	{
+		return;
+	}
 
 	// loop render-queue
 	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
@@ -367,8 +369,10 @@ void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadInd
 			// bind pipeline material
 			if (pipeMat != lastMat)
 			{
-				_cmdList->SetPipelineState(pipeMat->GetPSO());
-				_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
+				if (!MaterialManager::Instance().SetGraphicPass(_cmdList, pipeMat))
+				{
+					continue;
+				}
 				lastMat = pipeMat;
 			}
 
@@ -438,8 +442,10 @@ void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList*
 			// bind pipeline material
 			if (lastMat != pipeMat)
 			{
-				_cmdList->SetPipelineState(pipeMat->GetPSO());
-				_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
+				if (!MaterialManager::Instance().SetGraphicPass(_cmdList, pipeMat))
+				{
+					continue;
+				}
 				lastMat = pipeMat;
 			}
 
@@ -502,8 +508,10 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 			// bind pipeline material
 			if (lastMat != objMat)
 			{
-				_cmdList->SetPipelineState(objMat->GetPSO());
-				_cmdList->SetGraphicsRootSignature(objMat->GetRootSignature());
+				if (!MaterialManager::Instance().SetGraphicPass(_cmdList, objMat))
+				{
+					continue;
+				}
 				lastMat = objMat;
 			}
 
@@ -546,7 +554,13 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	// reset cmdlist
 	auto _cmdList = currFrameResource->mainGfxList;
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
-	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
+
+	auto skyMat = skybox->GetMaterial();
+	if (!MaterialManager::Instance().SetGraphicPass(_cmdList, skyMat))
+	{
+		return;
+	}
 
 	// bind descriptor
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
@@ -562,10 +576,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// bind root signature
-	auto skyMat = skybox->GetMaterial();
-	_cmdList->SetPipelineState(skyMat->GetPSO());
-	_cmdList->SetGraphicsRootSignature(skyMat->GetRootSignature());
+	// bind root object
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootConstantBufferView(1, skybox->GetRenderer()->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(2, skybox->GetSkyboxTex());
@@ -631,8 +642,10 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
 
 			// bind pipeline material
-			_cmdList->SetPipelineState(objMat->GetPSO());
-			_cmdList->SetGraphicsRootSignature(objMat->GetRootSignature());
+			if (!MaterialManager::Instance().SetGraphicPass(_cmdList, objMat))
+			{
+				continue;
+			}
 
 			// bind forward object
 			BindForwardObject(_cmdList, r.cache, objMat, m);

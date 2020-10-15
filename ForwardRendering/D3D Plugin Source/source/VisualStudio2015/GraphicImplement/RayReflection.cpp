@@ -46,6 +46,12 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 
 	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
+	auto dxrCmd = GraphicManager::Instance().GetDxrList();
+
+	if (!MaterialManager::Instance().SetRayTracingPass(dxrCmd, &rayReflectionMat))
+	{
+		return;
+	}
 
 	// bind heap
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
@@ -62,7 +68,6 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	_cmdList->ResourceBarrier(6, barriers);
 
 	// set material
-	_cmdList->SetComputeRootSignature(rayReflectionMat.GetRootSignature());
 	_cmdList->SetComputeRootDescriptorTable(0, GetReflectionUav());
 	_cmdList->SetComputeRootDescriptorTable(1, GetTransReflectionUav());
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
@@ -86,8 +91,6 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	dispatchDesc.HitGroupTable.StrideInBytes = hitGroup->Stride();
 
 	// dispatch rays
-	auto dxrCmd = GraphicManager::Instance().GetDxrList();
-	dxrCmd->SetPipelineState1(rayReflectionMat.GetDxcPSO());
 	dxrCmd->DispatchRays(&dispatchDesc);
 
 	// generate mipmap for reflection rt

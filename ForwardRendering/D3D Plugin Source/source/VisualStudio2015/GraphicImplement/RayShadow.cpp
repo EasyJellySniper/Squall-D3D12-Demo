@@ -86,11 +86,17 @@ void RayShadow::RayTracingShadow(Camera* _targetCam, ForwardPlus* _forwardPlus, 
 	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
 
+	auto dxrCmd = GraphicManager::Instance().GetDxrList();
+	Material* mat = GetRayShadow();
+	if (!MaterialManager::Instance().SetRayTracingPass(dxrCmd, mat))
+	{
+		return;
+	}
+
 	// bind root signature
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
-	Material* mat = GetRayShadow();
 	UINT cbvSrvUavSize = GraphicManager::Instance().GetCbvSrvUavDesciptorSize();
 
 	D3D12_RESOURCE_BARRIER barriers[6];
@@ -101,7 +107,6 @@ void RayShadow::RayTracingShadow(Camera* _targetCam, ForwardPlus* _forwardPlus, 
 	_cmdList->ResourceBarrier(4, barriers);
 
 	// set state
-	_cmdList->SetComputeRootSignature(mat->GetRootSignature());
 	_cmdList->SetComputeRootDescriptorTable(0, GetRTShadowUav());
 	_cmdList->SetComputeRootDescriptorTable(1, GetRTShadowTransUav());
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
@@ -127,8 +132,6 @@ void RayShadow::RayTracingShadow(Camera* _targetCam, ForwardPlus* _forwardPlus, 
 	dispatchDesc.HitGroupTable.StrideInBytes = hitGroup->Stride();
 
 	// dispatch rays
-	auto dxrCmd = GraphicManager::Instance().GetDxrList();
-	dxrCmd->SetPipelineState1(mat->GetDxcPSO());
 	dxrCmd->DispatchRays(&dispatchDesc);
 
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetCameraDepth(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
@@ -150,6 +153,11 @@ void RayShadow::CollectRayShadow(Camera* _targetCam)
 
 	LogIfFailedWithoutHR(_cmdList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
+
+	if (!MaterialManager::Instance().SetGraphicPass(_cmdList, &collectRayShadowMat))
+	{
+		return;
+	}
 
 	// transition resource
 	D3D12_RESOURCE_BARRIER collect[6];
@@ -181,8 +189,6 @@ void RayShadow::CollectRayShadow(Camera* _targetCam)
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// set material
-	_cmdList->SetPipelineState(collectRayShadowMat.GetPSO());
-	_cmdList->SetGraphicsRootSignature(collectRayShadowMat.GetRootSignature());
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(1, TextureManager::Instance().GetTexHandle(rtShadowSrv.srv));
 	_cmdList->SetGraphicsRootDescriptorTable(2, _targetCam->GetDsvGPU());

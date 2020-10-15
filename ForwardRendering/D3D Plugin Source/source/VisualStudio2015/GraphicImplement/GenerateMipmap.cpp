@@ -27,8 +27,11 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 	//ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
 	//_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
-	_cmdList->SetPipelineState(generateMat.GetPSO());
-	_cmdList->SetComputeRootSignature(generateMat.GetRootSignatureCompute());
+	if (!MaterialManager::Instance().SetComputePass(_cmdList, &generateMat))
+	{
+		return;
+	}
+
 	_cmdList->SetComputeRootDescriptorTable(0, _outMip);
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootDescriptorTable(3, _input);

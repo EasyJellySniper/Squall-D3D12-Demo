@@ -256,6 +256,11 @@ void MaterialManager::Release()
 
 void MaterialManager::CopyHitGroupIdentifier(Material* _dxrMat, HitGroupType _groupType)
 {
+	if (_dxrMat->GetDxcPSO() == nullptr)
+	{
+		return;
+	}
+
 	ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
 	LogIfFailedWithoutHR(_dxrMat->GetDxcPSO()->QueryInterface(IID_PPV_ARGS(stateObjectProperties.GetAddressOf())));
 
@@ -296,6 +301,57 @@ UploadBufferAny* MaterialManager::GetHitGroupGPU(HitGroupType _groupType)
 int MaterialManager::GetMatIndexFromID(int _id)
 {
 	return matIndexTable[_id];
+}
+
+bool MaterialManager::SetGraphicPass(ID3D12GraphicsCommandList* _cmdList, Material* _mat)
+{
+	if (_mat == nullptr)
+		return false;
+
+	if (_mat->GetPSO() == nullptr)
+		return false;
+
+	if (_mat->GetRootSignature() == nullptr)
+		return false;
+
+	_cmdList->SetPipelineState(_mat->GetPSO());
+	_cmdList->SetGraphicsRootSignature(_mat->GetRootSignature());
+
+	return true;
+}
+
+bool MaterialManager::SetComputePass(ID3D12GraphicsCommandList* _cmdList, Material* _mat)
+{
+	if (_mat == nullptr)
+		return false;
+
+	if (_mat->GetPSO() == nullptr)
+		return false;
+
+	if (_mat->GetRootSignatureCompute() == nullptr)
+		return false;
+
+	_cmdList->SetPipelineState(_mat->GetPSO());
+	_cmdList->SetComputeRootSignature(_mat->GetRootSignatureCompute());
+
+	return true;
+}
+
+bool MaterialManager::SetRayTracingPass(ID3D12GraphicsCommandList5* _cmdList, Material* _mat)
+{
+	if (_mat == nullptr)
+		return false;
+
+	if (_mat->GetDxcPSO() == nullptr)
+		return false;
+
+	if (_mat->GetRootSignatureCompute() == nullptr)
+		return false;
+
+	_cmdList->SetPipelineState1(_mat->GetDxcPSO());
+	_cmdList->SetComputeRootSignature(_mat->GetRootSignatureCompute());
+
+	return true;
 }
 
 D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,

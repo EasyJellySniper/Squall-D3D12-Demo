@@ -79,6 +79,11 @@ void ForwardPlus::TileLightCulling(D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
 	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
 
+	if (!MaterialManager::Instance().SetComputePass(_cmdList, &forwardPlusTileMat))
+	{
+		return;
+	}
+
 	// set heap
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
@@ -90,8 +95,6 @@ void ForwardPlus::TileLightCulling(D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
 	_cmdList->ResourceBarrier(2, barriers);
 
 	// set pso & root signature
-	_cmdList->SetPipelineState(forwardPlusTileMat.GetPSO());
-	_cmdList->SetComputeRootSignature(forwardPlusTileMat.GetRootSignatureCompute());
 	_cmdList->SetComputeRootDescriptorTable(0, GetLightCullingUav());
 	_cmdList->SetComputeRootDescriptorTable(1, GetLightCullingTransUav());
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));

@@ -103,6 +103,11 @@ void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameI
 		return;
 	}
 
+	if (!MaterialManager::Instance().SetGraphicPass(_cmdList, GetResolveDepthMaterial()))
+	{
+		return;
+	}
+
 	// prepare to resolve
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
@@ -115,8 +120,6 @@ void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameI
 	_cmdList->RSSetScissorRects(1, &GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	_cmdList->SetPipelineState(GetResolveDepthMaterial()->GetPSO());
-	_cmdList->SetGraphicsRootSignature(GetResolveDepthMaterial()->GetRootSignature());
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
 	_cmdList->SetGraphicsRootDescriptorTable(1, GetMsaaSrv());
 
