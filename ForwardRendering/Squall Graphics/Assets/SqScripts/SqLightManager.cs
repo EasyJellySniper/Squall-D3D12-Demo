@@ -33,6 +33,12 @@ public class SqLightManager : MonoBehaviour
     public int pcssKernel = 3;
 
     /// <summary>
+    /// reflection down sample
+    /// </summary>
+    [Range(0, 3)]
+    public int reflectionDownSample = 0;
+
+    /// <summary>
     /// collect shadows
     /// </summary>
     public RenderTexture collectShadows;
@@ -75,7 +81,7 @@ public class SqLightManager : MonoBehaviour
         collectShadows = SqUtility.CreateRT(Screen.width >> downSample, Screen.height >> downSample, 0, RenderTextureFormat.ARGBHalf, "Collect Shadows");
 
         // create reflection rt
-        int reflSize = Mathf.ClosestPowerOfTwo(Screen.width) >> 1;
+        int reflSize = Mathf.ClosestPowerOfTwo(Screen.width) >> reflectionDownSample;
         reflectionRT = SqUtility.CreateRT(reflSize, reflSize, 0, RenderTextureFormat.ARGB32, "Reflection RT", true, true);
 
         InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, collectShadows.GetNativeTexturePtr(), reflectionRT.GetNativeTexturePtr());
