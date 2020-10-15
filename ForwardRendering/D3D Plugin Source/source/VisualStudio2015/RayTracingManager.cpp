@@ -6,11 +6,8 @@
 
 void RayTracingManager::Release()
 {
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
-	{
-		subMeshInfo[i].reset();
-		allTopAS[i].Release();
-	}
+	subMeshInfo.reset();
+	allTopAS.Release();
 }
 
 void RayTracingManager::InitRayTracingInstance()
@@ -34,68 +31,62 @@ void RayTracingManager::InitRayTracingInstance()
 
 void RayTracingManager::CreateSubMeshInfoForTopAS()
 {
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	// create enough buffer
+	int numTopASInstance = (int)allTopAS.instanceDescs.size();
+	subMeshInfo = make_unique<UploadBuffer<SubMesh>>(GraphicManager::Instance().GetDevice(), numTopASInstance, false);
+
+	int count = 0;
+	auto renderers = RendererManager::Instance().GetRenderers();
+
+	// sub mesh info
+	for (auto& r : renderers)
 	{
-		// create enough buffer
-		int numTopASInstance = (int)allTopAS[i].instanceDescs.size();
-		subMeshInfo[i] = make_unique<UploadBuffer<SubMesh>>(GraphicManager::Instance().GetDevice(), numTopASInstance, false);
-
-		int count = 0;
-		auto renderers = RendererManager::Instance().GetRenderers();
-
-		// sub mesh info
-		for (auto& r : renderers)
+		for (int i = 0; i < r->GetNumMaterials(); i++)
 		{
-			for (int j = 0; j < r->GetNumMaterials(); j++)
-			{
-				SubMesh sm = r->GetMesh()->GetSubMesh(j);
-				subMeshInfo[i]->CopyData(count++, sm);
-			}
+			SubMesh sm = r->GetMesh()->GetSubMesh(i);
+			subMeshInfo->CopyData(count++, sm);
 		}
 	}
 }
 
-ID3D12Resource* RayTracingManager::GetTopLevelAS(int _frameIdx)
+ID3D12Resource* RayTracingManager::GetTopLevelAS()
 {
-	return allTopAS[_frameIdx].topLevelAS->Resource();
+	return allTopAS.topLevelAS->Resource();
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS RayTracingManager::GetSubMeshInfoGPU(int _frameIdx)
+D3D12_GPU_VIRTUAL_ADDRESS RayTracingManager::GetSubMeshInfoGPU()
 {
-	return subMeshInfo[_frameIdx]->Resource()->GetGPUVirtualAddress();
+	return subMeshInfo->Resource()->GetGPUVirtualAddress();
 }
 
-void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList, int _frameIdx)
+void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	// update dynamic transform only
-	for (size_t i = 0; i < allTopAS[_frameIdx].instanceDescs.size(); i++)
+	for (size_t i = 0; i < allTopAS.instanceDescs.size(); i++)
 	{
-		Renderer* r = allTopAS[_frameIdx].rendererCache[i];
+		Renderer* r = allTopAS.rendererCache[i];
 		if (r->IsDynamic())
 		{
-			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(allTopAS[_frameIdx].instanceDescs[i].Transform), XMLoadFloat4x4(&r->GetWorld()));
+			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(allTopAS.instanceDescs[i].Transform), XMLoadFloat4x4(&r->GetWorld()));
 		}
 	}
 
 	// create dynamic top as (prefer fast build)
-	CreateTopASWork(_dxrList, allTopAS[_frameIdx], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
+	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
 }
 
 int RayTracingManager::GetTopLevelAsCount()
 {
-	return (int)allTopAS[0].instanceDescs.size();
+	return (int)allTopAS.instanceDescs.size();
 }
 
 void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
-	{
-		// collect instance descs
-		CollectRayTracingDesc(allTopAS[i]);
+	// collect instance descs
+	CollectRayTracingDesc(allTopAS);
 
-		// create all top as (prefer fast trace)
-		CreateTopASWork(_dxrList, allTopAS[i], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
-	}
+	// create all top as (prefer fast trace)
+	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
 }
 
 void RayTracingManager::CollectRayTracingDesc(TopLevelAS& _input)
