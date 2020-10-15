@@ -179,7 +179,7 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 	LogIfFailedWithoutHR(_dxrList->Reset(currFrameResource->mainGfxAllocator, nullptr));
 
 	GPU_TIMER_START(_dxrList, GraphicManager::Instance().GetGpuTimeQuery());
-	RayTracingManager::Instance().UpdateTopAccelerationStructure(_dxrList);
+	RayTracingManager::Instance().UpdateTopAccelerationStructure(_dxrList, frameIndex);
 	GPU_TIMER_STOP(_dxrList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::UpdateTopLevelAS]);
 	GraphicManager::Instance().ExecuteCommandList(_dxrList);
 
