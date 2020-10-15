@@ -9,19 +9,25 @@ struct QueueRenderer
 {
 	Renderer* cache;
 	int submeshIndex;
+	int materialID;
 	float zDistanceToCam;
 };
 
 inline bool FrontToBackRender(QueueRenderer const& i, QueueRenderer const& j)
 {
 	// sort from low distance to high distance (front to back)
-	return (i.zDistanceToCam < j.zDistanceToCam);
+	return i.zDistanceToCam < j.zDistanceToCam;
 }
 
 inline bool BackToFrontRender(QueueRenderer const& i, QueueRenderer const& j)
 {
 	// sort from high distance to low distance (back to front)
-	return (i.zDistanceToCam > j.zDistanceToCam);
+	return i.zDistanceToCam > j.zDistanceToCam;
+}
+
+inline bool MaterialIdSort(QueueRenderer const& i, QueueRenderer const& j)
+{
+	return i.materialID < j.materialID;
 }
 
 class RendererManager

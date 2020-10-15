@@ -236,23 +236,9 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
 
 void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh)
 {
-	Material* pipeMat = nullptr;
-	if (_queue < RenderQueue::CutoffStart)
-	{
-		pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassOpaque, _mat->GetCullMode());
-	}
-	else if (_queue >= RenderQueue::CutoffStart)
-	{
-		pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassCutoff, _mat->GetCullMode());
-	}
-
 	// bind mesh
 	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
 	_cmdList->IASetIndexBuffer(&_mesh->GetIndexBufferView());
-
-	// bind pipeline material
-	_cmdList->SetPipelineState(pipeMat->GetPSO());
-	_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
@@ -269,10 +255,6 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	// bind mesh
 	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
 	_cmdList->IASetIndexBuffer(&_mesh->GetIndexBufferView());
-
-	// bind pipeline material
-	_cmdList->SetPipelineState(_mat->GetPSO());
-	_cmdList->SetGraphicsRootSignature(_mat->GetRootSignature());
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
@@ -358,6 +340,7 @@ void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadInd
 			continue;
 		}
 
+		Material* lastMat = nullptr;
 		for (int i = start; i <= start + count; i++)
 		{
 			// valid renderer
@@ -370,6 +353,25 @@ void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadInd
 
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+
+			Material* pipeMat = nullptr;
+			if (qr.first < RenderQueue::CutoffStart)
+			{
+				pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassOpaque, objMat->GetCullMode());
+			}
+			else if (qr.first >= RenderQueue::CutoffStart)
+			{
+				pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassCutoff, objMat->GetCullMode());
+			}
+
+			// bind pipeline material
+			if (pipeMat != lastMat)
+			{
+				_cmdList->SetPipelineState(pipeMat->GetPSO());
+				_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
+				lastMat = pipeMat;
+			}
+
 			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m);
 
 			// draw mesh
@@ -418,6 +420,7 @@ void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList*
 			continue;
 		}
 
+		Material* lastMat = nullptr;
 		for (int i = 0; i < renderers.size(); i++)
 		{
 			// valid renderer
@@ -430,6 +433,16 @@ void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList*
 
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+			Material* pipeMat = _camera->GetPipelineMaterial(MaterialType::DepthPrePassCutoff, objMat->GetCullMode());
+			
+			// bind pipeline material
+			if (lastMat != pipeMat)
+			{
+				_cmdList->SetPipelineState(pipeMat->GetPSO());
+				_cmdList->SetGraphicsRootSignature(pipeMat->GetRootSignature());
+				lastMat = pipeMat;
+			}
+
 			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m);
 
 			// draw mesh
@@ -472,6 +485,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 			}
 		}
 
+		Material *lastMat = nullptr;
 		for (int i = start; i <= start + count; i++)
 		{
 			// valid renderer
@@ -484,6 +498,14 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+
+			// bind pipeline material
+			if (lastMat != objMat)
+			{
+				_cmdList->SetPipelineState(objMat->GetPSO());
+				_cmdList->SetGraphicsRootSignature(objMat->GetRootSignature());
+				lastMat = objMat;
+			}
 
 			// bind forward object
 			BindForwardObject(_cmdList, r.cache, objMat, m);
@@ -607,6 +629,10 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 
 			// choose pipeline material according to renderqueue
 			Material* const objMat = r.cache->GetMaterial(r.submeshIndex);
+
+			// bind pipeline material
+			_cmdList->SetPipelineState(objMat->GetPSO());
+			_cmdList->SetGraphicsRootSignature(objMat->GetRootSignature());
 
 			// bind forward object
 			BindForwardObject(_cmdList, r.cache, objMat, m);

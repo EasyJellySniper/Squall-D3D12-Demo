@@ -58,6 +58,7 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 		QueueRenderer qr;
 		qr.cache = _renderer;
 		qr.submeshIndex = i;
+		qr.materialID = _renderer->GetMaterial(i)->GetInstanceID();
 
 		// get min z distance to camera
 		qr.zDistanceToCam = zDist;
@@ -172,8 +173,8 @@ void RendererManager::SortWork(Camera* _camera)
 	{
 		if (qr.first <= RenderQueue::OpaqueLast)
 		{
-			// sort front-to-back
-			sort(qr.second.begin(), qr.second.end(), FrontToBackRender);
+			// sort by material to minimize PSO changes
+			sort(qr.second.begin(), qr.second.end(), MaterialIdSort);
 		}
 		else
 		{
