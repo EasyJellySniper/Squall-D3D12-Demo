@@ -46,8 +46,8 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 
 	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
-	auto dxrCmd = GraphicManager::Instance().GetDxrList();
 
+	auto dxrCmd = GraphicManager::Instance().GetDxrList();
 	if (!MaterialManager::Instance().SetRayTracingPass(dxrCmd, &rayReflectionMat))
 	{
 		return;

@@ -76,6 +76,7 @@ void ForwardPlus::TileLightCulling(D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
 	// use pre gfx list
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
+
 	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
 
