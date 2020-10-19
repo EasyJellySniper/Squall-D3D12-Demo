@@ -44,6 +44,7 @@ void RendererManager::AddCreatedMaterial(int _instanceID, Material *_mat)
 
 void RendererManager::InitInstanceRendering()
 {
+	// crate instance renderer & count capacity
 	for (auto &r : renderers)
 	{
 		auto mats = r->GetMaterials();
@@ -60,10 +61,19 @@ void RendererManager::InitInstanceRendering()
 			if (idx == -1)
 			{
 				// init and add to list
-				ir.Init();
 				instanceRenderers[queue].push_back(ir);
 				idx = (int)instanceRenderers[queue].size() - 1;
 			}
+			instanceRenderers[queue][idx].CountCapacity();
+		}
+	}
+
+	// actually create instance upload buffer
+	for (auto& r : instanceRenderers)
+	{
+		for (auto& ir : r.second)
+		{
+			ir.CreateInstanceData();
 		}
 	}
 }

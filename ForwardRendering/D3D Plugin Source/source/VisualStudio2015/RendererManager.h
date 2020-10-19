@@ -36,13 +36,14 @@ public:
 		cache = nullptr;
 		submeshIndex = -1;
 		materialID = -1;
+		maxCapacity = 0;
 	}
 
-	void Init()
+	void CreateInstanceData()
 	{
 		for (int i = 0; i < MAX_FRAME_COUNT; i++)
 		{
-			instanceDataGPU[i] = make_shared<UploadBuffer<SqInstanceData>>(GraphicManager::Instance().GetDevice(), INSTANCE_CAPACITY, false);
+			instanceDataGPU[i] = make_shared<UploadBuffer<SqInstanceData>>(GraphicManager::Instance().GetDevice(), maxCapacity, false);
 		}
 	}
 
@@ -72,7 +73,7 @@ public:
 
 	void UploadInstanceData(int _frameIdx)
 	{
-		for (int i = 0; i < (int)instanceDataCPU.size(); i++)
+		for (int i = 0; i < (int)instanceDataCPU.size() && i < maxCapacity; i++)
 		{
 			instanceDataGPU[_frameIdx]->CopyData(i, instanceDataCPU[i]);
 		}
@@ -83,12 +84,17 @@ public:
 		return instanceDataGPU[_frameIdx]->Resource()->GetGPUVirtualAddress();
 	}
 
+	void CountCapacity()
+	{
+		maxCapacity++;
+	}
+
 	Renderer* cache;
 	int submeshIndex;
 	int materialID;
 
 private:
-	const int INSTANCE_CAPACITY = 500;
+	int maxCapacity;
 	vector<SqInstanceData> instanceDataCPU;
 	shared_ptr<UploadBuffer<SqInstanceData>> instanceDataGPU[MAX_FRAME_COUNT];
 };
