@@ -78,39 +78,6 @@ void RendererManager::InitInstanceRendering()
 	}
 }
 
-void RendererManager::CollectInstanceRenderer()
-{
-	ClearInstanceRendererData();
-
-	for (auto& r : renderers)
-	{
-		if (!r->GetVisible())
-		{
-			continue;
-		}
-
-		auto mats = r->GetMaterials();
-		for (int i = 0; i < r->GetNumMaterials(); i++)
-		{
-			InstanceRenderer ir;
-			ir.cache = r.get();
-			ir.materialID = mats[i]->GetInstanceID();
-			ir.submeshIndex = i;
-
-			int queue = mats[i]->GetRenderQueue();
-			int idx = FindInstanceRenderer(queue, ir);
-
-			if (idx != -1)
-			{
-				// add instance data
-				SqInstanceData sid;
-				sid.world = r->GetWorld();
-				instanceRenderers[queue][idx].AddInstanceData(sid);
-			}
-		}
-	}
-}
-
 void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 {
 	XMFLOAT3 camPos = _camera->GetPosition();
@@ -124,6 +91,12 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 
 	for (int i = 0; i < _renderer->GetNumMaterials(); i++)
 	{
+		// add transparent object to queue renderer only
+		if (_renderer->GetMaterial(i)->GetRenderQueue() <= RenderQueue::OpaqueLast)
+		{
+			continue;
+		}
+
 		QueueRenderer qr;
 		qr.cache = _renderer;
 		qr.submeshIndex = i;
@@ -133,6 +106,29 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 		qr.zDistanceToCam = zDist;
 		
 		queuedRenderers[mat[i]->GetRenderQueue()].push_back(qr);
+	}
+}
+
+void RendererManager::AddToInstanceRenderer(Renderer* _renderer)
+{
+	auto mats = _renderer->GetMaterials();
+	for (int i = 0; i < _renderer->GetNumMaterials(); i++)
+	{
+		InstanceRenderer ir;
+		ir.cache = _renderer;
+		ir.materialID = mats[i]->GetInstanceID();
+		ir.submeshIndex = i;
+
+		int queue = mats[i]->GetRenderQueue();
+		int idx = FindInstanceRenderer(queue, ir);
+
+		if (idx != -1)
+		{
+			// add instance data
+			SqInstanceData sid;
+			sid.world = _renderer->GetWorld();
+			instanceRenderers[queue][idx].AddInstanceData(sid);
+		}
 	}
 }
 
@@ -283,26 +279,34 @@ void RendererManager::SetNativeRendererActive(int _id, bool _active)
 void RendererManager::SortWork(Camera* _camera)
 {
 	ClearQueueRenderer();
+	ClearInstanceRendererData();
 
 	for (int i = 0; i < (int)renderers.size(); i++)
 	{
 		if (renderers[i]->GetVisible())
 		{
 			AddToQueueRenderer(renderers[i].get(), _camera);
+			AddToInstanceRenderer(renderers[i].get());
 		}
 	}
 
+	// sort queue renderers
 	for (auto& qr : queuedRenderers)
 	{
-		if (qr.first <= RenderQueue::OpaqueLast)
+		if (qr.first > RenderQueue::OpaqueLast)
 		{
-			// sort by material to minimize PSO changes
-			sort(qr.second.begin(), qr.second.end(), MaterialIdSort);
-		}
-		else
-		{
-			// sort back-to-front
+			// sort back-to-front for transparent obj
 			sort(qr.second.begin(), qr.second.end(), BackToFrontRender);
+		}
+	}
+
+	// sort instance renderers
+	for (auto& ir : instanceRenderers)
+	{
+		if (ir.first <= RenderQueue::OpaqueLast)
+		{
+			// sort by material id for minimize PSO changes on opaque object
+			sort(ir.second.begin(), ir.second.end(), MaterialIdSort);
 		}
 	}
 }

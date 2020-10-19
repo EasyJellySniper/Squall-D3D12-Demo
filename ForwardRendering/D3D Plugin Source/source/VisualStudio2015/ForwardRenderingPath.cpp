@@ -20,9 +20,6 @@ void ForwardRenderingPath::CullingWork(Camera* _camera)
 	workerType = WorkerType::Culling;
 	GraphicManager::Instance().WakeAndWaitWorker();
 
-	// collect instance renderer after culling
-	RendererManager::Instance().CollectInstanceRenderer();
-
 	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
 }
 

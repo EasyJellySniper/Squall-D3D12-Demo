@@ -111,7 +111,7 @@ inline bool BackToFrontRender(QueueRenderer const& i, QueueRenderer const& j)
 	return i.zDistanceToCam > j.zDistanceToCam;
 }
 
-inline bool MaterialIdSort(QueueRenderer const& i, QueueRenderer const& j)
+inline bool MaterialIdSort(InstanceRenderer const& i, InstanceRenderer const& j)
 {
 	return i.materialID < j.materialID;
 }
@@ -137,7 +137,6 @@ public:
 	int AddRenderer(int _instanceID, int _meshInstanceID, bool _isDynamic);
 	void AddCreatedMaterial(int _instanceID, Material *_mat);
 	void InitInstanceRendering();
-	void CollectInstanceRenderer();
 	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 	void UploadObjectConstant(int _frameIdx, int _threadIndex, int _numThreads);
 	void UploadInstanceData(int _frameIdx, int _threadIndex, int _numThreads);
@@ -162,6 +161,7 @@ private:
 	void ClearQueueRenderer();
 	void ClearInstanceRendererData();
 	void AddToQueueRenderer(Renderer* _renderer, Camera* _camera);
+	void AddToInstanceRenderer(Renderer* _renderer);
 	int FindInstanceRenderer(int _queue, InstanceRenderer _ir);
 
 	vector<shared_ptr<Renderer>> renderers;
