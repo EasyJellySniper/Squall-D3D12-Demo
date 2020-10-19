@@ -172,6 +172,11 @@ extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetNativeFrameIndex()
 	return GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitInstanceRendering()
+{
+	RendererManager::Instance().InitInstanceRendering();
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

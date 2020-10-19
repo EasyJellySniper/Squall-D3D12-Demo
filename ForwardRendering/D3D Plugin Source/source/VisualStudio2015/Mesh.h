@@ -35,7 +35,7 @@ public:
 	bool Initialize(int _instanceID, MeshData _mesh);
 	void Release();
 	void ReleaseScratch();
-	void DrawSubMesh(ID3D12GraphicsCommandList* _cmdList, int _subIndex);
+	void DrawSubMesh(ID3D12GraphicsCommandList* _cmdList, int _subIndex, int _instanceCount);
 
 	D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
@@ -43,6 +43,7 @@ public:
 	void CreateBottomAccelerationStructure(ID3D12GraphicsCommandList5 *_dxrList);
 	ID3D12Resource* GetBottomAS(int _submesh);
 	int GetVertexSrv();
+	int GetInstanceID();
 
 private:
 	MeshData meshData;

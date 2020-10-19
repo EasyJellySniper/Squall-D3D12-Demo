@@ -1,6 +1,6 @@
 #define WireFrameRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
 "CBV(b0)," \
-"CBV(b1)"
+"SRV(t0, space=2)"
 
 #include "SqInput.hlsl"
 #pragma sq_vertex WireFrameVS
@@ -14,10 +14,10 @@ struct v2f
 };
 
 [RootSignature(WireFrameRS)]
-v2f WireFrameVS(VertexInput i)
+v2f WireFrameVS(VertexInput i, uint iid : SV_InstanceID)
 {
 	v2f o = (v2f)0;
-	o.wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
+	o.wpos = mul(_SqInstanceData[iid].world, float4(i.vertex, 1.0f));
 	o.vertex = mul(SQ_MATRIX_VP, o.wpos);
 
 	return o;

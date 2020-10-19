@@ -42,6 +42,36 @@ void RendererManager::AddCreatedMaterial(int _instanceID, Material *_mat)
 	renderers[_instanceID]->AddMaterial(_mat);
 }
 
+void RendererManager::InitInstanceRendering()
+{
+	for (auto &r : renderers)
+	{
+		auto mats = r->GetMaterials();
+		for (int i = 0; i < r->GetNumMaterials(); i++)
+		{
+			InstanceRenderer ir;
+			ir.cache = r.get();
+			ir.materialID = mats[i]->GetInstanceID();
+			ir.submeshIndex = i;
+
+			int queue = mats[i]->GetRenderQueue();
+			int idx = FindInstanceRenderer(queue, ir);
+
+			if (idx == -1)
+			{
+				// init and add to list
+				ir.Init();
+				instanceRenderers[queue].push_back(ir);
+				idx = (int)instanceRenderers[queue].size() - 1;
+			}
+
+			SqInstanceData sid;
+			sid.world = r->GetWorld();
+			instanceRenderers[queue][idx].AddInstanceData(sid);
+		}
+	}
+}
+
 void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 {
 	XMFLOAT3 camPos = _camera->GetPosition();
@@ -67,6 +97,19 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 	}
 }
 
+int RendererManager::FindInstanceRenderer(int _queue, InstanceRenderer _ir)
+{
+	for (int i = 0; i < (int)instanceRenderers[_queue].size(); i++)
+	{
+		if (_ir == instanceRenderers[_queue][i])
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 void RendererManager::ClearQueueRenderer()
 {
 	for (auto& r : queuedRenderers)
@@ -85,7 +128,7 @@ void RendererManager::UpdateRendererBound(int _id, float _x, float _y, float _z,
 	renderers[_id]->UpdateBound(_x, _y, _z, _ex, _ey, _ez);
 }
 
-void RendererManager::UploadObjectConstant(Camera* _camera, int _frameIdx, int _threadIndex, int _numThreads)
+void RendererManager::UploadObjectConstant(int _frameIdx, int _threadIndex, int _numThreads)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
 
@@ -121,6 +164,27 @@ void RendererManager::UploadObjectConstant(Camera* _camera, int _frameIdx, int _
 	}
 }
 
+void RendererManager::UploadInstanceData(int _frameIdx, int _threadIndex, int _numThreads)
+{
+	for (auto& r : instanceRenderers)
+	{
+		// split thread group
+		int count = (int)r.second.size() / _numThreads + 1;
+		int start = _threadIndex * count;
+
+		for (int i = start; i <= start + count; i++)
+		{
+			if (i >= (int)r.second.size())
+			{
+				continue;
+			}
+
+			auto ir = r.second[i];
+			ir.UploadInstanceData(_frameIdx);
+		}
+	}
+}
+
 void RendererManager::SetWorldMatrix(int _id, XMFLOAT4X4 _world)
 {
 	if (_id < 0 || _id >= (int)renderers.size())
@@ -144,8 +208,17 @@ void RendererManager::Release()
 		r.second.clear();
 	}
 
+	for (auto& r : instanceRenderers)
+	{
+		for (auto& ir : r.second)
+		{
+			ir.Release();
+		}
+	}
+
 	renderers.clear();
 	queuedRenderers.clear();
+	instanceRenderers.clear();
 }
 
 void RendererManager::SetNativeRendererActive(int _id, bool _active)
@@ -202,7 +275,7 @@ void RendererManager::FrustumCulling(Camera* _camera, int _threadIdx)
 	}
 }
 
-bool RendererManager::ValidRenderer(int _index, vector<QueueRenderer> _renderers)
+bool RendererManager::ValidRenderer(int _index, vector<QueueRenderer>& _renderers)
 {
 	if (_index >= (int)_renderers.size())
 	{
@@ -210,12 +283,28 @@ bool RendererManager::ValidRenderer(int _index, vector<QueueRenderer> _renderers
 	}
 
 	auto const r = _renderers[_index];
-
 	if (!r.cache->GetVisible())
 	{
 		return false;
 	}
 
+	Mesh* m = r.cache->GetMesh();
+	if (m == nullptr)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool RendererManager::ValidRenderer(int _index, vector<InstanceRenderer>& _renderers)
+{
+	if (_index >= (int)_renderers.size())
+	{
+		return false;
+	}
+
+	auto const r = _renderers[_index];
 	Mesh* m = r.cache->GetMesh();
 	if (m == nullptr)
 	{
@@ -233,4 +322,9 @@ vector<shared_ptr<Renderer>>& RendererManager::GetRenderers()
 map<int, vector<QueueRenderer>>& RendererManager::GetQueueRenderers()
 {
 	return queuedRenderers;
+}
+
+map<int, vector<InstanceRenderer>>& RendererManager::GetInstanceRenderers()
+{
+	return instanceRenderers;
 }

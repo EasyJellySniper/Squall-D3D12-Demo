@@ -39,6 +39,11 @@ struct SubMesh
 	float padding;
 };
 
+struct SqInstanceData
+{
+	float4x4 world;
+};
+
 cbuffer SystemConstant : register(b0)
 {
 	float4x4 SQ_MATRIX_VP;
@@ -103,6 +108,9 @@ cbuffer MaterialConstant : register(b2)
 	int _ReflectionCount;
 	int _RenderQueue;	// render queue (opaque cutoff transparent) : 0 1 2
 };
+
+// instance data
+StructuredBuffer<SqInstanceData> _SqInstanceData : register(t0, space2);
 
 // need /enable_unbounded_descriptor_tables when compiling
 Texture2D _TexTable[] : register(t0);
