@@ -108,9 +108,27 @@ float3 LocalToWorldDir(float3 dir)
 	return mul((float3x3)SQ_MATRIX_WORLD, dir);
 }
 
+float3 LocalToWorldDir(float4x4 world, float3 dir)
+{
+	return mul(world, dir);
+}
+
 float3x3 CreateTBN(float3 normal, float4 oTangent)
 {
 	float3 tangent = LocalToWorldDir(oTangent.xyz);
+	float3 binormal = cross(normal, tangent) * oTangent.w;
+
+	float3x3 tbn;
+	tbn[0] = tangent;
+	tbn[1] = binormal;
+	tbn[2] = normal;
+
+	return tbn;
+}
+
+float3x3 CreateTBN(float4x4 world, float3 normal, float4 oTangent)
+{
+	float3 tangent = LocalToWorldDir(world, oTangent.xyz);
 	float3 binormal = cross(normal, tangent) * oTangent.w;
 
 	float3x3 tbn;

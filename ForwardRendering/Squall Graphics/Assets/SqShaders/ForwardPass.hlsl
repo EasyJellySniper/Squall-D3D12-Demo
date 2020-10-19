@@ -2,6 +2,7 @@
 "CBV(b0)," \
 "DescriptorTable(SRV(t3, space = 1, numDescriptors=1))," \
 "CBV(b1)," \
+"SRV(t0, space=2)," \
 "CBV(b2)," \
 "DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))," \
@@ -36,7 +37,7 @@ struct v2f
 };
 
 [RootSignature(ForwardPassRS)]
-v2f ForwardPassVS(VertexInput i)
+v2f ForwardPassVS(VertexInput i, uint iid : SV_InstanceID)
 {
 	v2f o = (v2f)0;
 	o.tex.xy = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
@@ -45,7 +46,12 @@ v2f ForwardPassVS(VertexInput i)
 	detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
 	o.tex.zw = detailUV;
 
+#ifdef _TRANSPARENT_ON
 	float4 wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
+#else
+	float4 wpos = mul(_SqInstanceData[iid].world, float4(i.vertex, 1.0f));
+#endif
+
 	o.worldPos = wpos.xyz;
 	o.vertex = mul(SQ_MATRIX_VP, wpos);
 

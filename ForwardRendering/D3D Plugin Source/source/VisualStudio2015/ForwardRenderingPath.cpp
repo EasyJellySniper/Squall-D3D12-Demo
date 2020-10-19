@@ -235,7 +235,8 @@ void ForwardRenderingPath::BindForwardState(Camera* _camera, int _threadIndex)
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh)
+void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, Camera* _camera, int _queue, Renderer* _renderer, Material* _mat, Mesh* _mesh
+	, D3D12_GPU_VIRTUAL_ADDRESS _instanceData)
 {
 	// bind mesh
 	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
@@ -243,7 +244,7 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 
 	// set system/object constant of renderer
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(1, _renderer->GetObjectConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootShaderResourceView(1, _instanceData);
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
 
 	// setup descriptor table gpu
@@ -251,7 +252,8 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 }
 
-void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer* _renderer, Material* _mat, Mesh* _mesh)
+void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer* _renderer, Material* _mat, Mesh* _mesh
+	, D3D12_GPU_VIRTUAL_ADDRESS _instanceData)
 {
 	// bind mesh
 	_cmdList->IASetVertexBuffers(0, 1, &_mesh->GetVertexBufferView());
@@ -267,11 +269,12 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 		_cmdList->SetGraphicsRootDescriptorTable(1, LightManager::Instance().GetForwardPlus()->GetLightCullingTransSrv());
 
 	_cmdList->SetGraphicsRootConstantBufferView(2, _renderer->GetObjectConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootConstantBufferView(3, _mat->GetMaterialConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootShaderResourceView(6, LightManager::Instance().GetLightDataGPU(LightType::Directional, frameIndex, 0));
-	_cmdList->SetGraphicsRootShaderResourceView(7, LightManager::Instance().GetLightDataGPU(LightType::Point, frameIndex, 0));
+	_cmdList->SetGraphicsRootShaderResourceView(3, _instanceData);
+	_cmdList->SetGraphicsRootConstantBufferView(4, _mat->GetMaterialConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(6, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootShaderResourceView(7, LightManager::Instance().GetLightDataGPU(LightType::Directional, frameIndex, 0));
+	_cmdList->SetGraphicsRootShaderResourceView(8, LightManager::Instance().GetLightDataGPU(LightType::Point, frameIndex, 0));
 }
 
 void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
@@ -330,8 +333,8 @@ void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadInd
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// loop render-queue
-	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
-	for (auto const& qr : queueRenderers)
+	auto instanceRenderers = RendererManager::Instance().GetInstanceRenderers();
+	for (auto const& qr : instanceRenderers)
 	{
 		auto renderers = qr.second;
 		int count = (int)renderers.size() / numWorkerThreads + 1;
@@ -351,7 +354,7 @@ void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadInd
 			{
 				continue;
 			}
-			auto const r = renderers[i];
+			auto r = renderers[i];
 			Mesh* m = r.cache->GetMesh();
 
 			// choose pipeline material according to renderqueue
@@ -377,10 +380,10 @@ void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadInd
 				lastMat = pipeMat;
 			}
 
-			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m);
+			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m, r.GetInstanceDataGPU(frameIndex));
 
 			// draw mesh
-			m->DrawSubMesh(_cmdList, r.submeshIndex, 1);
+			m->DrawSubMesh(_cmdList, r.submeshIndex, r.GetInstanceCount());
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
@@ -414,8 +417,8 @@ void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList*
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// loop render-queue
-	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
-	for (auto const& qr : queueRenderers)
+	auto instanceRenderers = RendererManager::Instance().GetInstanceRenderers();
+	for (auto const& qr : instanceRenderers)
 	{
 		auto renderers = qr.second;
 
@@ -433,7 +436,7 @@ void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList*
 			{
 				continue;
 			}
-			auto const r = renderers[i];
+			auto r = renderers[i];
 			Mesh* m = r.cache->GetMesh();
 
 			// choose pipeline material according to renderqueue
@@ -450,10 +453,10 @@ void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList*
 				lastMat = pipeMat;
 			}
 
-			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m);
+			BindDepthObject(_cmdList, _camera, qr.first, r.cache, objMat, m, r.GetInstanceDataGPU(frameIndex));
 
 			// draw mesh
-			m->DrawSubMesh(_cmdList, r.submeshIndex, 1);
+			m->DrawSubMesh(_cmdList, r.submeshIndex, r.GetInstanceCount());
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0])
 		}
 	}
@@ -470,8 +473,8 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// loop render-queue
-	auto queueRenderers = RendererManager::Instance().GetQueueRenderers();
-	for (auto const& qr : queueRenderers)
+	auto instanceRenderers = RendererManager::Instance().GetInstanceRenderers();
+	for (auto const& qr : instanceRenderers)
 	{
 		auto renderers = qr.second;
 		int count = (int)renderers.size() / numWorkerThreads + 1;
@@ -500,7 +503,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 			{
 				continue;
 			}
-			auto const r = renderers[i];
+			auto r = renderers[i];
 			Mesh* m = r.cache->GetMesh();
 
 			// choose pipeline material according to renderqueue
@@ -517,10 +520,10 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 			}
 
 			// bind forward object
-			BindForwardObject(_cmdList, r.cache, objMat, m);
+			BindForwardObject(_cmdList, r.cache, objMat, m, r.GetInstanceDataGPU(frameIndex));
 
 			// draw mesh
-			m->DrawSubMesh(_cmdList, r.submeshIndex, 1);
+			m->DrawSubMesh(_cmdList, r.submeshIndex, r.GetInstanceCount());
 			GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[_threadIndex])
 		}
 	}
@@ -649,7 +652,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 			}
 
 			// bind forward object
-			BindForwardObject(_cmdList, r.cache, objMat, m);
+			BindForwardObject(_cmdList, r.cache, objMat, m, 0);
 
 			// draw mesh
 			m->DrawSubMesh(_cmdList, r.submeshIndex, 1);

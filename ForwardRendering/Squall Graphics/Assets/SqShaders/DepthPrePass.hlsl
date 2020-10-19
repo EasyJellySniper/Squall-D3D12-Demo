@@ -1,6 +1,6 @@
 #define DepthPrePassRS "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
 "CBV(b0)," \
-"CBV(b1)," \
+"SRV(t0, space=2)," \
 "CBV(b2)," \
 "DescriptorTable(SRV(t0, numDescriptors=unbounded))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
@@ -23,19 +23,21 @@ struct v2f
 };
 
 [RootSignature(DepthPrePassRS)]
-v2f DepthPrePassVS(VertexInput i)
+v2f DepthPrePassVS(VertexInput i, uint iid : SV_InstanceID)
 {
 	v2f o = (v2f)0;
 
-	float4 wpos = mul(SQ_MATRIX_WORLD, float4(i.vertex, 1.0f));
+	float4x4 world = _SqInstanceData[iid].world;
+	float4 wpos = mul(world, float4(i.vertex, 1.0f));
+
 	o.vertex = mul(SQ_MATRIX_VP, wpos);
 	o.tex.xy = i.uv1 * _MainTex_ST.xy + _MainTex_ST.zw;
 	o.tex.zw = lerp(i.uv1, i.uv2, _DetailUV);
 	o.tex.zw = o.tex.zw * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
 
 	// assume uniform scale, mul normal with world matrix directly
-	o.normal = LocalToWorldDir(i.normal);
-	o.worldToTangent = CreateTBN(o.normal, i.tangent);
+	o.normal = LocalToWorldDir(world, i.normal);
+	o.worldToTangent = CreateTBN(world, o.normal, i.tangent);
 
 	return o;
 }
