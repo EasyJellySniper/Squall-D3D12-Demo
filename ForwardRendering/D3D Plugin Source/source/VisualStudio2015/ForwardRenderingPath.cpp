@@ -20,6 +20,9 @@ void ForwardRenderingPath::CullingWork(Camera* _camera)
 	workerType = WorkerType::Culling;
 	GraphicManager::Instance().WakeAndWaitWorker();
 
+	// collect instance renderer after culling
+	RendererManager::Instance().CollectInstanceRenderer();
+
 	GRAPHIC_TIMER_STOP_ADD(GameTimerManager::Instance().gameTime.cullingTime)
 }
 
@@ -306,6 +309,11 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
 
 			// bind mesh
 			auto r = renderers[i];
+			if (r.GetInstanceCount() == 0)
+			{
+				continue;
+			}
+
 			Mesh *m = r.cache->GetMesh();
 			_cmdList->IASetVertexBuffers(0, 1, &m->GetVertexBufferView());
 			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
@@ -354,7 +362,14 @@ void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadInd
 			{
 				continue;
 			}
+
+			// instance check
 			auto r = renderers[i];
+			if (r.GetInstanceCount() == 0)
+			{
+				continue;
+			}
+
 			Mesh* m = r.cache->GetMesh();
 
 			// choose pipeline material according to renderqueue
@@ -436,7 +451,14 @@ void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList*
 			{
 				continue;
 			}
+
+			// instance check
 			auto r = renderers[i];
+			if (r.GetInstanceCount() == 0)
+			{
+				continue;
+			}
+
 			Mesh* m = r.cache->GetMesh();
 
 			// choose pipeline material according to renderqueue
@@ -503,7 +525,14 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 			{
 				continue;
 			}
+
+			// instance check
 			auto r = renderers[i];
+			if (r.GetInstanceCount() == 0)
+			{
+				continue;
+			}
+
 			Mesh* m = r.cache->GetMesh();
 
 			// choose pipeline material according to renderqueue

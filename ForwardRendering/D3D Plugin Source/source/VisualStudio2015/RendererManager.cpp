@@ -64,10 +64,39 @@ void RendererManager::InitInstanceRendering()
 				instanceRenderers[queue].push_back(ir);
 				idx = (int)instanceRenderers[queue].size() - 1;
 			}
+		}
+	}
+}
 
-			SqInstanceData sid;
-			sid.world = r->GetWorld();
-			instanceRenderers[queue][idx].AddInstanceData(sid);
+void RendererManager::CollectInstanceRenderer()
+{
+	ClearInstanceRendererData();
+
+	for (auto& r : renderers)
+	{
+		if (!r->GetVisible())
+		{
+			continue;
+		}
+
+		auto mats = r->GetMaterials();
+		for (int i = 0; i < r->GetNumMaterials(); i++)
+		{
+			InstanceRenderer ir;
+			ir.cache = r.get();
+			ir.materialID = mats[i]->GetInstanceID();
+			ir.submeshIndex = i;
+
+			int queue = mats[i]->GetRenderQueue();
+			int idx = FindInstanceRenderer(queue, ir);
+
+			if (idx != -1)
+			{
+				// add instance data
+				SqInstanceData sid;
+				sid.world = r->GetWorld();
+				instanceRenderers[queue][idx].AddInstanceData(sid);
+			}
 		}
 	}
 }
@@ -115,6 +144,17 @@ void RendererManager::ClearQueueRenderer()
 	for (auto& r : queuedRenderers)
 	{
 		r.second.clear();
+	}
+}
+
+void RendererManager::ClearInstanceRendererData()
+{
+	for (auto& r : instanceRenderers)
+	{
+		for (auto& ir : r.second)
+		{
+			ir.ClearInstanceData();
+		}
 	}
 }
 

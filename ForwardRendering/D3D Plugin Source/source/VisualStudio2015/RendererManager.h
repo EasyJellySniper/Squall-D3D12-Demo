@@ -43,7 +43,6 @@ public:
 		for (int i = 0; i < MAX_FRAME_COUNT; i++)
 		{
 			instanceDataGPU[i] = make_shared<UploadBuffer<SqInstanceData>>(GraphicManager::Instance().GetDevice(), INSTANCE_CAPACITY, false);
-			isDirty[i] = true;
 		}
 	}
 
@@ -73,13 +72,9 @@ public:
 
 	void UploadInstanceData(int _frameIdx)
 	{
-		if (isDirty[_frameIdx])
+		for (int i = 0; i < (int)instanceDataCPU.size(); i++)
 		{
-			for (int i = 0; i < (int)instanceDataCPU.size(); i++)
-			{
-				instanceDataGPU[_frameIdx]->CopyData(i, instanceDataCPU[i]);
-			}
-			isDirty[_frameIdx] = false;
+			instanceDataGPU[_frameIdx]->CopyData(i, instanceDataCPU[i]);
 		}
 	}
 
@@ -94,8 +89,6 @@ public:
 
 private:
 	const int INSTANCE_CAPACITY = 500;
-
-	bool isDirty[MAX_FRAME_COUNT];
 	vector<SqInstanceData> instanceDataCPU;
 	shared_ptr<UploadBuffer<SqInstanceData>> instanceDataGPU[MAX_FRAME_COUNT];
 };
@@ -138,7 +131,7 @@ public:
 	int AddRenderer(int _instanceID, int _meshInstanceID, bool _isDynamic);
 	void AddCreatedMaterial(int _instanceID, Material *_mat);
 	void InitInstanceRendering();
-
+	void CollectInstanceRenderer();
 	void UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 	void UploadObjectConstant(int _frameIdx, int _threadIndex, int _numThreads);
 	void UploadInstanceData(int _frameIdx, int _threadIndex, int _numThreads);
@@ -161,6 +154,7 @@ private:
 	static const int TRANSPARENT_CAPACITY = 500;
 
 	void ClearQueueRenderer();
+	void ClearInstanceRendererData();
 	void AddToQueueRenderer(Renderer* _renderer, Camera* _camera);
 	int FindInstanceRenderer(int _queue, InstanceRenderer _ir);
 
