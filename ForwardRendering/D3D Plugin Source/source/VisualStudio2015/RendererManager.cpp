@@ -109,9 +109,17 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 	}
 }
 
-void RendererManager::AddToInstanceRenderer(Renderer* _renderer)
+void RendererManager::AddToInstanceRenderer(Renderer* _renderer, Camera *_camera)
 {
+	XMFLOAT3 camPos = _camera->GetPosition();
 	auto mats = _renderer->GetMaterials();
+
+	// calc z distance to camera
+	auto bound = _renderer->GetBound();
+	float minZ = bound.Center.z - bound.Extents.z;
+	float maxZ = bound.Center.z + bound.Extents.z;
+	float zDist = min(abs(minZ - camPos.z), abs(maxZ - camPos.z));
+
 	for (int i = 0; i < _renderer->GetNumMaterials(); i++)
 	{
 		InstanceRenderer ir;
@@ -127,7 +135,7 @@ void RendererManager::AddToInstanceRenderer(Renderer* _renderer)
 			// add instance data
 			SqInstanceData sid;
 			sid.world = _renderer->GetWorld();
-			instanceRenderers[queue][idx].AddInstanceData(sid);
+			instanceRenderers[queue][idx].AddInstanceData(sid, zDist);
 		}
 	}
 }
@@ -286,7 +294,7 @@ void RendererManager::SortWork(Camera* _camera)
 		if (renderers[i]->GetVisible())
 		{
 			AddToQueueRenderer(renderers[i].get(), _camera);
-			AddToInstanceRenderer(renderers[i].get());
+			AddToInstanceRenderer(renderers[i].get(), _camera);
 		}
 	}
 
@@ -303,10 +311,15 @@ void RendererManager::SortWork(Camera* _camera)
 	// sort instance renderers
 	for (auto& ir : instanceRenderers)
 	{
+		for (auto& iir : ir.second)
+		{
+			iir.FinishCollectInstance();
+		}
+
 		if (ir.first <= RenderQueue::OpaqueLast)
 		{
-			// sort by material id for minimize PSO changes on opaque object
-			sort(ir.second.begin(), ir.second.end(), MaterialIdSort);
+			// sort from front to back for instance group
+			sort(ir.second.begin(), ir.second.end(), FrontToBackInstance);
 		}
 	}
 }

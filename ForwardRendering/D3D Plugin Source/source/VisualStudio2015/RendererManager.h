@@ -56,14 +56,25 @@ public:
 		}
 	}
 
-	void AddInstanceData(SqInstanceData _data)
+	void AddInstanceData(SqInstanceData _data, float _zDist)
 	{
 		instanceDataCPU.push_back(_data);
+		zDistToCamTotal += _zDist;
+	}
+
+	void FinishCollectInstance()
+	{
+		if ((int)instanceDataCPU.size() == 0)
+		{
+			return;
+		}
+		zDistToCamTotal = zDistToCamTotal / (int)instanceDataCPU.size();
 	}
 
 	void ClearInstanceData()
 	{
 		instanceDataCPU.clear();
+		zDistToCamTotal = 0;
 	}
 
 	int GetInstanceCount()
@@ -92,6 +103,7 @@ public:
 	Renderer* cache;
 	int submeshIndex;
 	int materialID;
+	float zDistToCamTotal;
 
 private:
 	int maxCapacity;
@@ -114,6 +126,12 @@ inline bool BackToFrontRender(QueueRenderer const& i, QueueRenderer const& j)
 inline bool MaterialIdSort(InstanceRenderer const& i, InstanceRenderer const& j)
 {
 	return i.materialID < j.materialID;
+}
+
+inline bool FrontToBackInstance(InstanceRenderer const& i, InstanceRenderer const& j)
+{
+	// sort from low distance to high distance (front to back)
+	return i.zDistToCamTotal < j.zDistToCamTotal;
 }
 
 class RendererManager
@@ -161,7 +179,7 @@ private:
 	void ClearQueueRenderer();
 	void ClearInstanceRendererData();
 	void AddToQueueRenderer(Renderer* _renderer, Camera* _camera);
-	void AddToInstanceRenderer(Renderer* _renderer);
+	void AddToInstanceRenderer(Renderer* _renderer, Camera* _camera);
 	int FindInstanceRenderer(int _queue, InstanceRenderer _ir);
 
 	vector<shared_ptr<Renderer>> renderers;
