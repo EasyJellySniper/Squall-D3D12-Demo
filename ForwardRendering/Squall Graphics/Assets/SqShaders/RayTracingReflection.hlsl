@@ -119,9 +119,9 @@ void RTReflectionRayGen()
         transResult = ShootReflectionRay(transNormal, transDepth, screenUV, true);
     }
 
-    // output
-    _OutputReflection[DispatchRaysIndex().xy].rgb = opaqueResult.reflectionColor;
-    _OutputReflectionTrans[DispatchRaysIndex().xy].rgb = transResult.reflectionColor;
+    // output LDR result
+    _OutputReflection[DispatchRaysIndex().xy].rgb = saturate(opaqueResult.reflectionColor);
+    _OutputReflectionTrans[DispatchRaysIndex().xy].rgb = saturate(transResult.reflectionColor);
 }
 
 float3 SampleSkyForRay(float3 dir)
