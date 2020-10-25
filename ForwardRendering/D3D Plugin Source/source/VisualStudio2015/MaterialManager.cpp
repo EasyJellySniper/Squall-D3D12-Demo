@@ -267,6 +267,7 @@ void MaterialManager::Release()
 	matIndexTable.clear();
 	computePsoPool.clear();
 	graphicPsoPool.clear();
+	graphicPsoDescPool.clear();
 }
 
 void MaterialManager::CopyHitGroupIdentifier(Material* _dxrMat, HitGroupType _groupType)
@@ -372,6 +373,7 @@ bool MaterialManager::SetRayTracingPass(ID3D12GraphicsCommandList5* _cmdList, Ma
 int MaterialManager::GetMaterialCount()
 {
 	LogMessage(L"Total material: " + to_wstring(materialList.size()));
+	LogMessage(L"Total pso: " + to_wstring(graphicPsoDescPool.size()));
 	return (int)materialList.size();
 }
 
@@ -426,9 +428,65 @@ D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shad
 	return desc;
 }
 
+bool MaterialManager::IsSamePipelineStateDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _lhs, D3D12_GRAPHICS_PIPELINE_STATE_DESC _rhs)
+{
+	if (_lhs.pRootSignature != _rhs.pRootSignature)
+		return false;
+
+	if (_lhs.VS.BytecodeLength != _rhs.VS.BytecodeLength 
+		|| _lhs.VS.pShaderBytecode != _rhs.VS.pShaderBytecode)
+		return false;
+
+	if (_lhs.PS.BytecodeLength != _rhs.PS.BytecodeLength
+		|| _lhs.PS.pShaderBytecode != _rhs.PS.pShaderBytecode)
+		return false;
+
+	if (_lhs.BlendState.IndependentBlendEnable != _rhs.BlendState.IndependentBlendEnable)
+		return false;
+
+	for (int i = 0; i < 8; i++)
+	{
+		if (_lhs.BlendState.RenderTarget[i].BlendEnable != _rhs.BlendState.RenderTarget[i].BlendEnable
+			|| _lhs.BlendState.RenderTarget[i].SrcBlend != _rhs.BlendState.RenderTarget[i].SrcBlend
+			|| _lhs.BlendState.RenderTarget[i].DestBlend != _rhs.BlendState.RenderTarget[i].DestBlend)
+		{
+			return false;
+		}
+	}
+
+	if (_lhs.RasterizerState.FillMode != _rhs.RasterizerState.FillMode
+		|| _lhs.RasterizerState.CullMode != _rhs.RasterizerState.CullMode)
+		return false;
+
+	if (_lhs.DepthStencilState.DepthFunc != _rhs.DepthStencilState.DepthFunc
+		|| _lhs.DepthStencilState.DepthWriteMask != _rhs.DepthStencilState.DepthWriteMask)
+		return false;
+
+	if (_lhs.InputLayout.NumElements != _rhs.InputLayout.NumElements)
+		return false;
+
+	if (_lhs.NumRenderTargets != _rhs.NumRenderTargets)
+		return false;
+
+	return true;
+}
+
 PsoData MaterialManager::CreatePso(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 {
+	for (int i = 0; i < (int)graphicPsoDescPool.size(); i++)
+	{
+		if (IsSamePipelineStateDesc(graphicPsoDescPool[i], _desc))
+		{
+			PsoData pd;
+			pd.graphicDesc = graphicPsoDescPool[i];
+			pd.psoCache = graphicPsoPool[i].Get();
+			pd.psoIndexInPool = i;
+			return pd;
+		}
+	}
+
 	graphicPsoPool.push_back(ComPtr<ID3D12PipelineState>());
+	graphicPsoDescPool.push_back(_desc);
 	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&graphicPsoPool.back())));
 
 	PsoData pd;
@@ -442,6 +500,7 @@ PsoData MaterialManager::CreatePso(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
 PsoData MaterialManager::UpdatePso(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc, int _psoIndex)
 {
 	graphicPsoPool[_psoIndex].Reset();
+	graphicPsoDescPool[_psoIndex] = _desc;
 	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&graphicPsoPool[_psoIndex])));
 
 	PsoData pd;
