@@ -37,11 +37,18 @@ enum BlendMode
 	OneMinusSrcAlpha = 10
 };
 
+struct PsoData
+{
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicDesc;
+	D3D12_COMPUTE_PIPELINE_STATE_DESC computeDesc;
+	ID3D12PipelineState* psoCache;
+	int psoIndexInPool;
+};
+
 class Material
 {
 public:
-	bool CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc);
-	bool CreatePsoFromDesc(D3D12_COMPUTE_PIPELINE_STATE_DESC _desc);
+	void SetPsoData(PsoData _data);
 	void CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader *_shader);
 	void Release();
 	void SetInstanceID(int _id);
@@ -61,15 +68,13 @@ public:
 	D3D12_DISPATCH_RAYS_DESC GetDispatchRayDesc(UINT _width, UINT _height);
 	bool IsComputeMat();
 	Shader* GetShaderCache();
+	PsoData GetPsoData();
 	bool IsValid();
 
 private:
 	int instanceID;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
-	D3D12_COMPUTE_PIPELINE_STATE_DESC psoDescCompute;
 	CD3DX12_STATE_OBJECT_DESC dxcPsoDesc;
 
-	ComPtr<ID3D12PipelineState> pso;
 	ComPtr<ID3D12StateObject> dxcPso;
 	shared_ptr<UploadBufferAny> rayGenShaderTable;
 	shared_ptr<UploadBufferAny> missShaderTable;
@@ -81,5 +86,7 @@ private:
 
 	bool validMaterial = false;
 	bool isDirty = true;
+
 	Shader* shaderCache;
+	PsoData psoData;
 };

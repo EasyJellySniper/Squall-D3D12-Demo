@@ -38,7 +38,7 @@ Material MaterialManager::CreateGraphicMat(Shader* _shader, RenderTargetData _rt
 	auto desc = CollectPsoDesc(_shader, _rtd, _fillMode, _cullMode, _srcBlend, _dstBlend, _depthFunc, _zWrite);
 
 	Material result;
-	result.CreatePsoFromDesc(desc);
+	result.SetPsoData(CreatePso(desc));
 	return result;
 }
 
@@ -78,7 +78,7 @@ Material MaterialManager::CreatePostMat(Shader* _shader, bool _enableDepth, int 
 	desc.SampleDesc.Quality = 0;
 
 	Material result;
-	result.CreatePsoFromDesc(desc);
+	result.SetPsoData(CreatePso(desc));
 	return result;
 }
 
@@ -93,7 +93,7 @@ Material MaterialManager::CreateComputeMat(Shader* _shader)
 	};
 
 	Material result;
-	result.CreatePsoFromDesc(computePSO);
+	result.SetPsoData(CreatePso(computePSO));
 	return result;
 }
 
@@ -216,6 +216,9 @@ void MaterialManager::UpdateMaterialProp(int _matId, UINT _byteSize, void* _data
 
 void MaterialManager::ResetNativeMaterial(Camera* _camera)
 {
+	GraphicManager::Instance().WaitForGPU();
+
+	// clear graphic pool
 	for (auto& m : materialList)
 	{
 		// skip reset compute material
@@ -229,7 +232,7 @@ void MaterialManager::ResetNativeMaterial(Camera* _camera)
 		desc.SampleDesc.Count = rtd.msaaCount;
 		desc.SampleDesc.Quality = rtd.msaaQuality;
 
-		m->CreatePsoFromDesc(desc);
+		m->SetPsoData(UpdatePso(desc, m->GetPsoData().psoIndexInPool));
 	}
 }
 
@@ -251,7 +254,19 @@ void MaterialManager::Release()
 		hitGroupConstant[i].reset();
 	}
 
+	for (auto& c : computePsoPool)
+	{
+		c.Reset();
+	}
+
+	for (auto& g : graphicPsoPool)
+	{
+		g.Reset();
+	}
+
 	matIndexTable.clear();
+	computePsoPool.clear();
+	graphicPsoPool.clear();
 }
 
 void MaterialManager::CopyHitGroupIdentifier(Material* _dxrMat, HitGroupType _groupType)
@@ -439,4 +454,42 @@ D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDepth(Shader* _sha
 	desc.SampleDesc.Quality = 0;
 
 	return desc;
+}
+
+PsoData MaterialManager::CreatePso(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
+{
+	graphicPsoPool.push_back(ComPtr<ID3D12PipelineState>());
+	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&graphicPsoPool.back())));
+
+	PsoData pd;
+	pd.graphicDesc = _desc;
+	pd.psoCache = graphicPsoPool.back().Get();
+	pd.psoIndexInPool = (int)graphicPsoPool.size() - 1;
+
+	return pd;
+}
+
+PsoData MaterialManager::UpdatePso(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc, int _psoIndex)
+{
+	graphicPsoPool[_psoIndex].Reset();
+	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&graphicPsoPool[_psoIndex])));
+
+	PsoData pd;
+	pd.graphicDesc = _desc;
+	pd.psoCache = graphicPsoPool[_psoIndex].Get();
+	pd.psoIndexInPool = _psoIndex;
+
+	return pd;
+}
+
+PsoData MaterialManager::CreatePso(D3D12_COMPUTE_PIPELINE_STATE_DESC _desc)
+{
+	computePsoPool.push_back(ComPtr<ID3D12PipelineState>());
+	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateComputePipelineState(&_desc, IID_PPV_ARGS(&computePsoPool.back())));
+
+	PsoData pd;
+	pd.computeDesc = _desc;
+	pd.psoCache = computePsoPool.back().Get();
+
+	return pd;
 }

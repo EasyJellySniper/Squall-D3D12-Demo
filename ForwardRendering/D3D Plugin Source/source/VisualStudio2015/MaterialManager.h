@@ -60,7 +60,13 @@ private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC CollectPsoDepth(Shader* _shader, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
 		int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite);
 
+	PsoData CreatePso(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc);
+	PsoData UpdatePso(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc, int _psoIndex);
+	PsoData CreatePso(D3D12_COMPUTE_PIPELINE_STATE_DESC _desc);
+
 	vector<unique_ptr<Material>> materialList;
+	vector<ComPtr<ID3D12PipelineState>> graphicPsoPool;
+	vector<ComPtr<ID3D12PipelineState>> computePsoPool;
 	unordered_map<int, int> matIndexTable;
 
 	D3D12_BLEND blendTable[NUM_BLEND_MODE];

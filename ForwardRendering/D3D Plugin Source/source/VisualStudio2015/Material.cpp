@@ -2,30 +2,11 @@
 #include "GraphicManager.h"
 #include "MaterialManager.h"
 
-bool Material::CreatePsoFromDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc)
+void Material::SetPsoData(PsoData _data)
 {
-	HRESULT hr = S_OK;
-	psoDesc = _desc;
-	pso.Reset();
-
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(&pso)), hr);
-	validMaterial = SUCCEEDED(hr);
+	psoData = _data;
 	isDirty = true;
-
-	return validMaterial;
-}
-
-bool Material::CreatePsoFromDesc(D3D12_COMPUTE_PIPELINE_STATE_DESC _desc)
-{
-	HRESULT hr = S_OK;
-	psoDescCompute = _desc;
-	pso.Reset();
-
-	LogIfFailed(GraphicManager::Instance().GetDevice()->CreateComputePipelineState(&_desc, IID_PPV_ARGS(&pso)), hr);
-	validMaterial = SUCCEEDED(hr);
-	isDirty = true;
-
-	return validMaterial;
+	validMaterial = true;
 }
 
 void Material::CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader* _shader)
@@ -53,14 +34,13 @@ void Material::CreateDxcPso(ComPtr<ID3D12StateObject> _pso, Shader* _shader)
 		rayGenShaderTable->CopyData(0, rayGenShaderIdentifier);
 		missShaderTable->CopyData(0, missShaderIdentifier);
 
-		psoDescCompute.pRootSignature = _shader->GetRS();
+		psoData.computeDesc.pRootSignature = _shader->GetRS();
 		shaderCache = _shader;
 	}
 }
 
 void Material::Release()
 {
-	pso.Reset();
 	dxcPso.Reset();
 	rayGenShaderTable.reset();
 	missShaderTable.reset();
@@ -89,7 +69,7 @@ void Material::SetBlendMode(int _srcBlend, int _dstBlend)
 
 ID3D12PipelineState * Material::GetPSO()
 {
-	return pso.Get();
+	return psoData.psoCache;
 }
 
 ID3D12StateObject* Material::GetDxcPSO()
@@ -99,12 +79,12 @@ ID3D12StateObject* Material::GetDxcPSO()
 
 ID3D12RootSignature* Material::GetRootSignature()
 {
-	return psoDesc.pRootSignature;
+	return psoData.graphicDesc.pRootSignature;
 }
 
 ID3D12RootSignature* Material::GetRootSignatureCompute()
 {
-	return psoDescCompute.pRootSignature;
+	return psoData.computeDesc.pRootSignature;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS Material::GetMaterialConstantGPU(int _frameIdx)
@@ -129,7 +109,7 @@ CullMode Material::GetCullMode()
 
 D3D12_GRAPHICS_PIPELINE_STATE_DESC Material::GetPsoDesc()
 {
-	return psoDesc;
+	return psoData.graphicDesc;
 }
 
 D3D12_DISPATCH_RAYS_DESC Material::GetDispatchRayDesc(UINT _width, UINT _height)
@@ -156,7 +136,7 @@ bool Material::IsComputeMat()
 		return true;
 	}
 
-	if (psoDescCompute.CS.BytecodeLength != 0 && psoDescCompute.CS.pShaderBytecode != nullptr)
+	if (psoData.computeDesc.CS.BytecodeLength != 0 && psoData.computeDesc.CS.pShaderBytecode != nullptr)
 	{
 		return true;
 	}
@@ -167,6 +147,11 @@ bool Material::IsComputeMat()
 Shader* Material::GetShaderCache()
 {
 	return shaderCache;
+}
+
+PsoData Material::GetPsoData()
+{
+	return psoData;
 }
 
 bool Material::IsValid()
