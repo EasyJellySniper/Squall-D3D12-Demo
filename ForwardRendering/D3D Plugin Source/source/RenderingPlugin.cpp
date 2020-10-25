@@ -167,14 +167,20 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetSkyboxWorld(XMFLOA
 	LightManager::Instance().SetSkyWorld(_world);
 }
 
-extern "C" int UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetNativeFrameIndex()
-{
-	return GraphicManager::Instance().GetFrameResource()->currFrameIndex;
-}
-
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitInstanceRendering()
 {
 	RendererManager::Instance().InitInstanceRendering();
+}
+
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API ResetPipelineState()
+{
+	Camera* c = CameraManager::Instance().GetCamera();
+
+	if (c != nullptr)
+	{
+		MaterialManager::Instance().GetMaterialCount();
+		MaterialManager::Instance().ResetNativeMaterial(c);
+	}
 }
 
 // --------------------------------------------------------------------------

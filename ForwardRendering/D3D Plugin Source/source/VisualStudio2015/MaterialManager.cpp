@@ -369,6 +369,12 @@ bool MaterialManager::SetRayTracingPass(ID3D12GraphicsCommandList5* _cmdList, Ma
 	return true;
 }
 
+int MaterialManager::GetMaterialCount()
+{
+	LogMessage(L"Total material: " + to_wstring(materialList.size()));
+	return (int)materialList.size();
+}
+
 D3D12_GRAPHICS_PIPELINE_STATE_DESC MaterialManager::CollectPsoDesc(Shader* _shader, RenderTargetData _rtd, D3D12_FILL_MODE _fillMode, D3D12_CULL_MODE _cullMode,
 	int _srcBlend, int _dstBlend, D3D12_COMPARISON_FUNC _depthFunc, bool _zWrite)
 {

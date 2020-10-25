@@ -21,7 +21,6 @@ bool CameraManager::AddCamera(CameraData _camData)
 		cameras.push_back(cam);
 		sort(cameras.begin(), cameras.end(), SortFunction);
 		cameraLookup[cam.GetCameraData()->instanceID] = GetCamera(_camData.instanceID);
-		MaterialManager::Instance().ResetNativeMaterial(cameraLookup[cam.GetCameraData()->instanceID]);
 	}
 
 	return camInit;

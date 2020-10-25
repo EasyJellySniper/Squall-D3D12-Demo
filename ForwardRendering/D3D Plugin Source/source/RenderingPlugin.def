@@ -34,5 +34,5 @@ EXPORTS
    SetAmbientLight
    SetSkybox
    SetSkyboxWorld
-   GetNativeFrameIndex
    InitInstanceRendering
+   ResetPipelineState

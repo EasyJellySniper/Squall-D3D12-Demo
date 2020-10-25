@@ -48,6 +48,7 @@ public:
 	bool SetGraphicPass(ID3D12GraphicsCommandList* _cmdList, Material* _mat);
 	bool SetComputePass(ID3D12GraphicsCommandList* _cmdList, Material* _mat);
 	bool SetRayTracingPass(ID3D12GraphicsCommandList5* _cmdList, Material* _mat);
+	int GetMaterialCount();
 
 private:
 	static const int NUM_BLEND_MODE = 11;

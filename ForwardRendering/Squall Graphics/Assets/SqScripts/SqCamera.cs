@@ -25,7 +25,7 @@ public class SqCamera : MonoBehaviour
     static extern void SetRenderMode(int _instance, int _renderMode);
 
     [DllImport("SquallGraphics")]
-    static extern int GetNativeFrameIndex();
+    static extern void ResetPipelineState();
 
     /// <summary>
     /// msaa factor
@@ -161,6 +161,7 @@ public class SqCamera : MonoBehaviour
             RemoveCamera(instanceID);
             OnDestroy();
             Start();
+            ResetPipelineState();
             SqGraphicManager.Instance.resetingFrame = true;
         }
 
