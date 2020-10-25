@@ -218,8 +218,8 @@ void MaterialManager::ResetNativeMaterial(Camera* _camera)
 {
 	for (auto& m : materialList)
 	{
-		// skip reset rt material
-		if (m->IsRayTracingMat())
+		// skip reset compute material
+		if (m->IsComputeMat())
 		{
 			continue;
 		}

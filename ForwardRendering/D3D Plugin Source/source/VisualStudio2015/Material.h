@@ -59,7 +59,7 @@ public:
 	CullMode GetCullMode();
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC GetPsoDesc();
 	D3D12_DISPATCH_RAYS_DESC GetDispatchRayDesc(UINT _width, UINT _height);
-	bool IsRayTracingMat();
+	bool IsComputeMat();
 	Shader* GetShaderCache();
 	bool IsValid();
 

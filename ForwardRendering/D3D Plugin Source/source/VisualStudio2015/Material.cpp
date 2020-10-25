@@ -149,9 +149,14 @@ D3D12_DISPATCH_RAYS_DESC Material::GetDispatchRayDesc(UINT _width, UINT _height)
 	return dispatchDesc;
 }
 
-bool Material::IsRayTracingMat()
+bool Material::IsComputeMat()
 {
 	if (dxcPso.Get() != nullptr)
+	{
+		return true;
+	}
+
+	if (psoDescCompute.CS.BytecodeLength != 0 && psoDescCompute.CS.pShaderBytecode != nullptr)
 	{
 		return true;
 	}
