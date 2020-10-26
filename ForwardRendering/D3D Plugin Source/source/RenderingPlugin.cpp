@@ -153,9 +153,9 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetPCFKernel(int _ker
 	LightManager::Instance().SetPCFKernel(_kernel);
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity, float _reflectionDistance)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity)
 {
-	LightManager::Instance().SetAmbientLight(_ag, _as,_skyIntensity, _reflectionDistance);
+	LightManager::Instance().SetAmbientLight(_ag, _as,_skyIntensity);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _meshId)
@@ -182,6 +182,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API ResetPipelineState()
 		MaterialManager::Instance().GetMaterialCount();
 		MaterialManager::Instance().ResetNativeMaterial(c);
 	}
+}
+
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRayDistance(float _rd, float _ar)
+{
+	LightManager::Instance().SetRayDistance(_rd, _ar);
 }
 
 // --------------------------------------------------------------------------

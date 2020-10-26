@@ -151,10 +151,15 @@ void LightManager::SetPCFKernel(int _kernel)
 	rayShadow.SetPCFKernel(_kernel);
 }
 
-void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity, float _reflectionDistance)
+void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity)
 {
 	skybox.SetSkyboxData(_ag, _as, _skyIntensity);
-	reflectionDistance = _reflectionDistance;
+}
+
+void LightManager::SetRayDistance(float _reflectionDist, float _ambientRange)
+{
+	reflectionDistance = _reflectionDist;
+	ambientRange = _ambientRange;
 }
 
 void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)

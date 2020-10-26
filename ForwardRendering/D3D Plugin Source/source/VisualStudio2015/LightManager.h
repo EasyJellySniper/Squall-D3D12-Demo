@@ -40,7 +40,8 @@ public:
 	void UploadPerLightBuffer(int _frameIdx);
 	void FillSystemConstant(SystemConstant& _sc);
 	void SetPCFKernel(int _kernel);
-	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity, float _reflectionDistance);
+	void SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensity);
+	void SetRayDistance(float _reflectionDist, float _ambientRange);
 	void SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMeshId);
 	void SetSkyWorld(XMFLOAT4X4 _world);
 
@@ -67,6 +68,7 @@ private:
 	RayShadow rayShadow;
 	RayReflection rayReflection;
 	float reflectionDistance;
+	float ambientRange;
 	DescriptorHeapData linearSampler;
 
 	// forward+ component
