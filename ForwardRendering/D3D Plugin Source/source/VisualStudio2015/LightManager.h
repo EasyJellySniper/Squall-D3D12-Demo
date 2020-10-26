@@ -30,7 +30,7 @@ public:
 	LightManager() {}
 	~LightManager() {}
 
-	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, void *_reflectionSrc);
+	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, void *_reflectionSrc, void* _ambientSrc);
 	void Release();
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
 	void LightWork(Camera *_targetCam);

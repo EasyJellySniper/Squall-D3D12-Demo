@@ -46,7 +46,8 @@ public class SqCamera : MonoBehaviour
         Depth,
         ForwardPass,
         Normal,
-        Reflection
+        Reflection,
+        Ambient
     }
 
     /// <summary>
@@ -203,13 +204,17 @@ public class SqCamera : MonoBehaviour
         {
             Graphics.Blit(transparentDepth, destination);
         }
-        else if(renderMode == RenderMode.Normal)
+        else if (renderMode == RenderMode.Normal)
         {
             Graphics.Blit(normalTarget, destination);
         }
-        else if(renderMode == RenderMode.Reflection)
+        else if (renderMode == RenderMode.Reflection)
         {
             Graphics.Blit(SqLightManager.Instace.reflectionRT, destination);
+        }
+        else if(renderMode == RenderMode.Ambient)
+        {
+            Graphics.Blit(SqLightManager.Instace.ambientRT, destination);
         }
         else
         {

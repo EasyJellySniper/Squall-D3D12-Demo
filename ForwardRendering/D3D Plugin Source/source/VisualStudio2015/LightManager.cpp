@@ -4,7 +4,7 @@
 #include "TextureManager.h"
 #include "RayTracingManager.h"
 
-void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _collectShadows, void* _reflectionSrc)
+void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _collectShadows, void* _reflectionSrc, void* _ambientSrc)
 {
 	maxLightCount[LightType::Directional] = _numDirLight;
 	maxLightCount[LightType::Point] = _numPointLight;

@@ -6,7 +6,7 @@ using UnityEngine;
 public class SqLightManager : MonoBehaviour
 {
     [DllImport("SquallGraphics")]
-    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, IntPtr _reflectionRT);
+    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, IntPtr _reflectionRT, IntPtr _ambientRT);
 
     [DllImport("SquallGraphics")]
     static extern void SetPCFKernel(int _kernel);
@@ -39,6 +39,12 @@ public class SqLightManager : MonoBehaviour
     public int reflectionDownSample = 0;
 
     /// <summary>
+    /// ambient down sample
+    /// </summary>
+    [Range(0, 3)]
+    public int ambientDownSample = 0;
+
+    /// <summary>
     /// collect shadows
     /// </summary>
     public RenderTexture collectShadows;
@@ -47,6 +53,11 @@ public class SqLightManager : MonoBehaviour
     /// reflection RT
     /// </summary>
     public RenderTexture reflectionRT;
+
+    /// <summary>
+    /// ambient rt
+    /// </summary>
+    public RenderTexture ambientRT;
 
     /// <summary>
     /// instance
@@ -71,6 +82,7 @@ public class SqLightManager : MonoBehaviour
     {
         SqUtility.SafeDestroyRT(ref collectShadows);
         SqUtility.SafeDestroyRT(ref reflectionRT);
+        SqUtility.SafeDestroyRT(ref ambientRT);
     }
 
     void InitLights()
@@ -84,7 +96,11 @@ public class SqLightManager : MonoBehaviour
         int reflSize = Mathf.ClosestPowerOfTwo(Screen.width) >> reflectionDownSample;
         reflectionRT = SqUtility.CreateRT(reflSize, reflSize, 0, RenderTextureFormat.ARGB32, "Reflection RT", true, true);
 
-        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, collectShadows.GetNativeTexturePtr(), reflectionRT.GetNativeTexturePtr());
+        // create ambient rt
+        int ambientSize = Mathf.ClosestPowerOfTwo(Screen.width) >> ambientDownSample;
+        ambientRT = SqUtility.CreateRT(ambientSize, ambientSize, 0, RenderTextureFormat.ARGB32, "Ambient RT", true);
+
+        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, collectShadows.GetNativeTexturePtr(), reflectionRT.GetNativeTexturePtr(), ambientRT.GetNativeTexturePtr());
     }
 
     void SetPCF()

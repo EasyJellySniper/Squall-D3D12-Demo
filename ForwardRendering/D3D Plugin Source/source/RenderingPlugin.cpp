@@ -27,9 +27,10 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayTracingInstanc
 	RayTracingManager::Instance().InitRayTracingInstance();
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, void *_collectShadows, void *_reflectionSrc)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, void *_collectShadows, void *_reflectionSrc
+, void *_ambientSrc)
 {
-	LightManager::Instance().Init(_numDirLight, _numPointLight, _numSpotLight, _collectShadows, _reflectionSrc);
+	LightManager::Instance().Init(_numDirLight, _numPointLight, _numSpotLight, _collectShadows, _reflectionSrc, _ambientSrc);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API ReleaseSqGraphic()
