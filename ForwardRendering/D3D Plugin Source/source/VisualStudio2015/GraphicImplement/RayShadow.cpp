@@ -54,7 +54,7 @@ void RayShadow::Init(void* _collectShadows)
 	rtShadowTransSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadowTrans->Resource(), TextureInfo());
 
 	// create shader & material
-	Shader* rtShadowShader = ShaderManager::Instance().CompileShader(L"RayTracingShadow.hlsl", nullptr);
+	Shader* rtShadowShader = ShaderManager::Instance().CompileShader(L"RayTracingShadow.hlsl");
 	if (rtShadowShader != nullptr)
 	{
 		rtShadowMat = MaterialManager::Instance().CreateRayTracingMat(rtShadowShader);

@@ -513,7 +513,7 @@ bool Camera::CreatePipelineMaterial()
 		}
 	}
 
-	Shader* resolveDepth = ShaderManager::Instance().CompileShader(L"ResolveDepth.hlsl", nullptr);
+	Shader* resolveDepth = ShaderManager::Instance().CompileShader(L"ResolveDepth.hlsl");
 	if (resolveDepth != nullptr)
 	{
 		resolveDepthMaterial = MaterialManager::Instance().CreatePostMat(resolveDepth, true, 0, nullptr, depthTargetDesc);

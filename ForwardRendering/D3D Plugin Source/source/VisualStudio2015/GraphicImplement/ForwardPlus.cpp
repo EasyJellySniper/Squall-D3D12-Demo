@@ -21,7 +21,7 @@ void ForwardPlus::Init(int _maxPointLight)
 	pointLightTransTileSrv.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTilesTrans->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
 	pointLightTransTileSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTilesTrans->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
 
-	auto tileShader = ShaderManager::Instance().CompileShader(L"ForwardPlusTile.hlsl", nullptr);
+	auto tileShader = ShaderManager::Instance().CompileShader(L"ForwardPlusTile.hlsl");
 	if (tileShader != nullptr)
 	{
 		forwardPlusTileMat = MaterialManager::Instance().CreateComputeMat(tileShader);
