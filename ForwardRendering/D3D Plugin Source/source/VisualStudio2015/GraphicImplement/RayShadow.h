@@ -27,7 +27,7 @@ public:
 	void SetPCFKernel(int _kernel);
 	RayShadowData GetRayShadowData();
 
-	Material* GetRayShadow();
+	Material* GetMaterial();
 	ID3D12Resource* GetRayShadowSrc();
 	ID3D12Resource* GetTransRayShadowSrc();
 	int GetShadowIndex();

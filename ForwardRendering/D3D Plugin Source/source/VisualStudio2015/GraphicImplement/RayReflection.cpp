@@ -53,6 +53,9 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 		return;
 	}
 
+	// copy hit group
+	MaterialManager::Instance().CopyHitGroupIdentifier(GetMaterial(), HitGroupType::Reflection);
+
 	// bind heap
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);

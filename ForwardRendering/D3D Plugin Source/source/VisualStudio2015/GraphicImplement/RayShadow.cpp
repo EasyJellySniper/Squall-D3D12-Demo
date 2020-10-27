@@ -96,11 +96,14 @@ void RayShadow::RayTracingShadow(Camera* _targetCam, ForwardPlus* _forwardPlus, 
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
 
 	auto dxrCmd = GraphicManager::Instance().GetDxrList();
-	Material* mat = GetRayShadow();
+	Material* mat = GetMaterial();
 	if (!MaterialManager::Instance().SetRayTracingPass(dxrCmd, mat))
 	{
 		return;
 	}
+
+	// copy hit group data
+	MaterialManager::Instance().CopyHitGroupIdentifier(GetMaterial(), HitGroupType::Shadow);
 
 	// bind root signature
 	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
@@ -244,7 +247,7 @@ RayShadowData RayShadow::GetRayShadowData()
 	return rsd;
 }
 
-Material* RayShadow::GetRayShadow()
+Material* RayShadow::GetMaterial()
 {
 	return &rtShadowMat;
 }
