@@ -20,6 +20,8 @@ class RayShadow
 public:
 	void Init(void* _collectShadows);
 	void Relesae();
+
+	void Clear(ID3D12GraphicsCommandList* _cmdList);
 	void RayTracingShadow(Camera* _targetCam, ForwardPlus *_forwardPlus, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU);
 	void CollectRayShadow(Camera* _targetCam);
 	void SetPCFKernel(int _kernel);

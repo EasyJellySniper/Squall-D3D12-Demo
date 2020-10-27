@@ -10,6 +10,7 @@
 #include "GraphicImplement/ForwardPlus.h"
 #include "GraphicImplement/RayShadow.h"
 #include "GraphicImplement/RayReflection.h"
+#include "GraphicImplement/RayAmbient.h"
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
@@ -64,9 +65,11 @@ private:
 	// skybox
 	Skybox skybox;
 
-	// ray tracing 
+	// ray tracing implement
 	RayShadow rayShadow;
 	RayReflection rayReflection;
+	RayAmbient rayAmbient;
+
 	float reflectionDistance;
 	float ambientRange;
 	DescriptorHeapData linearSampler;

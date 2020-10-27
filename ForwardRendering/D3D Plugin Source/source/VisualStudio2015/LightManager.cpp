@@ -22,6 +22,7 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 
 	rayShadow.Init(_collectShadows);
 	rayReflection.Init((ID3D12Resource*)_reflectionSrc);
+	rayAmbient.Init((ID3D12Resource*)_ambientSrc);
 	forwardPlus.Init(maxLightCount[LightType::Point]);
 
 	linearSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
@@ -46,15 +47,15 @@ void LightManager::Release()
 	skybox.Release();
 	rayShadow.Relesae();
 	rayReflection.Release();
+	rayAmbient.Release();
 	forwardPlus.Release();
 }
 
 void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 {
-	// clear target
-	FLOAT c[] = { 1,1,1,1 };
-	_cmdList->ClearRenderTargetView(rayShadow.GetCollectShadowRtv(), c, 0, nullptr);
-	_cmdList->ClearRenderTargetView(rayShadow.GetCollectTransShadowRtv(), c, 0, nullptr);
+	// clear ray tracing work
+	rayShadow.Clear(_cmdList);
+	rayAmbient.Clear(_cmdList);
 }
 
 void LightManager::LightWork(Camera* _targetCam)

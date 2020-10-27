@@ -78,6 +78,14 @@ void RayShadow::Relesae()
 	rtShadowMat.Release();
 }
 
+void RayShadow::Clear(ID3D12GraphicsCommandList* _cmdList)
+{
+	// clear target
+	FLOAT c[] = { 1,1,1,1 };
+	_cmdList->ClearRenderTargetView(GetCollectShadowRtv(), c, 0, nullptr);
+	_cmdList->ClearRenderTargetView(GetCollectTransShadowRtv(), c, 0, nullptr);
+}
+
 void RayShadow::RayTracingShadow(Camera* _targetCam, ForwardPlus* _forwardPlus, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
 {
 	// use pre gfx list
