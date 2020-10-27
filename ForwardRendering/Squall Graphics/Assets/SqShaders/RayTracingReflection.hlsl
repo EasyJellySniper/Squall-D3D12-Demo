@@ -74,7 +74,7 @@ RayPayload ShootReflectionRay(float3 normal, float depth, float2 screenUV, bool 
     }
     payload.reflectionDepth = (_transparent) ? MAX_REFLECT_RESURSION : 0;
 
-    float3 wpos = DepthToWorldPos(depth, float4(screenUV, 0, 1));
+    float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
     float3 incident = normalize(wpos - _CameraPos.xyz);
 
     RayDesc ray;

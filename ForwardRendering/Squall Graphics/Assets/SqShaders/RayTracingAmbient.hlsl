@@ -62,6 +62,22 @@ RWTexture2D<float4> _OutputAmbient : register(u0);
 [shader("raygeneration")]
 void RTAmbientRayGen()
 {
+    // center in the middle of the pixel, it's half-offset rule of D3D
+    float2 xy = DispatchRaysIndex().xy + 0.5f;
+    float2 screenUV = (xy / DispatchRaysDimensions().xy);
+    float2 depthUV = screenUV;
+    screenUV.y = 1 - screenUV.y;
+    screenUV = screenUV * 2.0f - 1.0f;
+
+    float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _CollectShadowSampler, depthUV, 0).r;
+    if (depth == 0.0f)
+    {
+        // early out
+        return;
+    }
+
+    float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
+
     //// shooting rays within ambient range, center to camera
     //float3 origin = _CameraPos.xyz;
     //float2 offset = DispatchRaysIndex().xy - DispatchRaysDimensions().xy * 0.5f;

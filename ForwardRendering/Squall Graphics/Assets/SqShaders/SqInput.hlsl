@@ -126,20 +126,19 @@ ByteAddressBuffer _SqPointLightTransTile : register(t4, space1);
 TextureCube _SkyCube : register(t0, space6);
 SamplerState _SkySampler : register(s0, space6);
 
-float3 DepthToWorldPos(float depth, float4 screenPos)
+// screen pos input need to include depth as z
+float3 DepthToWorldPos(float4 screenPos)
 {
 	// calc wpos
-	screenPos.z = depth;
 	float4 wpos = mul(SQ_MATRIX_INV_VP, screenPos);
 	wpos /= wpos.w;
 
 	return wpos.xyz;
 }
 
-float3 DepthToViewPos(float depth, float4 screenPos)
+float3 DepthToViewPos(float4 screenPos)
 {
 	// calc vpos
-	screenPos.z = depth;
 	float4 vpos = mul(SQ_MATRIX_INV_P, screenPos);
 	vpos /= vpos.w;
 

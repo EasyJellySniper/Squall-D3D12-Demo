@@ -47,7 +47,7 @@ void CalcFrustumPlanes(uint tileX, uint tileY, float minZ, float maxZ, out float
 		plane[i].y = -plane[i].y;
 
 		// convert corners to view position
-		plane[i].xyz = DepthToViewPos(plane[i].z, plane[i]);
+		plane[i].xyz = DepthToViewPos(plane[i]);
 	}
 
 	// update min/max eye-z

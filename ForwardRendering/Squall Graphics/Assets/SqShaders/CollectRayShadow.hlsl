@@ -112,7 +112,8 @@ float BlurFilter(float2 uv, int innerLoop, float penumbra)
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
     float depth = _DepthMap.SampleLevel(_SamplerTable[_CollectShadowSampler], i.uv, 0).r;
-    float3 wpos = DepthToWorldPos(depth, i.screenPos);
+    i.screenPos.z = depth;
+    float3 wpos = DepthToWorldPos(i.screenPos);
     float distRatio = 1 - saturate(abs(wpos.z - _CameraPos.z) * 0.05f);
 
     // reduce penumbra according to distance

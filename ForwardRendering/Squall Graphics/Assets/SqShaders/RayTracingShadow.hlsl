@@ -74,7 +74,7 @@ RayResult ShootRayFromDepth(float _Depth, float3 _Normal, float2 _ScreenUV, SqLi
     }
 
     // to world pos
-    float3 wpos = DepthToWorldPos(_Depth, float4(_ScreenUV, 0, 1));
+    float3 wpos = DepthToWorldPos(float4(_ScreenUV, _Depth, 1));
     float3 lightPos = (_light.type == 1) ? -_light.world.xyz * _light.shadowDistance : _light.world.xyz;
     float distToCam = length(_CameraPos.xyz - wpos);
     float receiverDistToLight = length(lightPos - wpos);
