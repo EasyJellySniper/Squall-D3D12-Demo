@@ -172,7 +172,7 @@ float3 LightBRDF(float3 diffColor, float3 specColor, float smoothness, float3 no
 	return diffColor * (dirDiffuse + pointDiffuse + gi.indirectDiffuse) + dirSpecular + pointSpecular + giSpec;
 }
 
-float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float shadowAtten, SqGI gi)
+float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, float3 normal, float3 worldPos, float shadowAtten, SqGI gi, float useSpecular)
 {
 	// directional light only
 	float3 dirSpecular = 0;
@@ -183,7 +183,7 @@ float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, flo
 	float specFade = smoothness * smoothness;
 	float3 giSpec = specFade * gi.indirectSpecular * SchlickFresnel(specColor, nv);
 
-	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular + giSpec;
+	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular * useSpecular + giSpec;
 }
 
 SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, bool isTransparent)

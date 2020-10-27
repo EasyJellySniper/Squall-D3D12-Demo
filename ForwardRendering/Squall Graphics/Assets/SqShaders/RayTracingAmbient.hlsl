@@ -95,6 +95,9 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
 
     // init v2f
     RayV2F v2f = InitRayV2F(attr, hitPos);
+
+    float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
+    float3 diffuse = RayDiffuse(v2f, bumpNormal);
 }
 
 [shader("miss")]

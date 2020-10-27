@@ -133,13 +133,13 @@ float4 RayForwardPass(RayV2F i, float3 bumpNormal, float3 indirectSpecular, floa
     float4 specular = GetSpecular(i.tex.xy);
     diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
 
-    // normal
+    // gi
     float occlusion = GetOcclusion(i.tex.xy);
     SqGI gi = CalcGI(bumpNormal, 0, 0, occlusion, false);
     gi.indirectSpecular = indirectSpecular * occlusion;
 
     // BRDF
-    diffuse.rgb = LightBRDFSimple(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten, gi);
+    diffuse.rgb = LightBRDFSimple(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, atten, gi, 1.0f);
 
     // emission
     float3 emission = GetEmission(i.tex.xy);
@@ -151,6 +151,23 @@ float4 RayForwardPass(RayV2F i, float3 bumpNormal, float3 indirectSpecular, floa
     output.a = lerp(output.a, 1, _RenderQueue < 2);
 
     return output;
+}
+
+float3 RayDiffuse(RayV2F i, float3 bumpNormal)
+{
+    float4 diffuse = GetAlbedo(i.tex.xy, i.tex.zw);
+
+    // specular
+    float4 specular = GetSpecular(i.tex.xy);
+    diffuse.rgb = DiffuseAndSpecularLerp(diffuse.rgb, specular.rgb);
+
+    // normal
+    SqGI dummy = (SqGI)0;
+
+    // BRDF
+    diffuse.rgb = LightBRDFSimple(diffuse.rgb, specular.rgb, specular.a, bumpNormal, i.worldPos, 1.0f, dummy, 0.0f);
+
+    return diffuse.rgb;
 }
 
 RayV2F InitRayV2F(BuiltInTriangleIntersectionAttributes attr, float3 hitPos)
