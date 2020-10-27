@@ -142,6 +142,7 @@ void GameTimerManager::PrintGameTime()
 		cout << "Collect Shadow Map: " << gpuTimeMs[GpuTimeType::CollectShadowMap] << endl;
 		cout << "Ray Tracing Shadow : " << gpuTimeMs[GpuTimeType::RayTracingShadow] << endl;
 		cout << "Ray Tracing Reflection: " << gpuTimeMs[GpuTimeType::RayTracingReflection] << endl;
+		cout << "Ray Tracing Ambient: " << gpuTimeMs[GpuTimeType::RayTracingAmbient] << endl;
 		cout << "Skybox : " << gpuTimeMs[GpuTimeType::SkyboxPass] << endl;
 		cout << "Forward Transparent: " << gpuTimeMs[GpuTimeType::TransparentPass] << endl;
 		cout << "EndFrame (MSAA Resolve) : " << gpuTimeMs[GpuTimeType::EndFrame] << endl;

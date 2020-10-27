@@ -2,6 +2,7 @@
 #include "../stdafx.h"
 #include "../ShaderManager.h"
 #include "../MaterialManager.h"
+#include "../GraphicManager.h"
 
 void RayAmbient::Init(ID3D12Resource* _ambientRT)
 {
@@ -30,6 +31,24 @@ void RayAmbient::Release()
 	ambientRT.reset();
 
 	rtAmbientMat.Release();
+}
+
+void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU)
+{
+	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
+	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
+
+	LogIfFailedWithoutHR(_cmdList->Reset(GraphicManager::Instance().GetFrameResource()->mainGfxAllocator, nullptr));
+	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery());
+
+	auto dxrCmd = GraphicManager::Instance().GetDxrList();
+	if (!MaterialManager::Instance().SetRayTracingPass(dxrCmd, &rtAmbientMat))
+	{
+		return;
+	}
+
+	GPU_TIMER_STOP(_cmdList, GraphicManager::Instance().GetGpuTimeQuery(), GameTimerManager::Instance().gpuTimeResult[GpuTimeType::RayTracingAmbient]);
+	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientRtv()

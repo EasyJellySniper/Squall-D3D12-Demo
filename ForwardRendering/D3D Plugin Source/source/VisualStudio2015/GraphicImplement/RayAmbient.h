@@ -3,12 +3,14 @@
 #include "../Material.h"
 #include "../TextureManager.h"
 #include "../stdafx.h"
+#include "../Camera.h"
 
 class RayAmbient
 {
 public:
 	void Init(ID3D12Resource* _ambientRT);
 	void Release();
+	void Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetAmbientRtv();
 	void Clear(ID3D12GraphicsCommandList *_cmdList);

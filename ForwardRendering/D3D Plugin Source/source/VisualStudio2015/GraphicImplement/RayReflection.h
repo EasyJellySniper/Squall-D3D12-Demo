@@ -11,6 +11,7 @@ public:
 	void Init(ID3D12Resource* _rayReflection);
 	void Release();
 	void Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox* _skybox, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU);
+
 	Material* GetMaterial();
 	DescriptorHeapData GetRayReflectionHeap();
 	DescriptorHeapData GetTransRayReflectionHeap();
