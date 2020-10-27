@@ -145,6 +145,16 @@ float3 DepthToViewPos(float4 screenPos)
 	return vpos.xyz * float3(1, 1, -1);
 }
 
+float2 WorldToScreenPos(float3 worldPos, float2 screenSize)
+{
+	float4 clipPos = mul(SQ_MATRIX_VP, float4(worldPos, 1.0f));
+	clipPos.xyz /= clipPos.w;
+	clipPos.y = -clipPos.y;
+	clipPos.xy = clipPos.xy * 0.5f + 0.5f;
+
+	return clipPos.xy * screenSize;
+}
+
 int GetPointLightOffset(uint _index)
 {
 	return _index * (_MaxPointLight * 4 + 4);
