@@ -62,42 +62,66 @@ RWTexture2D<float4> _OutputAmbient : register(u0);
 [shader("raygeneration")]
 void RTAmbientRayGen()
 {
-    // shooting rays within ambient range, center to camera
-    float3 origin = _CameraPos.xyz;
-    float2 offset = DispatchRaysIndex().xy;
-    origin.xz += offset - DispatchRaysDimensions().xy * 0.5f;
+    //// shooting rays within ambient range, center to camera
+    //float3 origin = _CameraPos.xyz;
+    //float2 offset = DispatchRaysIndex().xy - DispatchRaysDimensions().xy * 0.5f;
+    //origin.xz += offset * 0.01f;
 
-    // pullback to  main light
-    SqLight dirLight = _SqDirLight[0];
-    origin.xyz = origin.xyz - dirLight.world.xyz * LIGHT_PULL_BACK;
+    //// pullback to  main light
+    //SqLight dirLight = _SqDirLight[0];
+    //origin.xyz = origin.xyz - dirLight.world.xyz * LIGHT_PULL_BACK;
 
-    // define ray
-    RayDesc ray;
-    ray.Origin = origin;
-    ray.Direction = dirLight.world.xyz;
-    ray.TMin = 0;
-    ray.TMax = LIGHT_PULL_BACK * 1.1f;
+    //// define ray
+    //RayDesc ray;
+    //ray.Origin = origin;
+    //ray.Direction = dirLight.world.xyz;
+    //ray.TMin = 0;
+    //ray.TMax = LIGHT_PULL_BACK * 1.1f;
 
-    // setup payload, alpha channel for occlusion
-    RayPayload payload = (RayPayload)0;
-    payload.ambientColor.a = 1.0f;
+    //// setup payload, alpha channel for occlusion
+    //RayPayload payload = (RayPayload)0;
+    //payload.ambientColor.a = 1.0f;
 
-    // trace ray & culling non opaque
-    payload.ambientDepth++;
-    TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
+    //// trace ray & culling non opaque
+    //payload.ambientDepth++;
+    //TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
 }
 
 [shader("closesthit")]
 void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // hit pos
-    float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
+    //// hit pos
+    //float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
 
-    // init v2f
-    RayV2F v2f = InitRayV2F(attr, hitPos);
+    //// init v2f
+    //RayV2F v2f = InitRayV2F(attr, hitPos);
 
-    float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
-    float3 diffuse = RayDiffuse(v2f, bumpNormal);
+    //float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
+    //float3 diffuse = RayDiffuse(v2f, bumpNormal);
+    //SqLight dirLight = _SqDirLight[0];
+
+    //// -------------------------------- output diffuse if necessary ------------------------------ //
+    //if (payload.ambientDepth > 1)
+    //{
+    //    float2 screenPos = WorldToScreenPos(hitPos, DispatchRaysDimensions().xy);
+    //    _OutputAmbient[screenPos].rgb += diffuse;
+    //}
+
+    //// -------------------------------- recursive ray if necessary ------------------------------ //
+    //if (payload.ambientDepth < MAX_AMBIENT_RESURSION && payload.ambientDepth <= dirLight.bounceCount)
+    //{
+    //    // define indirect ray
+    //    RayDesc ray;
+    //    ray.Origin = hitPos;
+    //    ray.Direction = reflect(WorldRayDirection(), bumpNormal);
+    //    ray.TMin = 0;
+    //    ray.TMax = dirLight.world.w + 0.5f;
+
+    //    // setup payload & shoot indirect ray
+    //    payload.ambientColor.rgb = diffuse;
+    //    payload.ambientDepth++;
+    //    TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
+    //}
 }
 
 [shader("miss")]

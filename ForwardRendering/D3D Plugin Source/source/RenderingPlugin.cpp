@@ -184,9 +184,9 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API ResetPipelineState()
 	}
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRayDistance(float _rd, float _ar)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRayDistance(float _rd)
 {
-	LightManager::Instance().SetRayDistance(_rd, _ar);
+	LightManager::Instance().SetRayDistance(_rd);
 }
 
 // --------------------------------------------------------------------------

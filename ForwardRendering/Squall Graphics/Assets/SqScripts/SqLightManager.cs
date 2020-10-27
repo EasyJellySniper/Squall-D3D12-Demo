@@ -9,7 +9,7 @@ public class SqLightManager : MonoBehaviour
     static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, IntPtr _reflectionRT, IntPtr _ambientRT);
 
     [DllImport("SquallGraphics")]
-    static extern void SetRayDistance(float _reflectionDistance, float _ambientRange);
+    static extern void SetRayDistance(float _reflectionDistance);
 
     [DllImport("SquallGraphics")]
     static extern void SetPCFKernel(int _kernel);
@@ -54,11 +54,6 @@ public class SqLightManager : MonoBehaviour
     public float reflectionDistance = 500;
 
     /// <summary>
-    /// reflection distance
-    /// </summary>
-    public float ambientRange = 500;
-
-    /// <summary>
     /// collect shadows
     /// </summary>
     [HideInInspector]
@@ -91,7 +86,7 @@ public class SqLightManager : MonoBehaviour
     void Update()
     {
         // set distance data
-        SetRayDistance(reflectionDistance, ambientRange);
+        SetRayDistance(reflectionDistance);
 
         // need set pcf before late update
         SetPCF();

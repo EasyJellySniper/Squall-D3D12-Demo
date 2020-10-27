@@ -74,7 +74,7 @@ void LightManager::LightWork(Camera* _targetCam)
 	rayReflection.Trace(_targetCam, GetForwardPlus(), GetSkybox(), dirLightGPU);
 
 	// ray tracing ambient
-	rayAmbient.Trace(_targetCam, dirLightGPU, (int)ambientRange);
+	rayAmbient.Trace(_targetCam, dirLightGPU);
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
@@ -157,10 +157,9 @@ void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensi
 	skybox.SetSkyboxData(_ag, _as, _skyIntensity);
 }
 
-void LightManager::SetRayDistance(float _reflectionDist, float _ambientRange)
+void LightManager::SetRayDistance(float _reflectionDist)
 {
 	reflectionDistance = _reflectionDist;
-	ambientRange = _ambientRange;
 }
 
 void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)

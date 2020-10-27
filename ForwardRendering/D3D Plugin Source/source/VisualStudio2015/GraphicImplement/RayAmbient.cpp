@@ -34,7 +34,7 @@ void RayAmbient::Release()
 	rtAmbientMat.Release();
 }
 
-void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, int _ambientRange)
+void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU)
 {
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 	auto _cmdList = GraphicManager::Instance().GetFrameResource()->mainGfxList;
@@ -74,7 +74,7 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	_cmdList->SetComputeRootShaderResourceView(8, RayTracingManager::Instance().GetSubMeshInfoGPU());
 
 	// prepare dispatch desc
-	D3D12_DISPATCH_RAYS_DESC dispatchDesc = rtAmbientMat.GetDispatchRayDesc((UINT)_ambientRange, _ambientRange);
+	D3D12_DISPATCH_RAYS_DESC dispatchDesc = rtAmbientMat.GetDispatchRayDesc((UINT)ambientSrc->GetDesc().Width, ambientSrc->GetDesc().Height);
 
 	// setup hit group table
 	auto hitGroup = MaterialManager::Instance().GetHitGroupGPU(HitGroupType::Ambient);
