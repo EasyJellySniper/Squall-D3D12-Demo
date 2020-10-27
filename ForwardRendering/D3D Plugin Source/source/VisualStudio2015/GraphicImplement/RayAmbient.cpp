@@ -14,7 +14,8 @@ void RayAmbient::Init(ID3D12Resource* _ambientRT)
 
 void RayAmbient::Release()
 {
-	ambientRT->Release();
+	if (ambientRT != nullptr)
+		ambientRT->Release();
 	ambientRT.reset();
 
 	rtAmbientMat.Release();

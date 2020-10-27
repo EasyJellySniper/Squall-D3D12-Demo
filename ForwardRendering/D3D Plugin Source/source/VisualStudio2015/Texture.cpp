@@ -43,8 +43,12 @@ size_t Texture::GetInstanceID()
 
 void Texture::Release()
 {
-	rtvSrc.clear();
-	dsvSrc.clear();
+	if (rtvCount > 0)
+		rtvSrc.clear();
+
+	if (dsvCount > 0)
+		dsvSrc.clear();
+
 	rtvHandle.Reset();
 	dsvHandle.Reset();
 }
