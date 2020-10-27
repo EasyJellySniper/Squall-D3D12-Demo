@@ -1,5 +1,7 @@
 #include "RayAmbient.h"
 #include "../stdafx.h"
+#include "../ShaderManager.h"
+#include "../MaterialManager.h"
 
 void RayAmbient::Init(ID3D12Resource* _ambientRT)
 {
@@ -12,6 +14,13 @@ void RayAmbient::Init(ID3D12Resource* _ambientRT)
 	// create uav/srv
 	ambientHeapData.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientSrc, TextureInfo(true, false, true, false, false));
 	ambientHeapData.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientSrc, TextureInfo(true, false, false, false, false));
+
+	// create material
+	Shader* rtAmbient = ShaderManager::Instance().CompileShader(L"RayTracingAmbient.hlsl");
+	if (rtAmbient != nullptr)
+	{
+		rtAmbientMat = MaterialManager::Instance().CreateRayTracingMat(rtAmbient);
+	}
 }
 
 void RayAmbient::Release()
@@ -39,6 +48,11 @@ void RayAmbient::Clear(ID3D12GraphicsCommandList* _cmdList)
 int RayAmbient::GetAmbientSrv()
 {
 	return ambientHeapData.srv;
+}
+
+Material* RayAmbient::GetMaterial()
+{
+	return &rtAmbientMat;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientUav()

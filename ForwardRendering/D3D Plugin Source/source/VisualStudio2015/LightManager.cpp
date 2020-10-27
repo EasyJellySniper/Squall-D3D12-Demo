@@ -69,6 +69,7 @@ void LightManager::LightWork(Camera* _targetCam)
 	// copy hit group data
 	MaterialManager::Instance().CopyHitGroupIdentifier(rayShadow.GetRayShadow(), HitGroupType::Shadow);
 	MaterialManager::Instance().CopyHitGroupIdentifier(rayReflection.GetMaterial(), HitGroupType::Reflection);
+	MaterialManager::Instance().CopyHitGroupIdentifier(rayAmbient.GetMaterial(), HitGroupType::Ambient);
 
 	// ray tracing shadow
 	rayShadow.RayTracingShadow(_targetCam, GetForwardPlus(), dirLightGPU, pointLightGPU);

@@ -6,7 +6,7 @@
 
 enum HitGroupType
 {
-	Shadow = 0, Reflection, HitGroupCount
+	Shadow = 0, Reflection, Ambient, HitGroupCount
 };
 
 class MaterialManager
