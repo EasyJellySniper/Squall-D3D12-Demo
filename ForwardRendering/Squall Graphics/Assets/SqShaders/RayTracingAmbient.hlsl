@@ -62,6 +62,9 @@ RWTexture2D<float4> _OutputAmbient : register(u0);
 [shader("raygeneration")]
 void RTAmbientRayGen()
 {
+    // clear
+    _OutputAmbient[DispatchRaysIndex().xy] = float4(0, 0, 0, 1);
+
     // center in the middle of the pixel, it's half-offset rule of D3D
     float2 xy = DispatchRaysIndex().xy + 0.5f;
     float2 screenUV = (xy / DispatchRaysDimensions().xy);

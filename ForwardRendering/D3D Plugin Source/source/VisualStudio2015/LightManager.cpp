@@ -55,7 +55,6 @@ void LightManager::ClearLight(ID3D12GraphicsCommandList* _cmdList)
 {
 	// clear ray tracing work
 	rayShadow.Clear(_cmdList);
-	rayAmbient.Clear(_cmdList);
 }
 
 void LightManager::LightWork(Camera* _targetCam)
