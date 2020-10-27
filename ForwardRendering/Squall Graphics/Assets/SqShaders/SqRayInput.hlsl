@@ -153,4 +153,36 @@ float4 RayForwardPass(RayV2F i, float3 bumpNormal, float3 indirectSpecular, floa
     return output;
 }
 
+RayV2F InitRayV2F(BuiltInTriangleIntersectionAttributes attr, float3 hitPos)
+{
+    // read indices
+    uint ibStride = 2;
+    uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
+    uint vertID = InstanceID();
+    const uint3 indices = Load3x16BitIndices(pIdx, vertID + 1);
+
+    // init v2f 
+    RayV2F v2f = (RayV2F)0;
+
+    // uv
+    v2f.tex.xy = GetHitUV(indices, vertID, attr);
+    v2f.tex.zw = GetHitUV2(indices, vertID, attr);
+
+    // calc detail uv
+    float2 detailUV = lerp(v2f.tex.xy, v2f.tex.zw, _DetailUV);
+    detailUV = detailUV * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
+    v2f.tex.zw = detailUV;
+    v2f.tex.xy = v2f.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+
+    // world position & normal
+    v2f.worldPos = hitPos;
+    v2f.normal = GetHitNormal(indices, vertID, attr);
+
+    // calc TBN for bump mapping
+    float4 tangent = GetHitTangent(indices, vertID, attr);
+    v2f.worldToTangent = CreateTBN(v2f.normal, tangent);
+
+    return v2f;
+}
+
 #endif

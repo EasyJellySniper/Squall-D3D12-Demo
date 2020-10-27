@@ -110,7 +110,7 @@ float3 LocalToWorldDir(float3 dir)
 
 float3 LocalToWorldDir(float4x4 world, float3 dir)
 {
-	return mul(world, dir);
+	return mul((float3x3)world, dir);
 }
 
 float3x3 CreateTBN(float3 normal, float4 oTangent)

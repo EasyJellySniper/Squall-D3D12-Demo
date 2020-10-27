@@ -1,5 +1,5 @@
 #define RAY_SHADER
-#define MAX_AMBIENT_RESURSION 3
+#define MAX_AMBIENT_RESURSION 4
 #define LIGHT_PULL_BACK 500
 
 // need assign relative path for dxc compiler with forward slash
@@ -83,13 +83,18 @@ void RTAmbientRayGen()
     payload.ambientColor.a = 1.0f;
 
     // trace ray & culling non opaque
+    payload.ambientDepth++;
     TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
 }
 
 [shader("closesthit")]
 void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
+    // hit pos
+    float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
 
+    // init v2f
+    RayV2F v2f = InitRayV2F(attr, hitPos);
 }
 
 [shader("miss")]
