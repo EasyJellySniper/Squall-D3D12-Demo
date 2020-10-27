@@ -137,6 +137,7 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.cameraPos.w = reflectionDistance;
 	_sc.reflectionRTIndex = rayReflection.GetRayReflectionHeap().srv;
 	_sc.transReflectionRTIndex = rayReflection.GetTransRayReflectionHeap().srv;
+	_sc.ambientRTIndex = rayAmbient.GetAmbientSrv();
 	_sc.linearSampler = linearSampler.sampler;
 	_sc.sqSkyboxWorld = skyData.worldMatrix;
 

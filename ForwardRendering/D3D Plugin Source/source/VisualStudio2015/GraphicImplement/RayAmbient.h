@@ -12,6 +12,7 @@ public:
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetAmbientRtv();
 	void Clear(ID3D12GraphicsCommandList *_cmdList);
+	int GetAmbientSrv();
 
 private:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientUav();
