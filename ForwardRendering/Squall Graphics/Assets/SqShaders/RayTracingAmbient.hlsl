@@ -1,5 +1,6 @@
 #define RAY_SHADER
 #define MAX_AMBIENT_RESURSION 3
+#define LIGHT_PULL_BACK 500
 
 // need assign relative path for dxc compiler with forward slash
 #include "Assets/SqShaders/SqInput.hlsl"
@@ -61,7 +62,28 @@ RWTexture2D<float4> _OutputAmbient : register(u0);
 [shader("raygeneration")]
 void RTAmbientRayGen()
 {
+    // shooting rays within ambient range, center to camera
+    float3 origin = _CameraPos.xyz;
+    float2 offset = DispatchRaysIndex().xy;
+    origin.xz += offset - DispatchRaysDimensions().xy * 0.5f;
 
+    // pullback to  main light
+    SqLight dirLight = _SqDirLight[0];
+    origin.xyz = origin.xyz - dirLight.world.xyz * LIGHT_PULL_BACK;
+
+    // define ray
+    RayDesc ray;
+    ray.Origin = origin;
+    ray.Direction = dirLight.world.xyz;
+    ray.TMin = 0;
+    ray.TMax = LIGHT_PULL_BACK * 1.1f;
+
+    // setup payload, alpha channel for occlusion
+    RayPayload payload = (RayPayload)0;
+    payload.ambientColor.a = 1.0f;
+
+    // trace ray & culling non opaque
+    TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
 }
 
 [shader("closesthit")]
@@ -73,5 +95,5 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
 [shader("miss")]
 void RTAmbientMiss(inout RayPayload payload)
 {
-    
+    // missing hit, do nothing
 }
