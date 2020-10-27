@@ -321,7 +321,7 @@ int MaterialManager::GetMatIndexFromID(int _id)
 
 bool MaterialManager::SetGraphicPass(ID3D12GraphicsCommandList* _cmdList, Material* _mat)
 {
-	if (_mat == nullptr)
+	if (!_mat->IsValid())
 		return false;
 
 	if (_mat->GetPSO() == nullptr)
@@ -338,7 +338,7 @@ bool MaterialManager::SetGraphicPass(ID3D12GraphicsCommandList* _cmdList, Materi
 
 bool MaterialManager::SetComputePass(ID3D12GraphicsCommandList* _cmdList, Material* _mat)
 {
-	if (_mat == nullptr)
+	if (!_mat->IsValid())
 		return false;
 
 	if (_mat->GetPSO() == nullptr)
@@ -355,7 +355,7 @@ bool MaterialManager::SetComputePass(ID3D12GraphicsCommandList* _cmdList, Materi
 
 bool MaterialManager::SetRayTracingPass(ID3D12GraphicsCommandList5* _cmdList, Material* _mat)
 {
-	if (_mat == nullptr)
+	if (!_mat->IsValid())
 		return false;
 
 	if (_mat->GetDxcPSO() == nullptr)

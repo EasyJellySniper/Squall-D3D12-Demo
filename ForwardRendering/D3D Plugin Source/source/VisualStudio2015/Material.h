@@ -83,9 +83,7 @@ private:
 	CullMode cullMode = CullMode::Off;
 	int srcBlend;
 	int dstBlend;
-
 	bool validMaterial = false;
-	bool isDirty = true;
 
 	Shader* shaderCache;
 	PsoData psoData;

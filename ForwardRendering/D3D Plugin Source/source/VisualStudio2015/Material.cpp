@@ -5,7 +5,6 @@
 void Material::SetPsoData(PsoData _data)
 {
 	psoData = _data;
-	isDirty = true;
 	validMaterial = true;
 }
 
