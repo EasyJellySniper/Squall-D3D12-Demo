@@ -20,14 +20,14 @@ struct SqLightData
 {
 	XMFLOAT4 color;
 	XMFLOAT4 worldPos;
-	int type;
 	float intensity;
 	float shadowSize;
 	float shadowDistance;
 	float range;	// point/spot light range
 	float shadowBiasNear;
 	float shadowBiasFar;
-	float padding;
+	int type;
+	int bounceCount;
 };
 
 class Light
