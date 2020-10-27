@@ -10,7 +10,7 @@ class RayAmbient
 public:
 	void Init(ID3D12Resource* _ambientRT);
 	void Release();
-	void Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU);
+	void Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU, int _ambientRange);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetAmbientRtv();
 	void Clear(ID3D12GraphicsCommandList *_cmdList);

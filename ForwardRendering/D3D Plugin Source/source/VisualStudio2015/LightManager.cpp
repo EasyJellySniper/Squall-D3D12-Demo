@@ -79,7 +79,7 @@ void LightManager::LightWork(Camera* _targetCam)
 	rayReflection.Trace(_targetCam, GetForwardPlus(), GetSkybox(), dirLightGPU);
 
 	// ray tracing ambient
-	rayAmbient.Trace(_targetCam, dirLightGPU);
+	rayAmbient.Trace(_targetCam, dirLightGPU, (int)ambientRange);
 }
 
 int LightManager::AddNativeLight(int _instanceID, SqLightData _data)
