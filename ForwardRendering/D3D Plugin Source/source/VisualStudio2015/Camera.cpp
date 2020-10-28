@@ -362,8 +362,8 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 	_sc.screenSize.y = viewPort.Height;
 	_sc.screenSize.z = 1.0f / viewPort.Width;
 	_sc.screenSize.w = 1.0f / viewPort.Height;
-	_sc.colorRTIndex = colorBufferSrv.srv;
 	_sc.normalRTIndex = normalBufferSrv.srv;
+	_sc.transNormalRTIndex = transNormalBufferSrv.srv;
 }
 
 void Camera::InitColorBuffer()
@@ -408,7 +408,7 @@ void Camera::InitColorBuffer()
 
 	// need 1 srv
 	cameraRT->InitRTV(renderTarget[RenderBufferUsage::Color], renderTargetDesc[RenderBufferUsage::Color], false);
-	colorBufferSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Color], TextureInfo(true, false, false, false, false));
+	normalBufferSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Color], TextureInfo(true, false, false, false, false));
 
 	if (cameraData.allowMSAA > 1)
 	{
@@ -468,12 +468,12 @@ void Camera::InitTransparentDepth()
 void Camera::InitNormalBuffer()
 {
 	// normal buffer
-	auto normalBufferSrc = renderTarget[RenderBufferUsage::Normal];
-	renderTargetDesc[RenderBufferUsage::Normal] = Formatter::GetColorFormatFromTypeless(normalBufferSrc->GetDesc().Format);
+	auto normalBufferSrc = renderTarget[RenderBufferUsage::TransNormal];
+	renderTargetDesc[RenderBufferUsage::TransNormal] = Formatter::GetColorFormatFromTypeless(normalBufferSrc->GetDesc().Format);
 
 	normalRT = make_shared<Texture>(1, 0);
-	normalRT->InitRTV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::Normal], false);
-	normalBufferSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Normal], TextureInfo(true, false, false, false, false));
+	normalRT->InitRTV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::TransNormal], false);
+	transNormalBufferSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::TransNormal], TextureInfo(true, false, false, false, false));
 }
 
 bool Camera::CreatePipelineMaterial()

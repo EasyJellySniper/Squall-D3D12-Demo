@@ -69,8 +69,8 @@ cbuffer SystemConstant : register(b0)
 	int _MsaaCount;
 	int _DepthIndex;
 	int _TransDepthIndex;
-	int _ColorRTIndex;
 	int _NormalRTIndex;
+	int _TransNormalRTIndex;
 	int _TileCountX;	// forward+ tile
 	int _TileCountY;
 	int _ReflectionRTIndex;

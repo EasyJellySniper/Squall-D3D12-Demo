@@ -91,7 +91,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	#endif
 			);
 #else
-	float3 bumpNormal = SQ_SAMPLE_TEXTURE(_ColorRTIndex, _CollectShadowSampler, screenUV).rgb;
+	float3 bumpNormal = SQ_SAMPLE_TEXTURE(_NormalRTIndex, _CollectShadowSampler, screenUV).rgb;
 #endif
 
 	// occlusion 

@@ -69,24 +69,25 @@ StructuredBuffer<float4> _UniformVector : register(t0, space6);
 [shader("raygeneration")]
 void RTAmbientRayGen()
 {
-    //// clear
-    //_OutputAmbient[DispatchRaysIndex().xy] = float4(0, 0, 0, 1);
+    // clear
+    _OutputAmbient[DispatchRaysIndex().xy] = float4(0, 0, 0, 1);
 
-    //// center in the middle of the pixel, it's half-offset rule of D3D
-    //float2 xy = DispatchRaysIndex().xy + 0.5f;
-    //float2 screenUV = (xy / DispatchRaysDimensions().xy);
-    //float2 depthUV = screenUV;
-    //screenUV.y = 1 - screenUV.y;
-    //screenUV = screenUV * 2.0f - 1.0f;
+    // center in the middle of the pixel, it's half-offset rule of D3D
+    float2 xy = DispatchRaysIndex().xy + 0.5f;
+    float2 screenUV = (xy / DispatchRaysDimensions().xy);
+    float2 depthUV = screenUV;
+    screenUV.y = 1 - screenUV.y;
+    screenUV = screenUV * 2.0f - 1.0f;
 
-    //float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _CollectShadowSampler, depthUV, 0).r;
-    //if (depth == 0.0f)
-    //{
-    //    // early out
-    //    return;
-    //}
+    float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _CollectShadowSampler, depthUV, 0).r;
+    if (depth == 0.0f)
+    {
+        // early out
+        return;
+    }
 
-    //float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
+    float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
+    float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _CollectShadowSampler, depthUV, 0).rgb;
 
     //// pullback to  main light
     //SqLight dirLight = _SqDirLight[0];

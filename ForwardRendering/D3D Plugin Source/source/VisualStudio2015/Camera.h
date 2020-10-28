@@ -48,7 +48,7 @@ enum RenderMode
 
 enum RenderBufferUsage
 {
-	Color = 0, TransparentDepth, Normal, Result
+	Color = 0, TransparentDepth, TransNormal, Result
 };
 
 class Camera
@@ -122,8 +122,8 @@ private:
 	DescriptorHeapData opaqueDepthSrv;
 	DescriptorHeapData transDepthSrv;
 	DescriptorHeapData msaaDepthSrv;
-	DescriptorHeapData colorBufferSrv;
 	DescriptorHeapData normalBufferSrv;
+	DescriptorHeapData transNormalBufferSrv;
 
 	// rt desc cache
 	DXGI_FORMAT renderTargetDesc[MAX_RENDER_TARGETS];

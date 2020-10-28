@@ -188,8 +188,8 @@ void RTShadowRayGen()
     // shoot ray according to depth
     float opaqueDepth = _TexTable[_DepthIndex][DispatchRaysIndex().xy].r;
     float transDepth = _TexTable[_TransDepthIndex][DispatchRaysIndex().xy].r;
-    float3 opaqueNormal = _TexTable[_ColorRTIndex][DispatchRaysIndex().xy].rgb;
-    float3 transNormal = _TexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
+    float3 opaqueNormal = _TexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
+    float3 transNormal = _TexTable[_TransNormalRTIndex][DispatchRaysIndex().xy].rgb;
 
     // get forward+ tile
     uint tileX = DispatchRaysIndex().x / TILE_SIZE;

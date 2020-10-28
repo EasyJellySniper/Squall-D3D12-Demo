@@ -225,9 +225,9 @@ public class SqCamera : MonoBehaviour
     void CreateRenderTarget()
     {
         // for receive result
-        renderTarget = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR, "Color Target");
+        renderTarget = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.DefaultHDR, "Color(Normal) Target");
         transparentDepth = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 32, RenderTextureFormat.Depth, "Transparent Depth");
-        normalTarget = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 0, RenderTextureFormat.DefaultHDR, "Normal Target");
+        normalTarget = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 0, RenderTextureFormat.DefaultHDR, "Trans Normal Target");
         result = SqUtility.CreateRT(attachedCam.pixelWidth, attachedCam.pixelHeight, 0, RenderTextureFormat.DefaultHDR, "Result");
     }
 

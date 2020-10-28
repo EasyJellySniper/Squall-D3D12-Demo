@@ -109,8 +109,8 @@ void RTReflectionRayGen()
 
     float opaqueDepth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _CollectShadowSampler, depthUV, 0).r;
     float transDepth = SQ_SAMPLE_TEXTURE_LEVEL(_TransDepthIndex, _CollectShadowSampler, depthUV, 0).r;
-    float3 opaqueNormal = SQ_SAMPLE_TEXTURE_LEVEL(_ColorRTIndex, _CollectShadowSampler, depthUV, 0).rgb;
-    float3 transNormal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _CollectShadowSampler, depthUV, 0).rgb;
+    float3 opaqueNormal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _CollectShadowSampler, depthUV, 0).rgb;
+    float3 transNormal = SQ_SAMPLE_TEXTURE_LEVEL(_TransNormalRTIndex, _CollectShadowSampler, depthUV, 0).rgb;
 
     RayPayload opaqueResult = ShootReflectionRay(opaqueNormal, opaqueDepth, screenUV, false);
     RayPayload transResult = (RayPayload)0;

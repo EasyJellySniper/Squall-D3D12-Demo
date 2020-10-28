@@ -47,8 +47,8 @@ struct SystemConstant
 	int msaaCount;
 	int depthIndex;
 	int transDepthIndex;
-	int colorRTIndex;
 	int normalRTIndex;
+	int transNormalRTIndex;
 	int tileCountX;
 	int tileCountY;
 	int reflectionRTIndex;
