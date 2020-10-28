@@ -66,6 +66,12 @@ cbuffer AmbientData : register(b1)
 RWTexture2D<float4> _OutputAmbient : register(u0);
 StructuredBuffer<float4> _UniformVector : register(t0, space6);
 
+float3 GetRandomVector(uint idx, float2 uv)
+{
+    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicSampler, uv, 0).rgb;
+    return reflect(_UniformVector[idx].xyz, randVec);
+}
+
 [shader("raygeneration")]
 void RTAmbientRayGen()
 {
@@ -79,7 +85,7 @@ void RTAmbientRayGen()
     screenUV.y = 1 - screenUV.y;
     screenUV = screenUV * 2.0f - 1.0f;
 
-    float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _CollectShadowSampler, depthUV, 0).r;
+    float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _AnisotropicSampler, depthUV, 0).r;
     if (depth == 0.0f)
     {
         // early out
@@ -87,7 +93,13 @@ void RTAmbientRayGen()
     }
 
     float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
-    float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _CollectShadowSampler, depthUV, 0).rgb;
+    float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicSampler, depthUV, 0).rgb;
+    float3 result = 0;
+
+    for (uint n = 0; n < _SampleCount; n++)
+    {
+
+    }
 
     //// pullback to  main light
     //SqLight dirLight = _SqDirLight[0];

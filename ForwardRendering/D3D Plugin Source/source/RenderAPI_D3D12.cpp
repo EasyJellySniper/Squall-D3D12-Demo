@@ -77,12 +77,12 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 		return;
 	}
 
+	TextureManager::Instance().Init(mainDevice);
 	initSucceed = GraphicManager::Instance().Initialize(mainDevice, _numOfThreads);
 	GameTimerManager::Instance().Init();
 	MeshManager::Instance().Init();
 	RendererManager::Instance().Init();
 	MaterialManager::Instance().Init();
-	TextureManager::Instance().Init(mainDevice);
 	ShaderManager::Instance().Init();
 	Formatter::Init();
 	GenerateMipmap::Init();

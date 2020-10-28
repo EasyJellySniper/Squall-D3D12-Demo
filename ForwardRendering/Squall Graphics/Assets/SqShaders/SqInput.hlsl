@@ -64,7 +64,6 @@ cbuffer SystemConstant : register(b0)
 	int _MaxPointLight;
 	int _CollectShadowIndex;
 	int _CollectTransShadowIndex;
-	int _CollectShadowSampler;
 	int _PCFIndex;
 	int _MsaaCount;
 	int _DepthIndex;
@@ -78,6 +77,7 @@ cbuffer SystemConstant : register(b0)
 	int _AmbientRTIndex;
 	int _AmbientNoiseIndex;
 	int _LinearSampler;
+	int _AnisotropicSampler;
 };
 
 cbuffer ObjectConstant : register(b1)

@@ -35,8 +35,6 @@ void RayShadow::Init(void* _collectShadows)
 		collectRayShadowMat = MaterialManager::Instance().CreatePostMat(collectRayShader, false, 1, &shadowFormat, DXGI_FORMAT_UNKNOWN);
 	}
 
-	collectShadowSrv.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 8, D3D12_FILTER_ANISOTROPIC);
-
 	// create ray tracing shadow uav
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 	desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -241,7 +239,6 @@ RayShadowData RayShadow::GetRayShadowData()
 	RayShadowData rsd;
 	rsd.collectShadowID = collectShadowSrv.srv;
 	rsd.collectTransShadowID = collectTransShadowSrv.srv;
-	rsd.collectShadowSampler = collectShadowSrv.sampler;
 	rsd.pcfKernel = pcfKernel;
 	rsd.rtShadowSrv = rtShadowSrv.srv;
 

@@ -30,13 +30,10 @@ bool GraphicManager::Initialize(ID3D12Device* _device, int _numOfThreads)
 		&& SUCCEEDED(CreateGraphicCommand())
 		&& SUCCEEDED(CreateGraphicFences())
 		&& CreateGraphicThreads();
-
-	for (int i = 0; i < MAX_FRAME_COUNT; i++)
-	{
-		systemConstantGPU[i] = make_unique<UploadBuffer<SystemConstant>>(_device, 1, true);
-	}
     
 	InitRayTracingInterface();
+	InitSystemConstant();
+
 	return initSucceed;
 }
 
@@ -50,6 +47,18 @@ void GraphicManager::InitRayTracingInterface()
 {
 	LogIfFailedWithoutHR(mainDevice->QueryInterface(IID_PPV_ARGS(&rayTracingDevice)));
 	LogIfFailedWithoutHR(mainGfxList->QueryInterface(IID_PPV_ARGS(&rayTracingCmd)));
+}
+
+void GraphicManager::InitSystemConstant()
+{
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		systemConstantGPU[i] = make_unique<UploadBuffer<SystemConstant>>(mainDevice, 1, true);
+	}
+
+	// init sampler
+	linearSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
+	anisotropicSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 16, D3D12_FILTER_ANISOTROPIC);
 }
 
 void GraphicManager::Release()
@@ -482,6 +491,9 @@ void GraphicManager::SetWorkerThreadFinishEvent(int _index)
 
 void GraphicManager::UploadSystemConstant(SystemConstant _sc, int _frameIdx)
 {
+	_sc.linearSampler = linearSampler.sampler;
+	_sc.anisotropicSampler = anisotropicSampler.sampler;
+
 	systemConstantCPU = _sc;
 	systemConstantGPU[_frameIdx]->CopyData(0, systemConstantCPU);
 }

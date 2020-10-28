@@ -42,7 +42,6 @@ struct SystemConstant
 	int maxPointLight;
 	int collectShadowIndex;
 	int collectTransShadowIndex;
-	int collectShadowSampler;
 	int pcfIndex;
 	int msaaCount;
 	int depthIndex;
@@ -56,4 +55,5 @@ struct SystemConstant
 	int ambientRTIndex;
 	int ambientNoiseIndex;
 	int linearSampler;
+	int anisotropicSampler;
 };

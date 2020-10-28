@@ -11,7 +11,6 @@ struct RayShadowData
 	int collectShadowID;
 	int collectTransShadowID;
 	int pcfKernel;
-	int collectShadowSampler;
 	int rtShadowSrv;
 };
 

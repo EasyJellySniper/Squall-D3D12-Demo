@@ -44,6 +44,7 @@ public:
 	bool Initialize(ID3D12Device* _device, int _numOfThreads);
 	void SetScreenSize(int _w, int _h);
 	void InitRayTracingInterface();
+	void InitSystemConstant();
 	void Release();
 	int GetThreadCount();
 	void Update();
@@ -128,6 +129,8 @@ private:
 	int screenHeight;
 	SystemConstant systemConstantCPU;
 	FrameResource frameResource;
+	DescriptorHeapData linearSampler;
+	DescriptorHeapData anisotropicSampler;
 
 	// system constant
 	unique_ptr<UploadBuffer<SystemConstant>> systemConstantGPU[MAX_FRAME_COUNT];

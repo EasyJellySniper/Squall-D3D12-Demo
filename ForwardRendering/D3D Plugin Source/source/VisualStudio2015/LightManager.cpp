@@ -21,8 +21,6 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 	}
 
 	forwardPlus.Init(maxLightCount[LightType::Point]);
-
-	linearSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
 }
 
 void LightManager::InitRayShadow(void* _src)
@@ -143,13 +141,11 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.ambientGround = skyData.ambientGround;
 	_sc.ambientSky = skyData.ambientSky;
 	_sc.skyIntensity = skyData.skyIntensity;
-	_sc.collectShadowSampler = rayShadowData.collectShadowSampler;
 	_sc.cameraPos.w = reflectionDistance;
 	_sc.reflectionRTIndex = rayReflection.GetRayReflectionHeap().srv;
 	_sc.transReflectionRTIndex = rayReflection.GetTransRayReflectionHeap().srv;
 	_sc.ambientRTIndex = rayAmbient.GetAmbientSrv();
 	_sc.ambientNoiseIndex = rayAmbient.GetAmbientNoiseSrv();
-	_sc.linearSampler = linearSampler.sampler;
 	_sc.sqSkyboxWorld = skyData.worldMatrix;
 
 	forwardPlus.GetTileCount(_sc.tileCountX, _sc.tileCountY);

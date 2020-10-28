@@ -91,7 +91,7 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	#endif
 			);
 #else
-	float3 bumpNormal = SQ_SAMPLE_TEXTURE(_NormalRTIndex, _CollectShadowSampler, screenUV).rgb;
+	float3 bumpNormal = SQ_SAMPLE_TEXTURE(_NormalRTIndex, _AnisotropicSampler, screenUV).rgb;
 #endif
 
 	// occlusion 
@@ -106,9 +106,9 @@ float4 ForwardPassPS(v2f i) : SV_Target
 
 	// shadow
 #ifdef _TRANSPARENT_ON
-	float shadowAtten = SQ_SAMPLE_TEXTURE(_CollectTransShadowIndex, _CollectShadowSampler, screenUV).r;
+	float shadowAtten = SQ_SAMPLE_TEXTURE(_CollectTransShadowIndex, _AnisotropicSampler, screenUV).r;
 #else
-	float shadowAtten = SQ_SAMPLE_TEXTURE(_CollectShadowIndex, _CollectShadowSampler, screenUV).r;
+	float shadowAtten = SQ_SAMPLE_TEXTURE(_CollectShadowIndex, _AnisotropicSampler, screenUV).r;
 #endif
 
 	// BRDF

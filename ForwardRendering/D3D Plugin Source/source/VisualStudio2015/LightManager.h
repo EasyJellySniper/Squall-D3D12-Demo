@@ -74,9 +74,7 @@ private:
 	RayShadow rayShadow;
 	RayReflection rayReflection;
 	RayAmbient rayAmbient;
-
 	float reflectionDistance;
-	DescriptorHeapData linearSampler;
 
 	// forward+ component
 	ForwardPlus forwardPlus;
