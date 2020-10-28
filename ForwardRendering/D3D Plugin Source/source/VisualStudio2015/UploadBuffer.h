@@ -58,6 +58,11 @@ public:
         memcpy(&mMappedData[elementIndex*mElementByteSize], &data, sizeof(T));
     }
 
+    void CopyDataAll(T* data)
+    {
+        memcpy(&mMappedData[0], data, mElementByteSize);
+    }
+
 private:
     ComPtr<ID3D12Resource> mUploadBuffer;
     BYTE* mMappedData = nullptr;

@@ -24,7 +24,7 @@ public:
 	Material* GetMaterial();
 
 private:
-	const int maxSampleCount = 64;
+	static const int maxSampleCount = 64;
 
 	void CreateUniformVector();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientUav();
@@ -36,5 +36,6 @@ private:
 	DescriptorHeapData noiseHeapData;
 	int sampleCount = 0;
 
-	unique_ptr<UploadBuffer<UniformVector>> uniformVectors;
+	UniformVector uniformVectorCPU[maxSampleCount];
+	unique_ptr<UploadBuffer<UniformVector>> uniformVectorGPU;
 };
