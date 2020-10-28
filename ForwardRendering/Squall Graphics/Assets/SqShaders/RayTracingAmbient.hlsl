@@ -1,6 +1,5 @@
 #define RAY_SHADER
 #define MAX_AMBIENT_RESURSION 4
-#define LIGHT_PULL_BACK 500
 
 // need assign relative path for dxc compiler with forward slash
 #include "Assets/SqShaders/SqInput.hlsl"
@@ -62,80 +61,80 @@ RWTexture2D<float4> _OutputAmbient : register(u0);
 [shader("raygeneration")]
 void RTAmbientRayGen()
 {
-    // clear
-    _OutputAmbient[DispatchRaysIndex().xy] = float4(0, 0, 0, 1);
+    //// clear
+    //_OutputAmbient[DispatchRaysIndex().xy] = float4(0, 0, 0, 1);
 
-    // center in the middle of the pixel, it's half-offset rule of D3D
-    float2 xy = DispatchRaysIndex().xy + 0.5f;
-    float2 screenUV = (xy / DispatchRaysDimensions().xy);
-    float2 depthUV = screenUV;
-    screenUV.y = 1 - screenUV.y;
-    screenUV = screenUV * 2.0f - 1.0f;
+    //// center in the middle of the pixel, it's half-offset rule of D3D
+    //float2 xy = DispatchRaysIndex().xy + 0.5f;
+    //float2 screenUV = (xy / DispatchRaysDimensions().xy);
+    //float2 depthUV = screenUV;
+    //screenUV.y = 1 - screenUV.y;
+    //screenUV = screenUV * 2.0f - 1.0f;
 
-    float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _CollectShadowSampler, depthUV, 0).r;
-    if (depth == 0.0f)
-    {
-        // early out
-        return;
-    }
+    //float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _CollectShadowSampler, depthUV, 0).r;
+    //if (depth == 0.0f)
+    //{
+    //    // early out
+    //    return;
+    //}
 
-    float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
+    //float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
 
-    // pullback to  main light
-    SqLight dirLight = _SqDirLight[0];
-    float3 origin = wpos - dirLight.world.xyz * LIGHT_PULL_BACK;
+    //// pullback to  main light
+    //SqLight dirLight = _SqDirLight[0];
+    //float3 origin = wpos - dirLight.world.xyz * LIGHT_PULL_BACK;
 
-    // define ray
-    RayDesc ray;
-    ray.Origin = origin;
-    ray.Direction = dirLight.world.xyz;
-    ray.TMin = 0;
-    ray.TMax = LIGHT_PULL_BACK * 1.1f;
+    //// define ray
+    //RayDesc ray;
+    //ray.Origin = origin;
+    //ray.Direction = dirLight.world.xyz;
+    //ray.TMin = 0;
+    //ray.TMax = LIGHT_PULL_BACK * 1.1f;
 
-    // setup payload, alpha channel for occlusion
-    RayPayload payload = (RayPayload)0;
-    payload.ambientColor.a = 1.0f;
+    //// setup payload, alpha channel for occlusion
+    //RayPayload payload = (RayPayload)0;
+    //payload.ambientColor.a = 1.0f;
 
-    // trace ray & culling non opaque
-    payload.ambientDepth++;
-    TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
+    //// trace ray & culling non opaque
+    //payload.ambientDepth++;
+    //TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
 }
 
 [shader("closesthit")]
 void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // hit pos
-    float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
+    //// hit pos
+    //float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
 
-    // init v2f
-    RayV2F v2f = InitRayV2F(attr, hitPos);
+    //// init v2f
+    //RayV2F v2f = InitRayV2F(attr, hitPos);
 
-    float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
-    float3 diffuse = RayDiffuse(v2f, bumpNormal);
-    SqLight dirLight = _SqDirLight[0];
+    //float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
+    //float3 diffuse = RayDiffuse(v2f, bumpNormal);
+    //SqLight dirLight = _SqDirLight[0];
 
-    // -------------------------------- output diffuse if necessary ------------------------------ //
-    if (payload.ambientDepth > 1)
-    {
-        float2 screenPos = WorldToScreenPos(hitPos, (float2)DispatchRaysDimensions().xy);
-        _OutputAmbient[screenPos].rgb += diffuse;
-    }
+    //// -------------------------------- output diffuse if necessary ------------------------------ //
+    //if (payload.ambientDepth > 1)
+    //{
+    //    float2 screenPos = WorldToScreenPos(hitPos, (float2)DispatchRaysDimensions().xy);
+    //    _OutputAmbient[screenPos].rgb += diffuse;
+    //}
 
-    // -------------------------------- recursive ray if necessary ------------------------------ //
-    if (payload.ambientDepth < MAX_AMBIENT_RESURSION && payload.ambientDepth <= dirLight.bounceCount)
-    {
-        // define indirect ray
-        RayDesc ray;
-        ray.Origin = hitPos;
-        ray.Direction = reflect(WorldRayDirection(), bumpNormal);
-        ray.TMin = 0;
-        ray.TMax = dirLight.world.w + 0.5f;
+    //// -------------------------------- recursive ray if necessary ------------------------------ //
+    //if (payload.ambientDepth < MAX_AMBIENT_RESURSION && payload.ambientDepth <= dirLight.bounceCount)
+    //{
+    //    // define indirect ray
+    //    RayDesc ray;
+    //    ray.Origin = hitPos;
+    //    ray.Direction = reflect(WorldRayDirection(), bumpNormal);
+    //    ray.TMin = 0;
+    //    ray.TMax = dirLight.world.w + 0.5f;
 
-        // setup payload & shoot indirect ray
-        payload.ambientColor.rgb = diffuse;
-        payload.ambientDepth++;
-        TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
-    }
+    //    // setup payload & shoot indirect ray
+    //    payload.ambientColor.rgb = diffuse;
+    //    payload.ambientDepth++;
+    //    TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
+    //}
 }
 
 [shader("miss")]

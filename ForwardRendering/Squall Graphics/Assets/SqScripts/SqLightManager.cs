@@ -6,7 +6,16 @@ using UnityEngine;
 public class SqLightManager : MonoBehaviour
 {
     [DllImport("SquallGraphics")]
-    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight, IntPtr _collectShadows, IntPtr _reflectionRT, IntPtr _ambientRT);
+    static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight);
+
+    [DllImport("SquallGraphics")]
+    static extern void InitRayShadow(IntPtr _collectShadows);
+
+    [DllImport("SquallGraphics")]
+    static extern void InitRayReflection(IntPtr _reflectionRT);
+
+    [DllImport("SquallGraphics")]
+    static extern void InitRayAmbient(IntPtr _ambientRT, IntPtr _noiseTex);
 
     [DllImport("SquallGraphics")]
     static extern void SetRayDistance(float _reflectionDistance);
@@ -54,6 +63,11 @@ public class SqLightManager : MonoBehaviour
     public float reflectionDistance = 500;
 
     /// <summary>
+    /// noise
+    /// </summary>
+    public Texture2D ambientNoise;
+
+    /// <summary>
     /// collect shadows
     /// </summary>
     [HideInInspector]
@@ -68,6 +82,7 @@ public class SqLightManager : MonoBehaviour
     /// <summary>
     /// ambient rt
     /// </summary>
+    [HideInInspector]
     public RenderTexture ambientRT;
 
     /// <summary>
@@ -114,7 +129,10 @@ public class SqLightManager : MonoBehaviour
         int ambientSize = Mathf.ClosestPowerOfTwo(Screen.width) >> ambientDownSample;
         ambientRT = SqUtility.CreateRT(ambientSize, ambientSize, 0, RenderTextureFormat.ARGB32, "Ambient RT", true);
 
-        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight, collectShadows.GetNativeTexturePtr(), reflectionRT.GetNativeTexturePtr(), ambientRT.GetNativeTexturePtr());
+        InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight);
+        InitRayShadow(collectShadows.GetNativeTexturePtr());
+        InitRayReflection(reflectionRT.GetNativeTexturePtr());
+        InitRayAmbient(ambientRT.GetNativeTexturePtr(), ambientNoise.GetNativeTexturePtr());
     }
 
     void SetPCF()

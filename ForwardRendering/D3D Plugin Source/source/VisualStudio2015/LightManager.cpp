@@ -4,7 +4,7 @@
 #include "TextureManager.h"
 #include "RayTracingManager.h"
 
-void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight, void* _collectShadows, void* _reflectionSrc, void* _ambientSrc)
+void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 {
 	maxLightCount[LightType::Directional] = _numDirLight;
 	maxLightCount[LightType::Point] = _numPointLight;
@@ -20,12 +20,24 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight,
 		}
 	}
 
-	rayShadow.Init(_collectShadows);
-	rayReflection.Init((ID3D12Resource*)_reflectionSrc);
-	rayAmbient.Init((ID3D12Resource*)_ambientSrc);
 	forwardPlus.Init(maxLightCount[LightType::Point]);
 
 	linearSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
+}
+
+void LightManager::InitRayShadow(void* _src)
+{
+	rayShadow.Init(_src);
+}
+
+void LightManager::InitRayReflection(void* _src)
+{
+	rayReflection.Init((ID3D12Resource*)_src);
+}
+
+void LightManager::InitRayAmbient(void* _src, void* _noiseTex)
+{
+	rayAmbient.Init((ID3D12Resource*)_src);
 }
 
 void LightManager::Release()

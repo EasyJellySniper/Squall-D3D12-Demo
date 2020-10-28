@@ -31,8 +31,12 @@ public:
 	LightManager() {}
 	~LightManager() {}
 
-	void Init(int _numDirLight, int _numPointLight, int _numSpotLight, void *_opaqueShadows, void *_reflectionSrc, void* _ambientSrc);
+	void Init(int _numDirLight, int _numPointLight, int _numSpotLight);
+	void InitRayShadow(void* _src);
+	void InitRayReflection(void* _src);
+	void InitRayAmbient(void* _src, void* _noiseTex);
 	void Release();
+
 	void ClearLight(ID3D12GraphicsCommandList* _cmdList);
 	void LightWork(Camera *_targetCam);
 
