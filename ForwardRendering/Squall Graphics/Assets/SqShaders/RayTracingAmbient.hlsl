@@ -43,7 +43,7 @@ TriangleHitGroup SqRayHitGroup =
 
 RaytracingShaderConfig RTAmbientConfig =
 {
-    20, // max payload size - 5float
+    24, // max payload size - 6float
     8   // max attribute size - 2float
 };
 
@@ -56,6 +56,7 @@ struct RayPayload
 {
     float4 ambientColor;
     int ambientDepth;
+    int isHit;
 };
 
 cbuffer AmbientData : register(b1)
@@ -69,7 +70,12 @@ StructuredBuffer<float4> _UniformVector : register(t0, space6);
 float3 GetRandomVector(uint idx, float2 uv)
 {
     float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicSampler, uv, 0).rgb;
-    return reflect(_UniformVector[idx].xyz, randVec);
+    randVec = randVec * 2.0f - 1.0f;
+
+    float3 offset = reflect(_UniformVector[idx].xyz, randVec);
+    offset.z = 0;   // force to shoot forward
+
+    return offset;
 }
 
 [shader("raygeneration")]
@@ -95,30 +101,27 @@ void RTAmbientRayGen()
     float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
     float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicSampler, depthUV, 0).rgb;
     float3 result = 0;
+    SqLight dirLight = _SqDirLight[0];
 
     for (uint n = 0; n < _SampleCount; n++)
     {
+        float3 dir = GetRandomVector(n, depthUV);
+        dir = normalize(dir + normal);
 
+        // define ray
+        RayDesc ray;
+        ray.Origin = wpos;
+        ray.Direction = dir;
+        ray.TMin = 0;
+        ray.TMax = dirLight.world.w;
+
+        // setup payload & shoot
+        RayPayload payload = (RayPayload)0;
+        payload.ambientColor.a = 1.0f;
+
+        payload.ambientDepth++;
+        TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
     }
-
-    //// pullback to  main light
-    //SqLight dirLight = _SqDirLight[0];
-    //float3 origin = wpos - dirLight.world.xyz * LIGHT_PULL_BACK;
-
-    //// define ray
-    //RayDesc ray;
-    //ray.Origin = origin;
-    //ray.Direction = dirLight.world.xyz;
-    //ray.TMin = 0;
-    //ray.TMax = LIGHT_PULL_BACK * 1.1f;
-
-    //// setup payload, alpha channel for occlusion
-    //RayPayload payload = (RayPayload)0;
-    //payload.ambientColor.a = 1.0f;
-
-    //// trace ray & culling non opaque
-    //payload.ambientDepth++;
-    //TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
 }
 
 [shader("closesthit")]
