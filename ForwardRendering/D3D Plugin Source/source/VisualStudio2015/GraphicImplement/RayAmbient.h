@@ -8,7 +8,7 @@
 class RayAmbient
 {
 public:
-	void Init(ID3D12Resource* _ambientRT);
+	void Init(ID3D12Resource* _ambientRT, ID3D12Resource* _noiseTex);
 	void Release();
 	void Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU);
 
@@ -21,4 +21,5 @@ private:
 	ID3D12Resource* ambientSrc;
 	Material rtAmbientMat;
 	DescriptorHeapData ambientHeapData;
+	DescriptorHeapData noiseHeapData;
 };

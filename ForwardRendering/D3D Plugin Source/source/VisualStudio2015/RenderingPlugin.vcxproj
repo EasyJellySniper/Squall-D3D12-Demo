@@ -34,6 +34,7 @@
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DefaultBuffer.h" />
+    <ClInclude Include="Formatter.h" />
     <ClInclude Include="ForwardRenderingPath.h" />
     <ClInclude Include="FrameResource.h" />
     <ClInclude Include="GameTime.h" />
@@ -70,6 +71,7 @@
     <ClCompile Include="..\..\source\RenderingPlugin.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraManager.cpp" />
+    <ClCompile Include="Formatter.cpp" />
     <ClCompile Include="ForwardRenderingPath.cpp" />
     <ClCompile Include="GameTimerManager.cpp" />
     <ClCompile Include="GraphicImplement\ForwardPlus.cpp" />

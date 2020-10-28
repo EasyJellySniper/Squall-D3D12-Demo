@@ -37,7 +37,7 @@ void LightManager::InitRayReflection(void* _src)
 
 void LightManager::InitRayAmbient(void* _src, void* _noiseTex)
 {
-	rayAmbient.Init((ID3D12Resource*)_src);
+	rayAmbient.Init((ID3D12Resource*)_src, (ID3D12Resource*)_noiseTex);
 }
 
 void LightManager::Release()

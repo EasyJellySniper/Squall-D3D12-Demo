@@ -5,13 +5,16 @@
 #include "../GraphicManager.h"
 #include "../RayTracingManager.h"
 
-void RayAmbient::Init(ID3D12Resource* _ambientRT)
+void RayAmbient::Init(ID3D12Resource* _ambientRT, ID3D12Resource* _noiseTex)
 {
 	ambientSrc = _ambientRT;
 
-	// create uav/srv
+	// create uav/srv for RT
 	ambientHeapData.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientSrc, TextureInfo(true, false, true, false, false));
 	ambientHeapData.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientSrc, TextureInfo(true, false, false, false, false));
+
+	// srv for noise
+	noiseHeapData.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _noiseTex, TextureInfo());
 
 	// create material
 	Shader* rtAmbient = ShaderManager::Instance().CompileShader(L"RayTracingAmbient.hlsl");

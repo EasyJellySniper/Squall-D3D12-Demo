@@ -3,6 +3,7 @@
 #include "../MaterialManager.h"
 #include "../GraphicManager.h"
 #include "../RayTracingManager.h"
+#include "../Formatter.h"
 
 void RayShadow::Init(void* _collectShadows)
 {
@@ -14,7 +15,7 @@ void RayShadow::Init(void* _collectShadows)
 	ID3D12Resource* opaqueShadowSrc = (ID3D12Resource*)_collectShadows;
 
 	auto desc = opaqueShadowSrc->GetDesc();
-	DXGI_FORMAT shadowFormat = GetColorFormatFromTypeless(desc.Format);
+	DXGI_FORMAT shadowFormat = Formatter::GetColorFormatFromTypeless(desc.Format);
 
 	transShadowSrc = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_RENDER_TARGET);
 

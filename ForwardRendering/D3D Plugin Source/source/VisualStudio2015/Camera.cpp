@@ -5,6 +5,7 @@
 #include "MeshManager.h"
 #include "ShaderManager.h"
 #include "MaterialManager.h"
+#include "Formatter.h"
 
 bool Camera::Initialize(CameraData _cameraData)
 {
@@ -368,7 +369,7 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 void Camera::InitColorBuffer()
 {
 	D3D12_RESOURCE_DESC srcDesc = renderTarget[RenderBufferUsage::Color]->GetDesc();
-	renderTargetDesc[RenderBufferUsage::Color] = GetColorFormatFromTypeless(srcDesc.Format);
+	renderTargetDesc[RenderBufferUsage::Color] = Formatter::GetColorFormatFromTypeless(srcDesc.Format);
 
 	// set clear color
 	for (int j = 0; j < 4; j++)
@@ -425,12 +426,12 @@ void Camera::InitDepthBuffer()
 
 		// check aa quality
 		D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS aaData;
-		aaData = CheckMsaaQuality(cameraData.allowMSAA, GetDepthFormatFromTypeless(srcDesc.Format));
+		aaData = CheckMsaaQuality(cameraData.allowMSAA, Formatter::GetDepthFormatFromTypeless(srcDesc.Format));
 		srcDesc.SampleDesc.Quality = max(aaData.NumQualityLevels - 1, 0);
 
 		optClearDepth.DepthStencil.Depth = 0.0f;
 		optClearDepth.DepthStencil.Stencil = 0;
-		optClearDepth.Format = GetDepthFormatFromTypeless(srcDesc.Format);
+		optClearDepth.Format = Formatter::GetDepthFormatFromTypeless(srcDesc.Format);
 
 		HRESULT hr = S_OK;
 		msaaDepthTarget = make_shared<DefaultBuffer>(GraphicManager::Instance().GetDevice(), srcDesc, D3D12_RESOURCE_STATE_COMMON, &optClearDepth);
@@ -444,7 +445,7 @@ void Camera::InitDepthBuffer()
 
 	// create depth, only 1st need depth
 	auto depthDesc = depthTarget->GetDesc();
-	depthTargetDesc = GetDepthFormatFromTypeless(depthDesc.Format);
+	depthTargetDesc = Formatter::GetDepthFormatFromTypeless(depthDesc.Format);
 
 	cameraRT->InitDSV(depthTarget, depthTargetDesc, false);
 	opaqueDepthSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), depthTarget, TextureInfo(true, false, false, false, false));
@@ -468,7 +469,7 @@ void Camera::InitNormalBuffer()
 {
 	// normal buffer
 	auto normalBufferSrc = renderTarget[RenderBufferUsage::Normal];
-	renderTargetDesc[RenderBufferUsage::Normal] = GetColorFormatFromTypeless(normalBufferSrc->GetDesc().Format);
+	renderTargetDesc[RenderBufferUsage::Normal] = Formatter::GetColorFormatFromTypeless(normalBufferSrc->GetDesc().Format);
 
 	normalRT = make_shared<Texture>(1, 0);
 	normalRT->InitRTV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::Normal], false);

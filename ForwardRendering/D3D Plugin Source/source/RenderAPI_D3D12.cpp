@@ -17,6 +17,7 @@
 #include "VisualStudio2015/GameTimerManager.h"
 #include "VisualStudio2015/RayTracingManager.h"
 #include "VisualStudio2015/GraphicImplement/GenerateMipmap.h"
+#include "VisualStudio2015/Formatter.h"
 #include "Unity/IUnityGraphicsD3D12.h"
 
 class RenderAPI_D3D12 : public RenderAPI
@@ -83,6 +84,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	MaterialManager::Instance().Init();
 	TextureManager::Instance().Init(mainDevice);
 	ShaderManager::Instance().Init();
+	Formatter::Init();
 	GenerateMipmap::Init();
 
 #if defined(GRAPHICTIME)
@@ -107,6 +109,7 @@ void RenderAPI_D3D12::ReleaseResources()
 	TextureManager::Instance().Release();
 	LightManager::Instance().Release();
 	RayTracingManager::Instance().Release();
+	Formatter::Release();
 	GenerateMipmap::Release();
 
 #if defined(GRAPHICTIME)

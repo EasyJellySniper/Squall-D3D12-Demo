@@ -1,5 +1,6 @@
 #include "TextureManager.h"
 #include "GraphicManager.h"
+#include "Formatter.h"
 
 void TextureManager::Init(ID3D12Device* _device)
 {
@@ -54,7 +55,7 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo 
 	D3D12_RESOURCE_DESC desc = t.GetResource()->GetDesc();
 	if (_info.typeless)
 	{
-		desc.Format = GetColorFormatFromTypeless(desc.Format);
+		desc.Format = Formatter::GetColorFormatFromTypeless(desc.Format);
 	}
 	t.SetFormat(desc.Format);
 	t.SetInfo(_info);
