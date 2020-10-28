@@ -74,8 +74,8 @@ public class SqLightManager : MonoBehaviour
     /// <summary>
     /// ambient sample count
     /// </summary>
-    [Range(4, 64)]
-    public int ambientSampleCount = 16;
+    [Range(1, 16)]
+    public int ambientSampleCount = 4;
 
     /// <summary>
     /// noise
