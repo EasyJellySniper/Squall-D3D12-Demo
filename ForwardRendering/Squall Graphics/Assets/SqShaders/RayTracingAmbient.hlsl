@@ -56,7 +56,7 @@ struct RayPayload
 {
     float4 ambientColor;
     int ambientDepth;
-    int isHit;
+    bool isHit;
 };
 
 cbuffer AmbientData : register(b1)
@@ -69,12 +69,11 @@ StructuredBuffer<float4> _UniformVector : register(t0, space6);
 
 float3 GetRandomVector(uint idx, float2 uv)
 {
-    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicSampler, uv, 0).rgb;
+    // tiling noise sample
+    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicSampler, 4 * uv, 0).rgb;
     randVec = randVec * 2.0f - 1.0f;
 
     float3 offset = reflect(_UniformVector[idx].xyz, randVec);
-    offset.z = 0;   // force to shoot forward
-
     return offset;
 }
 
@@ -100,12 +99,15 @@ void RTAmbientRayGen()
 
     float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
     float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicSampler, depthUV, 0).rgb;
-    float3 result = 0;
     SqLight dirLight = _SqDirLight[0];
+
+    float3 diffuse = 0;
+    int hitCount = 0;
 
     for (uint n = 0; n < _SampleCount; n++)
     {
         float3 dir = GetRandomVector(n, depthUV);
+        dir.z = lerp(-dir.z, dir.z, sign(dir.z) == sign(normal.z)); // make z dir the same side as normal
         dir = normalize(dir + normal);
 
         // define ray
@@ -121,20 +123,38 @@ void RTAmbientRayGen()
 
         payload.ambientDepth++;
         TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
+
+        // add result
+        if (payload.isHit)
+        {
+            diffuse += payload.ambientColor.rgb;
+            hitCount++;
+        }
+    }
+
+    if (hitCount > 0)
+    {
+        diffuse /= hitCount;
+        _OutputAmbient[DispatchRaysIndex().xy].rgb = diffuse;
     }
 }
 
 [shader("closesthit")]
 void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    //// hit pos
-    //float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
+    payload.isHit = true;
 
-    //// init v2f
-    //RayV2F v2f = InitRayV2F(attr, hitPos);
+    // hit pos
+    float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
 
-    //float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
-    //float3 diffuse = RayDiffuse(v2f, bumpNormal);
+    // init v2f
+    RayV2F v2f = InitRayV2F(attr, hitPos);
+
+    // output diffuse
+    float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
+    float3 diffuse = RayDiffuse(v2f, bumpNormal);
+    payload.ambientColor.rgb = diffuse;
+
     //SqLight dirLight = _SqDirLight[0];
 
     //// -------------------------------- output diffuse if necessary ------------------------------ //

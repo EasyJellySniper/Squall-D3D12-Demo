@@ -57,8 +57,8 @@ void GraphicManager::InitSystemConstant()
 	}
 
 	// init sampler
-	linearSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
-	anisotropicSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 16, D3D12_FILTER_ANISOTROPIC);
+	linearSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Repeat, TextureWrapMode::Repeat, TextureWrapMode::Repeat, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
+	anisotropicSampler.sampler = TextureManager::Instance().AddNativeSampler(TextureWrapMode::Repeat, TextureWrapMode::Repeat, TextureWrapMode::Repeat, 16, D3D12_FILTER_ANISOTROPIC);
 }
 
 void GraphicManager::Release()
