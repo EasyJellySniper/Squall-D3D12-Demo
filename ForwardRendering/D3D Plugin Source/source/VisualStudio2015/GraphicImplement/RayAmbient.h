@@ -4,6 +4,12 @@
 #include "../TextureManager.h"
 #include "../stdafx.h"
 #include "../Camera.h"
+#include "../UploadBuffer.h"
+
+struct UniformVector
+{
+	XMFLOAT4 v;
+};
 
 class RayAmbient
 {
@@ -17,10 +23,16 @@ public:
 	Material* GetMaterial();
 
 private:
+	const int maxSampleCount = 64;
+
+	void CreateUniformVector();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientUav();
 
 	ID3D12Resource* ambientSrc;
 	Material rtAmbientMat;
+
 	DescriptorHeapData ambientHeapData;
 	DescriptorHeapData noiseHeapData;
+
+	unique_ptr<UploadBuffer<UniformVector>> uniformVectors;
 };
