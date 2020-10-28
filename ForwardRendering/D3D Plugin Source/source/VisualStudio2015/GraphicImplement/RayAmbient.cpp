@@ -95,6 +95,11 @@ int RayAmbient::GetAmbientSrv()
 	return ambientHeapData.srv;
 }
 
+int RayAmbient::GetAmbientNoiseSrv()
+{
+	return noiseHeapData.srv;
+}
+
 Material* RayAmbient::GetMaterial()
 {
 	return &rtAmbientMat;

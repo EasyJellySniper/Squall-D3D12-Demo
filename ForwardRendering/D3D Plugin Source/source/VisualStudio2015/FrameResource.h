@@ -54,5 +54,6 @@ struct SystemConstant
 	int reflectionRTIndex;
 	int transReflectionRTIndex;
 	int ambientRTIndex;
+	int ambientNoiseIndex;
 	int linearSampler;
 };

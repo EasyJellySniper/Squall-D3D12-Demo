@@ -13,6 +13,7 @@ public:
 	void Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU);
 
 	int GetAmbientSrv();
+	int GetAmbientNoiseSrv();
 	Material* GetMaterial();
 
 private:
