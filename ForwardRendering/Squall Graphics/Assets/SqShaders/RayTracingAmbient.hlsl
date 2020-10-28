@@ -31,7 +31,8 @@ GlobalRootSignature RTAmbientRootSig =
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
     "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) ),"     // tex sampler
     "SRV( t0, space = 5),"       // submesh data
-    "SRV( t0, space = 6)"       // uniform vector
+    "SRV( t0, space = 6),"       // uniform vector
+    "RootConstants(num32BitConstants=1, b1)"    // sample count
 };
 
 TriangleHitGroup SqRayHitGroup =
@@ -55,6 +56,11 @@ struct RayPayload
 {
     float4 ambientColor;
     int ambientDepth;
+};
+
+cbuffer AmbientData : register(b1)
+{
+    int _SampleCount;
 };
 
 RWTexture2D<float4> _OutputAmbient : register(u0);
