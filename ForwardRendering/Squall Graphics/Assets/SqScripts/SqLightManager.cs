@@ -23,6 +23,11 @@ public class SqLightManager : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void SetPCFKernel(int _kernel);
 
+    [DllImport("SquallGraphics")]
+    static extern void SetAmbientSampleCount(int _count);
+
+    [Header("Light Settings")]
+
     /// <summary>
     /// max dir light
     /// </summary>
@@ -44,6 +49,8 @@ public class SqLightManager : MonoBehaviour
     [Range(0, 5)]
     public int pcssKernel = 3;
 
+    [Header("Reflection Settings")]
+
     /// <summary>
     /// reflection down sample
     /// </summary>
@@ -51,16 +58,24 @@ public class SqLightManager : MonoBehaviour
     public int reflectionDownSample = 0;
 
     /// <summary>
+    /// reflection distance
+    /// </summary>
+    public float reflectionDistance = 500;
+
+
+    [Header("Ambient Settings")]
+
+    /// <summary>
     /// ambient down sample
     /// </summary>
     [Range(0, 3)]
     public int ambientDownSample = 0;
 
-
     /// <summary>
-    /// reflection distance
+    /// ambient sample count
     /// </summary>
-    public float reflectionDistance = 500;
+    [Range(4, 64)]
+    public int ambientSampleCount = 16;
 
     /// <summary>
     /// noise
@@ -90,6 +105,8 @@ public class SqLightManager : MonoBehaviour
     /// </summary>
     public static SqLightManager Instace { get; private set; }
 
+    int lastSampleCount;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -103,8 +120,9 @@ public class SqLightManager : MonoBehaviour
         // set distance data
         SetRayDistance(reflectionDistance);
 
-        // need set pcf before late update
+        // update
         SetPCF();
+        SetAmbientSample();
     }
 
     void OnDestroy()
@@ -138,5 +156,15 @@ public class SqLightManager : MonoBehaviour
     void SetPCF()
     {
         SetPCFKernel(pcssKernel);
+    }
+
+    void SetAmbientSample()
+    {
+        if (lastSampleCount != ambientSampleCount)
+        {
+            SetAmbientSampleCount(ambientSampleCount);
+        }
+
+        lastSampleCount = ambientSampleCount;
     }
 }

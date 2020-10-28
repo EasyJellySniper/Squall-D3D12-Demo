@@ -40,3 +40,4 @@ EXPORTS
    InitInstanceRendering
    ResetPipelineState
    SetRayDistance
+   SetAmbientSampleCount

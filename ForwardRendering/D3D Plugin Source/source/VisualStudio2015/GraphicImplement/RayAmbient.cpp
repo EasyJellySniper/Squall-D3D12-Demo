@@ -94,6 +94,11 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
+void RayAmbient::UpdataSampleCount(int _count)
+{
+	sampleCount = _count;
+}
+
 int RayAmbient::GetAmbientSrv()
 {
 	return ambientHeapData.srv;

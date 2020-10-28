@@ -1,5 +1,5 @@
 #define RAY_SHADER
-#define MAX_AMBIENT_RESURSION 4
+#define MAX_AMBIENT_RESURSION 3
 
 // need assign relative path for dxc compiler with forward slash
 #include "Assets/SqShaders/SqInput.hlsl"
@@ -123,7 +123,7 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     //}
 
     //// -------------------------------- recursive ray if necessary ------------------------------ //
-    //if (payload.ambientDepth < MAX_AMBIENT_RESURSION && payload.ambientDepth <= dirLight.bounceCount)
+    //if (payload.ambientDepth < MAX_AMBIENT_RESURSION && payload.ambientDepth < dirLight.bounceCount)
     //{
     //    // define indirect ray
     //    RayDesc ray;

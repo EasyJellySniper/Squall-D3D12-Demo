@@ -49,6 +49,7 @@ public:
 	void SetRayDistance(float _reflectionDist);
 	void SetSkybox(void *_skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMeshId);
 	void SetSkyWorld(XMFLOAT4X4 _world);
+	void SetAmbientSampleCount(int _count);
 
 	Light *GetDirLights();
 	int GetNumDirLights();

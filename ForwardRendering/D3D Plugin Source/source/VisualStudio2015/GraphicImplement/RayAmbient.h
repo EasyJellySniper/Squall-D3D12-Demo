@@ -17,6 +17,7 @@ public:
 	void Init(ID3D12Resource* _ambientRT, ID3D12Resource* _noiseTex);
 	void Release();
 	void Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU);
+	void UpdataSampleCount(int _count);
 
 	int GetAmbientSrv();
 	int GetAmbientNoiseSrv();
@@ -33,6 +34,7 @@ private:
 
 	DescriptorHeapData ambientHeapData;
 	DescriptorHeapData noiseHeapData;
+	int sampleCount = 0;
 
 	unique_ptr<UploadBuffer<UniformVector>> uniformVectors;
 };

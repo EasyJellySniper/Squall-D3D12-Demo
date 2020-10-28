@@ -203,6 +203,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRayDistance(float 
 	LightManager::Instance().SetRayDistance(_rd);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetAmbientSampleCount(int _count)
+{
+	LightManager::Instance().SetAmbientSampleCount(_count);
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 
