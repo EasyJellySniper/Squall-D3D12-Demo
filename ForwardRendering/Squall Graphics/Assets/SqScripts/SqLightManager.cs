@@ -5,7 +5,8 @@ using UnityEngine;
 // for init sq light
 public class SqLightManager : MonoBehaviour
 {
-    struct AmbientConstant
+    [Serializable]
+    public struct AmbientConstant
     {
         public static bool operator ==(AmbientConstant lhs, AmbientConstant rhs)
         {
@@ -24,6 +25,8 @@ public class SqLightManager : MonoBehaviour
         public float diffuseDist;
         public float occlusionDist;
         public int sampleCount;
+
+        [HideInInspector]
         public int dummy;   // with other usage in native
     };
 
@@ -94,20 +97,9 @@ public class SqLightManager : MonoBehaviour
     public int ambientDownSample = 0;
 
     /// <summary>
-    /// ambient sample count
+    /// ambient const
     /// </summary>
-    [Range(1, 16)]
-    public int ambientSampleCount = 4;
-
-    /// <summary>
-    /// diffuse distance
-    /// </summary>
-    public float diffuseDistance = 10;
-
-    /// <summary>
-    /// occlusion distance
-    /// </summary>
-    public float occlusionDistance = 1;
+    public AmbientConstant ambientConst;
 
     /// <summary>
     /// noise
@@ -136,7 +128,6 @@ public class SqLightManager : MonoBehaviour
     /// </summary>
     public static SqLightManager Instace { get; private set; }
 
-    AmbientConstant ambientConst;
     AmbientConstant lastAmbientConst;
 
     // Start is called before the first frame update
@@ -145,10 +136,6 @@ public class SqLightManager : MonoBehaviour
         Instace = this;
         InitLights();
         SetPCF();
-
-        ambientConst.sampleCount = ambientSampleCount;
-        ambientConst.diffuseDist = diffuseDistance;
-        ambientConst.occlusionDist = occlusionDistance;
     }
 
     void Update()
@@ -196,10 +183,6 @@ public class SqLightManager : MonoBehaviour
 
     void SetAmbientSample()
     {
-        ambientConst.sampleCount = ambientSampleCount;
-        ambientConst.diffuseDist = diffuseDistance;
-        ambientConst.occlusionDist = occlusionDistance;
-
         if (lastAmbientConst != ambientConst)
         {
             SetAmbientData(ambientConst);
