@@ -23,7 +23,9 @@ public class SqLightManager : MonoBehaviour
         }
 
         public float diffuseDist;
+        public float diffuseFadeDist;
         public float occlusionDist;
+        public float occlusionFadeDist;
         public int sampleCount;
 
         [HideInInspector]

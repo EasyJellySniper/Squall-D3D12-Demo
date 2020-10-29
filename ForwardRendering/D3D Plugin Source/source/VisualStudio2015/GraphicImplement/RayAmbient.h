@@ -14,7 +14,9 @@ struct UniformVector
 struct AmbientConstant
 {
 	float diffuseDist;
+	float diffuseFadeDist;
 	float occlusionDist;
+	float occlusionFadeDist;
 	int sampleCount;
 	int ambientNoiseIndex;
 };

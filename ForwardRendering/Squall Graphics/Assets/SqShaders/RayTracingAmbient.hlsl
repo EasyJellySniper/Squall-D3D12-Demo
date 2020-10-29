@@ -61,7 +61,9 @@ struct RayPayload
 cbuffer AmbientData : register(b1)
 {
     float _AmbientDiffuseDistance;
+    float _DiffuseFadeDist;
     float _AmbientOcclusionDistance;
+    float _OcclusionFadeDist;
     int _SampleCount;
     int _AmbientNoiseIndex;
 };
