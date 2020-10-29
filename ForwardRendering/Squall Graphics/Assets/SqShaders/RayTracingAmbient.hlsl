@@ -178,15 +178,19 @@ void RTAmbientRayGen()
 [shader("closesthit")]
 void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    payload.isHit = true;
-    if (payload.testOcclusion)
-    {
-        payload.ambientColor.a = 0;
-        return;
-    }
-
     // hit pos
     float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
+    float distToHit = RayTCurrent();
+
+    payload.isHit = true;
+    float atten = 1;
+
+    if (payload.testOcclusion)
+    {
+        atten = saturate(distToHit / _OcclusionFadeDist);
+        payload.ambientColor.a = atten * atten;
+        return;
+    }
 
     // init v2f
     RayV2F v2f = InitRayV2F(attr, hitPos);
@@ -194,7 +198,9 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     // output diffuse
     float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
     float3 diffuse = RayDiffuse(v2f, bumpNormal);
-    payload.ambientColor.rgb = diffuse;
+
+    atten = 1 - saturate(distToHit / _DiffuseFadeDist);
+    payload.ambientColor.rgb = diffuse * atten * atten;
 }
 
 [shader("miss")]
