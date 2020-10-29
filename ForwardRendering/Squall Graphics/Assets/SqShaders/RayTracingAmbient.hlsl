@@ -62,6 +62,7 @@ cbuffer AmbientData : register(b1)
     float _AmbientDiffuseDistance;
     float _AmbientOcclusionDistance;
     int _SampleCount;
+    int _AmbientNoiseIndex;
 };
 
 RWTexture2D<float4> _OutputAmbient : register(u0);

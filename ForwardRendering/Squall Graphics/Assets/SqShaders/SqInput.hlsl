@@ -72,7 +72,6 @@ cbuffer SystemConstant : register(b0)
 	int _ReflectionRTIndex;
 	int _TransReflectionRTIndex;
 	int _AmbientRTIndex;
-	int _AmbientNoiseIndex;
 	int _LinearSampler;
 	int _AnisotropicSampler;
 };

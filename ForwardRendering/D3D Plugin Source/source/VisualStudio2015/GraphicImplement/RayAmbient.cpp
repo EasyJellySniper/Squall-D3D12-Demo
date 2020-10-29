@@ -98,6 +98,7 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 void RayAmbient::UpdataAmbientData(AmbientConstant _ac)
 {
 	ambientConst = _ac;
+	ambientConst.ambientNoiseIndex = GetAmbientNoiseSrv();
 
 	int vecCount = (int)ceil(sqrt(ambientConst.sampleCount));
 	float gap = 1.0f / (float)vecCount;

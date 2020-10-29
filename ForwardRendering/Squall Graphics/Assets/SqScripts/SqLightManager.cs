@@ -24,6 +24,7 @@ public class SqLightManager : MonoBehaviour
         public float diffuseDist;
         public float occlusionDist;
         public int sampleCount;
+        public int dummy;   // with other usage in native
     };
 
     [DllImport("SquallGraphics")]

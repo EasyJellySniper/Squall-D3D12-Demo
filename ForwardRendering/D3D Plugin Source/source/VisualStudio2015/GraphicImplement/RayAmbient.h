@@ -16,6 +16,7 @@ struct AmbientConstant
 	float diffuseDist;
 	float occlusionDist;
 	int sampleCount;
+	int ambientNoiseIndex;
 };
 
 class RayAmbient
