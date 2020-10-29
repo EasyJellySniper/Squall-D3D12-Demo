@@ -137,7 +137,6 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.maxPointLight = maxLightCount[LightType::Point];
 	_sc.collectShadowIndex = rayShadowData.collectShadowID;
 	_sc.collectTransShadowIndex = rayShadowData.collectTransShadowID;
-	_sc.pcfIndex = rayShadowData.pcfKernel;
 	_sc.ambientGround = skyData.ambientGround;
 	_sc.ambientSky = skyData.ambientSky;
 	_sc.skyIntensity = skyData.skyIntensity;

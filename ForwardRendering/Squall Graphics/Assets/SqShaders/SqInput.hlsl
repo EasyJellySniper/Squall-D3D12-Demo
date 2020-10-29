@@ -63,8 +63,6 @@ cbuffer SystemConstant : register(b0)
 	int _MaxPointLight;
 	int _CollectShadowIndex;
 	int _CollectTransShadowIndex;
-	int _PCFIndex;
-	int _MsaaCount;
 	int _DepthIndex;
 	int _TransDepthIndex;
 	int _NormalRTIndex;

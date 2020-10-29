@@ -201,9 +201,10 @@ void RayShadow::CollectRayShadow(Camera* _targetCam)
 
 	// set material
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(1, TextureManager::Instance().GetTexHandle(rtShadowSrv.srv));
-	_cmdList->SetGraphicsRootDescriptorTable(2, _targetCam->GetDsvGPU());
-	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRoot32BitConstant(1, pcfKernel, 0);
+	_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHandle(rtShadowSrv.srv));
+	_cmdList->SetGraphicsRootDescriptorTable(3, _targetCam->GetDsvGPU());
+	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 	// collect opaque
 	_cmdList->DrawInstanced(6, 1, 0, 0);
@@ -211,8 +212,9 @@ void RayShadow::CollectRayShadow(Camera* _targetCam)
 
 	// collect transparent
 	_cmdList->OMSetRenderTargets(1, &GetCollectTransShadowRtv(), true, nullptr);
-	_cmdList->SetGraphicsRootDescriptorTable(1, TextureManager::Instance().GetTexHandle(rtShadowTransSrv.srv));
-	_cmdList->SetGraphicsRootDescriptorTable(2, _targetCam->GetTransDsvGPU());
+	_cmdList->SetGraphicsRoot32BitConstant(1, pcfKernel, 0);
+	_cmdList->SetGraphicsRootDescriptorTable(2, TextureManager::Instance().GetTexHandle(rtShadowTransSrv.srv));
+	_cmdList->SetGraphicsRootDescriptorTable(3, _targetCam->GetTransDsvGPU());
 	_cmdList->DrawInstanced(6, 1, 0, 0);
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
 

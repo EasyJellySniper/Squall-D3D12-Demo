@@ -1,4 +1,5 @@
 #define CollectRayShadowRS "CBV(b0)," \
+"RootConstants( num32BitConstants = 1, b1 )," \
 "DescriptorTable(SRV(t0, numDescriptors=1))," \
 "DescriptorTable(SRV(t1, numDescriptors=1))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
@@ -24,6 +25,11 @@ static const float2 gTexCoords[6] =
     float2(1.0f, 0.0f),
     float2(1.0f, 1.0f)
 };
+
+cbuffer CollectShadowData : register(b1)
+{
+    int _PCFIndex;
+}
 
 Texture2D _RayShadow : register(t0);
 Texture2D _DepthMap : register(t1);

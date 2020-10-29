@@ -1,8 +1,8 @@
-#include "SqInput.hlsl"
-
 #define ResolveDepthRS "CBV(b0)," \
+"RootConstants( num32BitConstants = 1, b1 )," \
 "DescriptorTable(SRV(t0, numDescriptors=1))" 
 
+#include "SqInput.hlsl"
 #pragma sq_vertex ResolveDepthVS
 #pragma sq_pixel ResolveDepthPS
 #pragma sq_rootsig ResolveDepthRS
@@ -21,6 +21,11 @@ static const float2 gTexCoords[6] =
     float2(1.0f, 0.0f),
     float2(1.0f, 1.0f)
 };
+
+cbuffer MsaaData : register(b1)
+{
+    int _MsaaCount;
+}
 
 Texture2DMS<float> _MsaaDepth : register(t0);
 

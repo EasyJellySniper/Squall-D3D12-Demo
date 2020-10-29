@@ -122,7 +122,8 @@ void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameI
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
-	_cmdList->SetGraphicsRootDescriptorTable(1, GetMsaaSrv());
+	_cmdList->SetGraphicsRoot32BitConstant(1, cameraData.allowMSAA, 0);
+	_cmdList->SetGraphicsRootDescriptorTable(2, GetMsaaSrv());
 
 	_cmdList->DrawInstanced(6, 1, 0, 0);
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
@@ -355,7 +356,6 @@ void Camera::FillSystemConstant(SystemConstant& _sc)
 
 	_sc.farZ = farZ;
 	_sc.nearZ = nearZ;
-	_sc.msaaCount = cameraData.allowMSAA;
 	_sc.depthIndex = opaqueDepthSrv.srv;
 	_sc.transDepthIndex = transDepthSrv.srv;
 	_sc.screenSize.x = viewPort.Width;

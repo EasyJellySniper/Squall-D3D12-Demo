@@ -42,8 +42,6 @@ struct SystemConstant
 	int maxPointLight;
 	int collectShadowIndex;
 	int collectTransShadowIndex;
-	int pcfIndex;
-	int msaaCount;
 	int depthIndex;
 	int transDepthIndex;
 	int normalRTIndex;
