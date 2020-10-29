@@ -129,7 +129,6 @@ public class SqLightManager : MonoBehaviour
     /// <summary>
     /// ambient rt
     /// </summary>
-    [HideInInspector]
     public RenderTexture ambientRT;
 
     /// <summary>

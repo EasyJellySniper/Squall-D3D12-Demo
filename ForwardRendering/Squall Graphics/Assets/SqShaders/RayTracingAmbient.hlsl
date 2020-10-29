@@ -42,7 +42,7 @@ TriangleHitGroup SqRayHitGroup =
 
 RaytracingShaderConfig RTAmbientConfig =
 {
-    20, // max payload size
+    24, // max payload size
     8   // max attribute size - 2float
 };
 
@@ -55,6 +55,7 @@ struct RayPayload
 {
     float4 ambientColor;
     bool isHit;
+    bool testOcclusion;
 };
 
 cbuffer AmbientData : register(b1)
@@ -76,6 +77,74 @@ float3 GetRandomVector(uint idx, float2 uv)
 
     float3 offset = reflect(_UniformVector[idx].xyz, randVec);
     return offset;
+}
+
+RayPayload TestAmbient(RayDesc ray, bool testOcclusion)
+{
+    RayPayload payload = (RayPayload)0;
+    payload.ambientColor.a = 1.0f;
+    payload.testOcclusion = testOcclusion;
+
+    if (testOcclusion)
+        TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, ~0, 0, 1, 0, ray, payload);
+    else
+        TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
+
+    return payload;
+}
+
+void TraceAmbient(float3 wpos, float3 normal, float2 uv)
+{
+    float3 diffuse = 0;
+    float occlusion = 0;
+    int diffHitCount = 0;
+    int occHitCount = 0;
+
+    for (uint n = 0; n < _SampleCount; n++)
+    {
+        float3 dir = GetRandomVector(n, uv);
+        dir.z = lerp(-dir.z, dir.z, sign(dir.z) == sign(normal.z)); // make z dir the same side as normal
+        dir = normalize(dir + normal);
+
+        // define ray
+        RayDesc ambientRay;
+        ambientRay.Origin = wpos;
+        ambientRay.Direction = dir;
+        ambientRay.TMin = 0.001f;
+        ambientRay.TMax = _AmbientDiffuseDistance;
+
+        // test diffuse
+        RayPayload diffResult = TestAmbient(ambientRay, false);
+
+        // test occlusion
+        ambientRay.TMax = _AmbientOcclusionDistance;
+        RayPayload occResult = TestAmbient(ambientRay, true);
+
+        // add result
+        if (diffResult.isHit)
+        {
+            diffuse += diffResult.ambientColor.rgb;
+            diffHitCount++;
+        }
+
+        if (occResult.isHit)
+        {
+            occlusion += occResult.ambientColor.a;
+            occHitCount++;
+        }
+    }
+
+    if (diffHitCount > 0)
+    {
+        diffuse /= diffHitCount;
+        _OutputAmbient[DispatchRaysIndex().xy].rgb = diffuse;
+    }
+
+    if (occHitCount > 0)
+    {
+        occlusion /= occHitCount;
+        _OutputAmbient[DispatchRaysIndex().xy].a = occlusion;
+    }
 }
 
 [shader("raygeneration")]
@@ -101,46 +170,18 @@ void RTAmbientRayGen()
     float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
     float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicSampler, depthUV, 0).rgb;
 
-    float3 diffuse = 0;
-    int hitCount = 0;
-
-    for (uint n = 0; n < _SampleCount; n++)
-    {
-        float3 dir = GetRandomVector(n, depthUV);
-        dir.z = lerp(-dir.z, dir.z, sign(dir.z) == sign(normal.z)); // make z dir the same side as normal
-        dir = normalize(dir + normal);
-
-        // define ray
-        RayDesc ray;
-        ray.Origin = wpos;
-        ray.Direction = dir;
-        ray.TMin = 0.001f;
-        ray.TMax = _AmbientDiffuseDistance;
-
-        // setup payload & shoot
-        RayPayload payload = (RayPayload)0;
-        payload.ambientColor.a = 1.0f;
-        TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
-
-        // add result
-        if (payload.isHit)
-        {
-            diffuse += payload.ambientColor.rgb;
-            hitCount++;
-        }
-    }
-
-    if (hitCount > 0)
-    {
-        diffuse /= hitCount;
-        _OutputAmbient[DispatchRaysIndex().xy].rgb = diffuse;
-    }
+    TraceAmbient(wpos, normal, depthUV);
 }
 
 [shader("closesthit")]
 void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
     payload.isHit = true;
+    if (payload.testOcclusion)
+    {
+        payload.ambientColor.a = 0;
+        return;
+    }
 
     // hit pos
     float3 hitPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
