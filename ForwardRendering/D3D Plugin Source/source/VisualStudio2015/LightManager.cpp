@@ -182,9 +182,9 @@ void LightManager::SetSkyWorld(XMFLOAT4X4 _world)
 	skybox.GetRenderer()->SetWorld(_world);
 }
 
-void LightManager::SetAmbientSampleCount(int _count)
+void LightManager::SetAmbientData(AmbientConstant _ac)
 {
-	rayAmbient.UpdataSampleCount(_count);
+	rayAmbient.UpdataAmbientData(_ac);
 }
 
 Light* LightManager::GetDirLights()

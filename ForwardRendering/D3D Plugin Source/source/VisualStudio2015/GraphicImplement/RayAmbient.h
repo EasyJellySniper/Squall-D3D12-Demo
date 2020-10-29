@@ -11,13 +11,20 @@ struct UniformVector
 	XMFLOAT4 v;
 };
 
+struct AmbientConstant
+{
+	float diffuseDist;
+	float occlusionDist;
+	int sampleCount;
+};
+
 class RayAmbient
 {
 public:
 	void Init(ID3D12Resource* _ambientRT, ID3D12Resource* _noiseTex);
 	void Release();
 	void Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU);
-	void UpdataSampleCount(int _count);
+	void UpdataAmbientData(AmbientConstant _ac);
 
 	int GetAmbientSrv();
 	int GetAmbientNoiseSrv();
@@ -26,7 +33,7 @@ public:
 private:
 	static const int maxSampleCount = 64;
 
-	void CreateUniformVector();
+	void CreateResource();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientUav();
 
 	ID3D12Resource* ambientSrc;
@@ -34,8 +41,9 @@ private:
 
 	DescriptorHeapData ambientHeapData;
 	DescriptorHeapData noiseHeapData;
-	int sampleCount = 0;
+	AmbientConstant ambientConst;
 
 	UniformVector uniformVectorCPU[maxSampleCount];
 	unique_ptr<UploadBuffer<UniformVector>> uniformVectorGPU;
+	unique_ptr<UploadBuffer<AmbientConstant>> ambientConstantGPU;
 };

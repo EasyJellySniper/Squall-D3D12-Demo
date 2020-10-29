@@ -28,7 +28,6 @@ struct SqLight
 	float shadowBiasNear;
 	float shadowBiasFar;
 	int type;
-	int bounceCount;
 };
 
 struct SubMesh

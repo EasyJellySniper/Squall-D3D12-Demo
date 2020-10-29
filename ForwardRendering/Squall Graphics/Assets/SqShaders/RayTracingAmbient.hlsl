@@ -1,5 +1,4 @@
 #define RAY_SHADER
-#define MAX_AMBIENT_RESURSION 3
 
 // need assign relative path for dxc compiler with forward slash
 #include "Assets/SqShaders/SqInput.hlsl"
@@ -24,6 +23,7 @@ GlobalRootSignature RTAmbientRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
     "CBV( b0 ),"                        // system constant
+    "CBV( b1 ),"    // ambient constant
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 ),"              // sq dir light
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, flags = DESCRIPTORS_VOLATILE) ),"     // tex table
@@ -31,8 +31,7 @@ GlobalRootSignature RTAmbientRootSig =
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
     "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) ),"     // tex sampler
     "SRV( t0, space = 5),"       // submesh data
-    "SRV( t0, space = 6),"       // uniform vector
-    "RootConstants(num32BitConstants=1, b1)"    // sample count
+    "SRV( t0, space = 6)"       // uniform vector
 };
 
 TriangleHitGroup SqRayHitGroup =
@@ -43,24 +42,25 @@ TriangleHitGroup SqRayHitGroup =
 
 RaytracingShaderConfig RTAmbientConfig =
 {
-    24, // max payload size - 6float
+    20, // max payload size
     8   // max attribute size - 2float
 };
 
 RaytracingPipelineConfig RTAmbientPipelineConfig =
 {
-    MAX_AMBIENT_RESURSION // max trace recursion depth
+    1 // max trace recursion depth
 };
 
 struct RayPayload
 {
     float4 ambientColor;
-    int ambientDepth;
     bool isHit;
 };
 
 cbuffer AmbientData : register(b1)
 {
+    float _AmbientDiffuseDistance;
+    float _AmbientOcclusionDistance;
     int _SampleCount;
 };
 
@@ -99,7 +99,6 @@ void RTAmbientRayGen()
 
     float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
     float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicSampler, depthUV, 0).rgb;
-    SqLight dirLight = _SqDirLight[0];
 
     float3 diffuse = 0;
     int hitCount = 0;
@@ -114,14 +113,12 @@ void RTAmbientRayGen()
         RayDesc ray;
         ray.Origin = wpos;
         ray.Direction = dir;
-        ray.TMin = 0;
-        ray.TMax = dirLight.world.w;
+        ray.TMin = 0.001f;
+        ray.TMax = _AmbientDiffuseDistance;
 
         // setup payload & shoot
         RayPayload payload = (RayPayload)0;
         payload.ambientColor.a = 1.0f;
-
-        payload.ambientDepth++;
         TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
 
         // add result
@@ -154,31 +151,6 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
     float3 diffuse = RayDiffuse(v2f, bumpNormal);
     payload.ambientColor.rgb = diffuse;
-
-    //SqLight dirLight = _SqDirLight[0];
-
-    //// -------------------------------- output diffuse if necessary ------------------------------ //
-    //if (payload.ambientDepth > 1)
-    //{
-    //    float2 screenPos = WorldToScreenPos(hitPos, (float2)DispatchRaysDimensions().xy);
-    //    _OutputAmbient[screenPos].rgb += diffuse;
-    //}
-
-    //// -------------------------------- recursive ray if necessary ------------------------------ //
-    //if (payload.ambientDepth < MAX_AMBIENT_RESURSION && payload.ambientDepth < dirLight.bounceCount)
-    //{
-    //    // define indirect ray
-    //    RayDesc ray;
-    //    ray.Origin = hitPos;
-    //    ray.Direction = reflect(WorldRayDirection(), bumpNormal);
-    //    ray.TMin = 0;
-    //    ray.TMax = dirLight.world.w + 0.5f;
-
-    //    // setup payload & shoot indirect ray
-    //    payload.ambientColor.rgb = diffuse;
-    //    payload.ambientDepth++;
-    //    TraceRay(_SceneAS, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_CULL_NON_OPAQUE, ~0, 0, 1, 0, ray, payload);
-    //}
 }
 
 [shader("miss")]

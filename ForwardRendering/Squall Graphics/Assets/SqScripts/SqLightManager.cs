@@ -5,6 +5,27 @@ using UnityEngine;
 // for init sq light
 public class SqLightManager : MonoBehaviour
 {
+    struct AmbientConstant
+    {
+        public static bool operator ==(AmbientConstant lhs, AmbientConstant rhs)
+        {
+            return lhs.sampleCount == rhs.sampleCount
+                && lhs.occlusionDist == rhs.occlusionDist
+                && lhs.diffuseDist == rhs.diffuseDist;
+        }
+
+        public static bool operator !=(AmbientConstant lhs, AmbientConstant rhs)
+        {
+            return lhs.sampleCount != rhs.sampleCount
+                || lhs.occlusionDist != rhs.occlusionDist
+                || lhs.diffuseDist != rhs.diffuseDist;
+        }
+
+        public float diffuseDist;
+        public float occlusionDist;
+        public int sampleCount;
+    };
+
     [DllImport("SquallGraphics")]
     static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight);
 
@@ -24,7 +45,7 @@ public class SqLightManager : MonoBehaviour
     static extern void SetPCFKernel(int _kernel);
 
     [DllImport("SquallGraphics")]
-    static extern void SetAmbientSampleCount(int _count);
+    static extern void SetAmbientData(AmbientConstant _ac);
 
     [Header("Light Settings")]
 
@@ -78,6 +99,16 @@ public class SqLightManager : MonoBehaviour
     public int ambientSampleCount = 4;
 
     /// <summary>
+    /// diffuse distance
+    /// </summary>
+    public float diffuseDistance = 10;
+
+    /// <summary>
+    /// occlusion distance
+    /// </summary>
+    public float occlusionDistance = 1;
+
+    /// <summary>
     /// noise
     /// </summary>
     public Texture2D ambientNoise;
@@ -105,7 +136,8 @@ public class SqLightManager : MonoBehaviour
     /// </summary>
     public static SqLightManager Instace { get; private set; }
 
-    int lastSampleCount;
+    AmbientConstant ambientConst;
+    AmbientConstant lastAmbientConst;
 
     // Start is called before the first frame update
     void Start()
@@ -113,6 +145,10 @@ public class SqLightManager : MonoBehaviour
         Instace = this;
         InitLights();
         SetPCF();
+
+        ambientConst.sampleCount = ambientSampleCount;
+        ambientConst.diffuseDist = diffuseDistance;
+        ambientConst.occlusionDist = occlusionDistance;
     }
 
     void Update()
@@ -160,11 +196,15 @@ public class SqLightManager : MonoBehaviour
 
     void SetAmbientSample()
     {
-        if (lastSampleCount != ambientSampleCount)
+        ambientConst.sampleCount = ambientSampleCount;
+        ambientConst.diffuseDist = diffuseDistance;
+        ambientConst.occlusionDist = occlusionDistance;
+
+        if (lastAmbientConst != ambientConst)
         {
-            SetAmbientSampleCount(ambientSampleCount);
+            SetAmbientData(ambientConst);
         }
 
-        lastSampleCount = ambientSampleCount;
+        lastAmbientConst = ambientConst;
     }
 }

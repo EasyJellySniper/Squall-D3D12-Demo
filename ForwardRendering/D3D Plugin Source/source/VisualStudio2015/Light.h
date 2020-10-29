@@ -27,7 +27,6 @@ struct SqLightData
 	float shadowBiasNear;
 	float shadowBiasFar;
 	int type;
-	int bounceCount;
 };
 
 class Light

@@ -23,7 +23,7 @@ void RayAmbient::Init(ID3D12Resource* _ambientRT, ID3D12Resource* _noiseTex)
 		rtAmbientMat = MaterialManager::Instance().CreateRayTracingMat(rtAmbient);
 	}
 
-	CreateUniformVector();
+	CreateResource();
 }
 
 void RayAmbient::Release()
@@ -63,15 +63,15 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	// set roots
 	_cmdList->SetComputeRootDescriptorTable(0, GetAmbientUav());
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
-	_cmdList->SetComputeRootShaderResourceView(2, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootShaderResourceView(3, _dirLightGPU);
-	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootConstantBufferView(2, ambientConstantGPU->Resource()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootShaderResourceView(4, _dirLightGPU);
 	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(8, RayTracingManager::Instance().GetSubMeshInfoGPU());
-	_cmdList->SetComputeRootShaderResourceView(9, uniformVectorGPU->Resource()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRoot32BitConstant(10, sampleCount, 0);
+	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootShaderResourceView(10, uniformVectorGPU->Resource()->GetGPUVirtualAddress());
 
 	// prepare dispatch desc
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = rtAmbientMat.GetDispatchRayDesc((UINT)ambientSrc->GetDesc().Width, ambientSrc->GetDesc().Height);
@@ -95,11 +95,11 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
-void RayAmbient::UpdataSampleCount(int _count)
+void RayAmbient::UpdataAmbientData(AmbientConstant _ac)
 {
-	sampleCount = _count;
+	ambientConst = _ac;
 
-	int vecCount = (int)ceil(sqrt(sampleCount));
+	int vecCount = (int)ceil(sqrt(ambientConst.sampleCount));
 	float gap = 1.0f / (float)vecCount;
 
 	for (int i = 0; i < vecCount; i++)
@@ -114,6 +114,7 @@ void RayAmbient::UpdataSampleCount(int _count)
 	}
 
 	uniformVectorGPU->CopyDataAll(uniformVectorCPU);
+	ambientConstantGPU->CopyData(0, ambientConst);
 }
 
 int RayAmbient::GetAmbientSrv()
@@ -131,9 +132,10 @@ Material* RayAmbient::GetMaterial()
 	return &rtAmbientMat;
 }
 
-void RayAmbient::CreateUniformVector()
+void RayAmbient::CreateResource()
 {
 	uniformVectorGPU = make_unique<UploadBuffer<UniformVector>>(GraphicManager::Instance().GetDevice(), maxSampleCount, false);
+	ambientConstantGPU = make_unique<UploadBuffer<AmbientConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientUav()

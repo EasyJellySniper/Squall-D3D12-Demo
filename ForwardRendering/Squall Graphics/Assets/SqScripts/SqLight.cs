@@ -60,11 +60,6 @@ public class SqLight : MonoBehaviour
         /// type
         /// </summary>
         public int type;
-
-        /// <summary>
-        /// bounce count
-        /// </summary>
-     	public int bounceCount;
     }
 
     /// <summary>
@@ -86,17 +81,6 @@ public class SqLight : MonoBehaviour
     /// light size
     /// </summary>
     public float lightSize = 500;
-
-    /// <summary>
-    /// indirect distance
-    /// </summary>
-    public float indirectDistance = 10f;
-
-    /// <summary>
-    /// indirect bounce
-    /// </summary>
-    [Range(1, 3)]
-    public int indirectBounce = 1;
 
     SqLightData lightData;
     Light lightCache;
@@ -143,7 +127,6 @@ public class SqLight : MonoBehaviour
         {
             lightData.worldPos = transform.position;
         }
-        lightData.worldPos.w = indirectDistance;
 
         lightData.type = (int)lightCache.type;
         lightData.color = lightCache.color.linear;
@@ -154,7 +137,6 @@ public class SqLight : MonoBehaviour
         lightData.range = (lightCache.type == LightType.Directional) ? float.MaxValue : lightCache.range;
         lightData.shadowDistance = shadowDistance;
         lightData.shadowSize = lightSize;
-        lightData.bounceCount = indirectBounce;
     }
 
     void UpdateNativeLight()
