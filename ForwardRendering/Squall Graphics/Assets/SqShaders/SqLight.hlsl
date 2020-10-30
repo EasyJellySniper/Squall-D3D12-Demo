@@ -206,9 +206,9 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 
 	// sample indirect specular
 	if(!isTransparent)
-		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_ReflectionRTIndex, _LinearSampler, screenUV, specMip).rgb;
+		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_ReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
 	else
-		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_TransReflectionRTIndex, _LinearSampler, screenUV, specMip).rgb;
+		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_TransReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
 
 	gi.indirectSpecular *= occlusion;
 

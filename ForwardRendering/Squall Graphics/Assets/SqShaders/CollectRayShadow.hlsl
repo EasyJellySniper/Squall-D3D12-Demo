@@ -59,7 +59,7 @@ float PenumbraFilter(float2 uv, int innerLoop)
         for (int j = -innerLoop; j <= innerLoop; j++)
         {
             // x for blocked, y for dist to blocker
-            float4 shadowData = _RayShadow.SampleLevel(_SamplerTable[_AnisotropicSampler], uv + _ScreenSize.zw * float2(i, j), 0);
+            float4 shadowData = _RayShadow.SampleLevel(_SamplerTable[_AnisotropicWrapSampler], uv + _ScreenSize.zw * float2(i, j), 0);
 
             [branch]
             if (shadowData.x < 1)
@@ -90,7 +90,7 @@ float PenumbraFilter(float2 uv, int innerLoop)
 
 float BlurFilter(float2 uv, int innerLoop, float penumbra)
 {
-    float center = _RayShadow.SampleLevel(_SamplerTable[_AnisotropicSampler], uv, 0).r;
+    float center = _RayShadow.SampleLevel(_SamplerTable[_AnisotropicWrapSampler], uv, 0).r;
     [branch]
     if (penumbra < FLOAT_EPSILON)
     {
@@ -106,7 +106,7 @@ float BlurFilter(float2 uv, int innerLoop, float penumbra)
         for (int j = -innerLoop; j <= innerLoop; j++)
         {
             float w = (innerLoop - abs(i) + 1) * (innerLoop - abs(j) + 1);
-            atten += _RayShadow.SampleLevel(_SamplerTable[_AnisotropicSampler], uv + float2(i, j) * _ScreenSize.zw * penumbra, 0).r * w;
+            atten += _RayShadow.SampleLevel(_SamplerTable[_AnisotropicWrapSampler], uv + float2(i, j) * _ScreenSize.zw * penumbra, 0).r * w;
             count += w;
         }
     }
@@ -117,7 +117,7 @@ float BlurFilter(float2 uv, int innerLoop, float penumbra)
 [RootSignature(CollectRayShadowRS)]
 float4 CollectRayShadowPS(v2f i) : SV_Target
 {
-    float depth = _DepthMap.SampleLevel(_SamplerTable[_AnisotropicSampler], i.uv, 0).r;
+    float depth = _DepthMap.SampleLevel(_SamplerTable[_AnisotropicWrapSampler], i.uv, 0).r;
     i.screenPos.z = depth;
     float3 wpos = DepthToWorldPos(i.screenPos);
     float distRatio = 1 - saturate(abs(wpos.z - _CameraPos.z) * 0.05f);

@@ -76,7 +76,7 @@ StructuredBuffer<float4> _UniformVector : register(t0, space6);
 float3 GetRandomVector(uint idx, float2 uv)
 {
     // tiling noise sample
-    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicSampler, 4 * uv, 0).rgb;
+    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicWrapSampler, 4 * uv, 0).rgb;
     randVec = randVec * 2.0f - 1.0f;
 
     float3 offset = reflect(_UniformVector[idx].xyz, randVec);
@@ -164,7 +164,7 @@ void RTAmbientRayGen()
     screenUV.y = 1 - screenUV.y;
     screenUV = screenUV * 2.0f - 1.0f;
 
-    float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _AnisotropicSampler, depthUV, 0).r;
+    float depth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _AnisotropicWrapSampler, depthUV, 0).r;
     if (depth == 0.0f)
     {
         // early out
@@ -172,7 +172,7 @@ void RTAmbientRayGen()
     }
 
     float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
-    float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicSampler, depthUV, 0).rgb;
+    float3 normal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicWrapSampler, depthUV, 0).rgb;
 
     TraceAmbient(wpos, normal, depthUV);
 }

@@ -51,6 +51,7 @@ struct SystemConstant
 	int reflectionRTIndex;
 	int transReflectionRTIndex;
 	int ambientRTIndex;
-	int linearSampler;
-	int anisotropicSampler;
+	int linearWrapSampler;
+	int linearClampSampler;
+	int anisotropicWrapSampler;
 };

@@ -129,8 +129,9 @@ private:
 	int screenHeight;
 	SystemConstant systemConstantCPU;
 	FrameResource frameResource;
-	DescriptorHeapData linearSampler;
-	DescriptorHeapData anisotropicSampler;
+	DescriptorHeapData linearWrapSampler;
+	DescriptorHeapData linearClampSampler;
+	DescriptorHeapData anisotropicWrapSampler;
 
 	// system constant
 	unique_ptr<UploadBuffer<SystemConstant>> systemConstantGPU[MAX_FRAME_COUNT];

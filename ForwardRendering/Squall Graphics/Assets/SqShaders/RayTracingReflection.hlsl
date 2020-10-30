@@ -107,10 +107,10 @@ void RTReflectionRayGen()
 
     // shoot ray according to depth
 
-    float opaqueDepth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _AnisotropicSampler, depthUV, 0).r;
-    float transDepth = SQ_SAMPLE_TEXTURE_LEVEL(_TransDepthIndex, _AnisotropicSampler, depthUV, 0).r;
-    float3 opaqueNormal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicSampler, depthUV, 0).rgb;
-    float3 transNormal = SQ_SAMPLE_TEXTURE_LEVEL(_TransNormalRTIndex, _AnisotropicSampler, depthUV, 0).rgb;
+    float opaqueDepth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _AnisotropicWrapSampler, depthUV, 0).r;
+    float transDepth = SQ_SAMPLE_TEXTURE_LEVEL(_TransDepthIndex, _AnisotropicWrapSampler, depthUV, 0).r;
+    float3 opaqueNormal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicWrapSampler, depthUV, 0).rgb;
+    float3 transNormal = SQ_SAMPLE_TEXTURE_LEVEL(_TransNormalRTIndex, _AnisotropicWrapSampler, depthUV, 0).rgb;
 
     RayPayload opaqueResult = ShootReflectionRay(opaqueNormal, opaqueDepth, screenUV, false);
     RayPayload transResult = (RayPayload)0;
