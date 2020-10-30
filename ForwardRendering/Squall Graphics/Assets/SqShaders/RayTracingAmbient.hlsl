@@ -185,20 +185,25 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     payload.isHit = true;
     float atten = 1;
 
+    // init v2f
+    RayV2F v2f = InitRayV2F(attr, hitPos);
+    float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
+
+    // output occlusion
     if (payload.testOcclusion)
     {
+        // atten calc, consider ndotl
+        SqLight light = _SqDirLight[0];
+        float ndotl = saturate(dot(-light.world.xyz, WorldRayDirection()));
+
         atten = saturate(distToHit / _OcclusionFadeDist);
+        atten = lerp(atten, 1, ndotl);
         payload.ambientColor.a = atten * atten;
         return;
     }
 
-    // init v2f
-    RayV2F v2f = InitRayV2F(attr, hitPos);
-
     // output diffuse
-    float3 bumpNormal = GetBumpNormal(v2f.tex.xy, v2f.tex.zw, v2f.normal, v2f.worldToTangent);
     float3 diffuse = RayDiffuse(v2f, bumpNormal);
-
     atten = 1 - saturate(distToHit / _DiffuseFadeDist);
     payload.ambientColor.rgb = diffuse * atten * atten;
 }
