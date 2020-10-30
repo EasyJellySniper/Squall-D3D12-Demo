@@ -19,6 +19,7 @@
 #include "VisualStudio2015/GraphicImplement/GenerateMipmap.h"
 #include "VisualStudio2015/Formatter.h"
 #include "Unity/IUnityGraphicsD3D12.h"
+#include "VisualStudio2015/GraphicImplement/GaussianBlur.h"
 
 class RenderAPI_D3D12 : public RenderAPI
 {
@@ -86,6 +87,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	ShaderManager::Instance().Init();
 	Formatter::Init();
 	GenerateMipmap::Init();
+	GaussianBlur::Init();
 
 #if defined(GRAPHICTIME)
 	AllocConsole();
@@ -111,6 +113,7 @@ void RenderAPI_D3D12::ReleaseResources()
 	RayTracingManager::Instance().Release();
 	Formatter::Release();
 	GenerateMipmap::Release();
+	GaussianBlur::Release();
 
 #if defined(GRAPHICTIME)
 	fclose(stdout);
