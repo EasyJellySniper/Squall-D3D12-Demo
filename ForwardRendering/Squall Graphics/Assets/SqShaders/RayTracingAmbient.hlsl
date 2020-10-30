@@ -62,8 +62,10 @@ cbuffer AmbientData : register(b1)
 {
     float _AmbientDiffuseDistance;
     float _DiffuseFadeDist;
+    float _DiffuseStrength;
     float _AmbientOcclusionDistance;
     float _OcclusionFadeDist;
+    float _OccStrength;
     int _SampleCount;
     int _AmbientNoiseIndex;
 };
@@ -139,13 +141,13 @@ void TraceAmbient(float3 wpos, float3 normal, float2 uv)
     if (diffHitCount > 0)
     {
         diffuse /= diffHitCount;
-        _OutputAmbient[DispatchRaysIndex().xy].rgb = diffuse;
+        _OutputAmbient[DispatchRaysIndex().xy].rgb = diffuse * _DiffuseStrength;
     }
 
     if (occHitCount > 0)
     {
         occlusion /= occHitCount;
-        _OutputAmbient[DispatchRaysIndex().xy].a = occlusion;
+        _OutputAmbient[DispatchRaysIndex().xy].a = lerp(1, occlusion, _OccStrength);
     }
 }
 

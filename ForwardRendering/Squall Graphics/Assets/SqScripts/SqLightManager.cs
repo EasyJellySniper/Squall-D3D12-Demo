@@ -12,20 +12,34 @@ public class SqLightManager : MonoBehaviour
         {
             return lhs.sampleCount == rhs.sampleCount
                 && lhs.occlusionDist == rhs.occlusionDist
-                && lhs.diffuseDist == rhs.diffuseDist;
+                && lhs.diffuseDist == rhs.diffuseDist
+                && lhs.diffuseFadeDist == rhs.diffuseFadeDist
+                && lhs.diffuseStrength == rhs.diffuseStrength
+                && lhs.occlusionFadeDist == rhs.occlusionFadeDist
+                && lhs.occlusionStrength == rhs.occlusionStrength;
         }
 
         public static bool operator !=(AmbientConstant lhs, AmbientConstant rhs)
         {
             return lhs.sampleCount != rhs.sampleCount
                 || lhs.occlusionDist != rhs.occlusionDist
-                || lhs.diffuseDist != rhs.diffuseDist;
+                || lhs.diffuseDist != rhs.diffuseDist
+                || lhs.diffuseFadeDist != rhs.diffuseFadeDist
+                || lhs.diffuseStrength != rhs.diffuseStrength
+                || lhs.occlusionFadeDist != rhs.occlusionFadeDist
+                || lhs.occlusionStrength != rhs.occlusionStrength;
         }
 
         public float diffuseDist;
         public float diffuseFadeDist;
+
+        [Range(0, 1)]
+        public float diffuseStrength;
         public float occlusionDist;
         public float occlusionFadeDist;
+
+        [Range(0, 1)]
+        public float occlusionStrength;
         public int sampleCount;
 
         [HideInInspector]

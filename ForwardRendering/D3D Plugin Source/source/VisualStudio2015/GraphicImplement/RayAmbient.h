@@ -15,8 +15,10 @@ struct AmbientConstant
 {
 	float diffuseDist;
 	float diffuseFadeDist;
+	float diffuseStrength;
 	float occlusionDist;
 	float occlusionFadeDist;
+	float occlusionStrength;
 	int sampleCount;
 	int ambientNoiseIndex;
 };
