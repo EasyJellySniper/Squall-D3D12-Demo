@@ -40,6 +40,7 @@ private:
 
 	void CreateResource();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientUav();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientSrvHandle();
 
 	ID3D12Resource* ambientSrc;
 	Material rtAmbientMat;

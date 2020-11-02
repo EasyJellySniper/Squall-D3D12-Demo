@@ -87,8 +87,7 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	dxrCmd->DispatchRays(&dispatchDesc);
 
 	// blur result
-	GaussianBlur::BlurCompute(_cmdList, BlurConstant(5, 0.1f, 0.1f), ambientSrc
-		, TextureManager::Instance().GetTexHandle(ambientHeapData.srv), TextureManager::Instance().GetTexHandle(ambientHeapData.uav));
+	GaussianBlur::BlurCompute(_cmdList, BlurConstant(5, 0.1f, 0.1f), ambientSrc, GetAmbientSrvHandle(), GetAmbientUav());
 
 	// barriers after tracing
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -147,4 +146,9 @@ void RayAmbient::CreateResource()
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientUav()
 {
 	return TextureManager::Instance().GetTexHandle(ambientHeapData.uav);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientSrvHandle()
+{
+	return TextureManager::Instance().GetTexHandle(ambientHeapData.srv);
 }

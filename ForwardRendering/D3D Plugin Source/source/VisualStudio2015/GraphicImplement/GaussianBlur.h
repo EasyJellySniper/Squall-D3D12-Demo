@@ -42,7 +42,7 @@ private:
 	static void RequestBlurTextureHeap(D3D12_RESOURCE_DESC _desc);
 	static void CalcBlurWeight(BlurConstant& _const);
 	static void UploadConstant(BlurConstant& _const, D3D12_RESOURCE_DESC _desc);
-	static ComPtr<ID3D12Resource> CreateTempResource(D3D12_RESOURCE_DESC _desc);
+	static void CreateTempResource(D3D12_RESOURCE_DESC _desc);
 
 	static Material blurCompute;
 	static BlurConstant blurConstantCPU;
@@ -52,4 +52,5 @@ private:
 	static ComPtr<ID3D12Heap> blurTextureHeap;
 	static UINT64 prevHeapSize;
 	static DescriptorHeapData blurHeapData;
+	static ComPtr<ID3D12Resource> tmpSrc;
 };

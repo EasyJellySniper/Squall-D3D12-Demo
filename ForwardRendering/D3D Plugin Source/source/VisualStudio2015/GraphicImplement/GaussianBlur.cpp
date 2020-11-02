@@ -11,9 +11,11 @@ unique_ptr<UploadBuffer<BlurConstant>> GaussianBlur::blurConstantGPU;
 ComPtr<ID3D12Heap> GaussianBlur::blurTextureHeap;
 UINT64 GaussianBlur::prevHeapSize;
 DescriptorHeapData GaussianBlur::blurHeapData;
+ComPtr<ID3D12Resource> GaussianBlur::tmpSrc;
 
 void GaussianBlur::Init()
 {
+	// init heap size
 	prevHeapSize = 0;
 
 	// init material
@@ -26,10 +28,6 @@ void GaussianBlur::Init()
 	// init constant
 	blurConstantGPU = make_unique<UploadBuffer<BlurConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
 
-	// init heap, default with 1024 ARGB32 size
-	CD3DX12_RESOURCE_DESC textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 1024, 1024, 1, 1);
-	RequestBlurTextureHeap(textureDesc);
-
 	// init descriptor heap ID
 	blurHeapData.uniqueSrvID = GetUniqueID();
 	blurHeapData.uniqueUavID = GetUniqueID();
@@ -37,9 +35,12 @@ void GaussianBlur::Init()
 
 void GaussianBlur::Release()
 {
+	GraphicManager::Instance().WaitForGPU();
+
 	blurCompute.Release();
 	blurConstantGPU.reset();
 	blurTextureHeap.Reset();
+	tmpSrc.Reset();
 }
 
 // ping-pong method
@@ -58,16 +59,14 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	D3D12_RESOURCE_DESC desc = _src->GetDesc();
 	desc.Format = Formatter::GetColorFormatFromTypeless(desc.Format);
 	RequestBlurTextureHeap(desc);
-	auto tmpSrc = CreateTempResource(desc);
 
 	// upload constant
 	UploadConstant(_blurConst, desc);
 
 	// transition resource
-	CD3DX12_RESOURCE_BARRIER barriers[2];
-	barriers[0] = CD3DX12_RESOURCE_BARRIER::Aliasing(nullptr, tmpSrc.Get());
-	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	_cmdList->ResourceBarrier(2, barriers);
+	CD3DX12_RESOURCE_BARRIER barriers[1];
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	_cmdList->ResourceBarrier(1, barriers);
 
 	// horizontal pass
 	auto frameIdx = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
@@ -76,9 +75,13 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	_cmdList->SetComputeRoot32BitConstant(2, 1, 0);
 	_cmdList->SetComputeRootDescriptorTable(3, TextureManager::Instance().GetTexHandle(blurHeapData.uav));
 	_cmdList->SetComputeRootDescriptorTable(4, _inputSrv);
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->Dispatch((UINT)desc.Width / 8, desc.Height / 8, 1);
 
 	// vertical pass
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	_cmdList->ResourceBarrier(1, barriers);
+
 	_cmdList->SetComputeRoot32BitConstant(2, 0, 0);
 	_cmdList->SetComputeRootDescriptorTable(3, _inputUav);
 	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHandle(blurHeapData.srv));
@@ -99,16 +102,22 @@ void GaussianBlur::RequestBlurTextureHeap(D3D12_RESOURCE_DESC _desc)
 	}
 
 	const UINT64 heapSize = info.SizeInBytes;
-	if (heapSize < prevHeapSize)
+	if (heapSize <= prevHeapSize)
 	{
 		// have enough heap size, return
 		return;
 	}
 
+	// wait gpu before creation
+	GraphicManager::Instance().WaitForGPU();
+
 	blurTextureHeap.Reset();
-	CD3DX12_HEAP_DESC heapDesc(heapSize, D3D12_HEAP_TYPE_DEFAULT, 0, D3D12_HEAP_FLAG_DENY_BUFFERS | D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+	CD3DX12_HEAP_DESC heapDesc(heapSize, D3D12_HEAP_TYPE_DEFAULT, 0, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES);
 	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateHeap(&heapDesc, IID_PPV_ARGS(&blurTextureHeap)));
 	prevHeapSize = heapSize;
+
+	// create temp resource here
+	CreateTempResource(_desc);
 }
 
 void GaussianBlur::CalcBlurWeight(BlurConstant& _const)
@@ -152,21 +161,18 @@ void GaussianBlur::UploadConstant(BlurConstant& _blurConst, D3D12_RESOURCE_DESC 
 	prevBlurConstant = blurConstantCPU;
 }
 
-ComPtr<ID3D12Resource> GaussianBlur::CreateTempResource(D3D12_RESOURCE_DESC _desc)
+void GaussianBlur::CreateTempResource(D3D12_RESOURCE_DESC _desc)
 {
 	// create placed resource
-	ComPtr<ID3D12Resource> tmpSrc;
-
+	tmpSrc.Reset();
 	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreatePlacedResource(blurTextureHeap.Get()
 		, 0
 		, &_desc
 		, D3D12_RESOURCE_STATE_UNORDERED_ACCESS
 		, nullptr
-		, IID_PPV_ARGS(&tmpSrc)));
+		, IID_PPV_ARGS(tmpSrc.GetAddressOf())));
 
 	// create srv
 	blurHeapData.srv = TextureManager::Instance().UpdateNativeTexture(blurHeapData.uniqueSrvID, tmpSrc.Get(), TextureInfo());
 	blurHeapData.uav = TextureManager::Instance().UpdateNativeTexture(blurHeapData.uniqueUavID, tmpSrc.Get(), TextureInfo(false, false, true, false, false));
-
-	return tmpSrc;
 }
