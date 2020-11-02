@@ -8,11 +8,11 @@ static const int MAX_BLUR_WEIGHT = 15;
 
 struct BlurConstant
 {
-	bool operator==(BlurConstant &_rhs)
+	bool operator!=(BlurConstant &_rhs)
 	{
-		return depthThreshold == _rhs.depthThreshold &&
-			normalThreshold == _rhs.normalThreshold &&
-			blurRadius == _rhs.blurRadius;
+		return depthThreshold != _rhs.depthThreshold ||
+			normalThreshold != _rhs.normalThreshold ||
+			blurRadius != _rhs.blurRadius;
 	}
 
 	BlurConstant() {}
@@ -24,11 +24,11 @@ struct BlurConstant
 		normalThreshold = _normalThreshold;
 	}
 
-	float blurWeight[MAX_BLUR_WEIGHT];
 	XMFLOAT2 invTargetSize;
 	float depthThreshold;
 	float normalThreshold;
 	int blurRadius;
+	float blurWeight[MAX_BLUR_WEIGHT];
 };
 
 class GaussianBlur
@@ -40,8 +40,8 @@ public:
 
 private:
 	static void RequestBlurTextureHeap(D3D12_RESOURCE_DESC _desc);
-	static void CalcBlurWeight(BlurConstant& _const);
-	static void UploadConstant(BlurConstant& _const, D3D12_RESOURCE_DESC _desc);
+	static void CalcBlurWeight();
+	static void UploadConstant(D3D12_RESOURCE_DESC _desc);
 	static void CreateTempResource(D3D12_RESOURCE_DESC _desc);
 
 	static Material blurCompute;

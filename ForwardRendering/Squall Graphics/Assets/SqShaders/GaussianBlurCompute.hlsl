@@ -1,9 +1,9 @@
 #define GaussianBlurRS "RootFlags(0)," \
 "CBV(b0)," \
-"CBV(b1)," \
-"RootConstants( num32BitConstants = 1, b2 )," \
 "DescriptorTable(UAV(u0, numDescriptors=1))," \
-"DescriptorTable(SRV(t0, space=1, numDescriptors=1))," \
+"RootConstants( num32BitConstants = 1, b2 )," \
+"CBV(b1)," \
+"DescriptorTable(SRV(t0, space=3, numDescriptors=1))," \
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
 
 #include "SqInput.hlsl"
@@ -13,11 +13,11 @@
 cbuffer BlurConstant : register(b1)
 {
 	// blur weight, max up to 7x7 kernel (2*n + 1)
-	float _BlurWeight[15];
 	float2 _InvTargetSize;
 	float _DepthThreshold;
 	float _NormalThreshold;
 	int _BlurRadius;
+	float _BlurWeight[15];
 };
 
 cbuffer BlurConstant2 : register(b2)
@@ -26,13 +26,13 @@ cbuffer BlurConstant2 : register(b2)
 };
 
 RWTexture2D<float4> _OutputTex : register(u0);
-Texture2D _InputTex : register(t0, space1);
+Texture2D _InputTex : register(t0, space3);
 
 [RootSignature(GaussianBlurRS)]
 [numthreads(8, 8, 1)]
 void GaussianBlurCS(uint3 _globalID : SV_DispatchThreadID)
 {
-	float2 screenUV = (_globalID.xy + .5f) * _InvTargetSize.xy;
+	float2 screenUV = (_globalID.xy + .5f) * _InvTargetSize;
 	float2 texOffset;
 
 	if (_HorizontalBlur)

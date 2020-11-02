@@ -17,6 +17,7 @@ void GaussianBlur::Init()
 {
 	// init heap size
 	prevHeapSize = 0;
+	prevBlurConstant = BlurConstant();
 
 	// init material
 	Shader* shader = ShaderManager::Instance().CompileShader(L"GaussianBlurCompute.hlsl");
@@ -53,7 +54,8 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 		return;
 	}
 
-	CalcBlurWeight(_blurConst);
+	blurConstantCPU = _blurConst;
+	CalcBlurWeight();
 
 	// get temp resource
 	D3D12_RESOURCE_DESC desc = _src->GetDesc();
@@ -61,30 +63,35 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	RequestBlurTextureHeap(desc);
 
 	// upload constant
-	UploadConstant(_blurConst, desc);
+	UploadConstant(desc);
 
 	// transition resource
-	CD3DX12_RESOURCE_BARRIER barriers[1];
+	CD3DX12_RESOURCE_BARRIER barriers[2];
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	_cmdList->ResourceBarrier(1, barriers);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(tmpSrc.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	_cmdList->ResourceBarrier(2, barriers);
 
 	// horizontal pass
 	auto frameIdx = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIdx));
-	_cmdList->SetComputeRootConstantBufferView(1, blurConstantGPU->Resource()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootDescriptorTable(1, TextureManager::Instance().GetTexHandle(blurHeapData.uav));
 	_cmdList->SetComputeRoot32BitConstant(2, 1, 0);
-	_cmdList->SetComputeRootDescriptorTable(3, TextureManager::Instance().GetTexHandle(blurHeapData.uav));
+	_cmdList->SetComputeRootConstantBufferView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootDescriptorTable(4, _inputSrv);
 	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->Dispatch((UINT)desc.Width / 8, desc.Height / 8, 1);
 
 	// vertical pass
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	_cmdList->ResourceBarrier(1, barriers);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(tmpSrc.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	_cmdList->ResourceBarrier(2, barriers);
 
+	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIdx));
+	_cmdList->SetComputeRootDescriptorTable(1, _inputUav);
 	_cmdList->SetComputeRoot32BitConstant(2, 0, 0);
-	_cmdList->SetComputeRootDescriptorTable(3, _inputUav);
+	_cmdList->SetComputeRootConstantBufferView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHandle(blurHeapData.srv));
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->Dispatch((UINT)desc.Width / 8, desc.Height / 8, 1);
 }
 
@@ -120,40 +127,38 @@ void GaussianBlur::RequestBlurTextureHeap(D3D12_RESOURCE_DESC _desc)
 	CreateTempResource(_desc);
 }
 
-void GaussianBlur::CalcBlurWeight(BlurConstant& _const)
+void GaussianBlur::CalcBlurWeight()
 {
-	float sigma = _const.blurRadius / 2.0f;
+	float sigma = blurConstantCPU.blurRadius / 2.0f;
 	float twoSigma2 = 2.0f * sigma * sigma;
 	float weightSum = 0.0f;
 	int weightCount = 0;
 
 	// calc gaussian sigma
-	for (int i = -_const.blurRadius; i <= _const.blurRadius; i++)
+	for (int i = -blurConstantCPU.blurRadius; i <= blurConstantCPU.blurRadius; i++)
 	{
 		float x = (float)i;
 
-		if (i + _const.blurRadius < MAX_BLUR_WEIGHT)
-			_const.blurWeight[i + _const.blurRadius] = expf(-x * x / twoSigma2);
+		if (i + blurConstantCPU.blurRadius < MAX_BLUR_WEIGHT)
+			blurConstantCPU.blurWeight[i + blurConstantCPU.blurRadius] = expf(-x * x / twoSigma2);
 
-		weightSum += _const.blurWeight[i + _const.blurRadius];
+		weightSum += blurConstantCPU.blurWeight[i + blurConstantCPU.blurRadius];
 		weightCount++;
 	}
 
 	// Divide by the sum so all the weights add up to 1.0.
 	for (int i = 0; i < weightCount; i++)
 	{
-		_const.blurWeight[i] /= weightSum;
+		blurConstantCPU.blurWeight[i] /= weightSum;
 	}
 }
 
-void GaussianBlur::UploadConstant(BlurConstant& _blurConst, D3D12_RESOURCE_DESC _desc)
+void GaussianBlur::UploadConstant(D3D12_RESOURCE_DESC _desc)
 {
-	_blurConst.invTargetSize.x = 1.0f / (float)_desc.Width;
-	_blurConst.invTargetSize.y = 1.0f / (float)_desc.Height;
+	blurConstantCPU.invTargetSize.x = 1.0f / (float)_desc.Width;
+	blurConstantCPU.invTargetSize.y = 1.0f / (float)_desc.Height;
 
-	blurConstantCPU = _blurConst;
-
-	if (!(blurConstantCPU == prevBlurConstant))
+	if (blurConstantCPU != prevBlurConstant)
 	{
 		blurConstantGPU->CopyData(0, blurConstantCPU);
 	}
