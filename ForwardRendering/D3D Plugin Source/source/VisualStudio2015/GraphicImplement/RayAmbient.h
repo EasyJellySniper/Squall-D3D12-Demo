@@ -21,6 +21,7 @@ struct AmbientConstant
 	float occlusionStrength;
 	int sampleCount;
 	int ambientNoiseIndex;
+	int blurRadius;
 };
 
 class RayAmbient

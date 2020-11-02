@@ -16,7 +16,8 @@ public class SqLightManager : MonoBehaviour
                 && lhs.diffuseFadeDist == rhs.diffuseFadeDist
                 && lhs.diffuseStrength == rhs.diffuseStrength
                 && lhs.occlusionFadeDist == rhs.occlusionFadeDist
-                && lhs.occlusionStrength == rhs.occlusionStrength;
+                && lhs.occlusionStrength == rhs.occlusionStrength
+                && lhs.blurRadius == rhs.blurRadius;
         }
 
         public static bool operator !=(AmbientConstant lhs, AmbientConstant rhs)
@@ -27,7 +28,8 @@ public class SqLightManager : MonoBehaviour
                 || lhs.diffuseFadeDist != rhs.diffuseFadeDist
                 || lhs.diffuseStrength != rhs.diffuseStrength
                 || lhs.occlusionFadeDist != rhs.occlusionFadeDist
-                || lhs.occlusionStrength != rhs.occlusionStrength;
+                || lhs.occlusionStrength != rhs.occlusionStrength
+                || lhs.blurRadius != rhs.blurRadius;
         }
 
         public float diffuseDist;
@@ -44,6 +46,9 @@ public class SqLightManager : MonoBehaviour
 
         [HideInInspector]
         public int dummy;   // with other usage in native
+
+        [Range(1, 7)]
+        public int blurRadius;
     };
 
     [DllImport("SquallGraphics")]

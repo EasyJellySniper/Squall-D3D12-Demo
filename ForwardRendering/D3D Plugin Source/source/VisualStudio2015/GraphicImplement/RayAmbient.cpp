@@ -87,7 +87,7 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	dxrCmd->DispatchRays(&dispatchDesc);
 
 	// blur result
-	GaussianBlur::BlurCompute(_cmdList, BlurConstant(5, 0.1f, 0.1f), ambientSrc, GetAmbientSrvHandle(), GetAmbientUav());
+	GaussianBlur::BlurCompute(_cmdList, BlurConstant(ambientConst.blurRadius, 0.1f, 0.1f), ambientSrc, GetAmbientSrvHandle(), GetAmbientUav());
 
 	// barriers after tracing
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
