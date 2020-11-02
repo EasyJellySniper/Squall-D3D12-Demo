@@ -4,6 +4,7 @@
 #include "../MaterialManager.h"
 #include "../GraphicManager.h"
 #include "../RayTracingManager.h"
+#include "GaussianBlur.h"
 
 void RayAmbient::Init(ID3D12Resource* _ambientRT, ID3D12Resource* _noiseTex)
 {
@@ -84,6 +85,10 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 
 	// dispatch rays
 	dxrCmd->DispatchRays(&dispatchDesc);
+
+	// blur result
+	GaussianBlur::BlurCompute(_cmdList, BlurConstant(5, 0.1f, 0.1f), ambientSrc
+		, TextureManager::Instance().GetTexHandle(ambientHeapData.srv), TextureManager::Instance().GetTexHandle(ambientHeapData.uav));
 
 	// barriers after tracing
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

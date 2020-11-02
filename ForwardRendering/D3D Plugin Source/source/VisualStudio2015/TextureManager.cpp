@@ -85,6 +85,21 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo 
 	return nativeId;
 }
 
+int TextureManager::UpdateNativeTexture(size_t _texId, void* _texData, TextureInfo _info)
+{
+	for (size_t i = 0; i < textures.size(); i++)
+	{
+		if (_texId == textures[i].GetInstanceID())
+		{
+			// update heap only
+			AddTexToHeap((int)i, textures[i]);
+			return (int)i;
+		}
+	}
+
+	return AddNativeTexture(_texId, _texData, _info);
+}
+
 int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, D3D12_FILTER _filter)
 {
 	// check duplicate add

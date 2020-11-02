@@ -1,6 +1,7 @@
 #define GaussianBlurRS "RootFlags(0)," \
 "CBV(b0)," \
 "CBV(b1)," \
+"RootConstants( num32BitConstants = 1, b2 )," \
 "DescriptorTable(UAV(u0, numDescriptors=1))," \
 "DescriptorTable(SRV(t0, space=1, numDescriptors=1))"
 
@@ -16,6 +17,10 @@ cbuffer BlurConstant : register(b1)
 	float _DepthThreshold;
 	float _NormalThreshold;
 	int _BlurRadius;
+};
+
+cbuffer BlurConstant2 : register(b2)
+{
 	int _HorizontalBlur;
 };
 
