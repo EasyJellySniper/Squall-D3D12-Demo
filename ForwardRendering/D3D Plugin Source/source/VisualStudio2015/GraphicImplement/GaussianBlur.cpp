@@ -165,8 +165,8 @@ ComPtr<ID3D12Resource> GaussianBlur::CreateTempResource(D3D12_RESOURCE_DESC _des
 		, IID_PPV_ARGS(&tmpSrc)));
 
 	// create srv
-	blurHeapData.srv = TextureManager::Instance().AddNativeTexture(blurHeapData.uniqueSrvID, tmpSrc.Get(), TextureInfo());
-	blurHeapData.uav = TextureManager::Instance().AddNativeTexture(blurHeapData.uniqueUavID, tmpSrc.Get(), TextureInfo(false, false, true, false, false));
+	blurHeapData.srv = TextureManager::Instance().UpdateNativeTexture(blurHeapData.uniqueSrvID, tmpSrc.Get(), TextureInfo());
+	blurHeapData.uav = TextureManager::Instance().UpdateNativeTexture(blurHeapData.uniqueUavID, tmpSrc.Get(), TextureInfo(false, false, true, false, false));
 
 	return tmpSrc;
 }

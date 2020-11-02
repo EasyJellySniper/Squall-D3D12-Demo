@@ -87,13 +87,14 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo 
 
 int TextureManager::UpdateNativeTexture(size_t _texId, void* _texData, TextureInfo _info)
 {
-	for (size_t i = 0; i < textures.size(); i++)
+	for (int i = 0; i < (int)textures.size(); i++)
 	{
 		if (_texId == textures[i].GetInstanceID())
 		{
 			// update heap only
-			AddTexToHeap((int)i, textures[i]);
-			return (int)i;
+			textures[i].SetResource((ID3D12Resource*)_texData);
+			AddTexToHeap(i, textures[i]);
+			return i;
 		}
 	}
 
@@ -188,8 +189,7 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture, int _mipSlice)
 	}
 
 	// index to correct address
-	D3D12_CPU_DESCRIPTOR_HANDLE hTexture = texDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	hTexture.ptr += _index * cbvSrvUavDescriptorSize;
+	CD3DX12_CPU_DESCRIPTOR_HANDLE hTexture = CD3DX12_CPU_DESCRIPTOR_HANDLE(texDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), _index, cbvSrvUavDescriptorSize);
 
 	auto texInfo = _texture.GetInfo();
 
