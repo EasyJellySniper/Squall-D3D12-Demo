@@ -66,6 +66,7 @@ cbuffer AmbientData : register(b1)
     float _AmbientOcclusionDistance;
     float _OcclusionFadeDist;
     float _OccStrength;
+    float _NoiseTiling;
     int _SampleCount;
     int _AmbientNoiseIndex;
     int _BlurRadius;
@@ -77,7 +78,7 @@ StructuredBuffer<float4> _UniformVector : register(t0, space6);
 float3 GetRandomVector(uint idx, float2 uv)
 {
     // tiling noise sample
-    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicWrapSampler, 4 * uv, 0).rgb;
+    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicWrapSampler, _NoiseTiling * uv, 0).rgb;
     randVec = randVec * 2.0f - 1.0f;
 
     float3 offset = reflect(_UniformVector[idx].xyz, randVec);

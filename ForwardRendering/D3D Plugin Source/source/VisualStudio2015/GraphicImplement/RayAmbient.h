@@ -19,6 +19,7 @@ struct AmbientConstant
 	float occlusionDist;
 	float occlusionFadeDist;
 	float occlusionStrength;
+	float noiseTiling;
 	int sampleCount;
 	int ambientNoiseIndex;
 	int blurRadius;
