@@ -84,8 +84,9 @@ float3 GetRandomVector(uint idx, float2 uv)
     randVec = randVec * 2.0f - 1.0f;
 
     float3 uniformVec = _UniformVector[idx].xyz;
+    randVec.z = lerp(-randVec.z, randVec.z, sign(randVec.z) == sign(uniformVec.z)); // make z dir the same side
 
-    return reflect(uniformVec, randVec);
+    return normalize(uniformVec + randVec);
 }
 
 RayPayload TestAmbient(RayDesc ray, bool testOcclusion)
