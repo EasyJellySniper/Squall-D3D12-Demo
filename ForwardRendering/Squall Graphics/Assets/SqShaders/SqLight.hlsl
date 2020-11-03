@@ -190,10 +190,13 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 {
 	SqGI gi = (SqGI)0;
 
+	// sample ray tracing AO
+	float4 rtAmbient = SQ_SAMPLE_TEXTURE(_AmbientRTIndex, _AnisotropicWrapSampler, screenUV);
+
 	// hemi sphere sky light
 	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
-	gi.indirectDiffuse = _AmbientGround.rgb + up * _AmbientSky.rgb;
-	gi.indirectDiffuse *= occlusion;
+	gi.indirectDiffuse = /*_AmbientGround.rgb*/rtAmbient.rgb + up * _AmbientSky.rgb;
+	gi.indirectDiffuse *= min(occlusion, rtAmbient.a);
 
 #if defined(RAY_SHADER)
 	// ray shader only calc diffuse

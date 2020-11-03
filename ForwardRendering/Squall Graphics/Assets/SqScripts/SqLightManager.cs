@@ -41,7 +41,7 @@ public class SqLightManager : MonoBehaviour
         public float diffuseDist;
         public float diffuseFadeDist;
 
-        [Range(0, 1)]
+        [Range(0, 8)]
         public float diffuseStrength;
         public float occlusionDist;
         public float occlusionFadeDist;
