@@ -237,6 +237,23 @@ void RTShadowClosestHit(inout RayPayload payload, in BuiltInTriangleIntersection
     // mark atten to 0
     payload.atten = 0.0f;
     payload.distBlockToLight = RayTCurrent();
+
+    // transparent
+    if (_RenderQueue == 2)
+    {
+        // get primitive index
+        // offset 3 * sizeof(index) = 6, also consider the startindexlocation
+        uint ibStride = 2;
+        uint pIdx = PrimitiveIndex() * 3 * ibStride + _SubMesh[InstanceIndex()].StartIndexLocation * ibStride;
+        uint vertID = InstanceID();
+        const uint3 indices = Load3x16BitIndices(pIdx, vertID + 1);
+
+        // get interpolated uv and tiling it
+        float2 uvHit = GetHitUV(indices, vertID, attr);
+        uvHit = uvHit * _MainTex_ST.xy + _MainTex_ST.zw;
+        float alpha = SQ_SAMPLE_TEXTURE_LEVEL(_DiffuseIndex, _SamplerIndex, uvHit, 0).a * _Color.a;
+        payload.atten = lerp(1, payload.atten, alpha);
+    }
 }
 
 [shader("anyhit")]
