@@ -6,6 +6,11 @@
 #include "../Camera.h"
 #include "../UploadBuffer.h"
 
+struct UniformVector
+{
+	XMFLOAT4 v;
+};
+
 struct AmbientConstant
 {
 	float diffuseDist;
@@ -47,5 +52,8 @@ private:
 	DescriptorHeapData ambientHeapData;
 	DescriptorHeapData noiseHeapData;
 	AmbientConstant ambientConst;
+
+	UniformVector uniformVectorCPU[maxSampleCount];
+	unique_ptr<UploadBuffer<UniformVector>> uniformVectorGPU;
 	unique_ptr<UploadBuffer<AmbientConstant>> ambientConstantGPU;
 };

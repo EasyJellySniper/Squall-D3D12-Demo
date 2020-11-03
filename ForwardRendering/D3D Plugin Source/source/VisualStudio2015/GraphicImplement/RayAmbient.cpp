@@ -30,6 +30,7 @@ void RayAmbient::Init(ID3D12Resource* _ambientRT, ID3D12Resource* _noiseTex)
 void RayAmbient::Release()
 {
 	rtAmbientMat.Release();
+	uniformVectorGPU.reset();
 }
 
 void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU)
@@ -71,6 +72,7 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootShaderResourceView(10, uniformVectorGPU->Resource()->GetGPUVirtualAddress());
 
 	// prepare dispatch desc
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = rtAmbientMat.GetDispatchRayDesc((UINT)ambientSrc->GetDesc().Width, ambientSrc->GetDesc().Height);
@@ -101,6 +103,23 @@ void RayAmbient::UpdataAmbientData(AmbientConstant _ac)
 {
 	ambientConst = _ac;
 	ambientConst.ambientNoiseIndex = GetAmbientNoiseSrv();
+
+	int vecCount = (int)ceil(sqrt(ambientConst.sampleCount));
+	float gap = 1.0f / (float)vecCount;
+
+	for (int i = 0; i < vecCount; i++)
+	{
+		for (int j = 0; j < vecCount; j++)
+		{
+			int idx = j + i * vecCount;
+			uniformVectorCPU[idx].v.x = gap * j * 2.0f - 1.0f;
+			uniformVectorCPU[idx].v.y = gap * i * 2.0f - 1.0f;
+			uniformVectorCPU[idx].v.z = 1.0f;	// just forward on z
+		}
+	}
+
+	uniformVectorGPU->CopyDataAll(uniformVectorCPU);
+
 	ambientConstantGPU->CopyData(0, ambientConst);
 }
 
@@ -121,6 +140,7 @@ Material* RayAmbient::GetMaterial()
 
 void RayAmbient::CreateResource()
 {
+	uniformVectorGPU = make_unique<UploadBuffer<UniformVector>>(GraphicManager::Instance().GetDevice(), maxSampleCount, false);
 	ambientConstantGPU = make_unique<UploadBuffer<AmbientConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
 }
 

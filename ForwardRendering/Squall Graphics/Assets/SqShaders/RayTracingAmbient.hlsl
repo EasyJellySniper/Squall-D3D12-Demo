@@ -30,7 +30,8 @@ GlobalRootSignature RTAmbientRootSig =
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 3, flags = DESCRIPTORS_VOLATILE) ),"    //vertex start
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
     "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) ),"     // tex sampler
-    "SRV( t0, space = 5)"       // submesh data
+    "SRV( t0, space = 5),"       // submesh data
+    "SRV( t0, space = 6)"       // uniform vector
 };
 
 TriangleHitGroup SqRayHitGroup =
@@ -74,18 +75,17 @@ cbuffer AmbientData : register(b1)
 };
 
 RWTexture2D<float4> _OutputAmbient : register(u0);
+StructuredBuffer<float4> _UniformVector : register(t0, space6);
 
 float3 GetRandomVector(uint idx, float2 uv)
 {
-    float w, h;
-    _TexTable[_AmbientNoiseIndex].GetDimensions(w, h);
-    float2 texel = float2(1.0f / w, 1.0f / h);
-
     // tiling noise sample
-    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicWrapSampler, _NoiseTiling * uv + texel * idx, 0).rgb;
+    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicWrapSampler, _NoiseTiling * uv, 0).rgb;
     randVec = randVec * 2.0f - 1.0f;
 
-    return randVec;
+    float3 uniformVec = _UniformVector[idx].xyz;
+
+    return reflect(uniformVec, randVec);
 }
 
 RayPayload TestAmbient(RayDesc ray, bool testOcclusion)
