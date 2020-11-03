@@ -200,12 +200,7 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     // output occlusion
     if (payload.testOcclusion)
     {
-        // atten calc, consider ndotl
-        SqLight light = _SqDirLight[0];
-        float ndotl = saturate(dot(-light.world.xyz, WorldRayDirection()));
-
         atten = saturate(distToHit / _OcclusionFadeDist);
-        atten = lerp(atten, 1, ndotl);
         payload.ambientColor.a = atten * atten;
         return;
     }
