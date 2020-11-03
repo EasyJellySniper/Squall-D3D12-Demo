@@ -77,6 +77,13 @@ cbuffer AmbientData : register(b1)
 RWTexture2D<float4> _OutputAmbient : register(u0);
 StructuredBuffer<float4> _UniformVector : register(t0, space6);
 
+void SignFlip(inout float3 input, float3 target)
+{
+    input.x = lerp(-input.x, input.x, sign(input.x) == sign(target.x));
+    input.y = lerp(-input.y, input.y, sign(input.y) == sign(target.y));
+    input.z = lerp(-input.z, input.z, sign(input.z) == sign(target.z));
+}
+
 float3 GetRandomVector(uint idx, float2 uv)
 {
     // tiling noise sample
@@ -84,9 +91,7 @@ float3 GetRandomVector(uint idx, float2 uv)
     randVec = randVec * 2.0f - 1.0f;
 
     float3 uniformVec = _UniformVector[idx].xyz;
-    randVec.z = lerp(-randVec.z, randVec.z, sign(randVec.z) == sign(uniformVec.z)); // make z dir the same side
-
-    return normalize(uniformVec + randVec);
+    return reflect(uniformVec, randVec);
 }
 
 RayPayload TestAmbient(RayDesc ray, bool testOcclusion)
@@ -113,8 +118,8 @@ void TraceAmbient(float3 wpos, float3 normal, float2 uv)
     for (uint n = 0; n < _SampleCount; n++)
     {
         float3 dir = GetRandomVector(n, uv);
-        dir.z = lerp(-dir.z, dir.z, sign(dir.z) == sign(normal.z)); // make z dir the same side as normal
-        dir = normalize(dir + normal);
+        SignFlip(dir, normal);
+        dir = normalize(dir * 0.5f + normal);
 
         // define ray
         RayDesc ambientRay;
