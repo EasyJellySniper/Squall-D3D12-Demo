@@ -199,7 +199,12 @@ void RendererManager::UploadObjectConstant(int _frameIdx, int _threadIndex, int 
 		}
 
 		auto r = renderers[i];
-		if (!r->GetVisible() && !r->IsDirty(_frameIdx))
+		if (!r->GetVisible())
+		{
+			continue;
+		}
+
+		if (!r->IsDirty(_frameIdx))
 		{
 			continue;
 		}

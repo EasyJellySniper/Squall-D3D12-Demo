@@ -186,17 +186,35 @@ float3 LightBRDFSimple(float3 diffColor, float3 specColor, float smoothness, flo
 	return diffColor * (dirDiffuse + gi.indirectDiffuse) + dirSpecular * useSpecular + giSpec;
 }
 
+SqGI CalcGISimple(float3 normal, float occlusion)
+{
+	SqGI gi = (SqGI)0;
+
+	// hemi sphere sky light
+	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
+	gi.indirectDiffuse = _AmbientGround.rgb + up * _AmbientSky.rgb;
+	gi.indirectDiffuse *= occlusion;
+
+	return gi;
+}
+
 SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, bool isTransparent)
 {
 	SqGI gi = (SqGI)0;
 
-	// sample ray tracing AO
-	float4 rtAmbient = SQ_SAMPLE_TEXTURE(_AmbientRTIndex, _AnisotropicWrapSampler, screenUV);
+	[branch]
+	if (!isTransparent)
+	{
+		// sample ray tracing AO
+		float4 rtAmbient = SQ_SAMPLE_TEXTURE(_AmbientRTIndex, _AnisotropicWrapSampler, screenUV);
 
-	// hemi sphere sky light
-	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
-	gi.indirectDiffuse = rtAmbient.rgb + up * _AmbientSky.rgb;
-	gi.indirectDiffuse *= min(occlusion, rtAmbient.a);
+		// hemi sphere sky light
+		float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
+		gi.indirectDiffuse = rtAmbient.rgb + up * _AmbientSky.rgb;
+		gi.indirectDiffuse *= min(occlusion, rtAmbient.a);
+	}
+	else
+		gi = CalcGISimple(normal, occlusion);
 
 #if defined(RAY_SHADER)
 	// ray shader only calc diffuse
@@ -208,24 +226,13 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 	float specMip = roughness * 10;
 
 	// sample indirect specular
+	[branch]
 	if(!isTransparent)
 		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_ReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
 	else
 		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_TransReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
 
 	gi.indirectSpecular *= occlusion;
-
-	return gi;
-}
-
-SqGI CalcGISimple(float3 normal, float occlusion)
-{
-	SqGI gi = (SqGI)0;
-
-	// hemi sphere sky light
-	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
-	gi.indirectDiffuse = _AmbientGround.rgb + up * _AmbientSky.rgb;
-	gi.indirectDiffuse *= occlusion;
 
 	return gi;
 }
