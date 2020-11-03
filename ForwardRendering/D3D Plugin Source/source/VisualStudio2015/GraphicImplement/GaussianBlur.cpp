@@ -78,7 +78,8 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	_cmdList->SetComputeRoot32BitConstant(2, 1, 0);
 	_cmdList->SetComputeRootShaderResourceView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootDescriptorTable(4, _inputSrv);
-	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->Dispatch((UINT)desc.Width / 8, desc.Height / 8, 1);
 
 	// vertical pass
@@ -91,7 +92,8 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	_cmdList->SetComputeRoot32BitConstant(2, 0, 0);
 	_cmdList->SetComputeRootShaderResourceView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetTexHandle(blurHeapData.srv));
-	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->Dispatch((UINT)desc.Width / 8, desc.Height / 8, 1);
 }
 

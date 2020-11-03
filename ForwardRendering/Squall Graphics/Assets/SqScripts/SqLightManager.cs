@@ -18,7 +18,9 @@ public class SqLightManager : MonoBehaviour
                 && lhs.occlusionFadeDist == rhs.occlusionFadeDist
                 && lhs.occlusionStrength == rhs.occlusionStrength
                 && lhs.blurRadius == rhs.blurRadius
-                && lhs.noiseTiling == rhs.noiseTiling;
+                && lhs.noiseTiling == rhs.noiseTiling
+                && lhs.blurDepthThres == rhs.blurDepthThres
+                && lhs.blurNormalThres == rhs.blurNormalThres;
         }
 
         public static bool operator !=(AmbientConstant lhs, AmbientConstant rhs)
@@ -31,7 +33,9 @@ public class SqLightManager : MonoBehaviour
                 || lhs.occlusionFadeDist != rhs.occlusionFadeDist
                 || lhs.occlusionStrength != rhs.occlusionStrength
                 || lhs.blurRadius != rhs.blurRadius
-                || lhs.noiseTiling != rhs.noiseTiling;
+                || lhs.noiseTiling != rhs.noiseTiling
+                || lhs.blurDepthThres != rhs.blurDepthThres
+                || lhs.blurNormalThres != rhs.blurNormalThres;
         }
 
         public float diffuseDist;
@@ -45,6 +49,12 @@ public class SqLightManager : MonoBehaviour
         [Range(0, 1)]
         public float occlusionStrength;
         public float noiseTiling;
+
+        [Range(0, 1)]
+        public float blurDepthThres;
+
+        [Range(0, 1)]
+        public float blurNormalThres;
         public int sampleCount;
 
         [HideInInspector]

@@ -67,6 +67,8 @@ cbuffer AmbientData : register(b1)
     float _OcclusionFadeDist;
     float _OccStrength;
     float _NoiseTiling;
+    float _BlurDepthThres;
+    float _BlurNormalThres;
     int _SampleCount;
     int _AmbientNoiseIndex;
     int _BlurRadius;

@@ -400,7 +400,7 @@ void ShaderManager::BuildRootSignature(unique_ptr<Shader>& _shader, wstring _fil
 	}
 
 	// compile rs
-	ID3DBlob* _compiledRS = CompileFromFile(shaderPath + _fileName, nullptr, entryRS, "rootsig_1_0");
+	ID3DBlob* _compiledRS = CompileFromFile(shaderPath + _fileName, nullptr, entryRS, "rootsig_1_1");
 	if (_compiledRS == nullptr)
 	{
 		return;
