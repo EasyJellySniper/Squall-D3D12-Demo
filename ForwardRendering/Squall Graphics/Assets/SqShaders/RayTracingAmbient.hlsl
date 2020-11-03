@@ -77,8 +77,12 @@ RWTexture2D<float4> _OutputAmbient : register(u0);
 
 float3 GetRandomVector(uint idx, float2 uv)
 {
+    float w, h;
+    _TexTable[_AmbientNoiseIndex].GetDimensions(w, h);
+    float2 texel = float2(1.0f / w, 1.0f / h);
+
     // tiling noise sample
-    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicWrapSampler, _NoiseTiling * uv, 0).rgb;
+    float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicWrapSampler, _NoiseTiling * uv + texel * idx, 0).rgb;
     randVec = randVec * 2.0f - 1.0f;
 
     return randVec;
