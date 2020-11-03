@@ -26,7 +26,7 @@ EXPORTS
    AddNativeRenderer
    SetNativeRendererActive
    AddNativeMaterial
-   UpdateRendererBound
+   UpdateLocalBound
    UpdateNativeMaterialProp
    AddNativeTexture
    AddNativeSampler

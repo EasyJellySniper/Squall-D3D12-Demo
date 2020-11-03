@@ -13,7 +13,7 @@ public:
 	void Init(int _meshID, bool _isDynamic);
 	void Release();
 	void UpdateObjectConstant(ObjectConstant _sc, int _frameIdx);
-	void UpdateBound(float _cx,float _cy, float _cz, float _ex, float _ey, float _ez);
+	void UpdateLocalBound(float _cx,float _cy, float _cz, float _ex, float _ey, float _ez);
 	void SetVisible(bool _visible);
 	void SetShadowVisible(bool _visible);
 	void SetActive(bool _active);
@@ -24,7 +24,7 @@ public:
 
 	XMFLOAT4X4 GetWorld();
 	Mesh *GetMesh();
-	BoundingBox GetBound();
+	BoundingBox GetWorldBound();
 	bool GetVisible();
 	bool GetShadowVisible();
 	bool GetActive();
@@ -41,7 +41,8 @@ private:
 	unique_ptr<UploadBuffer<ObjectConstant>> rendererConstant[MAX_FRAME_COUNT];
 
 	Mesh *mesh;
-	BoundingBox bound;
+	BoundingBox localBound;
+	BoundingBox worldBound;
 	bool isVisible;
 	bool isShadowVisible;
 	bool isActive;

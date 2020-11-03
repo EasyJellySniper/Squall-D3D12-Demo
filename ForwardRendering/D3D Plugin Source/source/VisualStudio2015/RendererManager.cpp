@@ -84,7 +84,7 @@ void RendererManager::AddToQueueRenderer(Renderer* _renderer, Camera *_camera)
 	auto mat = _renderer->GetMaterials();
 
 	// calc z distance to camera
-	auto bound = _renderer->GetBound();
+	auto bound = _renderer->GetWorldBound();
 	float minZ = bound.Center.z - bound.Extents.z;
 	float maxZ = bound.Center.z + bound.Extents.z;
 	float zDist = min(abs(minZ - camPos.z), abs(maxZ - camPos.z));
@@ -115,7 +115,7 @@ void RendererManager::AddToInstanceRenderer(Renderer* _renderer, Camera *_camera
 	auto mats = _renderer->GetMaterials();
 
 	// calc z distance to camera
-	auto bound = _renderer->GetBound();
+	auto bound = _renderer->GetWorldBound();
 	float minZ = bound.Center.z - bound.Extents.z;
 	float maxZ = bound.Center.z + bound.Extents.z;
 	float zDist = min(abs(minZ - camPos.z), abs(maxZ - camPos.z));
@@ -172,14 +172,14 @@ void RendererManager::ClearInstanceRendererData()
 	}
 }
 
-void RendererManager::UpdateRendererBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez)
+void RendererManager::UpdateLocalBound(int _id, float _x, float _y, float _z, float _ex, float _ey, float _ez)
 {
 	if (_id < 0 || _id >= (int)renderers.size())
 	{
 		return;
 	}
 
-	renderers[_id]->UpdateBound(_x, _y, _z, _ex, _ey, _ez);
+	renderers[_id]->UpdateLocalBound(_x, _y, _z, _ex, _ey, _ez);
 }
 
 void RendererManager::UploadObjectConstant(int _frameIdx, int _threadIndex, int _numThreads)
@@ -342,7 +342,7 @@ void RendererManager::FrustumCulling(Camera* _camera, int _threadIdx)
 			continue;
 		}
 
-		bool isVisible = _camera->FrustumTest(renderers[i]->GetBound());
+		bool isVisible = _camera->FrustumTest(renderers[i]->GetWorldBound());
 		renderers[i]->SetVisible(isVisible);
 	}
 }

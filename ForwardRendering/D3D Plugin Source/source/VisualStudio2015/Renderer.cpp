@@ -34,11 +34,11 @@ void Renderer::UpdateObjectConstant(ObjectConstant _sc, int _frameIdx)
 	isDirty[_frameIdx] = false;
 }
 
-void Renderer::UpdateBound(float _cx, float _cy, float _cz, float _ex, float _ey, float _ez)
+void Renderer::UpdateLocalBound(float _cx, float _cy, float _cz, float _ex, float _ey, float _ez)
 {
 	XMFLOAT3 center = XMFLOAT3(_cx, _cy, _cz);
 	XMFLOAT3 extent = XMFLOAT3(_ex, _ey, _ez);
-	bound = BoundingBox(center, extent);
+	localBound = BoundingBox(center, extent);
 }
 
 void Renderer::SetVisible(bool _visible)
@@ -64,6 +64,9 @@ void Renderer::SetDirty(int _frameIdx)
 void Renderer::SetWorld(XMFLOAT4X4 _world)
 {
 	world = _world;
+
+	// update bound also note we only cache local bound when init!
+	localBound.Transform(worldBound, XMLoadFloat4x4(&world));
 
 	for (int i = 0; i < MAX_FRAME_COUNT; i++)
 	{
@@ -91,9 +94,9 @@ Mesh * Renderer::GetMesh()
 	return mesh;
 }
 
-BoundingBox Renderer::GetBound()
+BoundingBox Renderer::GetWorldBound()
 {
-	return bound;
+	return worldBound;
 }
 
 bool Renderer::GetVisible()

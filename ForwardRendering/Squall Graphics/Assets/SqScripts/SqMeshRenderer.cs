@@ -12,7 +12,7 @@ public class SqMeshRenderer : MonoBehaviour
     static extern int AddNativeRenderer(int _instanceID, int _meshInstanceID, bool _isDynamic);
 
     [DllImport("SquallGraphics")]
-    static extern bool UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
+    static extern bool UpdateLocalBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez);
 
     [DllImport("SquallGraphics")]
     static extern void SetWorldMatrix(int _instanceID, Matrix4x4 _world);
@@ -74,14 +74,15 @@ public class SqMeshRenderer : MonoBehaviour
         rendererCache = GetComponent<MeshRenderer>();
         rendererNativeID = AddNativeRenderer(GetInstanceID(), GetComponent<SqMeshFilter>().MainMesh.GetInstanceID(), !gameObject.isStatic);
 
-        Bounds b = rendererCache.bounds;
-        UpdateRendererBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
+        Bounds b = GetComponent<MeshFilter>().sharedMesh.bounds;
+        UpdateLocalBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
+
+        // destroy unity mesh after use it (I create a copy on native side for ray tracing accleration structures)
+        Destroy(GetComponent<MeshFilter>());
     }
 
     void UpdateNativeTransform()
     {
-        Bounds b = rendererCache.bounds;
-        UpdateRendererBound(rendererNativeID, b.center.x, b.center.y, b.center.z, b.extents.x, b.extents.y, b.extents.z);
         SetWorldMatrix(rendererNativeID, rendererCache.localToWorldMatrix);
         transform.hasChanged = false;
     }

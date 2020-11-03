@@ -123,9 +123,9 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeMaterial(int
 	RendererManager::Instance().AddCreatedMaterial(_nRendererId, mat);
 }
 
-extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRendererBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez)
+extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateLocalBound(int _instanceID, float _x, float _y, float _z, float _ex, float _ey, float _ez)
 {
-	RendererManager::Instance().UpdateRendererBound(_instanceID, _x, _y, _z, _ex, _ey, _ez);
+	RendererManager::Instance().UpdateLocalBound(_instanceID, _x, _y, _z, _ex, _ey, _ez);
 }
 
 extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateNativeMaterialProp(int _instanceID, UINT _byteSize, void *_data)
