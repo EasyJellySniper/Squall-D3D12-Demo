@@ -83,8 +83,7 @@ float3 GetRandomVector(uint idx, float2 uv)
     float3 randVec = SQ_SAMPLE_TEXTURE_LEVEL(_AmbientNoiseIndex, _AnisotropicWrapSampler, _NoiseTiling * uv, 0).rgb;
     randVec = randVec * 2.0f - 1.0f;
 
-    float3 offset = reflect(_UniformVector[idx].xyz, randVec);
-    return offset;
+    return randVec;
 }
 
 RayPayload TestAmbient(RayDesc ray, bool testOcclusion)
