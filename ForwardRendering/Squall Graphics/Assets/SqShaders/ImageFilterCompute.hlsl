@@ -48,7 +48,7 @@ void GaussianBlur(uint2 _globalID)
 	float totalWeight = 0.0f;
 	float cDepth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _LinearClampSampler, screenUV, 0).r;
 	float3 cNormal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _LinearClampSampler, screenUV, 0).rgb;
-	float4 cColor = _InputTex.SampleLevel(_SamplerTable[_LinearClampSampler], screenUV, 0);
+	float4 cColor = _InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], screenUV, 0);
 
 	// sample within radius
 	for (int i = -_BlurConst[0]._BlurRadius; i <= _BlurConst[0]._BlurRadius; i++)
@@ -64,7 +64,7 @@ void GaussianBlur(uint2 _globalID)
 			abs(nDepth - cDepth) <= _BlurConst[0]._DepthThreshold)
 		{
 			float weight = _BlurConst[0]._BlurWeight[i + _BlurConst[0]._BlurRadius];
-			color += weight * _InputTex.SampleLevel(_SamplerTable[_LinearClampSampler], uv, 0);
+			color += weight * _InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv, 0);
 			totalWeight += weight;
 		}
 	}

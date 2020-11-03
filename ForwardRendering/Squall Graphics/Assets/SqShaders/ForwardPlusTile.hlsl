@@ -117,7 +117,7 @@ void ForwardPlusTileCS(uint3 _globalID : SV_DispatchThreadID, uint3 _groupID : S
 	else
 	{
 		// fetch depth
-		depth = _TexTable[_DepthIndex][_globalID.xy].r;
+		depth = _SqTexTable[_DepthIndex][_globalID.xy].r;
 	}
 
 	// init thread variable and sync

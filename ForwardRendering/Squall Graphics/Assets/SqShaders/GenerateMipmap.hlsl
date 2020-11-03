@@ -54,7 +54,7 @@ void GenerateMipmapCS(uint3 _globalID : SV_DispatchThreadID, uint _groupIdx : SV
 	uv /= float2(w, h);
 
 	// keep mip 0 color
-	float4 src1 = _SrcMip.SampleLevel(_SamplerTable[_LinearWrapSampler], uv, _StartMip);
+	float4 src1 = _SrcMip.SampleLevel(_SqSamplerTable[_LinearWrapSampler], uv, _StartMip);
 	CacheColor(_groupIdx, src1);
 	GroupMemoryBarrierWithGroupSync();
 

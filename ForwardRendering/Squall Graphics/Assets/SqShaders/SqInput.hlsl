@@ -112,8 +112,8 @@ cbuffer MaterialConstant : register(b2)
 StructuredBuffer<SqInstanceData> _SqInstanceData : register(t0, space2);
 
 // need /enable_unbounded_descriptor_tables when compiling
-Texture2D _TexTable[] : register(t0);
-SamplerState _SamplerTable[] : register(s0);
+Texture2D _SqTexTable[] : register(t0);
+SamplerState _SqSamplerTable[] : register(s0);
 StructuredBuffer<SqLight> _SqDirLight: register(t0, space1);
 StructuredBuffer<SqLight> _SqPointLight: register(t1, space1);
 //StructuredBuffer<SqLight> _SqSpotLight: register(t2, space1);
@@ -158,12 +158,12 @@ int GetPointLightOffset(uint _index)
 	return _index * (_MaxPointLight * 4 + 4);
 }
 
-#define SQ_SAMPLE_TEXTURE_LEVEL(x,y,z,w) _TexTable[x].SampleLevel(_SamplerTable[y], z, w)
+#define SQ_SAMPLE_TEXTURE_LEVEL(x,y,z,w) _SqTexTable[x].SampleLevel(_SqSamplerTable[y], z, w)
 
 #if defined(RAY_SHADER)
 	#define SQ_SAMPLE_TEXTURE(x,y,z) SQ_SAMPLE_TEXTURE_LEVEL(x,y,z,0)
 #else
-	#define SQ_SAMPLE_TEXTURE(x,y,z) _TexTable[x].Sample(_SamplerTable[y], z)
+	#define SQ_SAMPLE_TEXTURE(x,y,z) _SqTexTable[x].Sample(_SqSamplerTable[y], z)
 #endif
 
 #endif
