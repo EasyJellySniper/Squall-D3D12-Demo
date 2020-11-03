@@ -31,7 +31,7 @@ struct BlurConstant
 	float blurWeight[MAX_BLUR_WEIGHT];
 };
 
-class GaussianBlur
+class ImageFilter
 {
 public:
 	static void Init();

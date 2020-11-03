@@ -40,8 +40,8 @@
     <ClInclude Include="GameTime.h" />
     <ClInclude Include="GameTimerManager.h" />
     <ClInclude Include="GraphicImplement\ForwardPlus.h" />
-    <ClInclude Include="GraphicImplement\GaussianBlur.h" />
     <ClInclude Include="GraphicImplement\GenerateMipmap.h" />
+    <ClInclude Include="GraphicImplement\ImageFilter.h" />
     <ClInclude Include="GraphicImplement\RayAmbient.h" />
     <ClInclude Include="GraphicImplement\RayReflection.h" />
     <ClInclude Include="GraphicImplement\RayShadow.h" />
@@ -76,8 +76,8 @@
     <ClCompile Include="ForwardRenderingPath.cpp" />
     <ClCompile Include="GameTimerManager.cpp" />
     <ClCompile Include="GraphicImplement\ForwardPlus.cpp" />
-    <ClCompile Include="GraphicImplement\GaussianBlur.cpp" />
     <ClCompile Include="GraphicImplement\GenerateMipmap.cpp" />
+    <ClCompile Include="GraphicImplement\ImageFilter.cpp" />
     <ClCompile Include="GraphicImplement\RayAmbient.cpp" />
     <ClCompile Include="GraphicImplement\RayReflection.cpp" />
     <ClCompile Include="GraphicImplement\RayShadow.cpp" />

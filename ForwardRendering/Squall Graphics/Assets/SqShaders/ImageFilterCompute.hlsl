@@ -1,4 +1,4 @@
-#define GaussianBlurRS "RootFlags(0)," \
+#define ImageFilterRS "RootFlags(0)," \
 "CBV(b0)," \
 "DescriptorTable(UAV(u0, numDescriptors=1))," \
 "RootConstants( num32BitConstants = 1, b2 )," \
@@ -8,8 +8,8 @@
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
 
 #include "SqInput.hlsl"
-#pragma sq_compute GaussianBlurCS
-#pragma sq_rootsig GaussianBlurRS
+#pragma sq_compute ImageFilterCS
+#pragma sq_rootsig ImageFilterRS
 
 struct BlurConstant
 {
@@ -30,9 +30,7 @@ RWTexture2D<float4> _OutputTex : register(u0);
 Texture2D _InputTex : register(t0, space3);
 StructuredBuffer<BlurConstant> _BlurConst : register(t1, space3);
 
-[RootSignature(GaussianBlurRS)]
-[numthreads(8, 8, 1)]
-void GaussianBlurCS(uint3 _globalID : SV_DispatchThreadID)
+void GaussianBlur(uint2 _globalID)
 {
 	float2 screenUV = (_globalID.xy + .5f) * _BlurConst[0]._InvTargetSize;
 	float2 texOffset;
@@ -77,4 +75,11 @@ void GaussianBlurCS(uint3 _globalID : SV_DispatchThreadID)
 		color = cColor;
 
 	_OutputTex[_globalID.xy] = color;
+}
+
+[RootSignature(ImageFilterRS)]
+[numthreads(8, 8, 1)]
+void ImageFilterCS(uint3 _globalID : SV_DispatchThreadID)
+{
+	GaussianBlur(_globalID.xy);
 }

@@ -1,26 +1,26 @@
-#include "GaussianBlur.h"
+#include "ImageFilter.h"
 #include "../ShaderManager.h"
 #include "../MaterialManager.h"
 #include "../GraphicManager.h"
 #include "../Formatter.h"
 
-Material GaussianBlur::blurCompute;
-BlurConstant GaussianBlur::blurConstantCPU;
-BlurConstant GaussianBlur::prevBlurConstant;
-unique_ptr<UploadBuffer<BlurConstant>> GaussianBlur::blurConstantGPU;
-ComPtr<ID3D12Heap> GaussianBlur::blurTextureHeap;
-UINT64 GaussianBlur::prevHeapSize;
-DescriptorHeapData GaussianBlur::blurHeapData;
-ComPtr<ID3D12Resource> GaussianBlur::tmpSrc;
+Material ImageFilter::blurCompute;
+BlurConstant ImageFilter::blurConstantCPU;
+BlurConstant ImageFilter::prevBlurConstant;
+unique_ptr<UploadBuffer<BlurConstant>> ImageFilter::blurConstantGPU;
+ComPtr<ID3D12Heap> ImageFilter::blurTextureHeap;
+UINT64 ImageFilter::prevHeapSize;
+DescriptorHeapData ImageFilter::blurHeapData;
+ComPtr<ID3D12Resource> ImageFilter::tmpSrc;
 
-void GaussianBlur::Init()
+void ImageFilter::Init()
 {
 	// init heap size
 	prevHeapSize = 0;
 	prevBlurConstant = BlurConstant();
 
 	// init material
-	Shader* shader = ShaderManager::Instance().CompileShader(L"GaussianBlurCompute.hlsl");
+	Shader* shader = ShaderManager::Instance().CompileShader(L"ImageFilterCompute.hlsl");
 	if (shader != nullptr)
 	{
 		blurCompute = MaterialManager::Instance().CreateComputeMat(shader);
@@ -34,7 +34,7 @@ void GaussianBlur::Init()
 	blurHeapData.uniqueUavID = GetUniqueID();
 }
 
-void GaussianBlur::Release()
+void ImageFilter::Release()
 {
 	GraphicManager::Instance().WaitForGPU();
 
@@ -45,7 +45,7 @@ void GaussianBlur::Release()
 }
 
 // ping-pong method
-void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant _blurConst, ID3D12Resource* _src, D3D12_GPU_DESCRIPTOR_HANDLE _inputSrv, D3D12_GPU_DESCRIPTOR_HANDLE _inputUav)
+void ImageFilter::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant _blurConst, ID3D12Resource* _src, D3D12_GPU_DESCRIPTOR_HANDLE _inputSrv, D3D12_GPU_DESCRIPTOR_HANDLE _inputUav)
 {
 	// assume descriptor heap is binded
 
@@ -97,7 +97,7 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	_cmdList->Dispatch((UINT)desc.Width / 8, desc.Height / 8, 1);
 }
 
-void GaussianBlur::RequestBlurTextureHeap(D3D12_RESOURCE_DESC _desc)
+void ImageFilter::RequestBlurTextureHeap(D3D12_RESOURCE_DESC _desc)
 {
 	_desc.Alignment = D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT;
 
@@ -129,7 +129,7 @@ void GaussianBlur::RequestBlurTextureHeap(D3D12_RESOURCE_DESC _desc)
 	CreateTempResource(_desc);
 }
 
-void GaussianBlur::CalcBlurWeight()
+void ImageFilter::CalcBlurWeight()
 {
 	float sigma = blurConstantCPU.blurRadius / 2.0f;
 	float twoSigma2 = 2.0f * sigma * sigma;
@@ -155,7 +155,7 @@ void GaussianBlur::CalcBlurWeight()
 	}
 }
 
-void GaussianBlur::UploadConstant(D3D12_RESOURCE_DESC _desc)
+void ImageFilter::UploadConstant(D3D12_RESOURCE_DESC _desc)
 {
 	blurConstantCPU.invTargetSize.x = 1.0f / (float)_desc.Width;
 	blurConstantCPU.invTargetSize.y = 1.0f / (float)_desc.Height;
@@ -168,7 +168,7 @@ void GaussianBlur::UploadConstant(D3D12_RESOURCE_DESC _desc)
 	prevBlurConstant = blurConstantCPU;
 }
 
-void GaussianBlur::CreateTempResource(D3D12_RESOURCE_DESC _desc)
+void ImageFilter::CreateTempResource(D3D12_RESOURCE_DESC _desc)
 {
 	// create placed resource
 	tmpSrc.Reset();

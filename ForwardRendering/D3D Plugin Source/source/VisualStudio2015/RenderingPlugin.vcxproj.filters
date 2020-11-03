@@ -75,7 +75,7 @@
       <Filter>GraphicImplement</Filter>
     </ClInclude>
     <ClInclude Include="Formatter.h" />
-    <ClInclude Include="GraphicImplement\GaussianBlur.h">
+    <ClInclude Include="GraphicImplement\ImageFilter.h">
       <Filter>GraphicImplement</Filter>
     </ClInclude>
   </ItemGroup>
@@ -124,7 +124,7 @@
       <Filter>GraphicImplement</Filter>
     </ClCompile>
     <ClCompile Include="Formatter.cpp" />
-    <ClCompile Include="GraphicImplement\GaussianBlur.cpp">
+    <ClCompile Include="GraphicImplement\ImageFilter.cpp">
       <Filter>GraphicImplement</Filter>
     </ClCompile>
   </ItemGroup>
