@@ -30,8 +30,7 @@ GlobalRootSignature RTAmbientRootSig =
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 3, flags = DESCRIPTORS_VOLATILE) ),"    //vertex start
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, space = 4, flags = DESCRIPTORS_VOLATILE) ),"    //index start
     "DescriptorTable( Sampler( s0 , numDescriptors = unbounded) ),"     // tex sampler
-    "SRV( t0, space = 5),"       // submesh data
-    "SRV( t0, space = 6)"       // uniform vector
+    "SRV( t0, space = 5)"       // submesh data
 };
 
 TriangleHitGroup SqRayHitGroup =
@@ -75,7 +74,6 @@ cbuffer AmbientData : register(b1)
 };
 
 RWTexture2D<float4> _OutputAmbient : register(u0);
-StructuredBuffer<float4> _UniformVector : register(t0, space6);
 
 float3 GetRandomVector(uint idx, float2 uv)
 {
