@@ -195,7 +195,7 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 
 	// hemi sphere sky light
 	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
-	gi.indirectDiffuse = /*_AmbientGround.rgb*/rtAmbient.rgb + up * _AmbientSky.rgb;
+	gi.indirectDiffuse = rtAmbient.rgb + up * _AmbientSky.rgb;
 	gi.indirectDiffuse *= min(occlusion, rtAmbient.a);
 
 #if defined(RAY_SHADER)
@@ -214,6 +214,18 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_TransReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
 
 	gi.indirectSpecular *= occlusion;
+
+	return gi;
+}
+
+SqGI CalcGISimple(float3 normal, float occlusion)
+{
+	SqGI gi = (SqGI)0;
+
+	// hemi sphere sky light
+	float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
+	gi.indirectDiffuse = _AmbientGround.rgb + up * _AmbientSky.rgb;
+	gi.indirectDiffuse *= occlusion;
 
 	return gi;
 }

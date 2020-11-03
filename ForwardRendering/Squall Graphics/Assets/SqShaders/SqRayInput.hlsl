@@ -135,7 +135,7 @@ float4 RayForwardPass(RayV2F i, float3 bumpNormal, float3 indirectSpecular, floa
 
     // gi
     float occlusion = GetOcclusion(i.tex.xy);
-    SqGI gi = CalcGI(bumpNormal, 0, 0, occlusion, false);
+    SqGI gi = CalcGISimple(bumpNormal, occlusion);
     gi.indirectSpecular = indirectSpecular * occlusion;
 
     // BRDF
