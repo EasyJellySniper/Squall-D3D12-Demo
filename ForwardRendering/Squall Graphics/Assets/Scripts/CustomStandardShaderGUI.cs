@@ -288,7 +288,7 @@ namespace UnityEditor
         void DoAlbedoArea(Material material)
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoText, albedoMap, albedoColor);
-            if (((BlendMode)material.GetFloat("_Mode") == BlendMode.Cutout))
+            if (((BlendMode)material.GetFloat("_Mode") >= BlendMode.Cutout))
             {
                 m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text, MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
             }

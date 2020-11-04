@@ -97,9 +97,14 @@ float4 ForwardPassPS(v2f i) : SV_Target
 	// occlusion 
 	float occlusion = GetOcclusion(i.tex.xy);
 
+#ifdef _TRANSPARENT_ON
+	float transDepth = SQ_SAMPLE_TEXTURE(_TransDepthIndex, _LinearClampSampler, screenUV).r;
+	float depthFade = abs(i.vertex.z - transDepth) < 0.1f;
+#endif
+
 	// GI
 #ifdef _TRANSPARENT_ON
-	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, true, i.vertex.z);
+	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, true, depthFade);
 #else
 	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, false, 0);
 #endif
