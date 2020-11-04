@@ -143,7 +143,6 @@ public class SqLightManager : MonoBehaviour
     /// <summary>
     /// collect shadows
     /// </summary>
-    [HideInInspector]
     public RenderTexture collectShadows;
 
     /// <summary>
