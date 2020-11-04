@@ -201,8 +201,7 @@ public class SqLightManager : MonoBehaviour
         reflectionRT = SqUtility.CreateRT(reflSize, reflSize, 0, RenderTextureFormat.ARGB32, "Reflection RT", true, true);
 
         // create ambient rt
-        int ambientSize = Mathf.ClosestPowerOfTwo(Screen.width) >> ambientDownSample;
-        ambientRT = SqUtility.CreateRT(ambientSize, ambientSize, 0, RenderTextureFormat.ARGB32, "Ambient RT", true);
+        ambientRT = SqUtility.CreateRT(Screen.width >> ambientDownSample, Screen.height >> ambientDownSample, 0, RenderTextureFormat.ARGB32, "Ambient RT", true);
 
         InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight);
         InitRayShadow(collectShadows.GetNativeTexturePtr());
