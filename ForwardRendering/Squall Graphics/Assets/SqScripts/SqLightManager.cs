@@ -149,12 +149,13 @@ public class SqLightManager : MonoBehaviour
     /// <summary>
     /// reflection RT
     /// </summary>
-    [HideInInspector]
+    //[HideInInspector]
     public RenderTexture reflectionRT;
 
     /// <summary>
     /// ambient rt
     /// </summary>
+    //[HideInInspector]
     public RenderTexture ambientRT;
 
     /// <summary>
@@ -197,8 +198,7 @@ public class SqLightManager : MonoBehaviour
         collectShadows = SqUtility.CreateRT(Screen.width >> downSample, Screen.height >> downSample, 0, RenderTextureFormat.ARGBHalf, "Collect Shadows");
 
         // create reflection rt
-        int reflSize = Mathf.ClosestPowerOfTwo(Screen.width) >> reflectionDownSample;
-        reflectionRT = SqUtility.CreateRT(reflSize, reflSize, 0, RenderTextureFormat.ARGB32, "Reflection RT", true, true);
+        reflectionRT = SqUtility.CreateRT(Screen.width >> reflectionDownSample, Screen.height >> reflectionDownSample, 0, RenderTextureFormat.ARGB32, "Reflection RT", true, true);
 
         // create ambient rt
         ambientRT = SqUtility.CreateRT(Screen.width >> ambientDownSample, Screen.height >> ambientDownSample, 0, RenderTextureFormat.ARGB32, "Ambient RT", true);
