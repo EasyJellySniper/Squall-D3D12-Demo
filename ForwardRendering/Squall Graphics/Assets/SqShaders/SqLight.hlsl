@@ -64,8 +64,9 @@ float BlinnPhong(float m, float ndotH)
 {
 	m *= m;
 	m = max(m, FLOAT_EPSILON);
+	m *= m;
 	m *= 256.0f;
-	float n = (m + 4.0f) / 4.0f;
+	float n = (m + 64.0f) / 64.0f;
 
 	return pow(ndotH, m) * n;
 }
