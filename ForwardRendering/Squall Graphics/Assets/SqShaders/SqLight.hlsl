@@ -63,8 +63,8 @@ float3 SchlickFresnelLerp(float3 F0, float3 F90, float ldotH)
 float BlinnPhong(float m, float ndotH)
 {
 	m *= m;
-	m = max(m, FLOAT_EPSILON);
 	m *= m;
+	m = max(m, FLOAT_EPSILON);
 	m *= 256.0f;
 	float n = (m + 64.0f) / 64.0f;
 
