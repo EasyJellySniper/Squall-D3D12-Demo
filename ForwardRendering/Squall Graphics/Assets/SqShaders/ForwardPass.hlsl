@@ -99,9 +99,9 @@ float4 ForwardPassPS(v2f i) : SV_Target
 
 	// GI
 #ifdef _TRANSPARENT_ON
-	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, true);
+	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, true, i.vertex.z);
 #else
-	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, false);
+	SqGI gi = CalcGI(bumpNormal, screenUV, specular.a, occlusion, false, 0);
 #endif
 
 	// shadow

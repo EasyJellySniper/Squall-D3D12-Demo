@@ -198,7 +198,7 @@ SqGI CalcGISimple(float3 normal, float occlusion)
 	return gi;
 }
 
-SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, bool isTransparent)
+SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, bool isTransparent, float vDepth)
 {
 	SqGI gi = (SqGI)0;
 
@@ -227,10 +227,18 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 
 	// sample indirect specular
 	[branch]
-	if(!isTransparent)
+	if (!isTransparent)
+	{
 		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_ReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
+	}
 	else
+	{
+		float transDepth = SQ_SAMPLE_TEXTURE(_TransDepthIndex, _LinearClampSampler, screenUV).r;
+		float factor = abs(vDepth - transDepth) < 0.1f;
+
 		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_TransReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
+		gi.indirectSpecular = lerp(0, gi.indirectSpecular, factor);
+	}
 
 	gi.indirectSpecular *= occlusion;
 
