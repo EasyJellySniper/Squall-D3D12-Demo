@@ -27,8 +27,8 @@ void GaussianBlur::Init()
 	blurConstantGPU = make_unique<UploadBuffer<BlurConstant>>(GraphicManager::Instance().GetDevice(), 1, false);
 
 	// init descriptor heap ID
-	blurHeapData.uniqueSrvID = GetUniqueID();
-	blurHeapData.uniqueUavID = GetUniqueID();
+	blurHeapData.AddSrv(nullptr, TextureInfo());
+	blurHeapData.AddUav(nullptr, TextureInfo());
 }
 
 void GaussianBlur::Release()
@@ -70,7 +70,7 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	// horizontal pass
 	auto frameIdx = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIdx));
-	_cmdList->SetComputeRootDescriptorTable(1, ResourceManager::Instance().GetTexHandle(blurHeapData.uav));
+	_cmdList->SetComputeRootDescriptorTable(1, ResourceManager::Instance().GetTexHandle(blurHeapData.Uav()));
 	_cmdList->SetComputeRoot32BitConstant(2, 1, 0);
 	_cmdList->SetComputeRootShaderResourceView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootDescriptorTable(4, _inputSrv);
@@ -89,7 +89,7 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	_cmdList->SetComputeRootDescriptorTable(1, _inputUav);
 	_cmdList->SetComputeRoot32BitConstant(2, 0, 0);
 	_cmdList->SetComputeRootShaderResourceView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetTexHandle(blurHeapData.srv));
+	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetTexHandle(blurHeapData.Srv()));
 	_cmdList->SetComputeRootDescriptorTable(5, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(6, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->Dispatch((UINT)desc.Width / 8, desc.Height / 8, 1);
@@ -148,6 +148,6 @@ void GaussianBlur::CreateTempResource(ID3D12Heap* _heap, D3D12_RESOURCE_DESC _de
 		, IID_PPV_ARGS(tmpSrc.GetAddressOf())));
 
 	// create srv
-	blurHeapData.srv = ResourceManager::Instance().UpdateNativeTexture(blurHeapData.uniqueSrvID, tmpSrc.Get(), TextureInfo());
-	blurHeapData.uav = ResourceManager::Instance().UpdateNativeTexture(blurHeapData.uniqueUavID, tmpSrc.Get(), TextureInfo(false, false, true, false, false));
+	blurHeapData.UpdateSrv(tmpSrc.Get(), TextureInfo());
+	blurHeapData.UpdateUav(tmpSrc.Get(), TextureInfo(false, false, true, false, false));
 }

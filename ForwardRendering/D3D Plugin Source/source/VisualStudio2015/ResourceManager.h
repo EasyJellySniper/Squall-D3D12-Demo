@@ -7,15 +7,6 @@ using namespace Microsoft::WRL;
 #include "Texture.h"
 #include "Sampler.h"
 
-struct DescriptorHeapData
-{
-	size_t uniqueSrvID;
-	size_t uniqueUavID;
-	int uav;
-	int srv;
-	int sampler;
-};
-
 class ResourceManager
 {
 public:
@@ -68,4 +59,64 @@ private:
 	// heap for shared
 	ComPtr<ID3D12Heap> heapPool;
 	UINT64 prevHeapSize;
+};
+
+struct DescriptorHeapData
+{
+public:
+	void AddUav(ID3D12Resource* _src, TextureInfo _info, bool _uavMipmap = false)
+	{
+		uniqueUavID = GetUniqueID();
+
+		if (_src != nullptr)
+			uav = ResourceManager::Instance().AddNativeTexture(uniqueUavID, _src, _info, _uavMipmap);
+	}
+
+	void AddSrv(ID3D12Resource* _src, TextureInfo _info)
+	{
+		uniqueSrvID = GetUniqueID();
+
+		if (_src != nullptr)
+			srv = ResourceManager::Instance().AddNativeTexture(uniqueSrvID, _src, _info);
+	}
+
+	void UpdateUav(ID3D12Resource* _src, TextureInfo _info)
+	{
+		if (_src != nullptr)
+			uav = ResourceManager::Instance().UpdateNativeTexture(uniqueUavID, _src, _info);
+	}
+
+	void UpdateSrv(ID3D12Resource* _src, TextureInfo _info)
+	{
+		if (_src != nullptr)
+			srv = ResourceManager::Instance().UpdateNativeTexture(uniqueSrvID, _src, _info);
+	}
+
+	void AddSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, D3D12_FILTER _filter)
+	{
+		sampler = ResourceManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, _filter);
+	}
+
+	int Uav()
+	{
+		return uav;
+	}
+
+	int Srv()
+	{
+		return srv;
+	}
+
+	int Sampler()
+	{
+		return sampler;
+	}
+
+private:
+	size_t uniqueSrvID;
+	size_t uniqueUavID;
+
+	int uav;
+	int srv;
+	int sampler;
 };

@@ -57,9 +57,9 @@ void GraphicManager::InitSystemConstant()
 	}
 
 	// init sampler
-	linearWrapSampler.sampler = ResourceManager::Instance().AddNativeSampler(TextureWrapMode::Repeat, TextureWrapMode::Repeat, TextureWrapMode::Repeat, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
-	linearClampSampler.sampler = ResourceManager::Instance().AddNativeSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
-	anisotropicWrapSampler.sampler = ResourceManager::Instance().AddNativeSampler(TextureWrapMode::Repeat, TextureWrapMode::Repeat, TextureWrapMode::Repeat, 16, D3D12_FILTER_ANISOTROPIC);
+	linearWrapSampler.AddSampler(TextureWrapMode::Repeat, TextureWrapMode::Repeat, TextureWrapMode::Repeat, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
+	linearClampSampler.AddSampler(TextureWrapMode::Clamp, TextureWrapMode::Clamp, TextureWrapMode::Clamp, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
+	anisotropicWrapSampler.AddSampler(TextureWrapMode::Repeat, TextureWrapMode::Repeat, TextureWrapMode::Repeat, 16, D3D12_FILTER_ANISOTROPIC);
 }
 
 void GraphicManager::Release()
@@ -489,9 +489,9 @@ void GraphicManager::SetWorkerThreadFinishEvent(int _index)
 
 void GraphicManager::UploadSystemConstant(SystemConstant _sc, int _frameIdx)
 {
-	_sc.linearWrapSampler = linearWrapSampler.sampler;
-	_sc.linearClampSampler = linearClampSampler.sampler;
-	_sc.anisotropicWrapSampler = anisotropicWrapSampler.sampler;
+	_sc.linearWrapSampler = linearWrapSampler.Sampler();
+	_sc.linearClampSampler = linearClampSampler.Sampler();
+	_sc.anisotropicWrapSampler = anisotropicWrapSampler.Sampler();
 
 	systemConstantCPU = _sc;
 	systemConstantGPU[_frameIdx]->CopyData(0, systemConstantCPU);

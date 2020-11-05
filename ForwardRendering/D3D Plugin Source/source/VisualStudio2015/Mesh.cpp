@@ -78,8 +78,8 @@ bool Mesh::Initialize(int _instanceID, MeshData _mesh)
 	int vertCount = vbv.SizeInBytes / vbv.StrideInBytes;
 	int idxStride = (meshData.indexFormat == 0) ? 2 : 4;
 	int idxCount = ibv.SizeInBytes / idxStride;
-	vertexSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), vertexBuffer->Resource(), TextureInfo(false, false, false, false, true, vertCount, vbv.StrideInBytes));
-	indexSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), indexBuffer->Resource(), TextureInfo(false, false, false, false, true, ibv.SizeInBytes / 4, 0));
+	vertexSrv.AddSrv(vertexBuffer->Resource(), TextureInfo(false, false, false, false, true, vertCount, vbv.StrideInBytes));
+	indexSrv.AddSrv(indexBuffer->Resource(), TextureInfo(false, false, false, false, true, ibv.SizeInBytes / 4, 0));
 
 	return true;
 }
@@ -201,7 +201,7 @@ ID3D12Resource* Mesh::GetBottomAS(int _submesh)
 
 int Mesh::GetVertexSrv()
 {
-	return vertexSrv.srv;
+	return vertexSrv.Srv();
 }
 
 int Mesh::GetInstanceID()

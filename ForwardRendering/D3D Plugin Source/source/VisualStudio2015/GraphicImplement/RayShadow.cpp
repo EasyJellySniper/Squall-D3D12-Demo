@@ -22,11 +22,11 @@ void RayShadow::Init(void* _collectShadows)
 	// register to texture manager
 	collectShadow = make_unique<Texture>(1, 0);
 	collectShadow->InitRTV(opaqueShadowSrc, shadowFormat, false);
-	collectShadowSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), opaqueShadowSrc, TextureInfo(true, false, false, false, false));
+	collectShadowSrv.AddSrv(opaqueShadowSrc, TextureInfo(true, false, false, false, false));
 
 	collectShadowTrans = make_unique<Texture>(1, 0);
 	collectShadowTrans->InitRTV(transShadowSrc->Resource(), shadowFormat, false);
-	collectTransShadowSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), transShadowSrc->Resource(), TextureInfo(true, false, false, false, false));
+	collectTransShadowSrv.AddSrv(transShadowSrc->Resource(), TextureInfo(true, false, false, false, false));
 
 	// create collect shadow material
 	Shader* collectRayShader = ShaderManager::Instance().CompileShader(L"CollectRayShadow.hlsl");
@@ -47,10 +47,10 @@ void RayShadow::Init(void* _collectShadows)
 	rayTracingShadowTrans = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// create ray tracing texture
-	rtShadowSrv.uav = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadow->Resource(), TextureInfo(false, false, true, false, false));
-	rtShadowSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadow->Resource(), TextureInfo());
-	rtShadowTransSrv.uav = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadowTrans->Resource(), TextureInfo(false, false, true, false, false));
-	rtShadowTransSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), rayTracingShadowTrans->Resource(), TextureInfo());
+	rtShadowSrv.AddUav(rayTracingShadow->Resource(), TextureInfo(false, false, true, false, false));
+	rtShadowSrv.AddSrv(rayTracingShadow->Resource(), TextureInfo());
+	rtShadowTransSrv.AddUav(rayTracingShadowTrans->Resource(), TextureInfo(false, false, true, false, false));
+	rtShadowTransSrv.AddSrv(rayTracingShadowTrans->Resource(), TextureInfo());
 
 	// create shader & material
 	Shader* rtShadowShader = ShaderManager::Instance().CompileShader(L"RayTracingShadow.hlsl");
@@ -202,7 +202,7 @@ void RayShadow::CollectRayShadow(Camera* _targetCam)
 	// set material
 	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
 	_cmdList->SetGraphicsRoot32BitConstant(1, pcfKernel, 0);
-	_cmdList->SetGraphicsRootDescriptorTable(2, ResourceManager::Instance().GetTexHandle(rtShadowSrv.srv));
+	_cmdList->SetGraphicsRootDescriptorTable(2, ResourceManager::Instance().GetTexHandle(rtShadowSrv.Srv()));
 	_cmdList->SetGraphicsRootDescriptorTable(3, _targetCam->GetDsvGPU());
 	_cmdList->SetGraphicsRootDescriptorTable(4, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
@@ -213,7 +213,7 @@ void RayShadow::CollectRayShadow(Camera* _targetCam)
 	// collect transparent
 	_cmdList->OMSetRenderTargets(1, &GetCollectTransShadowRtv(), true, nullptr);
 	_cmdList->SetGraphicsRoot32BitConstant(1, pcfKernel, 0);
-	_cmdList->SetGraphicsRootDescriptorTable(2, ResourceManager::Instance().GetTexHandle(rtShadowTransSrv.srv));
+	_cmdList->SetGraphicsRootDescriptorTable(2, ResourceManager::Instance().GetTexHandle(rtShadowTransSrv.Srv()));
 	_cmdList->SetGraphicsRootDescriptorTable(3, _targetCam->GetTransDsvGPU());
 	_cmdList->DrawInstanced(6, 1, 0, 0);
 	GRAPHIC_BATCH_ADD(GameTimerManager::Instance().gameTime.batchCount[0]);
@@ -239,10 +239,10 @@ void RayShadow::SetPCFKernel(int _kernel)
 RayShadowData RayShadow::GetRayShadowData()
 {
 	RayShadowData rsd;
-	rsd.collectShadowID = collectShadowSrv.srv;
-	rsd.collectTransShadowID = collectTransShadowSrv.srv;
+	rsd.collectShadowID = collectShadowSrv.Srv();
+	rsd.collectTransShadowID = collectTransShadowSrv.Srv();
 	rsd.pcfKernel = pcfKernel;
-	rsd.rtShadowSrv = rtShadowSrv.srv;
+	rsd.rtShadowSrv = rtShadowSrv.Srv();
 
 	return rsd;
 }
@@ -264,7 +264,7 @@ ID3D12Resource* RayShadow::GetTransRayShadowSrc()
 
 int RayShadow::GetShadowIndex()
 {
-	return collectShadowSrv.srv;
+	return collectShadowSrv.Srv();
 }
 
 ID3D12Resource* RayShadow::GetCollectShadowSrc()
@@ -289,10 +289,10 @@ D3D12_CPU_DESCRIPTOR_HANDLE RayShadow::GetCollectTransShadowRtv()
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayShadow::GetRTShadowUav()
 {
-	return ResourceManager::Instance().GetTexHandle(rtShadowSrv.uav);
+	return ResourceManager::Instance().GetTexHandle(rtShadowSrv.Uav());
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayShadow::GetRTShadowTransUav()
 {
-	return ResourceManager::Instance().GetTexHandle(rtShadowTransSrv.uav);
+	return ResourceManager::Instance().GetTexHandle(rtShadowTransSrv.Uav());
 }

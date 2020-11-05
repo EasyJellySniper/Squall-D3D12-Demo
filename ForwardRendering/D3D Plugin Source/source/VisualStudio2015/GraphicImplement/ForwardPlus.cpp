@@ -14,12 +14,12 @@ void ForwardPlus::Init(int _maxPointLight)
 	UINT totalSize = _maxPointLight * 4 + 4;
 	totalSize *= tileCountX * tileCountY;
 	pointLightTiles = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	pointLightTileSrv.uav = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
-	pointLightTileSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTiles->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
+	pointLightTileSrv.AddUav(pointLightTiles->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
+	pointLightTileSrv.AddSrv(pointLightTiles->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
 
 	pointLightTilesTrans = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), totalSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	pointLightTransTileSrv.uav = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTilesTrans->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
-	pointLightTransTileSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), pointLightTilesTrans->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
+	pointLightTransTileSrv.AddUav(pointLightTilesTrans->Resource(), TextureInfo(false, false, true, false, true, totalSize / 4, 0));
+	pointLightTransTileSrv.AddSrv(pointLightTilesTrans->Resource(), TextureInfo(false, false, false, false, true, totalSize / 4, 0));
 
 	auto tileShader = ShaderManager::Instance().CompileShader(L"ForwardPlusTile.hlsl");
 	if (tileShader != nullptr)
@@ -37,22 +37,22 @@ void ForwardPlus::Release()
 
 D3D12_GPU_DESCRIPTOR_HANDLE ForwardPlus::GetLightCullingUav()
 {
-	return ResourceManager::Instance().GetTexHandle(pointLightTileSrv.uav);
+	return ResourceManager::Instance().GetTexHandle(pointLightTileSrv.Uav());
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE ForwardPlus::GetLightCullingSrv()
 {
-	return ResourceManager::Instance().GetTexHandle(pointLightTileSrv.srv);
+	return ResourceManager::Instance().GetTexHandle(pointLightTileSrv.Srv());
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE ForwardPlus::GetLightCullingTransUav()
 {
-	return ResourceManager::Instance().GetTexHandle(pointLightTransTileSrv.uav);
+	return ResourceManager::Instance().GetTexHandle(pointLightTransTileSrv.Uav());
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE ForwardPlus::GetLightCullingTransSrv()
 {
-	return ResourceManager::Instance().GetTexHandle(pointLightTransTileSrv.srv);
+	return ResourceManager::Instance().GetTexHandle(pointLightTransTileSrv.Srv());
 }
 
 void ForwardPlus::GetTileCount(int& _x, int& _y)
