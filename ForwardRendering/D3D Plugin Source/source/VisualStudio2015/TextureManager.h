@@ -38,10 +38,14 @@ public:
 	int AddNativeTexture(size_t _texId, void* _texData, TextureInfo _info, bool _uavMipmap = false);
 	int UpdateNativeTexture(size_t _texId, void* _texData, TextureInfo _info);
 	int AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, D3D12_FILTER _filter);
+
 	ID3D12DescriptorHeap* GetTexHeap();
 	ID3D12DescriptorHeap* GetSamplerHeap();
+
 	D3D12_GPU_DESCRIPTOR_HANDLE GetTexHandle(int _id);
 	D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerHandle(int _id);
+
+	ID3D12Heap* RequestHeap(D3D12_RESOURCE_DESC _desc);
 
 private:
 	void EnlargeTexDescriptorHeap();
@@ -60,4 +64,8 @@ private:
 	UINT samplerDescriptorSize;
 	int texHeapEnlargeCount;
 	int samplerHeapEnlargeCount;
+
+	// heap for shared
+	ComPtr<ID3D12Heap> heapPool;
+	UINT64 prevHeapSize;
 };

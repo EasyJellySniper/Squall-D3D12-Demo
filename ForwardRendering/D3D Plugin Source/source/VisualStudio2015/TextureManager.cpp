@@ -22,12 +22,15 @@ void TextureManager::Init(ID3D12Device* _device)
 	samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 	samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	LogIfFailedWithoutHR(_device->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerDescriptorHeap)));
+
+	prevHeapSize = 0;
 }
 
 void TextureManager::Release()
 {
 	texDescriptorHeap.Reset();
 	samplerDescriptorHeap.Reset();
+	heapPool.Reset();
 
 	for (size_t i = 0; i < textures.size(); i++)
 	{
@@ -142,6 +145,37 @@ D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSamplerHandle(int _id)
 {
 	CD3DX12_GPU_DESCRIPTOR_HANDLE sHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart(), _id, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	return sHandle;
+}
+
+ID3D12Heap* TextureManager::RequestHeap(D3D12_RESOURCE_DESC _desc)
+{
+	_desc.Alignment = D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT;
+
+	D3D12_RESOURCE_ALLOCATION_INFO info = GraphicManager::Instance().GetDevice()->GetResourceAllocationInfo(0, 1, &_desc);
+	if (info.Alignment != D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT)
+	{
+		// If the alignment requested is not granted, then let D3D tell us
+		// the alignment that needs to be used for these resources.
+		_desc.Alignment = 0;
+		info = GraphicManager::Instance().GetDevice()->GetResourceAllocationInfo(0, 1, &_desc);
+	}
+
+	const UINT64 heapSize = info.SizeInBytes;
+	if (heapSize <= prevHeapSize)
+	{
+		// have enough heap size, return
+		return heapPool.Get();
+	}
+
+	// wait gpu before creation
+	GraphicManager::Instance().WaitForGPU();
+
+	heapPool.Reset();
+	CD3DX12_HEAP_DESC heapDesc(heapSize, D3D12_HEAP_TYPE_DEFAULT, 0, D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES);
+	LogIfFailedWithoutHR(GraphicManager::Instance().GetDevice()->CreateHeap(&heapDesc, IID_PPV_ARGS(heapPool.GetAddressOf())));
+	prevHeapSize = heapSize;
+
+	return heapPool.Get();
 }
 
 void TextureManager::EnlargeTexDescriptorHeap()

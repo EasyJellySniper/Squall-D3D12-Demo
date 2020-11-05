@@ -39,18 +39,15 @@ public:
 	static void BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant _blurConst, ID3D12Resource* _src, D3D12_GPU_DESCRIPTOR_HANDLE _inputSrv, D3D12_GPU_DESCRIPTOR_HANDLE _inputUav);
 
 private:
-	static void RequestBlurTextureHeap(D3D12_RESOURCE_DESC _desc);
 	static void CalcBlurWeight();
 	static void UploadConstant(D3D12_RESOURCE_DESC _desc);
-	static void CreateTempResource(D3D12_RESOURCE_DESC _desc);
+	static void CreateTempResource(ID3D12Heap* _heap, D3D12_RESOURCE_DESC _desc);
 
 	static Material blurCompute;
 	static BlurConstant blurConstantCPU;
 	static BlurConstant prevBlurConstant;
 
 	static unique_ptr<UploadBuffer<BlurConstant>> blurConstantGPU;
-	static ComPtr<ID3D12Heap> blurTextureHeap;
-	static UINT64 prevHeapSize;
 	static DescriptorHeapData blurHeapData;
 	static ComPtr<ID3D12Resource> tmpSrc;
 };
