@@ -177,9 +177,14 @@ void RayAmbient::AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList)
 	_cmdList->ResourceBarrier(1, barriers);
 
 	// bind roots
+	auto frameIdx = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
+
 	_cmdList->SetComputeRootDescriptorTable(0, GetAmbientUav());
-	_cmdList->SetComputeRootConstantBufferView(1, ambientConstantGPU->Resource()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootDescriptorTable(2, GetHitDistanceSrv());
+	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIdx));
+	_cmdList->SetComputeRootConstantBufferView(2, ambientConstantGPU->Resource()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootDescriptorTable(3, GetHitDistanceSrv());
+	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(5, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 	int computeKernel = 8;
 	auto desc = ambientSrc->GetDesc();
