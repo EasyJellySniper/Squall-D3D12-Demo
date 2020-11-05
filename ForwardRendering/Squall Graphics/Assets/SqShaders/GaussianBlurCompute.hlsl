@@ -1,4 +1,4 @@
-#define ImageFilterRS "RootFlags(0)," \
+#define GaussianBlurRS "RootFlags(0)," \
 "CBV(b0)," \
 "DescriptorTable(UAV(u0, numDescriptors=1))," \
 "RootConstants( num32BitConstants = 1, b2 )," \
@@ -8,8 +8,8 @@
 "DescriptorTable(Sampler(s0, numDescriptors=unbounded))"
 
 #include "SqInput.hlsl"
-#pragma sq_compute ImageFilterCS
-#pragma sq_rootsig ImageFilterRS
+#pragma sq_compute GaussianBlurCS
+#pragma sq_rootsig GaussianBlurRS
 
 struct BlurConstant
 {
@@ -77,9 +77,9 @@ void GaussianBlur(uint2 _globalID)
 	_OutputTex[_globalID.xy] = color;
 }
 
-[RootSignature(ImageFilterRS)]
+[RootSignature(GaussianBlurRS)]
 [numthreads(8, 8, 1)]
-void ImageFilterCS(uint3 _globalID : SV_DispatchThreadID)
+void GaussianBlurCS(uint3 _globalID : SV_DispatchThreadID)
 {
 	GaussianBlur(_globalID.xy);
 }
