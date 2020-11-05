@@ -12,6 +12,16 @@ void ShaderManager::Init()
 
 Shader* ShaderManager::CompileShader(wstring _fileName, D3D_SHADER_MACRO* macro)
 {
+	// check file exist
+	ifstream checkFile(shaderPath + _fileName);
+	if (!checkFile.good())
+	{
+		LogMessage(L"[SqGraphic Error]: Shader not found. " + _fileName);
+		checkFile.close();
+		return nullptr;
+	}
+	checkFile.close();
+
 	Shader* targetShader = FindShader(_fileName, macro);
 	if (targetShader != nullptr)
 	{
