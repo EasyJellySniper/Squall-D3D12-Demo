@@ -14,11 +14,9 @@ cbuffer AmbientData : register(b0)
 	float _AmbientDiffuseDistance;
 	float _DiffuseFadeDist;
 	float _DiffuseStrength;
-	float _DiffuseCutoff;
 	float _AmbientOcclusionDistance;
 	float _OcclusionFadeDist;
 	float _OccStrength;
-	float _OcclusionCutoff;
 	float _NoiseTiling;
 	float _BlurDepthThres;
 	float _BlurNormalThres;

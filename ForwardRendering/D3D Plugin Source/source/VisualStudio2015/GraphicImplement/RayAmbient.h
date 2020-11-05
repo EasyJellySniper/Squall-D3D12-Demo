@@ -17,11 +17,9 @@ struct AmbientConstant
 	float diffuseDist;
 	float diffuseFadeDist;
 	float diffuseStrength;
-	float diffuseCutoff;
 	float occlusionDist;
 	float occlusionFadeDist;
 	float occlusionStrength;
-	float occlusionCutoff;
 	float noiseTiling;
 	float blurDepthThres;
 	float blurNormalThres;

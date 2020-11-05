@@ -20,9 +20,7 @@ public class SqLightManager : MonoBehaviour
                 && lhs.blurRadius == rhs.blurRadius
                 && lhs.noiseTiling == rhs.noiseTiling
                 && lhs.blurDepthThres == rhs.blurDepthThres
-                && lhs.blurNormalThres == rhs.blurNormalThres
-                && lhs.diffuseCutoff == rhs.diffuseCutoff
-                && lhs.occlusionCutoff == rhs.occlusionCutoff;
+                && lhs.blurNormalThres == rhs.blurNormalThres;
         }
 
         public static bool operator !=(AmbientConstant lhs, AmbientConstant rhs)
@@ -37,9 +35,7 @@ public class SqLightManager : MonoBehaviour
                 || lhs.blurRadius != rhs.blurRadius
                 || lhs.noiseTiling != rhs.noiseTiling
                 || lhs.blurDepthThres != rhs.blurDepthThres
-                || lhs.blurNormalThres != rhs.blurNormalThres
-                || lhs.occlusionCutoff != rhs.occlusionCutoff
-                || lhs.diffuseCutoff != rhs.diffuseCutoff;
+                || lhs.blurNormalThres != rhs.blurNormalThres;
         }
 
         public float diffuseDist;
@@ -47,17 +43,11 @@ public class SqLightManager : MonoBehaviour
 
         [Range(0, 8)]
         public float diffuseStrength;
-
-        [Range(0, 1)]
-        public float diffuseCutoff;
         public float occlusionDist;
         public float occlusionFadeDist;
 
         [Range(0, 1)]
         public float occlusionStrength;
-
-        [Range(0,1)]
-        public float occlusionCutoff;
         public float noiseTiling;
 
         [Range(0, 1)]
