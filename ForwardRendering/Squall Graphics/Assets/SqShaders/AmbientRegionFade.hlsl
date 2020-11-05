@@ -52,12 +52,12 @@ void AmbientRegionFadeCS(uint3 _globalID : SV_DispatchThreadID)
 	float4 outColor = _OutputTex[_globalID.xy];
 	float4 clearColor = float4(0, 0, 0, 1);
 
-	float aofactor = avgHitCount.g > (count * _OcclusionCutoff);
-	float adfactor = avgHitCount.r > (count * _DiffuseCutoff);
+	float aofactor = avgHitCount.g / count;
+	float adfactor = avgHitCount.r / count;
 
 	float4 output;
-	output.rgb = lerp(clearColor.rgb, outColor.rgb, adfactor);
-	output.a = lerp(clearColor.a, outColor.a, aofactor);
+	output.rgb = lerp(clearColor.rgb, outColor.rgb, adfactor * adfactor);
+	output.a = lerp(clearColor.a, outColor.a, aofactor * aofactor);
 
 	_OutputTex[_globalID.xy] = output;
 }
