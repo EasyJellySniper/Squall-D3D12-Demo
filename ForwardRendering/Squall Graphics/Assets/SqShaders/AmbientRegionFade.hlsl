@@ -14,9 +14,11 @@ cbuffer AmbientData : register(b0)
 	float _AmbientDiffuseDistance;
 	float _DiffuseFadeDist;
 	float _DiffuseStrength;
+	float _DiffuseCutoff;
 	float _AmbientOcclusionDistance;
 	float _OcclusionFadeDist;
 	float _OccStrength;
+	float _OcclusionCutoff;
 	float _NoiseTiling;
 	float _BlurDepthThres;
 	float _BlurNormalThres;
@@ -38,21 +40,20 @@ void AmbientRegionFadeCS(uint3 _globalID : SV_DispatchThreadID)
 	int kernel = 2;
 	float count = 25;
 
-	float2 avgAmbient = 0;
+	float2 avgHitCount = 0;
 	for (int i = -kernel; i <= kernel; i++)
 	{
 		for (int j = -kernel; j <= kernel; j++)
 		{
-			avgAmbient += _InputMask[_globalID.xy + int2(i, j)].rg;
+			avgHitCount += _InputMask[_globalID.xy + int2(i, j)].rg;
 		}
 	}
-	avgAmbient /= count;
 
 	float4 outColor = _OutputTex[_globalID.xy];
 	float4 clearColor = float4(0, 0, 0, 1);
 
-	float aofactor = avgAmbient.g > (_OcclusionFadeDist * 0.15f);
-	float adfactor = avgAmbient.r > (_DiffuseFadeDist * 0.15f);
+	float aofactor = avgHitCount.g > (count * _OcclusionCutoff);
+	float adfactor = avgHitCount.r > (count * _DiffuseCutoff);
 
 	float4 output;
 	output.rgb = lerp(clearColor.rgb, outColor.rgb, adfactor);

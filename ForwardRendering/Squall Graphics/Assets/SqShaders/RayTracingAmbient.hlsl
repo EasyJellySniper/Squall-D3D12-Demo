@@ -64,9 +64,11 @@ cbuffer AmbientData : register(b1)
     float _AmbientDiffuseDistance;
     float _DiffuseFadeDist;
     float _DiffuseStrength;
+    float _DiffuseCutoff;
     float _AmbientOcclusionDistance;
     float _OcclusionFadeDist;
     float _OccStrength;
+    float _OcclusionCutoff;
     float _NoiseTiling;
     float _BlurDepthThres;
     float _BlurNormalThres;
@@ -210,7 +212,7 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     {
         atten = saturate(distToHit / _OcclusionFadeDist);
         payload.ambientColor.a = atten * atten;
-        _OutputHitDistance[DispatchRaysIndex().xy].g = RayTCurrent();
+        _OutputHitDistance[DispatchRaysIndex().xy].g = 1;
 
         return;
     }
@@ -220,7 +222,7 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     atten = 1 - saturate(distToHit / _DiffuseFadeDist);
     payload.ambientColor.rgb = diffuse * atten * atten;
 
-    _OutputHitDistance[DispatchRaysIndex().xy].r = RayTCurrent();
+    _OutputHitDistance[DispatchRaysIndex().xy].r = 1;
 }
 
 [shader("miss")]

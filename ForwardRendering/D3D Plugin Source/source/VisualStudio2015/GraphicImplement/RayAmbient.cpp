@@ -156,12 +156,12 @@ void RayAmbient::CreateResource()
 	ambientConstantGPU = make_unique<UploadBuffer<AmbientConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
 
 	auto desc = ambientSrc->GetDesc();
-	desc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	desc.Format = DXGI_FORMAT_R16G16_TYPELESS;
 	ambientHitDistance = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// create uav/srv
-	hitDistanceData.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientHitDistance->Resource(), TextureInfo(false, false, true, false, false));
-	hitDistanceData.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientHitDistance->Resource(), TextureInfo());
+	hitDistanceData.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientHitDistance->Resource(), TextureInfo(true, false, true, false, false));
+	hitDistanceData.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientHitDistance->Resource(), TextureInfo(true, false, false, false, false));
 }
 
 void RayAmbient::AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList)
