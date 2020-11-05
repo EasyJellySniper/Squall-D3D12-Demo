@@ -86,6 +86,9 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	// dispatch rays
 	dxrCmd->DispatchRays(&dispatchDesc);
 
+	// region fade
+	AmbientRegionFade(_cmdList);
+
 	// blur result
 	GaussianBlur::BlurCompute(_cmdList, BlurConstant(ambientConst.blurRadius, ambientConst.blurDepthThres, ambientConst.blurNormalThres), ambientSrc, GetAmbientSrvHandle(), GetAmbientUav());
 
@@ -142,6 +145,11 @@ void RayAmbient::CreateResource()
 {
 	uniformVectorGPU = make_unique<UploadBuffer<UniformVector>>(GraphicManager::Instance().GetDevice(), maxSampleCount, false);
 	ambientConstantGPU = make_unique<UploadBuffer<AmbientConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
+}
+
+void RayAmbient::AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList)
+{
+
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientUav()

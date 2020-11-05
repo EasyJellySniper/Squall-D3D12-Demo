@@ -14,7 +14,7 @@
 struct BlurConstant
 {
 	// blur weight, max up to 7x7 kernel (2*n + 1)
-	float2 _InvTargetSize;
+	float4 _TargetSize;	// xy for wh, zw for 1/wh
 	float _DepthThreshold;
 	float _NormalThreshold;
 	int _BlurRadius;
@@ -32,16 +32,16 @@ StructuredBuffer<BlurConstant> _BlurConst : register(t1, space3);
 
 void GaussianBlur(uint2 _globalID)
 {
-	float2 screenUV = (_globalID.xy + .5f) * _BlurConst[0]._InvTargetSize;
+	float2 screenUV = (_globalID.xy + .5f) * _BlurConst[0]._TargetSize.zw;
 	float2 texOffset;
 
 	if (_HorizontalBlur)
 	{
-		texOffset = float2(_BlurConst[0]._InvTargetSize.x, 0.0f);
+		texOffset = float2(_BlurConst[0]._TargetSize.z, 0.0f);
 	}
 	else
 	{
-		texOffset = float2(0.0f, _BlurConst[0]._InvTargetSize.y);
+		texOffset = float2(0.0f, _BlurConst[0]._TargetSize.w);
 	}
 
 	float4 color = 0;
@@ -81,5 +81,8 @@ void GaussianBlur(uint2 _globalID)
 [numthreads(8, 8, 1)]
 void GaussianBlurCS(uint3 _globalID : SV_DispatchThreadID)
 {
+	if (_globalID.x >= _BlurConst[0]._TargetSize.x || _globalID.y >= _BlurConst[0]._TargetSize.y)
+		return;
+
 	GaussianBlur(_globalID.xy);
 }

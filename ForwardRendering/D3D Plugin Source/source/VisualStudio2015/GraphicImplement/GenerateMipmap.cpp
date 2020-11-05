@@ -49,6 +49,6 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 		if ((_srcDesc.Width >> i) < computeKernel || (_srcDesc.Height >> i) < computeKernel)
 			_cmdList->Dispatch(1, 1, 1);
 		else
-			_cmdList->Dispatch((UINT)(_srcDesc.Width >> i) / computeKernel, (UINT)(_srcDesc.Height >> i) / computeKernel, 1);
+			_cmdList->Dispatch((UINT)((_srcDesc.Width >> i) + computeKernel) / computeKernel, (UINT)((_srcDesc.Height >> i) + computeKernel) / computeKernel, 1);
 	}
 }

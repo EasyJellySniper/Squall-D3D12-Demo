@@ -43,6 +43,7 @@ private:
 	static const int maxSampleCount = 64;
 
 	void CreateResource();
+	void AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList);
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientUav();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientSrvHandle();
 

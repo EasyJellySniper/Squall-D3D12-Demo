@@ -24,7 +24,7 @@ struct BlurConstant
 		normalThreshold = _normalThreshold;
 	}
 
-	XMFLOAT2 invTargetSize;
+	XMFLOAT4 targetSize;
 	float depthThreshold;
 	float normalThreshold;
 	int blurRadius;

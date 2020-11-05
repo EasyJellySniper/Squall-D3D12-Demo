@@ -76,7 +76,9 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	_cmdList->SetComputeRootDescriptorTable(4, _inputSrv);
 	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->Dispatch((UINT)desc.Width / 8, desc.Height / 8, 1);
+
+	UINT computeKernel = 8;
+	_cmdList->Dispatch(((UINT)desc.Width + computeKernel) / computeKernel, (desc.Height + computeKernel) / computeKernel, 1);
 
 	// vertical pass
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -121,8 +123,10 @@ void GaussianBlur::CalcBlurWeight()
 
 void GaussianBlur::UploadConstant(D3D12_RESOURCE_DESC _desc)
 {
-	blurConstantCPU.invTargetSize.x = 1.0f / (float)_desc.Width;
-	blurConstantCPU.invTargetSize.y = 1.0f / (float)_desc.Height;
+	blurConstantCPU.targetSize.x = (float)_desc.Width;
+	blurConstantCPU.targetSize.y = (float)_desc.Height;
+	blurConstantCPU.targetSize.z = 1.0f / (float)_desc.Width;
+	blurConstantCPU.targetSize.w = 1.0f / (float)_desc.Height;
 
 	if (blurConstantCPU != prevBlurConstant)
 	{
