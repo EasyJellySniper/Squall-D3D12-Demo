@@ -113,7 +113,7 @@ void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameI
 	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetMsaaDsvSrc(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	// bind resolve depth pipeline
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap() };
 	_cmdList->SetDescriptorHeaps(1, descriptorHeaps);
 
 	_cmdList->OMSetRenderTargets(0, nullptr, true, &GetDsv());
@@ -193,7 +193,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetMsaaDsv()
 
 D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetMsaaSrv()
 {
-	return TextureManager::Instance().GetTexHandle(msaaDepthSrv.srv);
+	return ResourceManager::Instance().GetTexHandle(msaaDepthSrv.srv);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetNormalRtv()
@@ -203,12 +203,12 @@ D3D12_CPU_DESCRIPTOR_HANDLE Camera::GetNormalRtv()
 
 D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetDsvGPU()
 {
-	return TextureManager::Instance().GetTexHandle(opaqueDepthSrv.srv);
+	return ResourceManager::Instance().GetTexHandle(opaqueDepthSrv.srv);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE Camera::GetTransDsvGPU()
 {
-	return TextureManager::Instance().GetTexHandle(transDepthSrv.srv);
+	return ResourceManager::Instance().GetTexHandle(transDepthSrv.srv);
 }
 
 void Camera::SetViewProj(XMFLOAT4X4 _view, XMFLOAT4X4 _proj, XMFLOAT4X4 _projCulling, XMFLOAT4X4 _invView, XMFLOAT4X4 _invProj, XMFLOAT3 _position, XMFLOAT3 _direction, float _far, float _near)
@@ -408,7 +408,7 @@ void Camera::InitColorBuffer()
 
 	// need 1 srv
 	cameraRT->InitRTV(renderTarget[RenderBufferUsage::Color], renderTargetDesc[RenderBufferUsage::Color], false);
-	normalBufferSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Color], TextureInfo(true, false, false, false, false));
+	normalBufferSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::Color], TextureInfo(true, false, false, false, false));
 
 	if (cameraData.allowMSAA > 1)
 	{
@@ -448,11 +448,11 @@ void Camera::InitDepthBuffer()
 	depthTargetDesc = Formatter::GetDepthFormatFromTypeless(depthDesc.Format);
 
 	cameraRT->InitDSV(depthTarget, depthTargetDesc, false);
-	opaqueDepthSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), depthTarget, TextureInfo(true, false, false, false, false));
+	opaqueDepthSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), depthTarget, TextureInfo(true, false, false, false, false));
 	if (cameraData.allowMSAA > 1)
 	{
 		cameraRTMsaa->InitDSV(msaaDepthTarget->Resource(), depthTargetDesc, true);
-		msaaDepthSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), msaaDepthTarget->Resource(), TextureInfo(true, false, false, true, false));
+		msaaDepthSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), msaaDepthTarget->Resource(), TextureInfo(true, false, false, true, false));
 	}
 }
 
@@ -462,7 +462,7 @@ void Camera::InitTransparentDepth()
 	auto transparentDepthSrc = renderTarget[RenderBufferUsage::TransparentDepth];
 	transparentDepth = make_shared<Texture>(0, 1);
 	transparentDepth->InitDSV(transparentDepthSrc, depthTargetDesc, false);
-	transDepthSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, TextureInfo(true, false, false, false, false));
+	transDepthSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), transparentDepthSrc, TextureInfo(true, false, false, false, false));
 }
 
 void Camera::InitNormalBuffer()
@@ -473,7 +473,7 @@ void Camera::InitNormalBuffer()
 
 	normalRT = make_shared<Texture>(1, 0);
 	normalRT->InitRTV(normalBufferSrc, renderTargetDesc[RenderBufferUsage::TransNormal], false);
-	transNormalBufferSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::TransNormal], TextureInfo(true, false, false, false, false));
+	transNormalBufferSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), renderTarget[RenderBufferUsage::TransNormal], TextureInfo(true, false, false, false, false));
 }
 
 bool Camera::CreatePipelineMaterial()

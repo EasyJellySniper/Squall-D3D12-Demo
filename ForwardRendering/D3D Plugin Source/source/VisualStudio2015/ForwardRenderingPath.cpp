@@ -2,7 +2,7 @@
 #include "FrameResource.h"
 #include "GraphicManager.h"
 #include "ShaderManager.h"
-#include "TextureManager.h"
+#include "ResourceManager.h"
 #include "LightManager.h"
 #include "RayTracingManager.h"
 #include "stdafx.h"
@@ -248,8 +248,8 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
 
 	// setup descriptor table gpu
-	_cmdList->SetGraphicsRootDescriptorTable(3, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(3, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(4, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 }
 
 void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList, Renderer* _renderer, Material* _mat, Mesh* _mesh
@@ -271,8 +271,8 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->SetGraphicsRootConstantBufferView(2, _renderer->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootShaderResourceView(3, _instanceData);
 	_cmdList->SetGraphicsRootConstantBufferView(4, _mat->GetMaterialConstantGPU(frameIndex));
-	_cmdList->SetGraphicsRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetGraphicsRootDescriptorTable(6, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(5, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetGraphicsRootDescriptorTable(6, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetGraphicsRootShaderResourceView(7, LightManager::Instance().GetLightDataGPU(LightType::Directional, frameIndex, 0));
 	_cmdList->SetGraphicsRootShaderResourceView(8, LightManager::Instance().GetLightDataGPU(LightType::Point, frameIndex, 0));
 }
@@ -334,7 +334,7 @@ void ForwardRenderingPath::DrawOpaqueNormalDepth(Camera* _camera, int _threadInd
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
 	// bind descriptor heap, only need to set once, changing descriptor heap isn't good
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap(),ResourceManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// loop render-queue
@@ -425,7 +425,7 @@ void ForwardRenderingPath::DrawTransparentNormalDepth(ID3D12GraphicsCommandList*
 	_cmdList->RSSetScissorRects(1, &_camera->GetScissorRect());
 
 	// bind descriptor heap, only need to set once, changing descriptor heap isn't good
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap(),ResourceManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// loop render-queue
@@ -488,7 +488,7 @@ void ForwardRenderingPath::DrawOpaquePass(Camera* _camera, int _threadIndex, boo
 	auto _cmdList = currFrameResource->workerGfxList[_threadIndex];
 
 	 // bind descriptor heap, only need to set once, changing descriptor heap isn't good
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap(),ResourceManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// loop render-queue
@@ -593,7 +593,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	}
 
 	// bind descriptor
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap(), ResourceManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// bind target
@@ -633,7 +633,7 @@ void ForwardRenderingPath::DrawTransparentPass(Camera* _camera)
 	GPU_TIMER_START(_cmdList, GraphicManager::Instance().GetGpuTimeQuery())
 
 	// bind descriptor heap, only need to set once, changing descriptor heap isn't good
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(),TextureManager::Instance().GetSamplerHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap(),ResourceManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// bind

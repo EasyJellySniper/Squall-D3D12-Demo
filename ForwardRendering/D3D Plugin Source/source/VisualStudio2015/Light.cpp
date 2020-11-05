@@ -1,6 +1,6 @@
 #include "Light.h"
 #include "GraphicManager.h"
-#include "TextureManager.h"
+#include "ResourceManager.h"
 
 void Light::Init(int _instanceID, SqLightData _data)
 {

@@ -1,7 +1,7 @@
 #include "LightManager.h"
 #include "GraphicManager.h"
 #include "ShaderManager.h"
-#include "TextureManager.h"
+#include "ResourceManager.h"
 #include "RayTracingManager.h"
 
 void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)

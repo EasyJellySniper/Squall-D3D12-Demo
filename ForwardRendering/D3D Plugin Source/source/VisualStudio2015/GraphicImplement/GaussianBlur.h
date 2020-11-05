@@ -2,7 +2,7 @@
 #include "../Material.h"
 #include "../stdafx.h"
 #include "../UploadBuffer.h"
-#include "../TextureManager.h"
+#include "../ResourceManager.h"
 
 static const int MAX_BLUR_WEIGHT = 15;
 

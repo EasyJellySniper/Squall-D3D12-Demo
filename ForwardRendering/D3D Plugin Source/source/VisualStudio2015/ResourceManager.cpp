@@ -1,8 +1,8 @@
-#include "TextureManager.h"
+#include "ResourceManager.h"
 #include "GraphicManager.h"
 #include "Formatter.h"
 
-void TextureManager::Init(ID3D12Device* _device)
+void ResourceManager::Init(ID3D12Device* _device)
 {
 	cbvSrvUavDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	samplerDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
@@ -26,7 +26,7 @@ void TextureManager::Init(ID3D12Device* _device)
 	prevHeapSize = 0;
 }
 
-void TextureManager::Release()
+void ResourceManager::Release()
 {
 	texDescriptorHeap.Reset();
 	samplerDescriptorHeap.Reset();
@@ -40,7 +40,7 @@ void TextureManager::Release()
 	samplers.clear();
 }
 
-int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo _info, bool _uavMipmap)
+int ResourceManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo _info, bool _uavMipmap)
 {
 	// check duplicate add
 	for (size_t i = 0; i < textures.size(); i++)
@@ -88,7 +88,7 @@ int TextureManager::AddNativeTexture(size_t _texId, void* _texData, TextureInfo 
 	return nativeId;
 }
 
-int TextureManager::UpdateNativeTexture(size_t _texId, void* _texData, TextureInfo _info)
+int ResourceManager::UpdateNativeTexture(size_t _texId, void* _texData, TextureInfo _info)
 {
 	for (int i = 0; i < (int)textures.size(); i++)
 	{
@@ -104,7 +104,7 @@ int TextureManager::UpdateNativeTexture(size_t _texId, void* _texData, TextureIn
 	return AddNativeTexture(_texId, _texData, _info);
 }
 
-int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, D3D12_FILTER _filter)
+int ResourceManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wrapV, TextureWrapMode _wrapW, int _anisoLevel, D3D12_FILTER _filter)
 {
 	// check duplicate add
 	for (size_t i = 0; i < samplers.size(); i++)
@@ -125,29 +125,29 @@ int TextureManager::AddNativeSampler(TextureWrapMode _wrapU, TextureWrapMode _wr
 	return nativeId;
 }
 
-ID3D12DescriptorHeap* TextureManager::GetTexHeap()
+ID3D12DescriptorHeap* ResourceManager::GetTexHeap()
 {
 	return texDescriptorHeap.Get();
 }
 
-ID3D12DescriptorHeap* TextureManager::GetSamplerHeap()
+ID3D12DescriptorHeap* ResourceManager::GetSamplerHeap()
 {
 	return samplerDescriptorHeap.Get();
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetTexHandle(int _id)
+D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::GetTexHandle(int _id)
 {
 	CD3DX12_GPU_DESCRIPTOR_HANDLE tHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(GetTexHeap()->GetGPUDescriptorHandleForHeapStart(), _id, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	return tHandle;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSamplerHandle(int _id)
+D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::GetSamplerHandle(int _id)
 {
 	CD3DX12_GPU_DESCRIPTOR_HANDLE sHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart(), _id, GraphicManager::Instance().GetCbvSrvUavDesciptorSize());
 	return sHandle;
 }
 
-ID3D12Heap* TextureManager::RequestHeap(D3D12_RESOURCE_DESC _desc)
+ID3D12Heap* ResourceManager::RequestHeap(D3D12_RESOURCE_DESC _desc)
 {
 	_desc.Alignment = D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT;
 
@@ -178,7 +178,7 @@ ID3D12Heap* TextureManager::RequestHeap(D3D12_RESOURCE_DESC _desc)
 	return heapPool.Get();
 }
 
-void TextureManager::EnlargeTexDescriptorHeap()
+void ResourceManager::EnlargeTexDescriptorHeap()
 {
 	texHeapEnlargeCount++;
 
@@ -196,7 +196,7 @@ void TextureManager::EnlargeTexDescriptorHeap()
 	}
 }
 
-void TextureManager::EnlargeSamplerDescriptorHeap()
+void ResourceManager::EnlargeSamplerDescriptorHeap()
 {
 	samplerHeapEnlargeCount++;
 
@@ -214,7 +214,7 @@ void TextureManager::EnlargeSamplerDescriptorHeap()
 	}
 }
 
-void TextureManager::AddTexToHeap(int _index, Texture _texture, int _mipSlice)
+void ResourceManager::AddTexToHeap(int _index, Texture _texture, int _mipSlice)
 {
 	// check if we need to enlarge heap
 	if (_index >= MAX_TEXTURE_NUMBER * (texHeapEnlargeCount + 1))
@@ -299,7 +299,7 @@ void TextureManager::AddTexToHeap(int _index, Texture _texture, int _mipSlice)
 	}
 }
 
-void TextureManager::AddSamplerToHeap(int _index, Sampler _sampler)
+void ResourceManager::AddSamplerToHeap(int _index, Sampler _sampler)
 {
 	// check if we need to enlarge heap
 	if (_index >= MAX_SAMPLER_NUMBER * (samplerHeapEnlargeCount + 1))

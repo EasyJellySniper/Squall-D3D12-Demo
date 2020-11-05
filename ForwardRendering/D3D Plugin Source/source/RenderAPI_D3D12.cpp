@@ -12,7 +12,7 @@
 #include "VisualStudio2015/MaterialManager.h"
 #include "VisualStudio2015/ShaderManager.h"
 #include "VisualStudio2015/RendererManager.h"
-#include "VisualStudio2015/TextureManager.h"
+#include "VisualStudio2015/ResourceManager.h"
 #include "VisualStudio2015/LightManager.h"
 #include "VisualStudio2015/GameTimerManager.h"
 #include "VisualStudio2015/RayTracingManager.h"
@@ -78,7 +78,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 		return;
 	}
 
-	TextureManager::Instance().Init(mainDevice);
+	ResourceManager::Instance().Init(mainDevice);
 	initSucceed = GraphicManager::Instance().Initialize(mainDevice, _numOfThreads);
 	GameTimerManager::Instance().Init();
 	MeshManager::Instance().Init();
@@ -108,7 +108,7 @@ void RenderAPI_D3D12::ReleaseResources()
 	MaterialManager::Instance().Release();
 	ShaderManager::Instance().Release();
 	RendererManager::Instance().Release();
-	TextureManager::Instance().Release();
+	ResourceManager::Instance().Release();
 	LightManager::Instance().Release();
 	RayTracingManager::Instance().Release();
 	Formatter::Release();

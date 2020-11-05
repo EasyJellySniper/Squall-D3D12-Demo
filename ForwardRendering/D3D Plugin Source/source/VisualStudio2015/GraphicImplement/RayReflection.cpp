@@ -1,5 +1,5 @@
 #include "RayReflection.h"
-#include "../TextureManager.h"
+#include "../ResourceManager.h"
 #include "../ShaderManager.h"
 #include "../MaterialManager.h"
 #include "../GraphicManager.h"
@@ -12,11 +12,11 @@ void RayReflection::Init(ID3D12Resource* _rayReflection)
 	transRayReflection = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), rayReflectionSrc->GetDesc(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// register uav & srv & sampler
-	rayReflectoinSrv.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, true, false, false), true);
-	rayReflectoinSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, false, false, false));
+	rayReflectoinSrv.uav = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, true, false, false), true);
+	rayReflectoinSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), _rayReflection, TextureInfo(true, false, false, false, false));
 
-	transRayReflectionHeap.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transRayReflection->Resource(), TextureInfo(true, false, true, false, false), true);
-	transRayReflectionHeap.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), transRayReflection->Resource(), TextureInfo(true, false, false, false, false));
+	transRayReflectionHeap.uav = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), transRayReflection->Resource(), TextureInfo(true, false, true, false, false), true);
+	transRayReflectionHeap.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), transRayReflection->Resource(), TextureInfo(true, false, false, false, false));
 
 	// compile shader & material
 	D3D_SHADER_MACRO rayReflectionMacro[] = { "_SPEC_GLOSS_MAP","1"
@@ -57,7 +57,7 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	MaterialManager::Instance().CopyHitGroupIdentifier(GetMaterial(), HitGroupType::Reflection);
 
 	// bind heap
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap(), ResourceManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// resource transition (normal/transnormal/depth/transdepth/uav
@@ -76,10 +76,10 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, _dirLightGPU);
-	_cmdList->SetComputeRootDescriptorTable(5, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(5, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(6, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(7, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(8, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
 	_cmdList->SetComputeRootDescriptorTable(10, _skybox->GetSkyboxTex());
 	_cmdList->SetComputeRootDescriptorTable(11, _skybox->GetSkyboxSampler());
@@ -101,8 +101,8 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(transRayReflection->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	_cmdList->ResourceBarrier(2, barriers);
 
-	GenerateMipmap::Generate(_cmdList, rayReflectionSrc->GetDesc(), TextureManager::Instance().GetTexHandle(rayReflectoinSrv.srv), TextureManager::Instance().GetTexHandle(rayReflectoinSrv.uav));
-	GenerateMipmap::Generate(_cmdList, rayReflectionSrc->GetDesc(), TextureManager::Instance().GetTexHandle(transRayReflectionHeap.srv), TextureManager::Instance().GetTexHandle(transRayReflectionHeap.uav));
+	GenerateMipmap::Generate(_cmdList, rayReflectionSrc->GetDesc(), ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.srv), ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.uav));
+	GenerateMipmap::Generate(_cmdList, rayReflectionSrc->GetDesc(), ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.srv), ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.uav));
 
 	// resource transition back
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -134,10 +134,10 @@ DescriptorHeapData RayReflection::GetTransRayReflectionHeap()
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetReflectionUav()
 {
-	return TextureManager::Instance().GetTexHandle(rayReflectoinSrv.uav);
+	return ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.uav);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetTransReflectionUav()
 {
-	return TextureManager::Instance().GetTexHandle(transRayReflectionHeap.uav);
+	return ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.uav);
 }

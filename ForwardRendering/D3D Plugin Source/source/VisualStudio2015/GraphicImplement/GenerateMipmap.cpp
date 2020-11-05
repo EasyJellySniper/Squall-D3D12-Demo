@@ -24,7 +24,7 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 
 	// assume we already set descriptor heaps
-	//ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
+	//ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap(), ResourceManager::Instance().GetSamplerHeap() };
 	//_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	if (!MaterialManager::Instance().SetComputePass(_cmdList, &generateMat))
@@ -35,7 +35,7 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 	_cmdList->SetComputeRootDescriptorTable(0, _outMip);
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
 	_cmdList->SetComputeRootDescriptorTable(3, _input);
-	_cmdList->SetComputeRootDescriptorTable(4, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 	// compute work
 	UINT computeKernel = 8;

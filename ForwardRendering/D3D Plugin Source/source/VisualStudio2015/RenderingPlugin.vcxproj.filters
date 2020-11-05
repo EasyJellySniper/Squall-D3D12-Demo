@@ -49,7 +49,6 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererManager.h" />
     <ClInclude Include="GameTimerManager.h" />
-    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Light.h" />
@@ -78,6 +77,7 @@
     <ClInclude Include="GraphicImplement\GaussianBlur.h">
       <Filter>GraphicImplement</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\RenderAPI.cpp" />
@@ -98,7 +98,6 @@
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererManager.cpp" />
-    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Light.cpp" />
@@ -127,6 +126,7 @@
     <ClCompile Include="GraphicImplement\GaussianBlur.cpp">
       <Filter>GraphicImplement</Filter>
     </ClCompile>
+    <ClCompile Include="ResourceManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLEW">

@@ -11,11 +11,11 @@ void RayAmbient::Init(ID3D12Resource* _ambientRT, ID3D12Resource* _noiseTex)
 	ambientSrc = _ambientRT;
 
 	// create uav/srv for RT
-	ambientHeapData.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientSrc, TextureInfo(true, false, true, false, false));
-	ambientHeapData.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientSrc, TextureInfo(true, false, false, false, false));
+	ambientHeapData.uav = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), ambientSrc, TextureInfo(true, false, true, false, false));
+	ambientHeapData.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), ambientSrc, TextureInfo(true, false, false, false, false));
 
 	// srv for noise
-	noiseHeapData.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), _noiseTex, TextureInfo());
+	noiseHeapData.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), _noiseTex, TextureInfo());
 
 	// create material
 	Shader* rtAmbient = ShaderManager::Instance().CompileShader(L"RayTracingAmbient.hlsl");
@@ -59,7 +59,7 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	MaterialManager::Instance().CopyHitGroupIdentifier(GetMaterial(), HitGroupType::Ambient);
 
 	// bind heap
-	ID3D12DescriptorHeap* descriptorHeaps[] = { TextureManager::Instance().GetTexHeap(), TextureManager::Instance().GetSamplerHeap() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { ResourceManager::Instance().GetTexHeap(), ResourceManager::Instance().GetSamplerHeap() };
 	_cmdList->SetDescriptorHeaps(2, descriptorHeaps);
 
 	// barriers before tracing
@@ -76,10 +76,10 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	_cmdList->SetComputeRootConstantBufferView(3, ambientConstantGPU->Resource()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(5, _dirLightGPU);
-	_cmdList->SetComputeRootDescriptorTable(6, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(7, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(8, TextureManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootDescriptorTable(9, TextureManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(6, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(7, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(8, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
+	_cmdList->SetComputeRootDescriptorTable(9, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootShaderResourceView(10, RayTracingManager::Instance().GetSubMeshInfoGPU());
 	_cmdList->SetComputeRootShaderResourceView(11, uniformVectorGPU->Resource()->GetGPUVirtualAddress());
 
@@ -160,8 +160,8 @@ void RayAmbient::CreateResource()
 	ambientHitDistance = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	// create uav/srv
-	hitDistanceData.uav = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientHitDistance->Resource(), TextureInfo(true, false, true, false, false));
-	hitDistanceData.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), ambientHitDistance->Resource(), TextureInfo(true, false, false, false, false));
+	hitDistanceData.uav = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), ambientHitDistance->Resource(), TextureInfo(true, false, true, false, false));
+	hitDistanceData.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), ambientHitDistance->Resource(), TextureInfo(true, false, false, false, false));
 }
 
 void RayAmbient::AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList)
@@ -192,20 +192,20 @@ void RayAmbient::AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList)
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientUav()
 {
-	return TextureManager::Instance().GetTexHandle(ambientHeapData.uav);
+	return ResourceManager::Instance().GetTexHandle(ambientHeapData.uav);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientSrvHandle()
 {
-	return TextureManager::Instance().GetTexHandle(ambientHeapData.srv);
+	return ResourceManager::Instance().GetTexHandle(ambientHeapData.srv);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetHitDistanceUav()
 {
-	return TextureManager::Instance().GetTexHandle(hitDistanceData.uav);
+	return ResourceManager::Instance().GetTexHandle(hitDistanceData.uav);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetHitDistanceSrv()
 {
-	return TextureManager::Instance().GetTexHandle(hitDistanceData.srv);
+	return ResourceManager::Instance().GetTexHandle(hitDistanceData.srv);
 }

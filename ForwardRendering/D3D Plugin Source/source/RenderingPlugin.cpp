@@ -7,7 +7,7 @@
 #include "VisualStudio2015/GameTime.h"
 #include "VisualStudio2015/MeshManager.h"
 #include "VisualStudio2015/RendererManager.h"
-#include "VisualStudio2015/TextureManager.h"
+#include "VisualStudio2015/ResourceManager.h"
 #include "VisualStudio2015/LightManager.h"
 #include "VisualStudio2015/RayTracingManager.h"
 
@@ -135,12 +135,12 @@ extern "C" void  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateNativeMaterial
 
 extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeTexture(int _instanceID, void *_data)
 {
-	return TextureManager::Instance().AddNativeTexture(_instanceID, _data, TextureInfo(false, false, false, false, false));
+	return ResourceManager::Instance().AddNativeTexture(_instanceID, _data, TextureInfo(false, false, false, false, false));
 }
 
 extern "C" int  UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API AddNativeSampler(TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel)
 {
-	return TextureManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, D3D12_FILTER_ANISOTROPIC);
+	return ResourceManager::Instance().AddNativeSampler(wrapU, wrapV, wrapW, _anisoLevel, D3D12_FILTER_ANISOTROPIC);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetRenderMode(int _instance, int _mode)

@@ -4,7 +4,7 @@
 #include "../DefaultBuffer.h"
 #include "../Camera.h"
 #include "ForwardPlus.h"
-#include "../TextureManager.h"
+#include "../ResourceManager.h"
 
 struct RayShadowData
 {

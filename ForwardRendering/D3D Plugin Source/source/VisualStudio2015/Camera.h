@@ -9,7 +9,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "DefaultBuffer.h"
-#include "TextureManager.h"
+#include "ResourceManager.h"
 
 using namespace Microsoft::WRL;
 using namespace std;

@@ -4,7 +4,7 @@
 #include <vector>
 #include <wrl.h>
 #include "DefaultBuffer.h"
-#include "TextureManager.h"
+#include "ResourceManager.h"
 using namespace DirectX;
 using namespace std;
 using namespace Microsoft::WRL;

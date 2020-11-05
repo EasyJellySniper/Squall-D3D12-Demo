@@ -78,8 +78,8 @@ bool Mesh::Initialize(int _instanceID, MeshData _mesh)
 	int vertCount = vbv.SizeInBytes / vbv.StrideInBytes;
 	int idxStride = (meshData.indexFormat == 0) ? 2 : 4;
 	int idxCount = ibv.SizeInBytes / idxStride;
-	vertexSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), vertexBuffer->Resource(), TextureInfo(false, false, false, false, true, vertCount, vbv.StrideInBytes));
-	indexSrv.srv = TextureManager::Instance().AddNativeTexture(GetUniqueID(), indexBuffer->Resource(), TextureInfo(false, false, false, false, true, ibv.SizeInBytes / 4, 0));
+	vertexSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), vertexBuffer->Resource(), TextureInfo(false, false, false, false, true, vertCount, vbv.StrideInBytes));
+	indexSrv.srv = ResourceManager::Instance().AddNativeTexture(GetUniqueID(), indexBuffer->Resource(), TextureInfo(false, false, false, false, true, ibv.SizeInBytes / 4, 0));
 
 	return true;
 }

@@ -16,22 +16,22 @@ struct DescriptorHeapData
 	int sampler;
 };
 
-class TextureManager
+class ResourceManager
 {
 public:
-	TextureManager(const TextureManager&) = delete;
-	TextureManager(TextureManager&&) = delete;
-	TextureManager& operator=(const TextureManager&) = delete;
-	TextureManager& operator=(TextureManager&&) = delete;
+	ResourceManager(const ResourceManager&) = delete;
+	ResourceManager(ResourceManager&&) = delete;
+	ResourceManager& operator=(const ResourceManager&) = delete;
+	ResourceManager& operator=(ResourceManager&&) = delete;
 
-	static TextureManager& Instance()
+	static ResourceManager& Instance()
 	{
-		static TextureManager instance;
+		static ResourceManager instance;
 		return instance;
 	}
 
-	TextureManager() {}
-	~TextureManager() {}
+	ResourceManager() {}
+	~ResourceManager() {}
 
 	void Init(ID3D12Device* _device);
 	void Release();

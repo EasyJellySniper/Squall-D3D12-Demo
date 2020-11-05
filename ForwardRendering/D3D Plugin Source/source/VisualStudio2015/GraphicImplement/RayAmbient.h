@@ -1,7 +1,7 @@
 #pragma once
 #include <d3d12.h>
 #include "../Material.h"
-#include "../TextureManager.h"
+#include "../ResourceManager.h"
 #include "../stdafx.h"
 #include "../Camera.h"
 #include "../UploadBuffer.h"
