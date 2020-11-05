@@ -22,6 +22,7 @@
 GlobalRootSignature RTAmbientRootSig =
 {
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
+    "DescriptorTable( UAV( u1 , numDescriptors = 1) ),"     // raytracing output
     "CBV( b0 ),"                        // system constant
     "CBV( b1 ),"    // ambient constant
     "SRV( t0, space = 2),"              // acceleration strutures
@@ -75,6 +76,7 @@ cbuffer AmbientData : register(b1)
 };
 
 RWTexture2D<float4> _OutputAmbient : register(u0);
+RWTexture2D<float2> _OutputHitDistance : register(u1);
 StructuredBuffer<float4> _UniformVector : register(t0, space6);
 
 void SignFlip(inout float3 input, float3 target)
@@ -167,6 +169,7 @@ void RTAmbientRayGen()
 {
     // clear
     _OutputAmbient[DispatchRaysIndex().xy] = float4(0, 0, 0, 1);
+    _OutputHitDistance[DispatchRaysIndex().xy] = 0;
 
     // center in the middle of the pixel, it's half-offset rule of D3D
     float2 xy = DispatchRaysIndex().xy + 0.5f;
@@ -207,6 +210,8 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     {
         atten = saturate(distToHit / _OcclusionFadeDist);
         payload.ambientColor.a = atten * atten;
+        _OutputHitDistance[DispatchRaysIndex().xy].g = RayTCurrent();
+
         return;
     }
 
@@ -214,6 +219,8 @@ void RTAmbientClosestHit(inout RayPayload payload, in BuiltInTriangleIntersectio
     float3 diffuse = RayDiffuse(v2f, bumpNormal);
     atten = 1 - saturate(distToHit / _DiffuseFadeDist);
     payload.ambientColor.rgb = diffuse * atten * atten;
+
+    _OutputHitDistance[DispatchRaysIndex().xy].r = RayTCurrent();
 }
 
 [shader("miss")]

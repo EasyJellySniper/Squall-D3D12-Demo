@@ -5,6 +5,7 @@
 #include "../stdafx.h"
 #include "../Camera.h"
 #include "../UploadBuffer.h"
+#include "../DefaultBuffer.h"
 
 struct UniformVector
 {
@@ -46,15 +47,20 @@ private:
 	void AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList);
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientUav();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetAmbientSrvHandle();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetHitDistanceUav();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetHitDistanceSrv();
 
 	ID3D12Resource* ambientSrc;
 	Material rtAmbientMat;
+	Material ambientRegionFadeMat;
 
 	DescriptorHeapData ambientHeapData;
 	DescriptorHeapData noiseHeapData;
+	DescriptorHeapData hitDistanceData;
 	AmbientConstant ambientConst;
 
 	UniformVector uniformVectorCPU[maxSampleCount];
 	unique_ptr<UploadBuffer<UniformVector>> uniformVectorGPU;
 	unique_ptr<UploadBuffer<AmbientConstant>> ambientConstantGPU;
+	unique_ptr<DefaultBuffer> ambientHitDistance;
 };
