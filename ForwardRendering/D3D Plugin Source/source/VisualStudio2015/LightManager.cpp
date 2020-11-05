@@ -42,10 +42,6 @@ void LightManager::Release()
 {
 	for (int i = 0; i < LightType::LightCount; i++)
 	{
-		for (int j = 0; j < sqLights[i].size(); j++)
-		{
-			sqLights[i][j].Release();
-		}
 		sqLights[i].clear();
 
 		for (int j = 0; j < MAX_FRAME_COUNT; j++)

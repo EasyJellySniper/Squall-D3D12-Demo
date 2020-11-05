@@ -34,7 +34,6 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="RenderingPath.h" />
     <ClInclude Include="ForwardRenderingPath.h" />
     <ClInclude Include="FrameResource.h" />
     <ClInclude Include="d3dx12.h" />

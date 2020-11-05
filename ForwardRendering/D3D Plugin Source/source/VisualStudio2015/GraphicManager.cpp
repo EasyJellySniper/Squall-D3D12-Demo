@@ -305,12 +305,9 @@ void GraphicManager::DrawCamera()
 
 	// render path
 	Camera* cam = CameraManager::Instance().GetCamera();
-	if (cam->GetCameraData()->renderingPath == RenderingPathType::Forward)
-	{
-		ForwardRenderingPath::Instance().CullingWork(cam);
-		ForwardRenderingPath::Instance().SortingWork(cam);
-		ForwardRenderingPath::Instance().RenderLoop(cam, currFrameIndex);
-	}
+	ForwardRenderingPath::Instance().CullingWork(cam);
+	ForwardRenderingPath::Instance().SortingWork(cam);
+	ForwardRenderingPath::Instance().RenderLoop(cam, currFrameIndex);
 }
 
 void GraphicManager::WaitForGPU()

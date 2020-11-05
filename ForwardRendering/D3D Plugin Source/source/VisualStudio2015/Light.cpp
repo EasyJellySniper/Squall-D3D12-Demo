@@ -13,11 +13,6 @@ void Light::Init(int _instanceID, SqLightData _data)
 	}
 }
 
-void Light::Release()
-{
-
-}
-
 void Light::SetLightData(SqLightData _data)
 {
 	lightDataCPU = _data;

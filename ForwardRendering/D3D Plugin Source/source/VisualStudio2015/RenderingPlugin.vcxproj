@@ -56,7 +56,6 @@
     <ClInclude Include="RayTracingManager.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererManager.h" />
-    <ClInclude Include="RenderingPath.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Shader.h" />

@@ -1,5 +1,4 @@
 #pragma once
-#include "RenderingPath.h"
 #include "Camera.h"
 #include <DirectXMath.h>
 #include "UploadBuffer.h"

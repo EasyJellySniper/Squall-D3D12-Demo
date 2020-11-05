@@ -33,7 +33,6 @@ class Light
 {
 public:
 	void Init(int _instanceID, SqLightData _data);
-	void Release();
 	void SetLightData(SqLightData _data);
 
 	SqLightData *GetLightData();
