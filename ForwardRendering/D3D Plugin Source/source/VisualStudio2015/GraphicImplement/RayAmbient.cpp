@@ -171,7 +171,23 @@ void RayAmbient::AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList)
 		return;
 	}
 
+	// transition
+	D3D12_RESOURCE_BARRIER barriers[1];
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(ambientHitDistance->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	_cmdList->ResourceBarrier(1, barriers);
 
+	// bind roots
+	_cmdList->SetComputeRootDescriptorTable(0, GetAmbientUav());
+	_cmdList->SetComputeRootConstantBufferView(1, ambientConstantGPU->Resource()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRootDescriptorTable(2, GetHitDistanceSrv());
+
+	int computeKernel = 8;
+	auto desc = ambientSrc->GetDesc();
+	_cmdList->Dispatch(((UINT)desc.Width + computeKernel) / computeKernel, (desc.Height + computeKernel) / computeKernel, 1);
+
+	// transition
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(ambientHitDistance->Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	_cmdList->ResourceBarrier(1, barriers);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayAmbient::GetAmbientUav()
