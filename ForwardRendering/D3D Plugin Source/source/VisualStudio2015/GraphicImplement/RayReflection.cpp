@@ -97,12 +97,8 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	dxrCmd->DispatchRays(&dispatchDesc);
 
 	// generate mipmap for reflection rt
-	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(rayReflectionSrc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(transRayReflection->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	_cmdList->ResourceBarrier(2, barriers);
-
-	GenerateMipmap::Generate(_cmdList, rayReflectionSrc->GetDesc(), ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.Srv()), ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.Uav()));
-	GenerateMipmap::Generate(_cmdList, rayReflectionSrc->GetDesc(), ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.Srv()), ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.Uav()));
+	GenerateMipmap::Generate(_cmdList, rayReflectionSrc, ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.Srv()), ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.Uav()));
+	GenerateMipmap::Generate(_cmdList, transRayReflection->Resource(), ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.Srv()), ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.Uav()));
 
 	// resource transition back
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

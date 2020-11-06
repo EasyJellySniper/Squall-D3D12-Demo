@@ -14,12 +14,15 @@ Texture2D _InputTex : register(t0);
 
 cbuffer FXAAConstant : register(b1)
 {
-	
+	float4 targetSize;
 };
 
 [RootSignature(FXAAComputeRS)]
 [numthreads(8,8,1)]
 void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 {
-
+	if (_globalID.x >= targetSize.x || _globalID.y >= targetSize.y)
+	{
+		return;
+	}
 }

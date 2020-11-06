@@ -19,7 +19,7 @@ void GenerateMipmap::Release()
 	generateMat.Release();
 }
 
-void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURCE_DESC _srcDesc, D3D12_GPU_DESCRIPTOR_HANDLE _input, D3D12_GPU_DESCRIPTOR_HANDLE _outMip)
+void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, D3D12_GPU_DESCRIPTOR_HANDLE _input, D3D12_GPU_DESCRIPTOR_HANDLE _outMip)
 {
 	auto frameIndex = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 
@@ -32,6 +32,9 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 		return;
 	}
 
+	// transition
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(_src, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+
 	_cmdList->SetComputeRootDescriptorTable(0, _outMip);
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootDescriptorTable(3, _input);
@@ -39,16 +42,17 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 
 	// compute work
 	UINT computeKernel = 8;
+	auto srcDesc = _src->GetDesc();
 
-	for (int i = 0; i < _srcDesc.MipLevels; i += 3)
+	for (int i = 0; i < srcDesc.MipLevels; i += 3)
 	{
 		// setup start mip level
-		int data[] = { i,_srcDesc.MipLevels };
+		int data[] = { i,srcDesc.MipLevels };
 		_cmdList->SetComputeRoot32BitConstants(2, 2, data, 0);
 
-		if ((_srcDesc.Width >> i) < computeKernel || (_srcDesc.Height >> i) < computeKernel)
+		if ((srcDesc.Width >> i) < computeKernel || (srcDesc.Height >> i) < computeKernel)
 			_cmdList->Dispatch(1, 1, 1);
 		else
-			_cmdList->Dispatch((UINT)((_srcDesc.Width >> i) + computeKernel) / computeKernel, (UINT)((_srcDesc.Height >> i) + computeKernel) / computeKernel, 1);
+			_cmdList->Dispatch((UINT)((srcDesc.Width >> i) + computeKernel) / computeKernel, (UINT)((srcDesc.Height >> i) + computeKernel) / computeKernel, 1);
 	}
 }
