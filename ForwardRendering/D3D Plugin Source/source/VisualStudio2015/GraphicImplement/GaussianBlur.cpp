@@ -69,7 +69,7 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 
 	// horizontal pass
 	auto frameIdx = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
-	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIdx));
+	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootDescriptorTable(1, ResourceManager::Instance().GetTexHandle(blurHeapData.Uav()));
 	_cmdList->SetComputeRoot32BitConstant(2, 1, 0);
 	_cmdList->SetComputeRootShaderResourceView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
@@ -85,7 +85,7 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(tmpSrc.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	_cmdList->ResourceBarrier(2, barriers);
 
-	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIdx));
+	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootDescriptorTable(1, _inputUav);
 	_cmdList->SetComputeRoot32BitConstant(2, 0, 0);
 	_cmdList->SetComputeRootShaderResourceView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());

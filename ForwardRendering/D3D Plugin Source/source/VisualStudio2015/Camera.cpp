@@ -121,7 +121,7 @@ void Camera::ResolveDepthBuffer(ID3D12GraphicsCommandList* _cmdList, int _frameI
 	_cmdList->RSSetScissorRects(1, &GetScissorRect());
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(_frameIdx));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetGraphicsRoot32BitConstant(1, cameraData.allowMSAA, 0);
 	_cmdList->SetGraphicsRootDescriptorTable(2, GetMsaaSrv());
 

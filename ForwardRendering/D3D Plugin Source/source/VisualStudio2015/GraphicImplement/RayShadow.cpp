@@ -120,7 +120,7 @@ void RayShadow::RayTracingShadow(Camera* _targetCam, ForwardPlus* _forwardPlus, 
 	// set state
 	_cmdList->SetComputeRootDescriptorTable(0, GetRTShadowUav());
 	_cmdList->SetComputeRootDescriptorTable(1, GetRTShadowTransUav());
-	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootDescriptorTable(3, _forwardPlus->GetLightCullingSrv());
 	_cmdList->SetComputeRootDescriptorTable(4, _forwardPlus->GetLightCullingTransSrv());
 	_cmdList->SetComputeRootShaderResourceView(5, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
@@ -200,7 +200,7 @@ void RayShadow::CollectRayShadow(Camera* _targetCam)
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// set material
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(currFrameResource->currFrameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetGraphicsRoot32BitConstant(1, pcfKernel, 0);
 	_cmdList->SetGraphicsRootDescriptorTable(2, ResourceManager::Instance().GetTexHandle(rtShadowSrv.Srv()));
 	_cmdList->SetGraphicsRootDescriptorTable(3, _targetCam->GetDsvGPU());

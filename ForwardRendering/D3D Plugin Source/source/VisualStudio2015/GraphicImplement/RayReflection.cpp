@@ -73,7 +73,7 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	// set material
 	_cmdList->SetComputeRootDescriptorTable(0, GetReflectionUav());
 	_cmdList->SetComputeRootDescriptorTable(1, GetTransReflectionUav());
-	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootShaderResourceView(3, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, _dirLightGPU);
 	_cmdList->SetComputeRootDescriptorTable(5, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());

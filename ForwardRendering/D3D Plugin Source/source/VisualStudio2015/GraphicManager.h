@@ -70,9 +70,9 @@ public:
 	void WaitBeginWorkerThread(int _index);
 	void WakeAndWaitWorker();
 	void SetWorkerThreadFinishEvent(int _index);
-	void UploadSystemConstant(SystemConstant _sc, int _frameIdx);
+	void UploadSystemConstant(SystemConstant _sc);
 	SystemConstant GetSystemConstantCPU();
-	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU(int _frameIdx);
+	D3D12_GPU_VIRTUAL_ADDRESS GetSystemConstantGPU();
 	void GetScreenSize(int& _w, int& _h);
 
 private:

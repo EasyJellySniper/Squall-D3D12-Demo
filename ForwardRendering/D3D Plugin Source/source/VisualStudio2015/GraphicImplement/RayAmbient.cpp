@@ -72,7 +72,7 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	// set roots
 	_cmdList->SetComputeRootDescriptorTable(0, GetAmbientUav());
 	_cmdList->SetComputeRootDescriptorTable(1, GetHitDistanceUav());
-	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootConstantBufferView(3, ambientConstantGPU->Resource()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(4, RayTracingManager::Instance().GetTopLevelAS()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootShaderResourceView(5, _dirLightGPU);
@@ -180,7 +180,7 @@ void RayAmbient::AmbientRegionFade(ID3D12GraphicsCommandList *_cmdList)
 	auto frameIdx = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 
 	_cmdList->SetComputeRootDescriptorTable(0, GetAmbientUav());
-	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIdx));
+	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootConstantBufferView(2, ambientConstantGPU->Resource()->GetGPUVirtualAddress());
 	_cmdList->SetComputeRootDescriptorTable(3, GetHitDistanceSrv());
 	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());

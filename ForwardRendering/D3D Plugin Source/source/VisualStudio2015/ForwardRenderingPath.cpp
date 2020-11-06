@@ -172,7 +172,7 @@ void ForwardRenderingPath::UploadWork(Camera *_camera)
 	_camera->FillSystemConstant(sc);
 	LightManager::Instance().FillSystemConstant(sc);
 
-	GraphicManager::Instance().UploadSystemConstant(sc, frameIndex);
+	GraphicManager::Instance().UploadSystemConstant(sc);
 	LightManager::Instance().UploadPerLightBuffer(frameIndex);
 
 	// update ray tracing top level AS
@@ -243,7 +243,7 @@ void ForwardRenderingPath::BindDepthObject(ID3D12GraphicsCommandList* _cmdList, 
 	_cmdList->IASetIndexBuffer(&_mesh->GetIndexBufferView());
 
 	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetGraphicsRootShaderResourceView(1, _instanceData);
 	_cmdList->SetGraphicsRootConstantBufferView(2, _mat->GetMaterialConstantGPU(frameIndex));
 
@@ -260,7 +260,7 @@ void ForwardRenderingPath::BindForwardObject(ID3D12GraphicsCommandList *_cmdList
 	_cmdList->IASetIndexBuffer(&_mesh->GetIndexBufferView());
 
 	// set system/object constant of renderer
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 
 	// choose tile result for opaque/transparent obj
 	if (_mat->GetRenderQueue() <= RenderQueue::OpaqueLast)
@@ -316,7 +316,7 @@ void ForwardRenderingPath::DrawWireFrame(Camera* _camera, int _threadIndex)
 			_cmdList->IASetIndexBuffer(&m->GetIndexBufferView());
 
 			// set system constant of renderer
-			_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+			_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 			_cmdList->SetGraphicsRootShaderResourceView(1, r.GetInstanceDataGPU(frameIndex));
 
 			// draw mesh
@@ -607,7 +607,7 @@ void ForwardRenderingPath::DrawSkyboxPass(Camera* _camera)
 	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// bind root object
-	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetGraphicsRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetGraphicsRootConstantBufferView(1, skybox->GetRenderer()->GetObjectConstantGPU(frameIndex));
 	_cmdList->SetGraphicsRootDescriptorTable(2, skybox->GetSkyboxTex());
 	_cmdList->SetGraphicsRootDescriptorTable(3, skybox->GetSkyboxSampler());

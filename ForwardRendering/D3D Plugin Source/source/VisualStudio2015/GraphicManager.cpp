@@ -487,14 +487,14 @@ void GraphicManager::SetWorkerThreadFinishEvent(int _index)
 	SetEvent(workerThreadFinish[_index]);
 }
 
-void GraphicManager::UploadSystemConstant(SystemConstant _sc, int _frameIdx)
+void GraphicManager::UploadSystemConstant(SystemConstant _sc)
 {
 	_sc.linearWrapSampler = linearWrapSampler.Sampler();
 	_sc.linearClampSampler = linearClampSampler.Sampler();
 	_sc.anisotropicWrapSampler = anisotropicWrapSampler.Sampler();
 
 	systemConstantCPU = _sc;
-	systemConstantGPU[_frameIdx]->CopyData(0, systemConstantCPU);
+	systemConstantGPU[currFrameIndex]->CopyData(0, systemConstantCPU);
 }
 
 SystemConstant GraphicManager::GetSystemConstantCPU()
@@ -502,9 +502,9 @@ SystemConstant GraphicManager::GetSystemConstantCPU()
 	return systemConstantCPU;
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS GraphicManager::GetSystemConstantGPU(int _frameIdx)
+D3D12_GPU_VIRTUAL_ADDRESS GraphicManager::GetSystemConstantGPU()
 {
-	return systemConstantGPU[_frameIdx]->Resource()->GetGPUVirtualAddress();
+	return systemConstantGPU[currFrameIndex]->Resource()->GetGPUVirtualAddress();
 }
 
 void GraphicManager::GetScreenSize(int& _w, int& _h)

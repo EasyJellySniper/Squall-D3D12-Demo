@@ -33,7 +33,7 @@ void GenerateMipmap::Generate(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURC
 	}
 
 	_cmdList->SetComputeRootDescriptorTable(0, _outMip);
-	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootDescriptorTable(3, _input);
 	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 

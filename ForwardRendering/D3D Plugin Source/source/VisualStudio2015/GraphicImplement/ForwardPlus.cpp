@@ -98,7 +98,7 @@ void ForwardPlus::TileLightCulling(D3D12_GPU_VIRTUAL_ADDRESS _pointLightGPU)
 	// set pso & root signature
 	_cmdList->SetComputeRootDescriptorTable(0, GetLightCullingUav());
 	_cmdList->SetComputeRootDescriptorTable(1, GetLightCullingTransUav());
-	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU(frameIndex));
+	_cmdList->SetComputeRootConstantBufferView(2, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootShaderResourceView(3, _pointLightGPU);
 	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(5, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
