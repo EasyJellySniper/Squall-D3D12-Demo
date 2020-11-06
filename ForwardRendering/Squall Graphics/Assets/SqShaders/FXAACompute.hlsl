@@ -25,4 +25,8 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 	{
 		return;
 	}
+
+	float4 col = _InputTex[_globalID.xy];
+
+	_OutputTex[_globalID.xy] = col * float4(1,0.2,0.2,1);
 }

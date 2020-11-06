@@ -98,8 +98,8 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	dxrCmd->DispatchRays(&dispatchDesc);
 
 	// FXAA
-	FXAA::FXAACompute(_cmdList, rayReflectionSrc, FXAAConstant(), GetReflectionUav(), GetReflectionSrv());
-	FXAA::FXAACompute(_cmdList, transRayReflection->Resource(), FXAAConstant(), GetTransReflectionUav(), GetTransReflectionSrv());
+	FXAA::FXAACompute(_cmdList, rayReflectionSrc, FXAAConstant(), GetReflectionUav());
+	FXAA::FXAACompute(_cmdList, transRayReflection->Resource(), FXAAConstant(), GetTransReflectionUav());
 
 	// generate mipmap for reflection rt
 	GenerateMipmap::Generate(_cmdList, rayReflectionSrc, GetReflectionSrv(), GetReflectionUav());

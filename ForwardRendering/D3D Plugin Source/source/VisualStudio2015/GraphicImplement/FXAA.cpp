@@ -14,6 +14,9 @@ unique_ptr<UploadBuffer<FXAAConstant>> FXAA::fxaaConstantGPU;
 
 void FXAA::Init()
 {
+	// init prev constant
+	prevFxaaConstant = FXAAConstant();
+
 	// init shader
 	Shader* fxaa = ShaderManager::Instance().CompileShader(L"FXAACompute.hlsl");
 	if (fxaa != nullptr)
@@ -35,8 +38,7 @@ void FXAA::Release()
 	tmpSrc.Reset();
 }
 
-void FXAA::FXAACompute(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, FXAAConstant _const
-	, D3D12_GPU_DESCRIPTOR_HANDLE _outUav, D3D12_GPU_DESCRIPTOR_HANDLE _inSrv)
+void FXAA::FXAACompute(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src, FXAAConstant _const, D3D12_GPU_DESCRIPTOR_HANDLE _outUav)
 {
 	// assume descriptor heap is binded
 	if (!MaterialManager::Instance().SetComputePass(_cmdList, &fxaaComputeMat))
@@ -61,7 +63,7 @@ void FXAA::FXAACompute(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src
 	_cmdList->SetComputeRootDescriptorTable(0, _outUav);
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootConstantBufferView(2, fxaaConstantGPU->Resource()->GetGPUVirtualAddress());
-	_cmdList->SetComputeRootDescriptorTable(3, _inSrv);
+	_cmdList->SetComputeRootDescriptorTable(3, GetFxaaSrv());
 	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
 	// dispatch
@@ -98,4 +100,9 @@ void FXAA::CreateTempResource(ID3D12Heap* _heap, D3D12_RESOURCE_DESC _desc)
 
 	// create srv
 	fxaaHeapData.UpdateSrv(tmpSrc.Get(), TextureInfo());
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE FXAA::GetFxaaSrv()
+{
+	return ResourceManager::Instance().GetTexHandle(fxaaHeapData.Srv());
 }
