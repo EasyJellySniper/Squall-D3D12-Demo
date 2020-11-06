@@ -7,7 +7,8 @@ struct FXAAConstant
 {
 	bool operator!=(FXAAConstant& _lhs)
 	{
-		return targetSize.x != _lhs.targetSize.x;
+		return targetSize.x != _lhs.targetSize.x 
+			|| targetSize.y != _lhs.targetSize.y;
 	}
 
 	XMFLOAT4 targetSize;

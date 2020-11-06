@@ -158,6 +158,12 @@ int GetPointLightOffset(uint _index)
 	return _index * (_MaxPointLight * 4 + 4);
 }
 
+// rgb to luma, formula: https://en.wikipedia.org/wiki/Relative_luminance
+float3 RgbToLuma(float3 col)
+{
+	return col.r * 0.2126f + col.g * 0.7152f + col.b * 0.0722f;
+}
+
 #define SQ_SAMPLE_TEXTURE_LEVEL(x,y,z,w) _SqTexTable[x].SampleLevel(_SqSamplerTable[y], z, w)
 
 #if defined(RAY_SHADER)

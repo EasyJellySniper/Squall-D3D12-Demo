@@ -27,6 +27,7 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 	}
 
 	float4 col = _InputTex[_globalID.xy];
+	col.rgb = RgbToLuma(col.rgb);
 
-	_OutputTex[_globalID.xy] = col * float4(1,0.2,0.2,1);
+	_OutputTex[_globalID.xy] = col;
 }
