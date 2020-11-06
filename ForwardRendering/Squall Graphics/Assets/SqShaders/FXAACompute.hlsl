@@ -52,8 +52,6 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 		return;
 	}
 
-	float2 screenUV = (_globalID.xy + 0.5f) * targetSize.zw;
-
 	float4 col = _InputTex[_globalID.xy];
 	_OutputTex[_globalID.xy] = lerp(col, float4(1, 0, 0, 0), EdgeDetect(_globalID.xy));
 }
