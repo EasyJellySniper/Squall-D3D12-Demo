@@ -80,7 +80,7 @@ void RayAmbient::Trace(Camera* _targetCam, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGP
 	_cmdList->SetComputeRootDescriptorTable(7, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(8, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(9, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(10, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootShaderResourceView(10, RayTracingManager::Instance().GetSubMeshInfoGPU(frameIndex));
 	_cmdList->SetComputeRootShaderResourceView(11, uniformVectorGPU->Resource()->GetGPUVirtualAddress());
 
 	// prepare dispatch desc

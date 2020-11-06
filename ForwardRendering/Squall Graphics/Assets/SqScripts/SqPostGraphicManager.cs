@@ -12,6 +12,14 @@ public class SqPostGraphicManager : MonoBehaviour
     [DllImport("SquallGraphics")]
     static extern void InitInstanceRendering();
 
+    [DllImport("SquallGraphics")]
+    static extern void UpdateRayTracingRange(float _range);
+
+    /// <summary>
+    /// ray tracing range
+    /// </summary>
+    public float rayTracingRange = 100;
+
     void Start()
     {
         // unload unused assets
@@ -22,5 +30,10 @@ public class SqPostGraphicManager : MonoBehaviour
 
         // make sure the execution order of this script is after SqMeshFilter & SqMeshRenderer
         InitRayTracingInstance();
+    }
+
+    void Update()
+    {
+        UpdateRayTracingRange(rayTracingRange);
     }
 }

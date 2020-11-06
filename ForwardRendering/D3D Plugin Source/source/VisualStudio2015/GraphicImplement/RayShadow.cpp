@@ -130,7 +130,7 @@ void RayShadow::RayTracingShadow(Camera* _targetCam, ForwardPlus* _forwardPlus, 
 	_cmdList->SetComputeRootDescriptorTable(9, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(10, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(11, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(12, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootShaderResourceView(12, RayTracingManager::Instance().GetSubMeshInfoGPU(frameIndex));
 
 	// prepare dispatch desc
 	auto rtShadowSrc = rayTracingShadow->Resource();

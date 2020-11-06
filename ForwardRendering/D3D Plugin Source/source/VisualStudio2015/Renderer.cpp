@@ -153,3 +153,12 @@ D3D12_GPU_VIRTUAL_ADDRESS Renderer::GetObjectConstantGPU(int _frameIdx)
 {
 	return rendererConstant[_frameIdx]->Resource()->GetGPUVirtualAddress();
 }
+
+float Renderer::GetSqrDistanceToCamera(Camera* _camera)
+{
+	XMVECTOR cRenderer = XMLoadFloat3(&worldBound.Center);
+	XMVECTOR cCamera = XMLoadFloat3(&_camera->GetPosition());
+
+	// return square distance
+	return XMVector3LengthSq(cRenderer-cCamera).m128_f32[0];
+}

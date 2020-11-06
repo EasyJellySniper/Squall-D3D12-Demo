@@ -52,18 +52,20 @@ public:
 
 	void Release();
 	void InitRayTracingInstance();
-	void CreateSubMeshInfoForTopAS();
+	void CreateSubMeshInfoForTopAS(bool _forInit);
 	ID3D12Resource* GetTopLevelAS();
-	D3D12_GPU_VIRTUAL_ADDRESS GetSubMeshInfoGPU();
+	D3D12_GPU_VIRTUAL_ADDRESS GetSubMeshInfoGPU(int _frameIdx);
 	void UpdateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
 
 	int GetTopLevelAsCount();
+	void UpdateRayTracingRange(float _range);
 
 private:
 	void CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList);
-	void CollectRayTracingDesc(TopLevelAS& _input);
+	void CollectRayTracingDesc(TopLevelAS& _input, bool _forInit);
 	void CreateTopASWork(ID3D12GraphicsCommandList5* _dxrList, TopLevelAS &_topLevelAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS _buildFlag);
 
 	TopLevelAS allTopAS;
-	unique_ptr<UploadBuffer<SubMesh>> subMeshInfo;
+	unique_ptr<UploadBuffer<SubMesh>> subMeshInfo[MAX_FRAME_COUNT];
+	float rayTracingRange = 0.0f;
 };

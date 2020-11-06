@@ -35,6 +35,7 @@ public:
 	const vector<Material*> GetMaterials();
 	Material* const GetMaterial(int _index);
 	D3D12_GPU_VIRTUAL_ADDRESS GetObjectConstantGPU(int _frameIdx);
+	float GetSqrDistanceToCamera(Camera* _camera);
 
 private:
 	ObjectConstant currentObjConst;

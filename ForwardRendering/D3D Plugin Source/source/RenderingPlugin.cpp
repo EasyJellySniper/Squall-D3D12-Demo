@@ -208,6 +208,11 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetAmbientData(Ambien
 	LightManager::Instance().SetAmbientData(_ac);
 }
 
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRayTracingRange(float _range)
+{
+	RayTracingManager::Instance().UpdateRayTracingRange(_range);
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

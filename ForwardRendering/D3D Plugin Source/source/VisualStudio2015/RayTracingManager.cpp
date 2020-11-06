@@ -6,7 +6,10 @@
 
 void RayTracingManager::Release()
 {
-	subMeshInfo.reset();
+	for (int i = 0; i < MAX_FRAME_COUNT; i++)
+	{
+		subMeshInfo[i].reset();
+	}
 	allTopAS.Release();
 }
 
@@ -20,7 +23,7 @@ void RayTracingManager::InitRayTracingInstance()
 
 	// build top AS
 	CreateTopAccelerationStructure(dxrCmd);
-	CreateSubMeshInfoForTopAS();
+	CreateSubMeshInfoForTopAS(true);
 
 	GraphicManager::Instance().ExecuteCreationList();
 	GraphicManager::Instance().WaitForGPU();
@@ -29,22 +32,36 @@ void RayTracingManager::InitRayTracingInstance()
 	MeshManager::Instance().ReleaseScratch();
 }
 
-void RayTracingManager::CreateSubMeshInfoForTopAS()
+void RayTracingManager::CreateSubMeshInfoForTopAS(bool _forInit)
 {
 	// create enough buffer
-	int numTopASInstance = (int)allTopAS.instanceDescs.size();
-	subMeshInfo = make_unique<UploadBuffer<SubMesh>>(GraphicManager::Instance().GetDevice(), numTopASInstance, false);
+	if (_forInit)
+	{
+		int numTopASInstance = (int)allTopAS.instanceDescs.size();
+		for (int i = 0; i < MAX_FRAME_COUNT; i++)
+		{
+			subMeshInfo[i] = make_unique<UploadBuffer<SubMesh>>(GraphicManager::Instance().GetDevice(), numTopASInstance, false);
+		}
+		return;
+	}
 
 	int count = 0;
 	auto renderers = RendererManager::Instance().GetRenderers();
+	auto camera = CameraManager::Instance().GetCamera();
+	auto frameIdx = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 
 	// sub mesh info
 	for (auto& r : renderers)
 	{
+		if (!r->GetVisible() && (r->GetSqrDistanceToCamera(camera) > rayTracingRange * rayTracingRange))
+		{
+			continue;
+		}
+
 		for (int i = 0; i < r->GetNumMaterials(); i++)
 		{
 			SubMesh sm = r->GetMesh()->GetSubMesh(i);
-			subMeshInfo->CopyData(count++, sm);
+			subMeshInfo[frameIdx]->CopyData(count++, sm);
 		}
 	}
 }
@@ -54,22 +71,16 @@ ID3D12Resource* RayTracingManager::GetTopLevelAS()
 	return allTopAS.topLevelAS->Resource();
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS RayTracingManager::GetSubMeshInfoGPU()
+D3D12_GPU_VIRTUAL_ADDRESS RayTracingManager::GetSubMeshInfoGPU(int _frameIdx)
 {
-	return subMeshInfo->Resource()->GetGPUVirtualAddress();
+	return subMeshInfo[_frameIdx]->Resource()->GetGPUVirtualAddress();
 }
 
 void RayTracingManager::UpdateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
-	// update dynamic transform only
-	for (size_t i = 0; i < allTopAS.instanceDescs.size(); i++)
-	{
-		Renderer* r = allTopAS.rendererCache[i];
-		if (r->IsDynamic())
-		{
-			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(allTopAS.instanceDescs[i].Transform), XMLoadFloat4x4(&r->GetWorld()));
-		}
-	}
+	// collect desc again
+	CollectRayTracingDesc(allTopAS, false);
+	CreateSubMeshInfoForTopAS(false);
 
 	// create dynamic top as (prefer fast build)
 	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
@@ -80,18 +91,24 @@ int RayTracingManager::GetTopLevelAsCount()
 	return (int)allTopAS.instanceDescs.size();
 }
 
+void RayTracingManager::UpdateRayTracingRange(float _range)
+{
+	rayTracingRange = _range;
+}
+
 void RayTracingManager::CreateTopAccelerationStructure(ID3D12GraphicsCommandList5* _dxrList)
 {
 	// collect instance descs
-	CollectRayTracingDesc(allTopAS);
+	CollectRayTracingDesc(allTopAS, true);
 
 	// create all top as (prefer fast trace)
 	CreateTopASWork(_dxrList, allTopAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD);
 }
 
-void RayTracingManager::CollectRayTracingDesc(TopLevelAS& _input)
+void RayTracingManager::CollectRayTracingDesc(TopLevelAS& _input, bool _forInit)
 {
 	auto renderers = RendererManager::Instance().GetRenderers();
+	auto camera = CameraManager::Instance().GetCamera();
 
 	// prepare ray tracing instance desc
 	_input.instanceDescs.clear();
@@ -99,6 +116,14 @@ void RayTracingManager::CollectRayTracingDesc(TopLevelAS& _input)
 
 	for (auto& r : renderers)
 	{
+		if (!_forInit)
+		{
+			if (!r->GetVisible() && (r->GetSqrDistanceToCamera(camera) > rayTracingRange * rayTracingRange))
+			{
+				continue;
+			}
+		}
+
 		// build all submesh use by the renderer
 		for (int i = 0; i < r->GetNumMaterials(); i++)
 		{

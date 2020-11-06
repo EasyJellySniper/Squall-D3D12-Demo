@@ -41,3 +41,4 @@ EXPORTS
    ResetPipelineState
    SetRayDistance
    SetAmbientData
+   UpdateRayTracingRange

@@ -80,7 +80,7 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	_cmdList->SetComputeRootDescriptorTable(6, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(7, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(8, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
-	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU());
+	_cmdList->SetComputeRootShaderResourceView(9, RayTracingManager::Instance().GetSubMeshInfoGPU(frameIndex));
 	_cmdList->SetComputeRootDescriptorTable(10, _skybox->GetSkyboxTex());
 	_cmdList->SetComputeRootDescriptorTable(11, _skybox->GetSkyboxSampler());
 
