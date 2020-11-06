@@ -5,6 +5,7 @@
 #include "../GraphicManager.h"
 #include "../RayTracingManager.h"
 #include "GenerateMipmap.h"
+#include "FXAA.h"
 
 void RayReflection::Init(ID3D12Resource* _rayReflection)
 {
@@ -96,9 +97,13 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	// dispatch rays
 	dxrCmd->DispatchRays(&dispatchDesc);
 
+	// FXAA
+	FXAA::FXAACompute(_cmdList, rayReflectionSrc, FXAAConstant(), GetReflectionUav(), GetReflectionSrv());
+	FXAA::FXAACompute(_cmdList, transRayReflection->Resource(), FXAAConstant(), GetTransReflectionUav(), GetTransReflectionSrv());
+
 	// generate mipmap for reflection rt
-	GenerateMipmap::Generate(_cmdList, rayReflectionSrc, ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.Srv()), ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.Uav()));
-	GenerateMipmap::Generate(_cmdList, transRayReflection->Resource(), ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.Srv()), ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.Uav()));
+	GenerateMipmap::Generate(_cmdList, rayReflectionSrc, GetReflectionSrv(), GetReflectionUav());
+	GenerateMipmap::Generate(_cmdList, transRayReflection->Resource(), GetTransReflectionSrv(), GetTransReflectionUav());
 
 	// resource transition back
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(_targetCam->GetRtvSrc(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -136,4 +141,14 @@ D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetReflectionUav()
 D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetTransReflectionUav()
 {
 	return ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.Uav());
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetReflectionSrv()
+{
+	return ResourceManager::Instance().GetTexHandle(rayReflectoinSrv.Srv());
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetTransReflectionSrv()
+{
+	return ResourceManager::Instance().GetTexHandle(transRayReflectionHeap.Srv());
 }

@@ -19,6 +19,8 @@ public:
 private:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetReflectionUav();
 	D3D12_GPU_DESCRIPTOR_HANDLE GetTransReflectionUav();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetReflectionSrv();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTransReflectionSrv();
 
 	unique_ptr<DefaultBuffer> transRayReflection;
 	ID3D12Resource* rayReflectionSrc;
