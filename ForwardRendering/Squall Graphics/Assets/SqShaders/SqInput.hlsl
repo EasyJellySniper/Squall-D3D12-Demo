@@ -159,7 +159,7 @@ int GetPointLightOffset(uint _index)
 }
 
 // rgb to luma, formula: https://en.wikipedia.org/wiki/Relative_luminance
-float3 RgbToLuma(float3 col)
+float RgbToLuma(float3 col)
 {
 	return col.r * 0.2126f + col.g * 0.7152f + col.b * 0.0722f;
 }
