@@ -4,7 +4,7 @@
 #include "../UploadBuffer.h"
 #include "../ResourceManager.h"
 
-static const int MAX_BLUR_WEIGHT = 15;
+static const int MAX_BLUR_WEIGHT = 16;
 
 struct BlurConstant
 {
@@ -28,6 +28,8 @@ struct BlurConstant
 	float depthThreshold;
 	float normalThreshold;
 	int blurRadius;
+	float padding;
+
 	float blurWeight[MAX_BLUR_WEIGHT];
 };
 
@@ -45,9 +47,7 @@ private:
 
 	static Material blurCompute;
 	static BlurConstant blurConstantCPU;
-	static BlurConstant prevBlurConstant;
 
-	static unique_ptr<UploadBuffer<BlurConstant>> blurConstantGPU;
 	static DescriptorHeapData blurHeapData;
 	static ComPtr<ID3D12Resource> tmpSrc;
 };

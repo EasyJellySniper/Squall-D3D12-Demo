@@ -6,25 +6,17 @@
 
 Material GaussianBlur::blurCompute;
 BlurConstant GaussianBlur::blurConstantCPU;
-BlurConstant GaussianBlur::prevBlurConstant;
-unique_ptr<UploadBuffer<BlurConstant>> GaussianBlur::blurConstantGPU;
 DescriptorHeapData GaussianBlur::blurHeapData;
 ComPtr<ID3D12Resource> GaussianBlur::tmpSrc;
 
 void GaussianBlur::Init()
 {
-	// init heap size
-	prevBlurConstant = BlurConstant();
-
 	// init material
 	Shader* shader = ShaderManager::Instance().CompileShader(L"GaussianBlurCompute.hlsl");
 	if (shader != nullptr)
 	{
 		blurCompute = MaterialManager::Instance().CreateComputeMat(shader);
 	}
-
-	// init constant
-	blurConstantGPU = make_unique<UploadBuffer<BlurConstant>>(GraphicManager::Instance().GetDevice(), 1, false);
 
 	// init descriptor heap ID
 	blurHeapData.AddSrv(nullptr, TextureInfo());
@@ -36,7 +28,6 @@ void GaussianBlur::Release()
 	GraphicManager::Instance().WaitForGPU();
 
 	blurCompute.Release();
-	blurConstantGPU.reset();
 	tmpSrc.Reset();
 }
 
@@ -71,8 +62,8 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 	auto frameIdx = GraphicManager::Instance().GetFrameResource()->currFrameIndex;
 	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootDescriptorTable(1, ResourceManager::Instance().GetTexHandle(blurHeapData.Uav()));
-	_cmdList->SetComputeRoot32BitConstant(2, 1, 0);
-	_cmdList->SetComputeRootShaderResourceView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRoot32BitConstants(2, sizeof(blurConstantCPU) / 4, &blurConstantCPU, 0);
+	_cmdList->SetComputeRoot32BitConstant(3, 1, 0);
 	_cmdList->SetComputeRootDescriptorTable(4, _inputSrv);
 	_cmdList->SetComputeRootDescriptorTable(5, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(6, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
@@ -87,8 +78,8 @@ void GaussianBlur::BlurCompute(ID3D12GraphicsCommandList* _cmdList, BlurConstant
 
 	_cmdList->SetComputeRootConstantBufferView(0, GraphicManager::Instance().GetSystemConstantGPU());
 	_cmdList->SetComputeRootDescriptorTable(1, _inputUav);
-	_cmdList->SetComputeRoot32BitConstant(2, 0, 0);
-	_cmdList->SetComputeRootShaderResourceView(3, blurConstantGPU->Resource()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRoot32BitConstants(2, sizeof(blurConstantCPU) / 4, &blurConstantCPU, 0);
+	_cmdList->SetComputeRoot32BitConstant(3, 0, 0);
 	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetTexHandle(blurHeapData.Srv()));
 	_cmdList->SetComputeRootDescriptorTable(5, ResourceManager::Instance().GetTexHeap()->GetGPUDescriptorHandleForHeapStart());
 	_cmdList->SetComputeRootDescriptorTable(6, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
@@ -127,13 +118,6 @@ void GaussianBlur::UploadConstant(D3D12_RESOURCE_DESC _desc)
 	blurConstantCPU.targetSize.y = (float)_desc.Height;
 	blurConstantCPU.targetSize.z = 1.0f / (float)_desc.Width;
 	blurConstantCPU.targetSize.w = 1.0f / (float)_desc.Height;
-
-	if (blurConstantCPU != prevBlurConstant)
-	{
-		blurConstantGPU->CopyData(0, blurConstantCPU);
-	}
-
-	prevBlurConstant = blurConstantCPU;
 }
 
 void GaussianBlur::CreateTempResource(ID3D12Heap* _heap, D3D12_RESOURCE_DESC _desc)
