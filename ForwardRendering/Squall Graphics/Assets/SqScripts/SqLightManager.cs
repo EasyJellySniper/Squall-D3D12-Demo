@@ -55,6 +55,8 @@ public class SqLightManager : MonoBehaviour
 
         [Range(0, 1)]
         public float blurNormalThres;
+
+        [Range(1, 9)]
         public int sampleCount;
 
         [HideInInspector]
