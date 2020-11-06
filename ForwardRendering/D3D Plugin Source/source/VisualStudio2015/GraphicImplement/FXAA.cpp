@@ -9,14 +9,9 @@ Material FXAA::fxaaComputeMat;
 ComPtr<ID3D12Resource> FXAA::tmpSrc;
 DescriptorHeapData FXAA::fxaaHeapData;
 FXAAConstant FXAA::fxaaConstantCPU;
-FXAAConstant FXAA::prevFxaaConstant;
-unique_ptr<UploadBuffer<FXAAConstant>> FXAA::fxaaConstantGPU;
 
 void FXAA::Init()
 {
-	// init prev constant
-	prevFxaaConstant = FXAAConstant();
-
 	// init shader
 	Shader* fxaa = ShaderManager::Instance().CompileShader(L"FXAACompute.hlsl");
 	if (fxaa != nullptr)
@@ -26,15 +21,11 @@ void FXAA::Init()
 
 	// init heap data
 	fxaaHeapData.AddSrv(nullptr, TextureInfo());
-
-	// init upload buffer
-	fxaaConstantGPU = make_unique<UploadBuffer<FXAAConstant>>(GraphicManager::Instance().GetDevice(), 1, true);
 }
 
 void FXAA::Release()
 {
 	fxaaComputeMat.Release();
-	fxaaConstantGPU.reset();
 	tmpSrc.Reset();
 }
 
@@ -62,7 +53,7 @@ void FXAA::FXAACompute(ID3D12GraphicsCommandList* _cmdList, ID3D12Resource* _src
 	// bind roots
 	_cmdList->SetComputeRootDescriptorTable(0, _outUav);
 	_cmdList->SetComputeRootConstantBufferView(1, GraphicManager::Instance().GetSystemConstantGPU());
-	_cmdList->SetComputeRootConstantBufferView(2, fxaaConstantGPU->Resource()->GetGPUVirtualAddress());
+	_cmdList->SetComputeRoot32BitConstants(2, sizeof(fxaaConstantCPU) / 4, &fxaaConstantCPU, 0);
 	_cmdList->SetComputeRootDescriptorTable(3, GetFxaaSrv());
 	_cmdList->SetComputeRootDescriptorTable(4, ResourceManager::Instance().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart());
 
@@ -78,13 +69,6 @@ void FXAA::UploadConstant(D3D12_RESOURCE_DESC _desc)
 	fxaaConstantCPU.targetSize.y = (float)_desc.Height;
 	fxaaConstantCPU.targetSize.z = 1.0f / (float)_desc.Width;
 	fxaaConstantCPU.targetSize.w = 1.0f / (float)_desc.Height;
-
-	if (prevFxaaConstant != fxaaConstantCPU)
-	{
-		fxaaConstantGPU->CopyData(0, fxaaConstantCPU);
-	}
-
-	prevFxaaConstant = fxaaConstantCPU;
 }
 
 void FXAA::CreateTempResource(ID3D12Heap* _heap, D3D12_RESOURCE_DESC _desc)

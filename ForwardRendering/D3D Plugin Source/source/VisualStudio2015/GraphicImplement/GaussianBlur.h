@@ -8,13 +8,6 @@ static const int MAX_BLUR_WEIGHT = 16;
 
 struct BlurConstant
 {
-	bool operator!=(BlurConstant &_rhs)
-	{
-		return depthThreshold != _rhs.depthThreshold ||
-			normalThreshold != _rhs.normalThreshold ||
-			blurRadius != _rhs.blurRadius;
-	}
-
 	BlurConstant() {}
 
 	BlurConstant(int _radius, float _depthThreshold, float _normalThreshold)

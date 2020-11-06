@@ -5,12 +5,6 @@
 
 struct FXAAConstant
 {
-	bool operator!=(FXAAConstant& _lhs)
-	{
-		return targetSize.x != _lhs.targetSize.x 
-			|| targetSize.y != _lhs.targetSize.y;
-	}
-
 	XMFLOAT4 targetSize;
 };
 
@@ -31,6 +25,4 @@ private:
 	static DescriptorHeapData fxaaHeapData;
 
 	static FXAAConstant fxaaConstantCPU;
-	static FXAAConstant prevFxaaConstant;
-	static unique_ptr<UploadBuffer<FXAAConstant>> fxaaConstantGPU;
 };

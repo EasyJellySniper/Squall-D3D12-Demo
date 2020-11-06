@@ -1,7 +1,7 @@
 #define FXAAComputeRS "RootFlags(0)," \
 "DescriptorTable(UAV(u0, numDescriptors=1))," \
 "CBV(b0)," \
-"CBV(b1)," \
+"RootConstants( num32BitConstants = 4, b1 )," \
 "DescriptorTable(SRV(t0, numDescriptors=1))," \
 "DescriptorTable(Sampler(s0 , numDescriptors = unbounded))"
 
