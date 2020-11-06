@@ -20,6 +20,7 @@
 #include "VisualStudio2015/Formatter.h"
 #include "Unity/IUnityGraphicsD3D12.h"
 #include "VisualStudio2015/GraphicImplement/GaussianBlur.h"
+#include "VisualStudio2015/GraphicImplement/FXAA.h"
 
 class RenderAPI_D3D12 : public RenderAPI
 {
@@ -88,6 +89,7 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	Formatter::Init();
 	GenerateMipmap::Init();
 	GaussianBlur::Init();
+	FXAA::Init();
 
 #if defined(GRAPHICTIME)
 	AllocConsole();
@@ -114,6 +116,7 @@ void RenderAPI_D3D12::ReleaseResources()
 	Formatter::Release();
 	GenerateMipmap::Release();
 	GaussianBlur::Release();
+	FXAA::Release();
 
 #if defined(GRAPHICTIME)
 	fclose(stdout);

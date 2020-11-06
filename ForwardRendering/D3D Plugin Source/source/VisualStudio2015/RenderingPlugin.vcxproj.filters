@@ -77,6 +77,9 @@
       <Filter>GraphicImplement</Filter>
     </ClInclude>
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="GraphicImplement\FXAA.h">
+      <Filter>GraphicImplement</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\RenderAPI.cpp" />
@@ -126,6 +129,9 @@
       <Filter>GraphicImplement</Filter>
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="GraphicImplement\FXAA.cpp">
+      <Filter>GraphicImplement</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLEW">
