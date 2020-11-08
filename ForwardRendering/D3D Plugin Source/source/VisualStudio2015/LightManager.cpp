@@ -136,7 +136,7 @@ void LightManager::FillSystemConstant(SystemConstant& _sc)
 	_sc.ambientGround = skyData.ambientGround;
 	_sc.ambientSky = skyData.ambientSky;
 	_sc.skyIntensity = skyData.skyIntensity;
-	_sc.cameraPos.w = reflectionDistance;
+	_sc.cameraPos.w = rayReflection.GetReflectionData().reflectionDistance;
 	_sc.reflectionRTIndex = rayReflection.GetRayReflectionHeap().Srv();
 	_sc.transReflectionRTIndex = rayReflection.GetTransRayReflectionHeap().Srv();
 	_sc.ambientRTIndex = rayAmbient.GetAmbientSrv();
@@ -159,9 +159,9 @@ void LightManager::SetAmbientLight(XMFLOAT4 _ag, XMFLOAT4 _as, float _skyIntensi
 	skybox.SetSkyboxData(_ag, _as, _skyIntensity);
 }
 
-void LightManager::SetRayDistance(float _reflectionDist)
+void LightManager::SetReflectionData(ReflectionConst _rd)
 {
-	reflectionDistance = _reflectionDist;
+	rayReflection.SetReflectionData(_rd);
 }
 
 void LightManager::SetSkybox(void* _skybox, TextureWrapMode wrapU, TextureWrapMode wrapV, TextureWrapMode wrapW, int _anisoLevel, int _skyMesh)

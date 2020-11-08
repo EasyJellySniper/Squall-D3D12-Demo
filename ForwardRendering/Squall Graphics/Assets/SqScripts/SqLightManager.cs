@@ -66,6 +66,18 @@ public class SqLightManager : MonoBehaviour
         public int blurRadius;
     };
 
+    [Serializable]
+    public struct ReflectionConst
+    {
+        public float reflectionDistance;
+
+        [Range(0, 1)]
+        public float fxaaEdgeMin;
+
+        [Range(0, 1)]
+        public float fxaaEdgeMax;
+    };
+
     [DllImport("SquallGraphics")]
     static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight);
 
@@ -79,7 +91,7 @@ public class SqLightManager : MonoBehaviour
     static extern void InitRayAmbient(IntPtr _ambientRT, IntPtr _noiseTex);
 
     [DllImport("SquallGraphics")]
-    static extern void SetRayDistance(float _reflectionDistance);
+    static extern void SetReflectionData(ReflectionConst _rd);
 
     [DllImport("SquallGraphics")]
     static extern void SetPCFKernel(int _kernel);
@@ -119,9 +131,9 @@ public class SqLightManager : MonoBehaviour
     public int reflectionDownSample = 0;
 
     /// <summary>
-    /// reflection distance
+    /// refl data
     /// </summary>
-    public float reflectionDistance = 500;
+    public ReflectionConst reflectionData;
 
 
     [Header("Ambient Settings")]
@@ -177,7 +189,7 @@ public class SqLightManager : MonoBehaviour
     void Update()
     {
         // set distance data
-        SetRayDistance(reflectionDistance);
+        SetReflectionData(reflectionData);
 
         // update
         SetPCF();

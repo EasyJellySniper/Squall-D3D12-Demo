@@ -5,16 +5,25 @@
 #include "Skybox.h"
 #include "../DefaultBuffer.h"
 
+struct ReflectionConst
+{
+	float reflectionDistance;
+	float fxaaEdgeMin;
+	float fxaaEdgeMax;
+};
+
 class RayReflection
 {
 public:
 	void Init(ID3D12Resource* _rayReflection);
 	void Release();
 	void Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox* _skybox, D3D12_GPU_VIRTUAL_ADDRESS _dirLightGPU);
+	void SetReflectionData(ReflectionConst _rd);
 
 	Material* GetMaterial();
 	DescriptorHeapData GetRayReflectionHeap();
 	DescriptorHeapData GetTransRayReflectionHeap();
+	ReflectionConst GetReflectionData();
 
 private:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetReflectionUav();
@@ -28,4 +37,5 @@ private:
 	Material rayReflectionMat;
 	DescriptorHeapData rayReflectoinSrv;
 	DescriptorHeapData transRayReflectionHeap;
+	ReflectionConst reflectionData;
 };

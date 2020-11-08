@@ -118,6 +118,11 @@ void RayReflection::Trace(Camera* _targetCam, ForwardPlus* _forwardPlus, Skybox*
 	GraphicManager::Instance().ExecuteCommandList(_cmdList);
 }
 
+void RayReflection::SetReflectionData(ReflectionConst _rd)
+{
+	reflectionData = _rd;
+}
+
 Material* RayReflection::GetMaterial()
 {
 	return &rayReflectionMat;
@@ -131,6 +136,11 @@ DescriptorHeapData RayReflection::GetRayReflectionHeap()
 DescriptorHeapData RayReflection::GetTransRayReflectionHeap()
 {
 	return transRayReflectionHeap;
+}
+
+ReflectionConst RayReflection::GetReflectionData()
+{
+	return reflectionData;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE RayReflection::GetReflectionUav()

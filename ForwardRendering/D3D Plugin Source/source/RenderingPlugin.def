@@ -39,6 +39,6 @@ EXPORTS
    SetSkyboxWorld
    InitInstanceRendering
    ResetPipelineState
-   SetRayDistance
+   SetReflectionData
    SetAmbientData
    UpdateRayTracingRange
