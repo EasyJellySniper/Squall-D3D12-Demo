@@ -136,6 +136,7 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 	}
 
 	float2 uv = (_globalID.xy + 0.5f) * _TargetSize.zw;
+	float2 originUV = uv;
 	EdgeData ed = EdgeDetect(uv);
 
 	if (ed.isEdge > 0)
@@ -217,8 +218,8 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 		}
 
 		// Compute the distances to each extremity of the edge.
-		float distance1 = ed.isHorizontal ? (uv.x - uv1.x) : (uv.y - uv1.y);
-		float distance2 = ed.isHorizontal ? (uv2.x - uv.x) : (uv2.y - uv.y);
+		float distance1 = ed.isHorizontal ? (originUV.x - uv1.x) : (originUV.y - uv1.y);
+		float distance2 = ed.isHorizontal ? (uv2.x - originUV.x) : (uv2.y - originUV.y);
 
 		// which edge is closer
 		bool isDirection1 = distance1 < distance2;
@@ -233,7 +234,7 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 		finalOffset = max(finalOffset, ed.subPixelOffsetFinal);
 
 		// final uv read
-		float2 finalUV = uv;
+		float2 finalUV = originUV;
 		if (ed.isHorizontal) 
 		{
 			finalUV.y += finalOffset * ed.stepLength;
