@@ -5,7 +5,20 @@
 
 struct FXAAConstant
 {
+	FXAAConstant()
+	{
+
+	}
+
+	FXAAConstant(float edgeMin, float edgeMax)
+	{
+		edgeThresholdMin = edgeMin;
+		edgeThresholdMax = edgeMax;
+	}
+
 	XMFLOAT4 targetSize;
+	float edgeThresholdMin;
+	float edgeThresholdMax;
 };
 
 class FXAA
