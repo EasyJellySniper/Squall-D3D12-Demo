@@ -25,7 +25,7 @@ public class SqGraphicManager : MonoBehaviour
     /// <summary>
     /// number of render threads
     /// </summary>
-    [Range(2, 32)]
+    [Range(2, 16)]
     public int numOfRenderThreads = 4;
 
     /// <summary>

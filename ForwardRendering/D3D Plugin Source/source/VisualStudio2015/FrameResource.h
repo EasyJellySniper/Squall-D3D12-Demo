@@ -6,7 +6,7 @@ using namespace Microsoft::WRL;
 using namespace DirectX;
 
 const static int MAX_FRAME_COUNT = 2;
-const static int MAX_WORKER_THREAD_COUNT = 8;
+const static int MAX_WORKER_THREAD_COUNT = 16;
 
 struct FrameResource
 {
