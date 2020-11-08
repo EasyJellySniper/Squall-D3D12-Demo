@@ -8,7 +8,10 @@
 #include "SqInput.hlsl"
 #pragma sq_compute FXAAComputeCS
 #pragma sq_rootsig FXAAComputeRS
+#define ITERATIONS 12
+#define SUBPIXEL_QUALITY 0.75
 
+static const float _Quality[12] = { 1,1,1,1,1,1.5f,2.0f,2.0f,2.0f,2.0f,4.0f,8.0f };
 RWTexture2D<float4> _OutputTex : register(u0);
 Texture2D _InputTex : register(t0);
 
@@ -25,6 +28,9 @@ struct EdgeData
 	bool isHorizontal;
 	float gradientScaled;
 	float lumaLocalAverage;
+	float stepLength;
+	float lumaCenter;
+	float subPixelOffsetFinal;
 };
 
 EdgeData EdgeDetect(int2 uv)
@@ -33,6 +39,7 @@ EdgeData EdgeDetect(int2 uv)
 
 	// center luma
 	float lumaCenter = RgbToLuma(_InputTex[uv].rgb);
+	ed.lumaCenter = lumaCenter;
 
 	// 4 neighbor pixel
 	float lumaDown = RgbToLuma(_InputTex[uv + int2(0, -1)].rgb);
@@ -85,19 +92,31 @@ EdgeData EdgeDetect(int2 uv)
 	ed.gradientScaled = 0.25 * max(abs(gradient1), abs(gradient2));
 
 	// Average luma in the correct direction (opposite too).
-	float stepLength = ed.isHorizontal ? _TargetSize.w : _TargetSize.z;
+	ed.stepLength = ed.isHorizontal ? _TargetSize.w : _TargetSize.z;
 	float lumaLocalAverage = 0.0;
 
 	if (is1Steepest) 
 	{
 		// Switch the direction
-		stepLength = -stepLength;
+		ed.stepLength = -ed.stepLength;
 		ed.lumaLocalAverage = 0.5 * (luma1 + lumaCenter);
 	}
 	else 
 	{
 		ed.lumaLocalAverage = 0.5 * (luma2 + lumaCenter);
 	}
+
+	// --------------------------------------------------------- Sub-pixel shifting --------------------------------------------------------- // 
+
+	// Full weighted average of the luma over the 3x3 neighborhood.
+	float lumaAverage = (1.0 / 12.0) * (2.0 * (lumaDownUp + lumaLeftRight) + lumaLeftCorners + lumaRightCorners);
+
+	// Ratio of the delta between the global average and the center luma, over the luma range in the 3x3 neighborhood.
+	float subPixelOffset1 = clamp(abs(lumaAverage - lumaCenter) / lumaRange, 0.0, 1.0);
+	float subPixelOffset2 = (-2.0 * subPixelOffset1 + 3.0) * subPixelOffset1 * subPixelOffset1;
+
+	// Compute a sub-pixel offset based on this delta.
+	ed.subPixelOffsetFinal = subPixelOffset2 * subPixelOffset2 * SUBPIXEL_QUALITY;
 
 	return ed;
 }
@@ -118,6 +137,111 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 	EdgeData ed = EdgeDetect(_globalID.xy);
 	if (ed.isEdge > 0)
 	{
-		_OutputTex[_globalID.xy] = float4(1, 0, 0, 0);
+		float2 uv = (_globalID.xy + 0.5f) * _TargetSize.zw;
+
+		if (ed.isHorizontal)
+		{
+			uv.y += 0.5f * ed.stepLength;
+		}
+		else
+		{
+			uv.x += 0.5f * ed.stepLength;
+		}
+
+		float2 offset = ed.isHorizontal ? float2(_TargetSize.z, 0.0f) : float2(0.0f, _TargetSize.w);
+
+		// explore edge
+		float2 uv1 = uv - offset;
+		float2 uv2 = uv + offset;
+
+		// Read the lumas at both current extremities of the exploration segment, and compute the delta wrt to the local average luma.
+		float lumaEnd1 = RgbToLuma(_InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv1, 0).rgb);
+		float lumaEnd2 = RgbToLuma(_InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv2, 0).rgb);
+		lumaEnd1 -= ed.lumaLocalAverage;
+		lumaEnd2 -= ed.lumaLocalAverage;
+
+		// If the luma deltas at the current extremities are larger than the local gradient, we have reached the side of the edge.
+		bool reached1 = abs(lumaEnd1) >= ed.gradientScaled;
+		bool reached2 = abs(lumaEnd2) >= ed.gradientScaled;
+		bool reachedBoth = reached1 && reached2;
+
+		// If the side is not reached, we continue to explore in this direction.
+		if (!reached1)
+		{
+			uv1 -= offset;
+		}
+
+		if (!reached2) 
+		{
+			uv2 += offset;
+		}
+
+		if (!reachedBoth) 
+		{
+			for (int i = 2; i < ITERATIONS; i++) 
+			{
+				if (!reached1) 
+				{
+					lumaEnd1 = RgbToLuma(_InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv1, 0).rgb);
+					lumaEnd1 = lumaEnd1 - ed.lumaLocalAverage;
+				}
+
+				if (!reached2) 
+				{
+					lumaEnd2 = RgbToLuma(_InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv2, 0).rgb);
+					lumaEnd2 = lumaEnd2 - ed.lumaLocalAverage;
+				}
+
+				// If the luma deltas at the current extremities is larger than the local gradient, we have reached the side of the edge.
+				reached1 = abs(lumaEnd1) >= ed.gradientScaled;
+				reached2 = abs(lumaEnd2) >= ed.gradientScaled;
+				reachedBoth = reached1 && reached2;
+
+				// If the side is not reached, we continue to explore in this direction, with a variable quality.
+				if (!reached1) 
+				{
+					uv1 -= offset * _Quality[i];
+				}
+
+				if (!reached2) 
+				{
+					uv2 += offset * _Quality[i];
+				}
+
+				if (reachedBoth) 
+				{
+					break;
+				}
+			}
+		}
+
+		// Compute the distances to each extremity of the edge.
+		float distance1 = ed.isHorizontal ? (uv.x - uv1.x) : (uv.y - uv1.y);
+		float distance2 = ed.isHorizontal ? (uv2.x - uv.x) : (uv2.y - uv.y);
+
+		// which edge is closer
+		bool isDirection1 = distance1 < distance2;
+		float distanceFinal = min(distance1, distance2);
+		float edgeThickness = (distance1 + distance2);
+		float pixelOffset = -distanceFinal / edgeThickness + 0.5f;
+
+		// extra center luma checking
+		bool isLumaCenterSmaller = ed.lumaCenter < ed.lumaLocalAverage;
+		bool correctVariation = ((isDirection1 ? lumaEnd1 : lumaEnd2) < 0.0f) != isLumaCenterSmaller;
+		float finalOffset = correctVariation ? pixelOffset : 0.0f;
+		finalOffset = max(finalOffset, ed.subPixelOffsetFinal);
+
+		// final uv read
+		float2 finalUV = uv;
+		if (ed.isHorizontal) 
+		{
+			finalUV.y += finalOffset * ed.stepLength;
+		}
+		else 
+		{
+			finalUV.x += finalOffset * ed.stepLength;
+		}
+
+		_OutputTex[_globalID.xy] = _InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], finalUV, 0);
 	}
 }
