@@ -125,7 +125,12 @@ EdgeData EdgeDetect(float2 uv)
 // FXAA Steps:
 // 1. Find edge by lumination
 // 2. Find edge orientation
-// 3. Choose edge orienation
+// 3. Choose edge orienation (shift to edge uv)
+// 4. Explore along edge point to both direction (iteration until no edges)
+// 5. Check luma of end is correct variation as center luma
+// 6. Subpixel anti aliasing for thin pixels
+// 7. final read
+
 [RootSignature(FXAAComputeRS)]
 [numthreads(8,8,1)]
 void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
