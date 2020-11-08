@@ -14,6 +14,7 @@
 static const float _Quality[12] = { 1,1,1,1,1,1.5f,2.0f,2.0f,2.0f,2.0f,4.0f,8.0f };
 RWTexture2D<float4> _OutputTex : register(u0);
 Texture2D _InputTex : register(t0);
+#define SAMPLE_INPUT(x) _InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], x, 0)
 
 cbuffer FXAAConstant : register(b1)
 {
@@ -33,19 +34,19 @@ struct EdgeData
 	float subPixelOffsetFinal;
 };
 
-EdgeData EdgeDetect(int2 uv)
+EdgeData EdgeDetect(float2 uv)
 {
 	EdgeData ed = (EdgeData)0;
 
 	// center luma
-	float lumaCenter = RgbToLuma(_InputTex[uv].rgb);
+	float lumaCenter = RgbToLuma(SAMPLE_INPUT(uv).rgb);
 	ed.lumaCenter = lumaCenter;
 
 	// 4 neighbor pixel
-	float lumaDown = RgbToLuma(_InputTex[uv + int2(0, -1)].rgb);
-	float lumaUp = RgbToLuma(_InputTex[uv + int2(0, 1)].rgb);
-	float lumaLeft = RgbToLuma(_InputTex[uv + int2(-1, 0)].rgb);
-	float lumaRight = RgbToLuma(_InputTex[uv + int2(1, 0)].rgb);
+	float lumaDown = RgbToLuma(SAMPLE_INPUT(uv + float2(0, -_TargetSize.w)).rgb);
+	float lumaUp = RgbToLuma(SAMPLE_INPUT(uv + float2(0, _TargetSize.w)).rgb);
+	float lumaLeft = RgbToLuma(SAMPLE_INPUT(uv + float2(-_TargetSize.z, 0)).rgb);
+	float lumaRight = RgbToLuma(SAMPLE_INPUT(uv + float2(_TargetSize.z, 0)).rgb);
 
 	// find min/max luma
 	float lumaMin = min(lumaCenter, min(min(lumaDown, lumaUp), min(lumaLeft, lumaRight)));
@@ -56,10 +57,10 @@ EdgeData EdgeDetect(int2 uv)
 	ed.isEdge = !(lumaRange < max(_EdgeThresholdMin, lumaMax* _EdgeThresholdMax));
 
 	// corner luma
-	float lumaDownLeft = RgbToLuma(_InputTex[uv + int2(-1, -1)].rgb);
-	float lumaUpRight = RgbToLuma(_InputTex[uv + int2(1, 1)].rgb);
-	float lumaUpLeft = RgbToLuma(_InputTex[uv + int2(-1, 1)].rgb);
-	float lumaDownRight = RgbToLuma(_InputTex[uv + int2(1, -1)].rgb);
+	float lumaDownLeft = RgbToLuma(SAMPLE_INPUT(uv + float2(-_TargetSize.z, -_TargetSize.w)).rgb);
+	float lumaUpRight = RgbToLuma(SAMPLE_INPUT(uv + float2(_TargetSize.z, _TargetSize.w)).rgb);
+	float lumaUpLeft = RgbToLuma(SAMPLE_INPUT(uv + float2(-_TargetSize.z, _TargetSize.w)).rgb);
+	float lumaDownRight = RgbToLuma(SAMPLE_INPUT(uv + float2(_TargetSize.z, -_TargetSize.w)).rgb);
 
 	// combine edge luma for H/V calc
 	float lumaDownUp = lumaDown + lumaUp;
@@ -134,11 +135,11 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 		return;
 	}
 
-	EdgeData ed = EdgeDetect(_globalID.xy);
+	float2 uv = (_globalID.xy + 0.5f) * _TargetSize.zw;
+	EdgeData ed = EdgeDetect(uv);
+
 	if (ed.isEdge > 0)
 	{
-		float2 uv = (_globalID.xy + 0.5f) * _TargetSize.zw;
-
 		if (ed.isHorizontal)
 		{
 			uv.y += 0.5f * ed.stepLength;
@@ -155,8 +156,8 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 		float2 uv2 = uv + offset;
 
 		// Read the lumas at both current extremities of the exploration segment, and compute the delta wrt to the local average luma.
-		float lumaEnd1 = RgbToLuma(_InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv1, 0).rgb);
-		float lumaEnd2 = RgbToLuma(_InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv2, 0).rgb);
+		float lumaEnd1 = RgbToLuma(SAMPLE_INPUT(uv1).rgb);
+		float lumaEnd2 = RgbToLuma(SAMPLE_INPUT(uv2).rgb);
 		lumaEnd1 -= ed.lumaLocalAverage;
 		lumaEnd2 -= ed.lumaLocalAverage;
 
@@ -182,13 +183,13 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 			{
 				if (!reached1) 
 				{
-					lumaEnd1 = RgbToLuma(_InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv1, 0).rgb);
+					lumaEnd1 = RgbToLuma(SAMPLE_INPUT(uv1).rgb);
 					lumaEnd1 = lumaEnd1 - ed.lumaLocalAverage;
 				}
 
 				if (!reached2) 
 				{
-					lumaEnd2 = RgbToLuma(_InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], uv2, 0).rgb);
+					lumaEnd2 = RgbToLuma(SAMPLE_INPUT(uv2).rgb);
 					lumaEnd2 = lumaEnd2 - ed.lumaLocalAverage;
 				}
 
@@ -242,6 +243,6 @@ void FXAAComputeCS(uint3 _globalID : SV_DispatchThreadID)
 			finalUV.x += finalOffset * ed.stepLength;
 		}
 
-		_OutputTex[_globalID.xy] = _InputTex.SampleLevel(_SqSamplerTable[_LinearClampSampler], finalUV, 0);
+		_OutputTex[_globalID.xy] = SAMPLE_INPUT(finalUV);
 	}
 }
