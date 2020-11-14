@@ -10,6 +10,7 @@ struct ReflectionConst
 	float reflectionDistance;
 	float fxaaEdgeMin;
 	float fxaaEdgeMax;
+	float smoothThreshold;
 };
 
 class RayReflection

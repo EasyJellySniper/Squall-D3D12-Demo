@@ -26,6 +26,7 @@ GlobalRootSignature RTReflectionRootSig =
     "DescriptorTable( UAV( u0 , numDescriptors = 1) ),"     // raytracing output
     "DescriptorTable( UAV( u1 , numDescriptors = 1) ),"     // raytracing output (transparent
     "CBV( b0 ),"                        // system constant
+    "RootConstants(num32BitConstants=1, b1)," // reflection constant
     "SRV( t0, space = 2),"              // acceleration strutures
     "SRV( t0, space = 1 ),"              // sq dir light
     "DescriptorTable( SRV( t0 , numDescriptors = unbounded, flags = DESCRIPTORS_VOLATILE) ),"     // tex table
@@ -62,26 +63,44 @@ struct RayPayload
     int reflectionDepth;
 };
 
+cbuffer ReflectionConst : register(b1)
+{
+    float _SmoothThreshold;
+};
+
 RWTexture2D<float4> _OutputReflection : register(u0);
 RWTexture2D<float4> _OutputReflectionTrans : register(u1);
 
-RayPayload ShootReflectionRay(float3 normal, float depth, float2 screenUV, bool _transparent)
+float3 SampleSkyForRay(float3 dir)
 {
-    RayPayload payload = (RayPayload)0;
-    if (depth == 0.0f)
-    {
-        return payload;
-    }
-    payload.reflectionDepth = (_transparent) ? MAX_REFLECT_RESURSION : 0;
+    // prepare sky for blending
+    float4x4 mat = SQ_SKYBOX_WORLD;
+    mat._13 *= -1;
+    mat._31 *= -1;
 
+    dir = mul((float3x3)mat, dir);
+    return _SkyCube.SampleLevel(_SkySampler, dir, 0).rgb * _SkyIntensity;
+}
+
+
+RayPayload ShootReflectionRay(float4 normalSmooth, float depth, float2 screenUV, bool _transparent)
+{
     float3 wpos = DepthToWorldPos(float4(screenUV, depth, 1));
     float3 incident = normalize(wpos - _CameraPos.xyz);
 
     RayDesc ray;
     ray.Origin = wpos;
-    ray.Direction = reflect(incident, normal);   // shoot a reflection ray
+    ray.Direction = reflect(incident, normalSmooth.rgb);   // shoot a reflection ray
     ray.TMin = 0;
     ray.TMax = _CameraPos.w;
+
+    RayPayload payload = (RayPayload)0;
+    if (depth == 0.0f || normalSmooth.a <= _SmoothThreshold)
+    {
+        payload.reflectionColor = SampleSkyForRay(ray.Direction);
+        return payload;
+    }
+    payload.reflectionDepth = (_transparent) ? MAX_REFLECT_RESURSION : 0;
 
     // shoot ray & add reflection depth
     payload.reflectionDepth++;
@@ -109,30 +128,19 @@ void RTReflectionRayGen()
 
     float opaqueDepth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _AnisotropicWrapSampler, depthUV, 0).r;
     float transDepth = SQ_SAMPLE_TEXTURE_LEVEL(_TransDepthIndex, _AnisotropicWrapSampler, depthUV, 0).r;
-    float3 opaqueNormal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicWrapSampler, depthUV, 0).rgb;
-    float3 transNormal = SQ_SAMPLE_TEXTURE_LEVEL(_TransNormalRTIndex, _AnisotropicWrapSampler, depthUV, 0).rgb;
+    float4 opaqueNormalSmooth = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicWrapSampler, depthUV, 0);
+    float4 transNormalSmooth = SQ_SAMPLE_TEXTURE_LEVEL(_TransNormalRTIndex, _AnisotropicWrapSampler, depthUV, 0);
 
-    RayPayload opaqueResult = ShootReflectionRay(opaqueNormal, opaqueDepth, screenUV, false);
+    RayPayload opaqueResult = ShootReflectionRay(opaqueNormalSmooth, opaqueDepth, screenUV, false);
     RayPayload transResult = (RayPayload)0;
     if (opaqueDepth != transDepth)
     {
-        transResult = ShootReflectionRay(transNormal, transDepth, screenUV, true);
+        transResult = ShootReflectionRay(transNormalSmooth, transDepth, screenUV, true);
     }
 
     // output LDR result
     _OutputReflection[DispatchRaysIndex().xy].rgb = saturate(opaqueResult.reflectionColor);
     _OutputReflectionTrans[DispatchRaysIndex().xy].rgb = saturate(transResult.reflectionColor);
-}
-
-float3 SampleSkyForRay(float3 dir)
-{
-    // prepare sky for blending
-    float4x4 mat = SQ_SKYBOX_WORLD;
-    mat._13 *= -1;
-    mat._31 *= -1;
-
-    dir = mul((float3x3)mat, dir);
-    return _SkyCube.SampleLevel(_SkySampler, dir, 0).rgb * _SkyIntensity;
 }
 
 RayPayload TraceShadowRay(float3 hitPos)

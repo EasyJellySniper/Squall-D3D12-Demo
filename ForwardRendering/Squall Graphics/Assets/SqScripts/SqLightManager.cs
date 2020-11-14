@@ -76,6 +76,9 @@ public class SqLightManager : MonoBehaviour
 
         [Range(0, 1)]
         public float fxaaEdgeMax;
+
+        [Range(0, 1)]
+        public float smoothThreshold;
     };
 
     [DllImport("SquallGraphics")]

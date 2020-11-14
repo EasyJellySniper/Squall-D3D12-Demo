@@ -494,8 +494,8 @@ bool Camera::CreatePipelineMaterial()
 	}
 
 	// create depth prepass material
-	D3D_SHADER_MACRO depthMacro[] = { "_NORMAL_MAP","1","_DETAIL_NORMAL_MAP","1",NULL,NULL };
-	D3D_SHADER_MACRO depthMacro2[] = { "_CUTOFF_ON","1","_NORMAL_MAP","1","_DETAIL_NORMAL_MAP","1",NULL,NULL };
+	D3D_SHADER_MACRO depthMacro[] = { "_NORMAL_MAP","1","_DETAIL_NORMAL_MAP","1","_SPEC_GLOSS_MAP","1",NULL,NULL };
+	D3D_SHADER_MACRO depthMacro2[] = { "_CUTOFF_ON","1","_NORMAL_MAP","1","_DETAIL_NORMAL_MAP","1","_SPEC_GLOSS_MAP","1",NULL,NULL };
 	Shader* depthPrePassOpaque = ShaderManager::Instance().CompileShader(L"DepthPrePass.hlsl", depthMacro);
 	Shader* depthPrePassCutoff = ShaderManager::Instance().CompileShader(L"DepthPrePass.hlsl", depthMacro2);
 	if (depthPrePassOpaque != nullptr)

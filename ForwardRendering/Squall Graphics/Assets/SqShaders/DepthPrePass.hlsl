@@ -13,6 +13,7 @@
 #pragma sq_keyword _CUTOFF_ON
 #pragma sq_keyword _NORMAL_MAP
 #pragma sq_keyword _DETAIL_NORMAL_MAP
+#pragma sq_keyword _SPEC_GLOSS_MAP
 
 struct v2f
 {
@@ -52,5 +53,5 @@ float4 DepthPrePassPS(v2f i) : SV_Target
 
 	// return normal
 	float3 bumpNormal = GetBumpNormal(i.tex.xy, i.tex.zw, i.normal, i.worldToTangent);
-	return float4(bumpNormal, 1.0f);
+	return float4(bumpNormal, GetSpecular(i.tex.xy).a);
 }
