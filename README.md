@@ -20,7 +20,7 @@ You can try AMD RX cards also, but I'm not sure since I don't have one. <br><br>
 Missing one of above requirement the demo would crash. <br><br>
 
 # Features
-**Multithread Forward Rendering** <br>
+**Multithread Forward+ Rendering** <br>
 ![alt text](https://i.imgur.com/yFHJejE.jpg) <br>
 ![alt text](https://i.imgur.com/xOmMTow.jpg) <br>
 This is the key design of D3D12, Microsoft wants us to submit work on different threads. <br>
@@ -47,3 +47,10 @@ SamplerState _SqSamplerTable[] : register(s0);
 float4 color = SQ_SAMPLE_TEXTURE(_DiffuseTexIndex, _LinearSamplerIndex);
 ```
 Shader model 5.1 provides dynamic indexing and we can have more flexible way for texture binding. <br><br>
+
+**Tiled-Based Light Culling** <br>
+So that my forward rendering becomes forward+ rendering! <br>
+I apply the tiled-based light culling on point lights. <br>
+Currently my implementation doesn't contain spot light, since it is strange to have spotlights on middle ages demo scene. <br>
+https://thegraphicguysquall.wordpress.com/2020/09/17/forward-light-culling/ <br><br>
+
