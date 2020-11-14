@@ -78,3 +78,14 @@ https://www.youtube.com/watch?v=1tcz-XE0tuI <br>
 
 Implement Detail: <br>
 https://thegraphicguysquall.wordpress.com/2020/10/13/squalls-graphic-custom-ray-tracing-reflection/ <br>
+
+**Realtime Ray Tracing Ambient Lighting** <br>
+Realtime Ray Tracing Ambient Diffuse/Occlusion. <br>
+Currently apply and trace on opaque object only. <br>
+
+Test Video: <br>
+https://www.youtube.com/watch?v=8G5hXHF3DGg <br>
+
+Implement Detail: <br>
+https://thegraphicguysquall.wordpress.com/2020/11/05/squalls-graphic-custom-dxr-ray-tracing-ambient/ <br>
+
