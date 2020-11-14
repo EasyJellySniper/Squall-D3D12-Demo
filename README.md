@@ -2,6 +2,7 @@
 Custom demo of D3D12 Rendering. <br>
 It's not the best but it's how I try to maximize the advantage of D3D12. <br>
 I borrow the Unity's asset system to get all resources as ID3D12Resource interface, and customize my renderer in native DLL. <br>
+I also implement some material management(PSO) and shader parser. <br>
 I hope one day I can work outside of my country and be participated in 3A game team :). <br>
 
 # Requirement to run the demo
