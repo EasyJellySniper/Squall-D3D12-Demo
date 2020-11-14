@@ -2,8 +2,9 @@
 Custom demo of D3D12 Rendering. <br>
 It's not the best but it's how I try to maximize the advantage of D3D12. <br>
 I borrow the Unity's asset system to get all resources as ID3D12Resource interface, and customize my renderer in native DLL. <br>
-I also implement some material management(PSO) and shader parser. <br>
+I also implement some material management(PSO) and shader parser. <br><br>
 I hope one day I can work outside of my country and be participated in 3A game team :). <br>
+Due to the size limit, I put the project/executable file link on the bottom of this document. <br>
 
 # Requirement to run the demo
 1. Unity Editor 2018.4.17f1+ <br><br>
