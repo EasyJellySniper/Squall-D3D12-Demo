@@ -128,7 +128,7 @@ public class SqLightManager : MonoBehaviour
     /// reflection down sample
     /// </summary>
     [Range(0, 3)]
-    public int reflectionDownSample = 0;
+    public float reflectionScale = 0.8f;
 
     /// <summary>
     /// refl data
@@ -142,7 +142,7 @@ public class SqLightManager : MonoBehaviour
     /// ambient down sample
     /// </summary>
     [Range(0, 3)]
-    public int ambientDownSample = 0;
+    public float ambientScale = 0.8f;
 
     /// <summary>
     /// ambient const
@@ -211,10 +211,10 @@ public class SqLightManager : MonoBehaviour
         collectShadows = SqUtility.CreateRT(Screen.width >> downSample, Screen.height >> downSample, 0, RenderTextureFormat.ARGBHalf, "Collect Shadows");
 
         // create reflection rt
-        reflectionRT = SqUtility.CreateRT(Screen.width >> reflectionDownSample, Screen.height >> reflectionDownSample, 0, RenderTextureFormat.ARGB32, "Reflection RT", true, true);
+        reflectionRT = SqUtility.CreateRT(Mathf.CeilToInt(Screen.width * reflectionScale), Mathf.CeilToInt(Screen.height * reflectionScale), 0, RenderTextureFormat.ARGB32, "Reflection RT", true, true);
 
         // create ambient rt
-        ambientRT = SqUtility.CreateRT(Screen.width >> ambientDownSample, Screen.height >> ambientDownSample, 0, RenderTextureFormat.ARGB32, "Ambient RT", true);
+        ambientRT = SqUtility.CreateRT(Mathf.CeilToInt(Screen.width * ambientScale), Mathf.CeilToInt(Screen.height * ambientScale), 0, RenderTextureFormat.ARGB32, "Ambient RT", true);
 
         InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight);
         InitRayShadow(collectShadows.GetNativeTexturePtr());
