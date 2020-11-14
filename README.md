@@ -4,7 +4,7 @@ It's not the best but it's how I try to maximize the advantage of D3D12. <br>
 I borrow the Unity's asset system to get all resources as ID3D12Resource interface, and customize my renderer in native DLL. <br>
 I also implement some material management(PSO) and shader parser. <br><br>
 I hope one day I can work outside of my country and be participated in 3A game team :). <br>
-Due to the size limit, I put the project/executable file link on the bottom of this document. <br>
+(Due to the size limit, I put the project/executable file link on the bottom of this document.) <br>
 
 # Requirement to run the demo
 1. Unity Editor 2018.4.17f1+ <br><br>
@@ -92,4 +92,8 @@ https://thegraphicguysquall.wordpress.com/2020/11/05/squalls-graphic-custom-dxr-
 
 # Final Words
 This is just a part of D3D12. <br>
-I haven't skilled other features like mesh shaders/VRS but I will!. <br>
+I haven't skilled other features like mesh shaders/VRS but I will! <br>
+
+Unity Project Link: https://drive.google.com/file/d/1z6e8OazLlCByPLYQ75lICwP1vW71kVqw/view?usp=sharing <br>
+The folder Squall Graphics is Unity project. <br>
+And D3D Plugin Source is native implement project. <br>
