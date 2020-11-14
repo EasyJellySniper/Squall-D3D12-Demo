@@ -25,4 +25,7 @@ Missing one of above requirement the demo would crash. <br><br>
 This is the key design of D3D12, Microsoft wants us to submit work on different threads. <br>
 As it shown in image, I use AMD R5 5600X (6C12T) to run the test. I set 12 threads to rendering. <br>
 Now the total draw calls in this shot is 377, which means each thread renders about 31 draw calls. <br>
-You can specify the number of threads in my system, max up to min(16, MaxLogicialCpuCore). <br>
+You can specify the number of threads in my system, max up to min(16, MaxLogicialCpuCore). <br><br>
+
+![alt text](https://i.imgur.com/eWkUayG.png) <br>
+My rendering pipeline, the work with a star mark means I use multithread on it. <br>
