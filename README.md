@@ -17,7 +17,9 @@ Yes, I implement the DXR ray tracing shader and don't consider fallback API for 
 (Since GTX series are impossible to get real time performance.) <br>
 You can try AMD RX cards also, but I'm not sure since I don't have one. <br><br>
 
-Missing one of above requirement the demo would crash. <br><br>
+Missing one of above requirement the demo would crash. <br>
+My testing rig is R5 3600X + RTX 2070. <br>
+<br><br>
 
 # Features
 **Multithread Forward+ Rendering** <br>
@@ -55,7 +57,9 @@ Currently my implementation doesn't contain spot light, since it is strange to h
 https://thegraphicguysquall.wordpress.com/2020/09/17/forward-light-culling/ <br><br>
 
 **Realtime Ray Tracing Shadows + PCSS** <br>
-Directional light and point light ray tracing shadows with PCSS. <br>
+Directional light and point light ray tracing shadows with PCSS. <br><br>
+Both opaque/transparent can receive shadows. (However only the frontmost transparent object can receive shadows for performance.) <br> 
+
 Test video: <br>
 https://www.youtube.com/watch?v=y1H-_5fZ0wI <br>
 
@@ -63,3 +67,14 @@ Implement Detail: <br>
 https://thegraphicguysquall.wordpress.com/2020/08/14/squalls-graphic-dxr-ray-tracing-shadow/ <br>
 https://thegraphicguysquall.wordpress.com/2020/08/24/ray-tracing-shadow-semi-pcss/ <br>
 https://thegraphicguysquall.wordpress.com/2020/09/02/point-light-ray-tracing-shadow/ <br>
+
+**Realtime Ray Tracing Reflections** <br>
+Realtime ray tracing reflection with FXAA applied. (FXAA is not in video but latest implementation.) <br>
+Recurrsive reflections are also supported, and I set the maximum recurrsive count to 3. <br>
+Both opaque/transparent can receive reflections. However only the frontmost transparent object can receive reflections for performance.) <br>
+
+Test Video: <br>
+https://www.youtube.com/watch?v=1tcz-XE0tuI <br>
+
+Implement Detail: <br>
+https://thegraphicguysquall.wordpress.com/2020/10/13/squalls-graphic-custom-ray-tracing-reflection/ <br>
