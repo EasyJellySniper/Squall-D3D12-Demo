@@ -19,7 +19,7 @@ You can try AMD RX cards also, but I'm not sure since I don't have one. <br><br>
 Missing one of above requirement the demo would crash. <br><br>
 
 # Features
-**Multithread Rendering** <br>
+**Multithread Forward Rendering** <br>
 ![alt text](https://i.imgur.com/yFHJejE.jpg) <br>
 ![alt text](https://i.imgur.com/xOmMTow.jpg) <br>
 This is the key design of D3D12, Microsoft wants us to submit work on different threads. <br>
@@ -28,4 +28,21 @@ Now the total draw calls in this shot is 377, which means each thread renders ab
 You can specify the number of threads in my system, max up to min(16, MaxLogicialCpuCore). <br><br>
 
 ![alt text](https://i.imgur.com/eWkUayG.png) <br>
-My rendering pipeline, the work with a star mark means I use multithread on it. <br>
+My rendering pipeline, the work with a star mark means I use multithread on it. <br><br>
+
+**Instance Based Rendering** <br>
+In demo scene, there are 2XXX draw calls at the beginning. <br>
+I collect the objects that has the same mesh/material, and implement the instance based rendering. <br><br>
+
+**SM5.1 Style Texture Management** <br>
+D3D12 introduce the concept of Descriptor Heap. (https://docs.microsoft.com/en-us/windows/win32/direct3d12/descriptor-heaps) <br>
+I collect all ShaderResourceView into a big texture descriptor heap. <br>
+My texture sampling is gonna like this: <br>
+```
+// need /enable_unbounded_descriptor_tables when compiling
+Texture2D _SqTexTable[] : register(t0);
+SamplerState _SqSamplerTable[] : register(s0);
+#define SQ_SAMPLE_TEXTURE(x,y,z) _SqTexTable[x].Sample(_SqSamplerTable[y], z)
+float4 color = SQ_SAMPLE_TEXTURE(_DiffuseTexIndex, _LinearSamplerIndex);
+```
+Shader model 5.1 provides dynamic indexing and we can have more flexible way for texture binding. <br><br>
