@@ -90,3 +90,6 @@ https://www.youtube.com/watch?v=8G5hXHF3DGg <br>
 Implement Detail: <br>
 https://thegraphicguysquall.wordpress.com/2020/11/05/squalls-graphic-custom-dxr-ray-tracing-ambient/ <br>
 
+# Final Words
+This is just a part of D3D12. <br>
+I haven't skilled other features like mesh shaders/VRS but I will!. <br>
