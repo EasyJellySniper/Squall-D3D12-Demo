@@ -92,4 +92,4 @@ https://thegraphicguysquall.wordpress.com/2020/11/05/squalls-graphic-custom-dxr-
 
 # Final Words
 This is just a part of D3D12. <br>
-I haven't skilled other features like mesh shaders/VRS but I will!. <br>
+I haven't skilled other features like mesh shaders/VRS but I will! <br>
