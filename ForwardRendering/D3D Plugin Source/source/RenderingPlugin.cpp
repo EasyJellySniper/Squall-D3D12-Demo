@@ -32,9 +32,9 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitSqLight(int _numD
 	LightManager::Instance().Init(_numDirLight, _numPointLight, _numSpotLight);
 }
 
-extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayShadow(void *_src)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayShadow(void *_src, float _shadowScale)
 {
-	LightManager::Instance().InitRayShadow(_src);
+	LightManager::Instance().InitRayShadow(_src, _shadowScale);
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API InitRayReflection(void* _src)

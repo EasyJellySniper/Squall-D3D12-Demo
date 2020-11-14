@@ -82,7 +82,7 @@ public class SqLightManager : MonoBehaviour
     static extern void InitSqLight(int _numDirLight, int _numPointLight, int _numSpotLight);
 
     [DllImport("SquallGraphics")]
-    static extern void InitRayShadow(IntPtr _collectShadows);
+    static extern void InitRayShadow(IntPtr _collectShadows, float _shadowScale);
 
     [DllImport("SquallGraphics")]
     static extern void InitRayReflection(IntPtr _reflectionRT);
@@ -121,6 +121,9 @@ public class SqLightManager : MonoBehaviour
     /// </summary>
     [Range(0, 5)]
     public int pcssKernel = 3;
+
+    [Range(0, 3)]
+    public float shadowScale = 0.8f;
 
     [Header("Reflection Settings")]
 
@@ -217,7 +220,7 @@ public class SqLightManager : MonoBehaviour
         ambientRT = SqUtility.CreateRT(Mathf.CeilToInt(Screen.width * ambientScale), Mathf.CeilToInt(Screen.height * ambientScale), 0, RenderTextureFormat.ARGB32, "Ambient RT", true);
 
         InitSqLight(maxDirectionalLight, maxPointLight, maxSpotLight);
-        InitRayShadow(collectShadows.GetNativeTexturePtr());
+        InitRayShadow(collectShadows.GetNativeTexturePtr(), shadowScale);
         InitRayReflection(reflectionRT.GetNativeTexturePtr());
         InitRayAmbient(ambientRT.GetNativeTexturePtr(), ambientNoise.GetNativeTexturePtr());
     }

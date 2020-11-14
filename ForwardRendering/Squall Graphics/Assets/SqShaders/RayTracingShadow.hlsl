@@ -186,14 +186,15 @@ void RTShadowRayGen()
     screenUV = screenUV * 2.0f - 1.0f;
 
     // shoot ray according to depth
-    float opaqueDepth = _SqTexTable[_DepthIndex][DispatchRaysIndex().xy].r;
-    float transDepth = _SqTexTable[_TransDepthIndex][DispatchRaysIndex().xy].r;
-    float3 opaqueNormal = _SqTexTable[_NormalRTIndex][DispatchRaysIndex().xy].rgb;
-    float3 transNormal = _SqTexTable[_TransNormalRTIndex][DispatchRaysIndex().xy].rgb;
+    float opaqueDepth = SQ_SAMPLE_TEXTURE_LEVEL(_DepthIndex, _AnisotropicWrapSampler, depthUV, 0).r;
+    float transDepth = SQ_SAMPLE_TEXTURE_LEVEL(_TransDepthIndex, _AnisotropicWrapSampler, depthUV, 0).r;
+    float3 opaqueNormal = SQ_SAMPLE_TEXTURE_LEVEL(_NormalRTIndex, _AnisotropicWrapSampler, depthUV, 0).rgb;
+    float3 transNormal = SQ_SAMPLE_TEXTURE_LEVEL(_TransNormalRTIndex, _AnisotropicWrapSampler, depthUV, 0).rgb;
 
     // get forward+ tile
-    uint tileX = DispatchRaysIndex().x / TILE_SIZE;
-    uint tileY = DispatchRaysIndex().y / TILE_SIZE;
+    uint2 tileUV = (depthUV * _ScreenSize.xy - 0.5f);
+    uint tileX = tileUV.x / TILE_SIZE;
+    uint tileY = tileUV.y / TILE_SIZE;
     uint tileIndex = tileX + tileY * _TileCountX;
     int tileOffset = GetPointLightOffset(tileIndex);
 

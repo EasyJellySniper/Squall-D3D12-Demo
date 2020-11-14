@@ -32,7 +32,7 @@ public:
 	~LightManager() {}
 
 	void Init(int _numDirLight, int _numPointLight, int _numSpotLight);
-	void InitRayShadow(void* _src);
+	void InitRayShadow(void* _src, float _shadowScale);
 	void InitRayReflection(void* _src);
 	void InitRayAmbient(void* _src, void* _noiseTex);
 	void Release();

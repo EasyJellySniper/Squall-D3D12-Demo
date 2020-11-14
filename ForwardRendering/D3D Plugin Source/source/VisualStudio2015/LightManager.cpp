@@ -23,9 +23,9 @@ void LightManager::Init(int _numDirLight, int _numPointLight, int _numSpotLight)
 	forwardPlus.Init(maxLightCount[LightType::Point]);
 }
 
-void LightManager::InitRayShadow(void* _src)
+void LightManager::InitRayShadow(void* _src, float _shadowScale)
 {
-	rayShadow.Init(_src);
+	rayShadow.Init(_src, _shadowScale);
 }
 
 void LightManager::InitRayReflection(void* _src)

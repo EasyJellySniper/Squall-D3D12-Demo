@@ -5,7 +5,7 @@
 #include "../RayTracingManager.h"
 #include "../Formatter.h"
 
-void RayShadow::Init(void* _collectShadows)
+void RayShadow::Init(void* _collectShadows, float _shadowScale)
 {
 	if (_collectShadows == nullptr)
 	{
@@ -41,8 +41,8 @@ void RayShadow::Init(void* _collectShadows)
 
 	int w, h;
 	GraphicManager::Instance().GetScreenSize(w, h);
-	desc.Width = w;
-	desc.Height = h;
+	desc.Width = (UINT64)ceil((float)w * _shadowScale);
+	desc.Height = (UINT)ceil((float)h * _shadowScale);
 	rayTracingShadow = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	rayTracingShadowTrans = make_unique<DefaultBuffer>(GraphicManager::Instance().GetDevice(), desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 

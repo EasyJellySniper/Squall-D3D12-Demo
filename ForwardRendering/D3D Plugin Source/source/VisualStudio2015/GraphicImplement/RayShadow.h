@@ -17,7 +17,7 @@ struct RayShadowData
 class RayShadow
 {
 public:
-	void Init(void* _collectShadows);
+	void Init(void* _collectShadows, float _shadowScale);
 	void Relesae();
 
 	void Clear(ID3D12GraphicsCommandList* _cmdList);
