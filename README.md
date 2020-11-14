@@ -29,7 +29,7 @@ My testing rig is R5 3600X + RTX 2070. <br>
 This is the key design of D3D12, Microsoft wants us to submit work on different threads. <br>
 As it shown in image, I use AMD R5 5600X (6C12T) to run the test. I set 12 threads to rendering. <br>
 Now the total draw calls in this shot is 377, which means each thread renders about 31 draw calls. <br>
-You can specify the number of threads in my system, max up to min(16, MaxLogicialCpuCore). <br><br>
+You can specify the number of threads in my system, max up to min(16, MaxLogicialCpuCore). Only Works on initialization. <br><br>
 
 ![alt text](https://i.imgur.com/eWkUayG.png) <br>
 My rendering pipeline, the work with a star mark means I use multithread on it. <br><br>
@@ -73,6 +73,7 @@ https://thegraphicguysquall.wordpress.com/2020/09/02/point-light-ray-tracing-sha
 Realtime ray tracing reflection with FXAA applied. (FXAA is not in video but latest implementation.) <br>
 Recurrsive reflections are also supported, and I set the maximum recurrsive count to 3. <br>
 Both opaque/transparent can receive reflections. However only the frontmost transparent object can receive reflections for performance.) <br>
+I also use smoothness threshold check for saving performance. <br>
 
 Test Video: <br>
 https://www.youtube.com/watch?v=1tcz-XE0tuI <br>
@@ -93,7 +94,11 @@ https://thegraphicguysquall.wordpress.com/2020/11/05/squalls-graphic-custom-dxr-
 # Final Words
 This is just a part of D3D12. <br>
 I haven't skilled other features like mesh shaders/VRS but I will! <br>
+It's always interesting to learn new things :D. <br>
 
 Unity Project Link: https://drive.google.com/file/d/1z6e8OazLlCByPLYQ75lICwP1vW71kVqw/view?usp=sharing <br>
 The folder Squall Graphics is Unity project. <br>
 And D3D Plugin Source is native implement project. <br>
+
+Executable File Link: https://drive.google.com/file/d/1tYJHLdzFgJvlKga8vBlYaq0OhZZx4xO7/view?usp=sharing <br>
+The profile console will show up and minimize. <br>
