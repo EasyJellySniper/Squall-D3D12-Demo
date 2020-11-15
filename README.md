@@ -36,7 +36,8 @@ My rendering pipeline, the work with a star mark means I use multithread on it. 
 
 **Instance Based Rendering** <br>
 In demo scene, there are 2XXX draw calls at the beginning. <br>
-I collect the objects that has the same mesh/material, and implement the instance based rendering. <br><br>
+I collect the objects that has the same mesh/material, and implement the instance based rendering. <br>
+And now total draw calls in the scene are less than 400. <br><br>
 
 **SM5.1 Style Texture Management** <br>
 D3D12 introduce the concept of Descriptor Heap. (https://docs.microsoft.com/en-us/windows/win32/direct3d12/descriptor-heaps) <br>
