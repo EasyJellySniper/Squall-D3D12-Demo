@@ -73,6 +73,7 @@ https://thegraphicguysquall.wordpress.com/2020/09/02/point-light-ray-tracing-sha
 **Realtime Ray Tracing Reflections** <br>
 Realtime ray tracing reflection with FXAA applied. (FXAA is not in video but latest implementation.) <br>
 Recurrsive reflections are also supported, and I set the maximum recurrsive count to 3. <br>
+I can also set recurrsive count for different materials. <br><br>
 Both opaque/transparent can receive reflections. However only the frontmost transparent object can receive reflections for performance.) <br>
 I also use smoothness threshold check for saving performance. <br>
 
