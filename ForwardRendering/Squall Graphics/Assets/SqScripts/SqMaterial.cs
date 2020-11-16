@@ -112,7 +112,7 @@ public class SqMaterial
         SetupTexAndSampler(_mat, "_OcclusionMap", ref mc._OcclusionIndex, ref dummy, whiteTex);
         SetupTexAndSampler(_mat, "_EmissionMap", ref mc._EmissionIndex, ref dummy, blackTex);
         SetupTexAndSampler(_mat, "_BumpMap", ref mc._NormalIndex, ref dummy, blackTex);
-        SetupTexAndSampler(_mat, "_DetailMask", ref mc._DetailMaskIndex, ref dummy, blackTex);
+        SetupTexAndSampler(_mat, "_DetailMask", ref mc._DetailMaskIndex, ref dummy, whiteTex);
         SetupTexAndSampler(_mat, "_DetailAlbedoMap", ref mc._DetailAlbedoIndex, ref dummy, whiteTex);
         SetupTexAndSampler(_mat, "_DetailNormalMap", ref mc._DetailNormalIndex, ref dummy, blackTex);
 
