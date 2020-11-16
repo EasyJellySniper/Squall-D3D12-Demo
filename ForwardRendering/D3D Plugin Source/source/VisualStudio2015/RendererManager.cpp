@@ -135,6 +135,7 @@ void RendererManager::AddToInstanceRenderer(Renderer* _renderer, Camera *_camera
 			// add instance data
 			SqInstanceData sid;
 			sid.world = _renderer->GetWorld();
+			sid.invWorld = _renderer->GetInvWorld();
 			instanceRenderers[queue][idx].AddInstanceData(sid, zDist);
 		}
 	}
@@ -215,10 +216,9 @@ void RendererManager::UploadObjectConstant(int _frameIdx, int _threadIndex, int 
 			continue;
 		}
 
-		XMFLOAT4X4 world = r->GetWorld();
-
 		ObjectConstant sc;
-		sc.sqMatrixWorld = world;
+		sc.sqMatrixWorld = r->GetWorld();
+		sc.sqMatrixInvWorld = r->GetInvWorld();
 		r->UpdateObjectConstant(sc, _frameIdx);
 	}
 }

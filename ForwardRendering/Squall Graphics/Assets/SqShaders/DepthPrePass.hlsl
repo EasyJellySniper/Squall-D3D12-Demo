@@ -29,6 +29,7 @@ v2f DepthPrePassVS(VertexInput i, uint iid : SV_InstanceID)
 	v2f o = (v2f)0;
 
 	float4x4 world = _SqInstanceData[iid].world;
+	float4x4 invWorld = _SqInstanceData[iid].invWorld;
 	float4 wpos = mul(world, float4(i.vertex, 1.0f));
 
 	o.vertex = mul(SQ_MATRIX_VP, wpos);
@@ -37,7 +38,7 @@ v2f DepthPrePassVS(VertexInput i, uint iid : SV_InstanceID)
 	o.tex.zw = o.tex.zw * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
 
 	// assume uniform scale, mul normal with world matrix directly
-	o.normal = LocalToWorldDir(world, i.normal);
+	o.normal = LocalToWorldNormal(invWorld, i.normal);
 	o.worldToTangent = CreateTBN(world, o.normal, i.tangent);
 
 	return o;

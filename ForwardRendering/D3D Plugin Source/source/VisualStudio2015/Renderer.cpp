@@ -65,6 +65,10 @@ void Renderer::SetWorld(XMFLOAT4X4 _world)
 {
 	world = _world;
 
+	// inverse world for normal transform
+	XMMATRIX w = XMLoadFloat4x4(&world);
+	XMStoreFloat4x4(&invWorld, XMMatrixInverse(&XMMatrixDeterminant(w), w));
+
 	// update bound also note we only cache local bound when init!
 	localBound.Transform(worldBound, XMLoadFloat4x4(&world));
 
@@ -87,6 +91,11 @@ void Renderer::AddMaterial(Material* _material)
 XMFLOAT4X4 Renderer::GetWorld()
 {
 	return world;
+}
+
+XMFLOAT4X4 Renderer::GetInvWorld()
+{
+	return invWorld;
 }
 
 Mesh * Renderer::GetMesh()

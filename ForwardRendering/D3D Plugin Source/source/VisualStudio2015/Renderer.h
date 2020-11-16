@@ -23,6 +23,7 @@ public:
 	void AddMaterial(Material *_material);
 
 	XMFLOAT4X4 GetWorld();
+	XMFLOAT4X4 GetInvWorld();
 	Mesh *GetMesh();
 	BoundingBox GetWorldBound();
 	bool GetVisible();
@@ -53,4 +54,5 @@ private:
 
 	vector<Material*> materials;
 	XMFLOAT4X4 world;
+	XMFLOAT4X4 invWorld;
 };

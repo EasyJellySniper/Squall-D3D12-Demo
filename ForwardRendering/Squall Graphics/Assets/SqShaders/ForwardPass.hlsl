@@ -58,7 +58,7 @@ v2f ForwardPassVS(VertexInput i, uint iid : SV_InstanceID)
 	// calc normal for transparent only
 #ifdef _TRANSPARENT_ON
 	// assume uniform scale, mul normal with world matrix directly
-	o.normal = LocalToWorldDir(i.normal);
+	o.normal = LocalToWorldNormal(i.normal);
 	#ifdef _NORMAL_MAP
 		o.worldToTangent = CreateTBN(o.normal, i.tangent);
 	#endif

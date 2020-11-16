@@ -20,6 +20,7 @@ struct FrameResource
 struct ObjectConstant
 {
 	XMFLOAT4X4 sqMatrixWorld;
+	XMFLOAT4X4 sqMatrixInvWorld;
 };
 
 struct SystemConstant

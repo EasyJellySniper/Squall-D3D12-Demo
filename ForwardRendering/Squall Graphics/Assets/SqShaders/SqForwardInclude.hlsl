@@ -113,6 +113,18 @@ float3 LocalToWorldDir(float4x4 world, float3 dir)
 	return mul((float3x3)world, dir);
 }
 
+float3 LocalToWorldNormal(float3 normal)
+{
+	// mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
+	return normalize(mul(normal, SQ_MATRIX_INV_WORLD));
+}
+
+float3 LocalToWorldNormal(float4x4 invWorld, float3 normal)
+{
+	// mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
+	return normalize(mul(normal, (float3x3)invWorld));
+}
+
 float3x3 CreateTBN(float3 normal, float4 oTangent)
 {
 	float3 tangent = LocalToWorldDir(oTangent.xyz);

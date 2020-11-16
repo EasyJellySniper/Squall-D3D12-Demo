@@ -41,6 +41,7 @@ struct SubMesh
 struct SqInstanceData
 {
 	float4x4 world;
+	float4x4 invWorld;
 };
 
 cbuffer SystemConstant : register(b0)
@@ -80,6 +81,7 @@ cbuffer SystemConstant : register(b0)
 cbuffer ObjectConstant : register(b1)
 {
 	float4x4 SQ_MATRIX_WORLD;
+	float4x4 SQ_MATRIX_INV_WORLD;
 };
 
 cbuffer MaterialConstant : register(b2)

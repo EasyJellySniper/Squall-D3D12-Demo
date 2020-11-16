@@ -10,6 +10,7 @@ using namespace std;
 struct SqInstanceData
 {
 	XMFLOAT4X4 world;
+	XMFLOAT4X4 invWorld;
 };
 
 struct QueueRenderer
