@@ -103,4 +103,3 @@ The folder Squall Graphics is Unity project. <br>
 And D3D Plugin Source is native implement project. <br>
 
 Executable File Link: https://drive.google.com/file/d/1tYJHLdzFgJvlKga8vBlYaq0OhZZx4xO7/view?usp=sharing <br>
-The profile console will show up and minimize. <br>
