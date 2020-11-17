@@ -2,6 +2,7 @@
 #include "GameTime.h"
 #include "FrameResource.h"
 #include <chrono>
+#include <string>
 using namespace std;
 
 struct GameTime
@@ -55,5 +56,8 @@ public:
 	double gpuTimeCutoutMs;
 	double gpuTimeDepthMs;
 	double totalGpuMs;
+
+	string cpuProfile;
+	string gpuProfile;
 #endif
 };

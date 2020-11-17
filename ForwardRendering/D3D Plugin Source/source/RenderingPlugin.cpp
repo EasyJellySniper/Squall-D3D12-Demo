@@ -213,6 +213,16 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateRayTracingRange
 	RayTracingManager::Instance().UpdateRayTracingRange(_range);
 }
 
+extern "C" UNITY_INTERFACE_EXPORT char* UNITY_INTERFACE_API GetCpuProfile()
+{
+	return (char*)GameTimerManager::Instance().cpuProfile.c_str();
+}
+
+extern "C" UNITY_INTERFACE_EXPORT char* UNITY_INTERFACE_API GetGpuProfile()
+{
+	return (char*)GameTimerManager::Instance().gpuProfile.c_str();
+}
+
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
 

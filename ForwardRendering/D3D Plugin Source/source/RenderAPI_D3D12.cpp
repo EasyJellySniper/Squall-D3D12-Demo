@@ -90,15 +90,6 @@ void RenderAPI_D3D12::CreateResources(int _numOfThreads)
 	GenerateMipmap::Init();
 	GaussianBlur::Init();
 	FXAA::Init();
-
-#if defined(GRAPHICTIME)
-	AllocConsole();
-	HWND handle = GetConsoleWindow();
-	HMENU hMenu = GetSystemMenu(handle, false);
-	DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
-	freopen("CONOUT$", "w", stdout);
-	ShowWindow(GetConsoleWindow(), SW_MINIMIZE);
-#endif
 }
 
 void RenderAPI_D3D12::ReleaseResources()
@@ -117,11 +108,6 @@ void RenderAPI_D3D12::ReleaseResources()
 	GenerateMipmap::Release();
 	GaussianBlur::Release();
 	FXAA::Release();
-
-#if defined(GRAPHICTIME)
-	fclose(stdout);
-	FreeConsole();
-#endif
 }
 
 int RenderAPI_D3D12::GetRenderThreadCount()

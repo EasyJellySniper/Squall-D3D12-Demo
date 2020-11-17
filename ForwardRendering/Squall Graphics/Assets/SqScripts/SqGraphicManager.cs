@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityStandardAssets.Utility;
 
 /// <summary>
 /// squall graphic manager
@@ -21,6 +22,12 @@ public class SqGraphicManager : MonoBehaviour
 
     [DllImport("SquallGraphics")]
     static extern int GetRenderThreadCount();
+
+    [DllImport("SquallGraphics")]
+    static extern IntPtr GetCpuProfile();
+
+    [DllImport("SquallGraphics")]
+    static extern IntPtr GetGpuProfile();
 
     /// <summary>
     /// number of render threads
@@ -44,6 +51,8 @@ public class SqGraphicManager : MonoBehaviour
     /// instance
     /// </summary>
     public static SqGraphicManager Instance { private set; get; }
+
+    bool displayFrameData = false;
 
     void Awake()
     {
@@ -87,7 +96,26 @@ public class SqGraphicManager : MonoBehaviour
             return;
         }
 
+        if (Input.GetKeyUp(KeyCode.R))
+            displayFrameData = !displayFrameData;
+
         UpdateSqGraphic();
         RenderSqGraphic();
+    }
+
+    void OnGUI()
+    {
+        if (displayFrameData)
+        {
+            string cpuProfile = Marshal.PtrToStringAnsi(GetCpuProfile());
+            string gpuProfile = Marshal.PtrToStringAnsi(GetGpuProfile()) + "\nFPS: " + GetComponent<FPSCounter>().m_CurrentFps;
+
+            GUIStyle fontStyle = new GUIStyle(GUI.skin.textArea);
+            fontStyle.normal.textColor = Color.yellow;
+            fontStyle.fontSize = 18 * Screen.width / 1920;
+
+            GUI.TextArea(new Rect(0, 0, 400 * Screen.width / 1920, 430 * Screen.height / 1080), cpuProfile, fontStyle);
+            GUI.TextArea(new Rect(400 * Screen.width / 1920, 0, 400 * Screen.width / 1920, 430 * Screen.height / 1080), gpuProfile, fontStyle);
+        }
     }
 }

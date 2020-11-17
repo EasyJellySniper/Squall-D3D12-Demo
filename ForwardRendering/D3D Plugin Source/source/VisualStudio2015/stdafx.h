@@ -9,6 +9,7 @@ using namespace std;
 #include <algorithm>
 #include <d3d12.h>
 #include <functional>
+#include <sstream>
 
 inline wstring AnsiToWString(const string& str)
 {
@@ -110,4 +111,13 @@ inline size_t GetUniqueID()
 	num++;
 
 	return id;
+}
+
+template <typename T>
+inline std::string to_string_precision(const T a_value, const int n = 4)
+{
+	std::ostringstream out;
+	out.precision(n);
+	out << std::fixed << a_value;
+	return out.str();
 }

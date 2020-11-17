@@ -4,6 +4,7 @@
 using namespace std;
 #include "GraphicManager.h"
 #include "RayTracingManager.h"
+#include "stdafx.h"
 
 void GameTimerManager::Init()
 {
@@ -115,42 +116,44 @@ void GameTimerManager::PrintGameTime()
 
 	if (profileTime > 1000.0)
 	{
-		cout << "-------------- CPU Profile(ms) --------------\n";
-		cout << fixed << setprecision(4);
-		cout << "Wait GPU Fence: " << gameTime.updateTime << endl;
-		cout << "Culling Time: " << gameTime.cullingTime << endl;
-		cout << "Sorting Time: " << gameTime.sortingTime << endl;
-		cout << "Upload Time: " << gameTime.uploadTime << endl;
-		cout << "Render Time: " << gameTime.renderTime << endl;
+		cpuProfile = "";
+		cpuProfile += "-------------- CPU Profile(ms) --------------\n";
+
+		cpuProfile += "CPU Time: " + to_string_precision(gameTime.updateTime + gameTime.renderTime) + "\n";
+		cpuProfile += "Wait GPU Fence: " + to_string_precision(gameTime.updateTime) + "\n";
+		cpuProfile += "Culling Time: " + to_string_precision(gameTime.cullingTime) + "\n";
+		cpuProfile += "Sorting Time: " + to_string_precision(gameTime.sortingTime) + "\n";
+		cpuProfile += "Upload Time: " + to_string_precision(gameTime.uploadTime) + "\n";
+		cpuProfile += "Render Time: " + to_string_precision(gameTime.renderTime) + "\n";
 
 		int totalDrawCall = 0;
 		for (int i = 0; i < GraphicManager::Instance().GetThreadCount() - 1; i++)
 		{
-			cout << "\tThread " << i << " Time:" << gameTime.renderThreadTime[i] << endl;
+			cpuProfile += "\tThread " + to_string_precision(i) + " Time:" + to_string_precision(gameTime.renderThreadTime[i]) + "\n";
 			totalDrawCall += gameTime.batchCount[i];
 		}
 
-		cout << "Total DrawCall: " << totalDrawCall << endl;
-		cout << "Total ray tracing instance (Top Level): " << RayTracingManager::Instance().GetTopLevelAsCount() << endl;
+		cpuProfile += "Total DrawCall: " + to_string_precision(totalDrawCall) + "\n";
+		cpuProfile += "Total ray tracing instance (Top Level): " + to_string_precision(RayTracingManager::Instance().GetTopLevelAsCount()) + "\n";
 
-		cout << "\n-------------- GPU Profile(ms) --------------\n";
-		cout << "GPU Time: " << totalGpuMs << endl;
-		cout << "Begin Frame (Clear Target) : " << gpuTimeMs[GpuTimeType::BeginFrame] << endl;
-		cout << "Prepass Work (Depth) : " << gpuTimeMs[GpuTimeType::PrepassWork] + gpuTimeDepthMs << endl;
-		cout << "Update Top Level AS: " << gpuTimeMs[GpuTimeType::UpdateTopLevelAS] << endl;
-		cout << "Forward+ Light Culling: " << gpuTimeMs[GpuTimeType::TileLightCulling] << endl;
-		cout << "Collect Shadow Map: " << gpuTimeMs[GpuTimeType::CollectShadowMap] << endl;
-		cout << "Ray Tracing Shadow : " << gpuTimeMs[GpuTimeType::RayTracingShadow] << endl;
-		cout << "Ray Tracing Reflection: " << gpuTimeMs[GpuTimeType::RayTracingReflection] << endl;
-		cout << "Ray Tracing Ambient: " << gpuTimeMs[GpuTimeType::RayTracingAmbient] << endl;
-		cout << "Skybox : " << gpuTimeMs[GpuTimeType::SkyboxPass] << endl;
-		cout << "Forward Transparent: " << gpuTimeMs[GpuTimeType::TransparentPass] << endl;
-		cout << "EndFrame (MSAA Resolve) : " << gpuTimeMs[GpuTimeType::EndFrame] << endl;
-		cout << "Forward Opaque: " << gpuTimeOpaqueMs << endl;
-		cout << "Forward Cutout: " << gpuTimeCutoutMs << endl;
+		gpuProfile = "";
+		gpuProfile += "-------------- GPU Profile(ms) --------------\n";
+		gpuProfile += "GPU Time: " + to_string_precision(totalGpuMs) + "\n";
+		gpuProfile += "Begin Frame (Clear Target) : " + to_string_precision(gpuTimeMs[GpuTimeType::BeginFrame]) + "\n";
+		gpuProfile += "Prepass Work (Depth) : " + to_string_precision(gpuTimeMs[GpuTimeType::PrepassWork] + gpuTimeDepthMs) + "\n";
+		gpuProfile += "Update Top Level AS: " + to_string_precision(gpuTimeMs[GpuTimeType::UpdateTopLevelAS]) + "\n";
+		gpuProfile += "Forward+ Light Culling: " + to_string_precision(gpuTimeMs[GpuTimeType::TileLightCulling]) + "\n";
+		gpuProfile += "Collect Shadow Map: " + to_string_precision(gpuTimeMs[GpuTimeType::CollectShadowMap]) + "\n";
+		gpuProfile += "Ray Tracing Shadow : " + to_string_precision(gpuTimeMs[GpuTimeType::RayTracingShadow]) + "\n";
+		gpuProfile += "Ray Tracing Reflection: " + to_string_precision(gpuTimeMs[GpuTimeType::RayTracingReflection]) + "\n";
+		gpuProfile += "Ray Tracing Ambient: " + to_string_precision(gpuTimeMs[GpuTimeType::RayTracingAmbient]) + "\n";
+		gpuProfile += "Skybox : " + to_string_precision(gpuTimeMs[GpuTimeType::SkyboxPass]) + "\n";
+		gpuProfile += "Forward Transparent: " + to_string_precision(gpuTimeMs[GpuTimeType::TransparentPass]) + "\n";
+		gpuProfile += "EndFrame (MSAA Resolve) : " + to_string_precision(gpuTimeMs[GpuTimeType::EndFrame]) + "\n";
+		gpuProfile += "Forward Opaque: " + to_string_precision(gpuTimeOpaqueMs) + "\n";
+		gpuProfile += "Forward Cutout: " + to_string_precision(gpuTimeCutoutMs) + "\n";
 
-		cout << endl << endl;
-        profileTime = 0.0;
+		profileTime = 0.0;
 	}
 
     lastTime = std::chrono::steady_clock::now();
