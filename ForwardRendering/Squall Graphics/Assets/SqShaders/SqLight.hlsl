@@ -207,7 +207,7 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 	if (!isTransparent)
 	{
 		// sample ray tracing AO
-		float4 rtAmbient = SQ_SAMPLE_TEXTURE(_AmbientRTIndex, _AnisotropicWrapSampler, screenUV);
+		float4 rtAmbient = SQ_SAMPLE_TEXTURE(_AmbientRTIndex, _LinearClampSampler, screenUV);
 
 		// hemi sphere sky light
 		float up = normal.y * 0.5f + 0.5f;	// convert to [0,1]
@@ -230,11 +230,11 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 	[branch]
 	if (!isTransparent)
 	{
-		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_ReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
+		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_ReflectionRTIndex, _LinearClampSampler, screenUV, specMip).rgb;
 	}
 	else
 	{
-		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_TransReflectionRTIndex, _LinearWrapSampler, screenUV, specMip).rgb;
+		gi.indirectSpecular = SQ_SAMPLE_TEXTURE_LEVEL(_TransReflectionRTIndex, _LinearClampSampler, screenUV, specMip).rgb;
 		gi.indirectSpecular = lerp(0, gi.indirectSpecular, depthFade);
 	}
 
