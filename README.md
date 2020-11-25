@@ -19,7 +19,7 @@ Yes, I implement the DXR ray tracing shader and don't consider fallback API for 
 You can try AMD RX cards also, but I'm not sure since I don't have one. <br><br>
 
 Missing one of above requirement the demo would crash. <br>
-My testing rig is R5 3600X + RTX 2070. <br>
+My testing rig is R5 600X + RTX 2070. <br>
 <br><br>
 
 # Features
