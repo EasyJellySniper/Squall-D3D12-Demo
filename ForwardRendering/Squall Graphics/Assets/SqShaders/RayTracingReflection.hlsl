@@ -260,8 +260,7 @@ void RTReflectionAnyHit(inout RayPayload payload, in BuiltInTriangleIntersection
         return;
     }
 
-    // accept hit so that system goes to closet hit
-    AcceptHitAndEndSearch();
+    // do not accept hit, make it commit tMax for every other candidates
 }
 
 [shader("miss")]

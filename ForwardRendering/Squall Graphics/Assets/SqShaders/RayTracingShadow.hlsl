@@ -288,7 +288,7 @@ void RTShadowAnyHit(inout RayPayload payload, in BuiltInTriangleIntersectionAttr
         return;
     }
 
-    // accept hit so that system goes to closet hit
+    // accept hit to end search, shadow test only need to know if it is hit
     AcceptHitAndEndSearch();
 }
 
