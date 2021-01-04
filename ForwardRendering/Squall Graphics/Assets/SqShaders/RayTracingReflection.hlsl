@@ -192,7 +192,7 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
 
     // -------------------------------- recursive ray if necessary ------------------------------ //
     RayPayload recursiveResult = (RayPayload)0;
-    recursiveResult.reflectionColor = float3(0, 0, 0);
+    recursiveResult.reflectionColor = SampleSkyForRay(WorldRayDirection());
 
     RayPayload shadowResult = (RayPayload)0;
     shadowResult.atten = 1.0f;
