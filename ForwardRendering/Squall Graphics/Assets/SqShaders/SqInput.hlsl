@@ -166,6 +166,13 @@ float RgbToLuma(float3 col)
 	return col.r * 0.2126f + col.g * 0.7152f + col.b * 0.0722f;
 }
 
+float GetMipLevels(Texture2D _tex)
+{
+	float w, h, m;
+	_tex.GetDimensions(0, w, h, m);
+	return m;
+}
+
 #define SQ_SAMPLE_TEXTURE_LEVEL(x,y,z,w) _SqTexTable[x].SampleLevel(_SqSamplerTable[y], z, w)
 
 #if defined(RAY_SHADER)

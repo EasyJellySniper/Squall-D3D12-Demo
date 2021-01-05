@@ -222,9 +222,12 @@ SqGI CalcGI(float3 normal, float2 screenUV, float smoothness, float occlusion, b
 	return gi;
 #endif
 
+	// get texture dimensions
+	float reflLevels = GetMipLevels(_SqTexTable[_ReflectionRTIndex]);
+
 	// smooth to mip map
 	float roughness = 1 - smoothness * smoothness;
-	float specMip = roughness * 10;
+	float specMip = roughness * reflLevels;
 
 	// sample indirect specular
 	[branch]
