@@ -91,7 +91,7 @@ RayPayload ShootReflectionRay(float4 normalSmooth, float depth, float2 screenUV,
     RayDesc ray;
     ray.Origin = wpos;
     ray.Direction = reflect(incident, normalSmooth.rgb);   // shoot a reflection ray
-    ray.TMin = 0;
+    ray.TMin = 0.0001f;
     ray.TMax = _CameraPos.w;
 
     RayPayload payload = (RayPayload)0;
@@ -206,7 +206,7 @@ void RTReflectionClosestHit(inout RayPayload payload, in BuiltInTriangleIntersec
         RayDesc recursiveRay;
         recursiveRay.Origin = hitPos;
         recursiveRay.Direction = reflect(WorldRayDirection(), bumpNormal);   // shoot a reflection ray
-        recursiveRay.TMin = 0;
+        recursiveRay.TMin = 0.0001f;
         recursiveRay.TMax = _CameraPos.w;
 
         recursiveResult.reflectionDepth = payload.reflectionDepth + 1;
